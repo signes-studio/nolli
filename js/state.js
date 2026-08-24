@@ -12,5 +12,17 @@ export const state = {
   pendingLngLat: null,
   editingBuildingId: null,
   selectedFeatureId: null,
+  locationMarker: null,
+  userLocation: null,
+  activeDecada: '',
+  activeCategoria: '',
+  activeVisitable: '',
   map: null,
 };
+
+export function separarArquitectos(valor) {
+  return String(valor || '')
+    .split(',')
+    .map((nombre) => nombre.trim())
+    .filter(Boolean);
+}

@@ -2,7 +2,7 @@
    MODALSUI.JS — Modal de login de administrador y modal de alta de edificio
    ========================================================================= */
 
-import { state } from './state.js';
+import { state, separarArquitectos } from './state.js';
 import { loginAdmin, createBuilding, updateBuilding } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
@@ -90,6 +90,8 @@ function initAddBuildingModal() {
     document.getElementById('add-arquitecto').value = obra.arquitecto || '';
     document.getElementById('add-ano').value = obra.año_construccion || '';
     document.getElementById('add-importancia').value = String(obra.importancia || 1);
+    document.getElementById('add-categoria').value = obra.categoria || 'otro';
+    document.getElementById('add-visitable').value = obra.visitable ? '1' : '0';
     document.getElementById('add-error').classList.add('hidden');
     mAdd.classList.add('open');
   });
@@ -102,6 +104,8 @@ function initAddBuildingModal() {
     const arq = document.getElementById('add-arquitecto').value.trim();
     const ano = parseInt(document.getElementById('add-ano').value, 10);
     const importancia = Number(document.getElementById('add-importancia').value);
+    const categoria = document.getElementById('add-categoria').value;
+    const visitable = document.getElementById('add-visitable').value === '1';
 
     if (!nombre || !arq || !state.pendingLngLat) {
       err.textContent = 'Faltan datos obligatorios (Nombre y Arquitecto).';
@@ -118,6 +122,8 @@ function initAddBuildingModal() {
       arquitecto: arq,
       año_construccion: Number.isNaN(ano) ? null : ano,
       importancia,
+      categoria,
+      visitable,
       longitud: state.pendingLngLat.lng,
       latitud: state.pendingLngLat.lat,
     };
@@ -129,6 +135,7 @@ function initAddBuildingModal() {
         const obra = state.OBRAS.find((item) => String(item.id) === String(state.editingBuildingId));
         if (obra) Object.assign(obra, {
           ...edificio,
+          arquitectos: separarArquitectos(arq),
           id: obra.id,
           coordenadas: [updated.longitud, updated.latitud],
           selected: obra.selected,
@@ -143,6 +150,7 @@ function initAddBuildingModal() {
 
         state.OBRAS.push({
           ...nuevoEdificio,
+          arquitectos: separarArquitectos(arq),
           añadido_por: 'administrador',
           id: insertedData[0].id,
           featureId: String(insertedData[0].id ?? `obra-${Date.now()}`),
@@ -153,11 +161,12 @@ function initAddBuildingModal() {
       actualizarFuenteMapa();
 
       // Actualizar filtros si hay un arquitecto nuevo
-      if (!state.ARQUITECTOS.includes(arq)) {
-        state.ARQUITECTOS.push(arq);
-        state.activeArquitectos.add(arq);
-        generarFiltrosUI();
-      }
+      const arquitectosNuevos = separarArquitectos(arq).some((nombreArquitecto) => !state.ARQUITECTOS.includes(nombreArquitecto));
+      separarArquitectos(arq).forEach((nombreArquitecto) => {
+        if (!state.ARQUITECTOS.includes(nombreArquitecto)) state.ARQUITECTOS.push(nombreArquitecto);
+        state.activeArquitectos.add(nombreArquitecto);
+      });
+      if (arquitectosNuevos) generarFiltrosUI();
 
       closeAdd();
       document.dispatchEvent(new CustomEvent('radar:cerrar-ficha'));
@@ -191,6 +200,8 @@ function handleMapLongPress(lngLat) {
   document.getElementById('add-arquitecto').value = '';
   document.getElementById('add-ano').value = '';
   document.getElementById('add-importancia').value = '1';
+  document.getElementById('add-categoria').value = 'otro';
+  document.getElementById('add-visitable').value = '1';
   document.getElementById('modal-add-title').textContent = 'REGISTRO DE NUEVA OBRA (DB)';
   document.getElementById('btn-add-save').innerHTML = '<span class="inline-flex items-center gap-1"><i data-lucide="database" width="13" height="13"></i> PUBLICAR</span>';
   document.getElementById('add-error').classList.add('hidden');

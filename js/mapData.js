@@ -9,9 +9,14 @@ export function actualizarFuenteMapa() {
     type: 'FeatureCollection',
     features: state.OBRAS.map((o) => ({
       type: 'Feature',
-        id: o.featureId,
+      id: o.featureId,
       geometry: { type: 'Point', coordinates: o.coordenadas },
-      properties: { ...o, selected: o.selected ? 1 : 0 },
+      properties: {
+        ...o,
+        arquitectos: o.arquitectos || [],
+        visitable: o.visitable ? 1 : 0,
+        selected: o.selected ? 1 : 0,
+      },
     })),
   };
 

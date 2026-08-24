@@ -76,6 +76,45 @@ export function cargarMapaMapbox() {
   document.getElementById('btn-recenter').addEventListener('click', () => {
     state.map.flyTo({ center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM });
   });
+  document.getElementById('btn-location').addEventListener('click', localizarDispositivo);
+}
+
+function localizarDispositivo() {
+  if (!navigator.geolocation) {
+    alert('Este dispositivo no admite geolocalización.');
+    return;
+  }
+
+  const button = document.getElementById('btn-location');
+  button.classList.add('location-active');
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const coordinates = [position.coords.longitude, position.coords.latitude];
+      state.userLocation = { lng: coordinates[0], lat: coordinates[1] };
+      if (state.locationMarker) state.locationMarker.remove();
+
+      const markerElement = document.createElement('div');
+      markerElement.className = 'location-marker';
+      markerElement.setAttribute('aria-label', 'Tu ubicación actual');
+      state.locationMarker = new mapboxgl.Marker({ element: markerElement })
+        .setLngLat(coordinates)
+        .addTo(state.map);
+
+      state.map.flyTo({ center: coordinates, zoom: Math.max(state.map.getZoom(), 14) });
+      document.getElementById('hud-lng').textContent = coordinates[0].toFixed(5);
+      document.getElementById('hud-lat').textContent = coordinates[1].toFixed(5);
+    },
+    (error) => {
+      const messages = {
+        1: 'Permiso de ubicación denegado.',
+        2: 'No se pudo determinar tu ubicación.',
+        3: 'La búsqueda de ubicación ha tardado demasiado.',
+      };
+      alert(messages[error.code] || 'No se pudo obtener tu ubicación.');
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 },
+  );
 }
 
 function initHudReadout() {

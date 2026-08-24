@@ -66,6 +66,12 @@
     <button id="btn-recenter" type="button" class="fab" title="Recentrar" aria-label="Recentrar mapa">
       <i data-lucide="crosshair" width="20" height="20"></i>
     </button>
+    <button id="btn-location" type="button" class="fab" title="Mi ubicación" aria-label="Mostrar mi ubicación">
+      <i data-lucide="locate-fixed" width="20" height="20"></i>
+    </button>
+    <button id="btn-search" type="button" class="fab" title="Buscar edificios" aria-label="Buscar edificios">
+      <i data-lucide="search" width="20" height="20"></i>
+    </button>
   </div>
 
   <!-- Panel de filtros -->
@@ -74,7 +80,38 @@
       <span style="color:var(--fg-dim)">[ FILTRO // ARQUITECTO ]</span>
       <i data-lucide="x" id="btn-filters-close" width="14" height="14" style="cursor:pointer; color:var(--fg-dim)" role="button" aria-label="Cerrar filtros"></i>
     </div>
+    <div class="filter-controls">
+      <input id="architect-search" class="tech-input" type="search" placeholder="BUSCAR ARQUITECTO..." aria-label="Buscar arquitecto">
+      <select id="filter-decade" class="tech-input" aria-label="Filtrar por década">
+        <option value="">TODAS LAS DÉCADAS</option>
+      </select>
+      <select id="filter-category" class="tech-input" aria-label="Filtrar por categoría">
+        <option value="">TODAS LAS CATEGORÍAS</option>
+      </select>
+      <select id="filter-visitable" class="tech-input" aria-label="Filtrar por visitabilidad">
+        <option value="">VISITABILIDAD: TODAS</option>
+        <option value="1">SOLO VISITABLES</option>
+        <option value="0">SOLO NO VISITABLES</option>
+      </select>
+    </div>
     <div id="filter-switches"></div>
+  </section>
+
+  <section id="search-panel" class="search-panel" aria-label="Buscar edificios">
+    <div class="filter-head">
+      <span style="color:var(--fg-dim)">[ BUSCAR // EDIFICIOS ]</span>
+      <i data-lucide="x" id="btn-search-close" width="14" height="14" style="cursor:pointer; color:var(--fg-dim)" role="button" aria-label="Cerrar búsqueda"></i>
+    </div>
+    <div class="search-controls">
+      <input id="building-search" class="tech-input" type="search" placeholder="NOMBRE DEL EDIFICIO..." aria-label="Buscar por nombre">
+      <select id="building-architect" class="tech-input" aria-label="Filtrar por arquitecto">
+        <option value="">TODOS LOS ARQUITECTOS</option>
+      </select>
+      <select id="building-decade" class="tech-input" aria-label="Filtrar por década">
+        <option value="">TODAS LAS DÉCADAS</option>
+      </select>
+    </div>
+    <div id="nearby-buildings" class="nearby-buildings"></div>
   </section>
 
   <!-- Sheet de ficha técnica -->
@@ -159,6 +196,28 @@
           <option value="2">2 — MEDIA</option>
           <option value="3">3 — BAJA</option>
         </select>
+      </div>
+
+      <div class="flex gap-2">
+        <div class="flex-1">
+          <label for="add-categoria" class="text-[10px] block mb-1" style="color:var(--fg-dim)">CATEGORÍA</label>
+          <select id="add-categoria" class="tech-input">
+            <option value="residencial">RESIDENCIAL</option>
+            <option value="equipamiento">EQUIPAMIENTO</option>
+            <option value="parque o jardin">PARQUE O JARDÍN</option>
+            <option value="proyecto urbano">PROYECTO URBANO</option>
+            <option value="industrial">INDUSTRIAL</option>
+            <option value="religioso">RELIGIOSO</option>
+            <option value="otro">OTRO</option>
+          </select>
+        </div>
+        <div class="flex-1">
+          <label for="add-visitable" class="text-[10px] block mb-1" style="color:var(--fg-dim)">VISITABLE</label>
+          <select id="add-visitable" class="tech-input">
+            <option value="1">SÍ</option>
+            <option value="0">NO</option>
+          </select>
+        </div>
       </div>
 
       <div id="add-error" class="text-[10px] text-red-500 hidden mt-1" role="alert"></div>

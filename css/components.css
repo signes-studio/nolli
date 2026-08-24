@@ -10,6 +10,11 @@
 }
 .fab:active { background: var(--accent); color: #000; border-color: var(--accent); }
 .fab.active-state { background: var(--accent); color: #000; border-color: var(--accent); }
+.location-active { color: var(--accent-2); border-color: rgba(57, 255, 20, 0.65); background: rgba(57, 255, 20, 0.08); }
+.location-marker {
+  width: 10px; height: 10px; border: 1px solid #ffffff; border-radius: 50% !important;
+  background: var(--accent-2); box-shadow: 0 0 0 3px rgba(57, 255, 20, 0.18);
+}
 
 /* ---------- Botones ---------- */
 .btn {
@@ -20,6 +25,10 @@
 .btn-accent { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 700; }
 .btn-accent2 { background: var(--accent-2); border-color: var(--accent-2); color: #000; font-weight: 700; }
 .btn-edit { font-size: 10px; padding: 5px 7px; color: var(--accent-2); border-color: var(--accent-2); }
+.architect-filter {
+  padding: 0; border: 0; background: transparent; color: var(--accent);
+  font: inherit; text-align: left; cursor: pointer; text-decoration: underline;
+}
 
 /* ---------- Modal (genérico) ---------- */
 .modal-overlay {
