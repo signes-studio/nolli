@@ -25,7 +25,7 @@
     --bg-panel:      #0a0a0a;
     --bg-raised:     #121212;
     --accent:        #FF4500; /* naranja técnico */
-    --accent-2:      #39FF14; /* verde fósforo (notas privadas) */
+    --accent-2:      #39FF14; /* verde fósforo */
     --accent-select: #FFFFFF; /* blanco para selección activa */
     --fg:            #FFFFFF;
     --fg-dim:        #7a7a7a;
@@ -128,14 +128,14 @@
 
   /* ---------- Panel de filtros ---------- */
   .filter-panel{
-    position:absolute; right:14px; bottom:0; z-index:40;
+    position:absolute; right:14px; bottom:84px; z-index:40; /* Separado de los FABs */
     width:min(280px, calc(100vw - 28px));
     background:var(--bg-panel); border:1px solid var(--border-strong);
-    transform:translateY(calc(100% + 14px)) translateY(-84px);
+    transform:translateY(calc(100% + 150px)); /* Totalmente oculto hacia abajo */
     transition:transform .22s cubic-bezier(.2,.8,.2,1);
     max-height: 40vh; overflow-y: auto;
   }
-  .filter-panel.open{ transform:translateY(-84px); }
+  .filter-panel.open{ transform:translateY(0); } /* Totalmente visible en su posición original */
   .filter-head{
     padding:10px 12px; border-bottom:1px solid var(--border);
     background:var(--bg-raised); font-size:11px; letter-spacing:.06em;
@@ -212,7 +212,7 @@
   <div class="topbar-inner">
     <div style="flex: 1;">
       <div class="font-display text-2xl leading-none tracking-tight" style="color:var(--fg)">NOLLI<span style="color:var(--accent)">.</span></div>
-      <div class="text-[10px] tracking-widest mt-1" style="color:var(--fg-dim)">RADAR ARQUITECTÓNICO — V0.4.1 ADMIN</div>
+      <div class="text-[10px] tracking-widest mt-1" style="color:var(--fg-dim)">RADAR ARQUITECTÓNICO — V0.5 ADMIN</div>
       <button id="btn-login-trigger" class="mt-2 text-[10px] font-bold px-2 py-1 cursor-pointer transition-colors" style="border: 1px solid var(--accent); color: var(--accent); background: rgba(255, 69, 0, 0.1);">[ ACCESO ADMIN ]</button>
     </div>
     <div class="hud-readout" style="text-align: right;">
@@ -365,7 +365,7 @@ async function inicializarRadar() {
       arquitecto: fila.arquitecto,
       año_construccion: fila.año_construccion,
       coordenadas: [fila.longitud, fila.latitud],
-      selected: false // Propiedad inyectada para el color activo
+      selected: false
     }));
 
     // Ahora filtramos por Arquitecto
@@ -412,13 +412,18 @@ function generarFiltrosUI() {
   });
 }
 
+// Interacción del Panel de Filtros
 const filterPanel = document.getElementById('filter-panel');
 const btnFilters = document.getElementById('btn-filters');
+
 document.getElementById('btn-filters-close').addEventListener('click', () => {
-  filterPanel.classList.remove('open'); btnFilters.classList.remove('active-state');
+  filterPanel.classList.remove('open'); 
+  btnFilters.classList.remove('active-state');
 });
+
 btnFilters.addEventListener('click', () => {
-  filterPanel.classList.toggle('open'); btnFilters.classList.toggle('active-state');
+  filterPanel.classList.toggle('open'); 
+  btnFilters.classList.toggle('active-state');
   cerrarFicha();
 });
 
@@ -446,7 +451,6 @@ function cargarMapaMapbox() {
       type: 'symbol',
       source: 'obras',
       layout: { 
-        // Cambia la imagen basándose en la propiedad 'selected' (forma correcta en Mapbox)
         'icon-image': ['case', ['==', ['get', 'selected'], true], 'icon-target-selected', 'icon-target'], 
         'icon-size': 0.62, 
         'icon-allow-overlap': true 
@@ -497,9 +501,10 @@ function iniciarInteraccionesMapa() {
   
   // Clic en obra
   map.on('click', 'obras-layer', (e) => {
-    const f = e.features[0];
-    const p = f.properties; 
-    const c = f.geometry.coordinates;
+    // IMPORTANTE: Leemos el ID directamente de las propiedades para evitar el bug de Mapbox
+    const p = e.features[0].properties; 
+    const c = e.features[0].geometry.coordinates;
+    const clickedId = p.id;
     
     // Quitar color al icono anterior
     if (selectedFeatureId !== null) {
@@ -508,7 +513,7 @@ function iniciarInteraccionesMapa() {
     }
     
     // Dar color al nuevo
-    selectedFeatureId = f.id;
+    selectedFeatureId = clickedId;
     const obraNueva = OBRAS.find(o => o.id === selectedFeatureId);
     if(obraNueva) obraNueva.selected = true;
     
@@ -521,7 +526,10 @@ function iniciarInteraccionesMapa() {
       <div class="data-row"><div class="label">[COORD]</div><div class="value">${c[0].toFixed(5)}, ${c[1].toFixed(5)}</div></div>
     `;
     sheet.classList.add('open');
+    
+    // Ocultar filtros si estuviesen abiertos
     filterPanel.classList.remove('open');
+    btnFilters.classList.remove('active-state');
   });
 
   // Clic en el fondo vacío (Descartar selección)
