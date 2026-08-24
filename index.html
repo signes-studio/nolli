@@ -154,7 +154,7 @@
   .tech-switch input:checked ~ .thumb{ left:22px; background:var(--accent); }
   .tech-switch input:checked ~ .track{ border-color:var(--accent); }
 
-  /* ---------- Modal: nueva entrada de registro ---------- */
+  /* ---------- Modal (Genérico) ---------- */
   .modal-overlay{
     position:fixed; inset:0; z-index:60; background:rgba(0,0,0,0.82);
     display:flex; align-items:center; justify-content:center;
@@ -170,12 +170,15 @@
     display:flex; justify-content:space-between; align-items:center;
   }
   .modal-body{ padding:14px; }
-  .modal-body textarea{
-    width:100%; min-height:110px; background:#000; border:1px solid var(--accent);
+  
+  /* Inputs estéticos */
+  .tech-input {
+    width:100%; background:#000; border:1px solid var(--accent);
     color:var(--fg); font-family:'JetBrains Mono', monospace; font-size:12px;
-    padding:10px; resize:vertical;
+    padding:10px; focus:outline-none;
   }
-  .modal-body textarea:focus{ outline:none; box-shadow:0 0 0 1px var(--accent); }
+  .tech-input:focus{ outline:none; box-shadow:0 0 0 1px var(--accent); }
+
   .btn{
     font-size:11px; letter-spacing:.06em; padding:10px 14px;
     border:1px solid var(--border-strong); background:var(--bg-raised); color:var(--fg);
@@ -206,8 +209,8 @@
   <div class="topbar-inner">
     <div style="flex: 1;">
       <div class="font-display text-2xl leading-none tracking-tight" style="color:var(--fg)">NOLLI<span style="color:var(--accent)">.</span></div>
-      <div class="text-[10px] tracking-widest mt-1" style="color:var(--fg-dim)">RADAR ARQUITECTÓNICO — V0.2 DB LINK</div>
-      <button id="btn-login-trigger" class="mt-2 text-[10px] font-bold px-2 py-1" style="border: 1px solid var(--accent); color: var(--accent); background: transparent;">[ ACCESO ADMIN ]</button>
+      <div class="text-[10px] tracking-widest mt-1" style="color:var(--fg-dim)">RADAR ARQUITECTÓNICO — V0.3 ADMIN</div>
+      <button id="btn-login-trigger" class="mt-2 text-[10px] font-bold px-2 py-1 cursor-pointer transition-colors" style="border: 1px solid var(--accent); color: var(--accent); background: rgba(255, 69, 0, 0.1);">[ ACCESO ADMIN ]</button>
     </div>
     <div class="hud-readout" style="text-align: right;">
       <div>LNG <span class="val" id="hud-lng">--.-----</span></div>
@@ -249,26 +252,80 @@
   <div id="sheet-body"></div>
 </div>
 
-<!-- Modal: nueva entrada de registro -->
-<div id="modal-overlay" class="modal-overlay">
+<!-- Modal: Login de Administrador -->
+<div id="modal-login" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="flex items-center gap-2">
+        <i data-lucide="terminal" width="14" height="14" style="color:var(--accent)"></i>
+        <span style="letter-spacing:.06em; font-size:11px;">AUTENTICACIÓN REQUERIDA</span>
+      </div>
+      <i data-lucide="x" id="btn-login-close" width="16" height="16" style="cursor:pointer"></i>
+    </div>
+    <div class="modal-body">
+      <div class="flex flex-col gap-3">
+        <div>
+          <label class="text-[10px] block mb-1" style="color:var(--fg-dim)">USER_EMAIL_</label>
+          <input type="email" id="login-email" placeholder="admin@signes.studio" class="tech-input">
+        </div>
+        <div>
+          <label class="text-[10px] block mb-1" style="color:var(--fg-dim)">PASSWORD_</label>
+          <input type="password" id="login-password" placeholder="••••••••" class="tech-input">
+        </div>
+        <div id="login-error" class="text-[10px] text-red-500 hidden mt-1"></div>
+        <button id="btn-do-login" class="btn btn-accent mt-2 w-full">AUTORIZAR ACCESO</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Añadir Edificio (Admin) -->
+<div id="modal-add-building" class="modal-overlay">
   <div class="modal-box">
     <div class="modal-head">
       <div class="flex items-center gap-2">
         <i data-lucide="crosshair" width="14" height="14" style="color:var(--accent-2)"></i>
-        <span style="letter-spacing:.06em; font-size:11px;">NUEVA ENTRADA DE REGISTRO</span>
+        <span style="letter-spacing:.06em; font-size:11px;">REGISTRO DE NUEVA OBRA (DB)</span>
       </div>
-      <i data-lucide="x" id="btn-modal-close" width="16" height="16" style="cursor:pointer"></i>
+      <i data-lucide="x" id="btn-add-close" width="16" height="16" style="cursor:pointer"></i>
     </div>
-    <div class="modal-body">
-      <div class="text-[10px] mb-2" style="color:var(--fg-dim)">
-        COORD <span id="modal-coords" style="color:var(--accent-2)">--</span>
+    <div class="modal-body flex flex-col gap-3">
+      <div class="text-[10px] mb-1" style="color:var(--fg-dim)">
+        COORD <span id="add-coords" style="color:var(--accent-2)">--</span>
       </div>
-      <label class="text-[10px] block mb-1" style="color:var(--fg-dim)">NOTA_DE_CAMPO<span class="blink" style="color:var(--accent-2)">_</span></label>
-      <textarea id="modal-textarea" placeholder="Introduce observación técnica..."></textarea>
-      <div class="flex justify-end gap-2 mt-3">
-        <button class="btn" id="btn-modal-cancel">CANCELAR</button>
-        <button class="btn btn-accent2" id="btn-modal-save">
-          <span class="inline-flex items-center gap-1"><i data-lucide="save" width="13" height="13"></i> GUARDAR</span>
+      
+      <div>
+        <label class="text-[10px] block mb-1" style="color:var(--fg-dim)">CÓDIGO (Ej: VLC-05)</label>
+        <input type="text" id="add-codigo" class="tech-input">
+      </div>
+      
+      <div>
+        <label class="text-[10px] block mb-1" style="color:var(--fg-dim)">NOMBRE DE LA OBRA</label>
+        <input type="text" id="add-nombre" class="tech-input">
+      </div>
+      
+      <div class="flex gap-2">
+        <div class="flex-1">
+          <label class="text-[10px] block mb-1" style="color:var(--fg-dim)">ARQUITECTO</label>
+          <input type="text" id="add-arquitecto" class="tech-input">
+        </div>
+        <div class="w-1/3">
+          <label class="text-[10px] block mb-1" style="color:var(--fg-dim)">AÑO</label>
+          <input type="number" id="add-ano" class="tech-input">
+        </div>
+      </div>
+      
+      <div>
+        <label class="text-[10px] block mb-1" style="color:var(--fg-dim)">SISTEMA ESTRUCTURAL</label>
+        <input type="text" id="add-sistema" class="tech-input">
+      </div>
+
+      <div id="add-error" class="text-[10px] text-red-500 hidden mt-1"></div>
+
+      <div class="flex justify-end gap-2 mt-2">
+        <button class="btn" id="btn-add-cancel">CANCELAR</button>
+        <button class="btn btn-accent2" id="btn-add-save">
+          <span class="inline-flex items-center gap-1"><i data-lucide="database" width="13" height="13"></i> PUBLICAR</span>
         </button>
       </div>
     </div>
@@ -277,44 +334,37 @@
 
 <script>
 /* =========================================================================
-   NOLLI — CONEXIÓN SUPABASE EN VIVO
+   NOLLI — CONEXIÓN SUPABASE EN VIVO + ADMIN LOGIN
    ========================================================================= */
 
 // CLAVES DE ACCESO
 mapboxgl.accessToken = 'pk.eyJ1Ijoic2lnbmVzYXJjaCIsImEiOiJjbXQ3YjdzNXQyNjB2MnhxdW5vdjF6YjV3In0.tFJ9jN3e1z3ezNM9x0ofpg';
-
-// ¡Sustituye esta URL por tu "Project URL" de Supabase!
 const SUPABASE_URL = 'https://ldtfvpjigzvcagtciipn.supabase.co'; 
 const SUPABASE_KEY = 'sb_publishable_kYQ7Fa8nBsrkp1f8C4AuAg_4-5uBFm0';
 
-// VARIABLES GLOBALES (Se rellenarán dinámicamente)
+// VARIABLES GLOBALES
 let OBRAS = [];
 let SISTEMAS = [];
 let activeSistemas = new Set();
-let notasCollection = { type: 'FeatureCollection', features: [] };
-let notaCounter = 0;
-let map; // Instancia global del mapa
+let sessionToken = null; // Guardará el JWT si el usuario se loguea
+let pendingLngLat = null; // Guardará las coordenadas al hacer clic
+let map;
 
 /* ---------------------------------------------------------------------
-   1. CONEXIÓN A LA BASE DE DATOS (SUPABASE)
+   1. CONEXIÓN INICIAL (DESCARGAR EDIFICIOS)
    --------------------------------------------------------------------- */
 async function inicializarRadar() {
   try {
-    // Petición directa con tus datos hardcodeados (cero margen de error)
-    const respuesta = await fetch('https://ldtfvpjigzvcagtciipn.supabase.co/rest/v1/Buildings?select=*', {
+    const respuesta = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?select=*`, {
       headers: {
-        'apikey': 'sb_publishable_kYQ7Fa8nBsrkp1f8C4AuAg_4-5uBFm0',
-        'Authorization': 'Bearer sb_publishable_kYQ7Fa8nBsrkp1f8C4AuAg_4-5uBFm0'
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`
       }
     });
 
-    if (!respuesta.ok) {
-      throw new Error(`Error del servidor: ${respuesta.status}`);
-    }
-
+    if (!respuesta.ok) throw new Error(`Error ${respuesta.status}`);
     const datosDB = await respuesta.json();
 
-    // Adaptamos los datos de Supabase a la estructura que usa el mapa
     OBRAS = datosDB.map(fila => ({
       id: fila.id,
       codigo_obra: fila.codigo_obra,
@@ -325,32 +375,29 @@ async function inicializarRadar() {
       coordenadas: [fila.longitud, fila.latitud]
     }));
 
-    // Extraemos etiquetas únicas para los filtros
     SISTEMAS = [...new Set(OBRAS.map(o => o.sistema_estructural))];
     activeSistemas = new Set(SISTEMAS);
 
-    // Renderizamos la UI y el mapa
     generarFiltrosUI();
     cargarMapaMapbox();
-
   } catch (error) {
-    console.error("Error cargando el radar:", error);
-    alert("Error de conexión. Mira la consola (F12) para más detalles.");
+    console.error("Error:", error);
+    alert("Error de conexión con la base de datos.");
   }
 }
 
 /* ---------------------------------------------------------------------
-   2. GENERACIÓN DINÁMICA DE FILTROS
+   2. UI Y FILTROS
    --------------------------------------------------------------------- */
 function generarFiltrosUI() {
   const filterSwitches = document.getElementById('filter-switches');
   filterSwitches.innerHTML = ''; 
-
   SISTEMAS.forEach((sistema) => {
+    if (!sistema) return;
     const row = document.createElement('div');
     row.className = 'switch-row';
     row.innerHTML = `
-      <span>${sistema || 'SIN ESTRUCTURA'}</span>
+      <span>${sistema}</span>
       <div class="tech-switch">
         <input type="checkbox" checked data-sistema="${sistema}">
         <div class="track"></div>
@@ -359,26 +406,29 @@ function generarFiltrosUI() {
     `;
     filterSwitches.appendChild(row);
   });
-
   filterSwitches.addEventListener('change', (e) => {
-    const input = e.target;
-    if (input.type !== 'checkbox') return;
-    const sistema = input.dataset.sistema;
-    if (input.checked) activeSistemas.add(sistema);
+    if (e.target.type !== 'checkbox') return;
+    const sistema = e.target.dataset.sistema;
+    if (e.target.checked) activeSistemas.add(sistema);
     else activeSistemas.delete(sistema);
-    applyFilter();
+    if (map && map.getLayer('obras-layer')) {
+      map.setFilter('obras-layer', ['in', ['get', 'sistema_estructural'], ['literal', [...activeSistemas]]]);
+    }
   });
 }
 
-function applyFilter() {
-  if (!map || !map.getLayer('obras-layer')) return;
-  map.setFilter('obras-layer', [
-    'in', ['get', 'sistema_estructural'], ['literal', [...activeSistemas]]
-  ]);
-}
+const filterPanel = document.getElementById('filter-panel');
+const btnFilters = document.getElementById('btn-filters');
+document.getElementById('btn-filters-close').addEventListener('click', () => {
+  filterPanel.classList.remove('open'); btnFilters.classList.remove('active-state');
+});
+btnFilters.addEventListener('click', () => {
+  filterPanel.classList.toggle('open'); btnFilters.classList.toggle('active-state');
+  document.getElementById('sheet').classList.remove('open');
+});
 
 /* ---------------------------------------------------------------------
-   3. INICIALIZACIÓN DEL MAPA
+   3. INICIALIZAR MAPA
    --------------------------------------------------------------------- */
 function cargarMapaMapbox() {
   map = new mapboxgl.Map({
@@ -386,228 +436,210 @@ function cargarMapaMapbox() {
     style: 'mapbox://styles/mapbox/dark-v11',
     center: [-0.3690, 39.4690],
     zoom: 12.4,
-    pitch: 0,
     attributionControl: true
   });
-  
-  map.dragRotate.disable();
-  map.touchZoomRotate.disableRotation();
+  map.dragRotate.disable(); map.touchZoomRotate.disableRotation();
 
   map.on('load', () => {
     map.addImage('icon-target', buildIcon(drawTargetIcon), { pixelRatio: 2 });
-    map.addImage('icon-note', buildIcon(drawNoteIcon), { pixelRatio: 2 });
-
-    // Cargar los edificios desde la variable OBRAS (ya descargada de Supabase)
-    map.addSource('obras', {
-      type: 'geojson',
-      data: {
-        type: 'FeatureCollection',
-        features: OBRAS.map(o => ({
-          type: 'Feature',
-          geometry: { type: 'Point', coordinates: o.coordenadas },
-          properties: o
-        }))
-      }
-    });
+    actualizarFuenteMapa();
 
     map.addLayer({
       id: 'obras-layer',
       type: 'symbol',
       source: 'obras',
-      layout: {
-        'icon-image': 'icon-target',
-        'icon-size': 0.62,
-        'icon-allow-overlap': true
-      }
-    });
-
-    map.addSource('notas', { type: 'geojson', data: notasCollection });
-    map.addLayer({
-      id: 'notas-layer',
-      type: 'symbol',
-      source: 'notas',
-      layout: {
-        'icon-image': 'icon-note',
-        'icon-size': 0.55,
-        'icon-allow-overlap': true
-      }
+      layout: { 'icon-image': 'icon-target', 'icon-size': 0.62, 'icon-allow-overlap': true }
     });
 
     map.on('mouseenter', 'obras-layer', () => map.getCanvas().style.cursor = 'pointer');
     map.on('mouseleave', 'obras-layer', () => map.getCanvas().style.cursor = '');
-    map.on('mouseenter', 'notas-layer', () => map.getCanvas().style.cursor = 'pointer');
-    map.on('mouseleave', 'notas-layer', () => map.getCanvas().style.cursor = '');
-
-    iniciarInteractividadMapbox();
+    
+    iniciarInteraccionesMapa();
   });
 
-  // HUD actualización de coordenadas
-  const hudLng = document.getElementById('hud-lng');
-  const hudLat = document.getElementById('hud-lat');
-  const hudZoom = document.getElementById('hud-zoom');
+  const hL = document.getElementById('hud-lng'); const hLa = document.getElementById('hud-lat'); const hZ = document.getElementById('hud-zoom');
+  function uH(l) { if(l){hL.textContent=l.lng.toFixed(5); hLa.textContent=l.lat.toFixed(5);} hZ.textContent=map.getZoom().toFixed(1); }
+  map.on('mousemove', e => uH(e.lngLat)); map.on('move', () => uH()); map.on('load', () => uH(map.getCenter()));
+  document.getElementById('btn-recenter').addEventListener('click', () => map.flyTo({ center: [-0.3690, 39.4690], zoom: 12.4 }));
+}
 
-  function updateHud(lngLat) {
-    if (lngLat) {
-      hudLng.textContent = lngLat.lng.toFixed(5);
-      hudLat.textContent = lngLat.lat.toFixed(5);
-    }
-    hudZoom.textContent = map.getZoom().toFixed(1);
+function actualizarFuenteMapa() {
+  if (map.getSource('obras')) {
+    map.getSource('obras').setData({
+      type: 'FeatureCollection',
+      features: OBRAS.map(o => ({ type: 'Feature', geometry: { type: 'Point', coordinates: o.coordenadas }, properties: o }))
+    });
+  } else {
+    map.addSource('obras', {
+      type: 'geojson',
+      data: { type: 'FeatureCollection', features: OBRAS.map(o => ({ type: 'Feature', geometry: { type: 'Point', coordinates: o.coordenadas }, properties: o })) }
+    });
   }
-  map.on('mousemove', e => updateHud(e.lngLat));
-  map.on('move', () => updateHud());
-  map.on('load', () => updateHud(map.getCenter()));
-
-  document.getElementById('btn-recenter').addEventListener('click', () => {
-    map.flyTo({ center: [-0.3690, 39.4690], zoom: 12.4 });
-  });
 }
 
 /* ---------------------------------------------------------------------
-   4. EVENTOS DE INTERFAZ Y CLICKS EN EL MAPA
+   4. INTERACCIONES DEL MAPA (CLICS Y PULSACIÓN LARGA)
    --------------------------------------------------------------------- */
-function iniciarInteractividadMapbox() {
+function iniciarInteraccionesMapa() {
   const sheet = document.getElementById('sheet');
-  const sheetTitle = document.getElementById('sheet-title');
-  const sheetBody = document.getElementById('sheet-body');
-
-  function openSheetForObra(props, coords) {
-    sheetTitle.innerHTML = props.nombre_obra;
-    sheetBody.innerHTML = `
-      <div class="data-row"><div class="label">[CÓDIGO]</div><div class="value accent">${props.codigo_obra}</div></div>
-      <div class="data-row"><div class="label">[ARQUITECTO]</div><div class="value">${props.arquitecto}</div></div>
-      <div class="data-row"><div class="label">[AÑO]</div><div class="value">${props.año_construccion}</div></div>
-      <div class="data-row"><div class="label">[ESTRUCTURA]</div><div class="value">${props.sistema_estructural}</div></div>
-      <div class="data-row"><div class="label">[COORD]</div><div class="value">${coords[0].toFixed(5)}, ${coords[1].toFixed(5)}</div></div>
+  map.on('click', 'obras-layer', (e) => {
+    const p = e.features[0].properties; const c = e.features[0].geometry.coordinates;
+    document.getElementById('sheet-title').innerHTML = p.nombre_obra;
+    document.getElementById('sheet-body').innerHTML = `
+      <div class="data-row"><div class="label">[CÓDIGO]</div><div class="value accent">${p.codigo_obra}</div></div>
+      <div class="data-row"><div class="label">[ARQ]</div><div class="value">${p.arquitecto}</div></div>
+      <div class="data-row"><div class="label">[AÑO]</div><div class="value">${p.año_construccion}</div></div>
+      <div class="data-row"><div class="label">[ESTRUCTURA]</div><div class="value">${p.sistema_estructural}</div></div>
+      <div class="data-row"><div class="label">[COORD]</div><div class="value">${c[0].toFixed(5)}, ${c[1].toFixed(5)}</div></div>
     `;
     sheet.classList.add('open');
-    closeFilters();
-  }
-
-  function openSheetForNota(props, coords) {
-    sheetTitle.innerHTML = `ENTRADA DE REGISTRO`;
-    sheetBody.innerHTML = `
-      <div class="data-row"><div class="label" style="border-color:var(--accent-2)">[ID]</div><div class="value" style="color:var(--accent-2)">NOTA-${String(props.id).padStart(3,'0')}</div></div>
-      <div class="data-row"><div class="label">[FECHA]</div><div class="value">${props.fecha}</div></div>
-      <div class="data-row"><div class="label">[COORD]</div><div class="value">${coords[0].toFixed(5)}, ${coords[1].toFixed(5)}</div></div>
-      <div class="data-row"><div class="label">[NOTA]</div><div class="value">${props.nota}</div></div>
-    `;
-    sheet.classList.add('open');
-    closeFilters();
-  }
-
+    filterPanel.classList.remove('open');
+  });
   document.getElementById('btn-sheet-close').addEventListener('click', () => sheet.classList.remove('open'));
 
-  map.on('click', 'obras-layer', (e) => {
-    const feature = e.features[0];
-    openSheetForObra(feature.properties, feature.geometry.coordinates);
-  });
-
-  map.on('click', 'notas-layer', (e) => {
-    const feature = e.features[0];
-    openSheetForNota(feature.properties, feature.geometry.coordinates);
-  });
-
-  // Funcionalidad extra del mapa (Pulsación Larga para notas)
-  const modalOverlay = document.getElementById('modal-overlay');
-  const modalCoords = document.getElementById('modal-coords');
-  const modalTextarea = document.getElementById('modal-textarea');
-  let pendingLngLat = null;
-
-  map.on('contextmenu', (e) => openRegistroModal(e.lngLat));
-
-  let pressTimer = null;
-  let pressStart = null;
-  map.on('touchstart', (e) => {
-    if (e.points.length > 1) return;
-    pressStart = e.lngLat;
-    pressTimer = setTimeout(() => openRegistroModal(pressStart), 600);
-  });
-  map.on('touchmove', () => clearTimeout(pressTimer));
-  map.on('touchend', () => clearTimeout(pressTimer));
-
-  function openRegistroModal(lngLat) {
-    pendingLngLat = lngLat;
-    modalCoords.textContent = `${lngLat.lng.toFixed(5)}, ${lngLat.lat.toFixed(5)}`;
-    modalTextarea.value = '';
-    modalOverlay.classList.add('open');
-    setTimeout(() => modalTextarea.focus(), 50);
-  }
-
-  function closeModal() { modalOverlay.classList.remove('open'); pendingLngLat = null; }
-
-  document.getElementById('btn-modal-close').addEventListener('click', closeModal);
-  document.getElementById('btn-modal-cancel').addEventListener('click', closeModal);
-  modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
-
-  document.getElementById('btn-modal-save').addEventListener('click', () => {
-    const texto = modalTextarea.value.trim();
-    if (!texto || !pendingLngLat) { closeModal(); return; }
-    notaCounter += 1;
-    const feature = {
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [pendingLngLat.lng, pendingLngLat.lat] },
-      properties: {
-        id: notaCounter,
-        nota: texto,
-        fecha: new Date().toISOString().slice(0, 16).replace('T', ' ')
-      }
-    };
-    notasCollection.features.push(feature);
-    if (map.getSource('notas')) map.getSource('notas').setData(notasCollection);
-    closeModal();
-  });
+  // Pulsación larga para añadir (SOLO SI ESTÁ LOGEADO)
+  map.on('contextmenu', (e) => handleMapLongPress(e.lngLat));
+  let pT = null; let pS = null;
+  map.on('touchstart', (e) => { if (e.points.length > 1) return; pS = e.lngLat; pT = setTimeout(() => handleMapLongPress(pS), 600); });
+  map.on('touchmove', () => clearTimeout(pT)); map.on('touchend', () => clearTimeout(pT));
 }
 
-const filterPanel = document.getElementById('filter-panel');
-const btnFilters = document.getElementById('btn-filters');
-function closeFilters() { filterPanel.classList.remove('open'); btnFilters.classList.remove('active-state'); }
-btnFilters.addEventListener('click', () => {
-  filterPanel.classList.toggle('open');
-  btnFilters.classList.toggle('active-state');
-  document.getElementById('sheet').classList.remove('open');
-});
-document.getElementById('btn-filters-close').addEventListener('click', closeFilters);
+function handleMapLongPress(lngLat) {
+  if (!sessionToken) {
+    alert("ACCESO DENEGADO. Inicia sesión como administrador para registrar nuevas coordenadas.");
+    return;
+  }
+  pendingLngLat = lngLat;
+  document.getElementById('add-coords').textContent = `${lngLat.lng.toFixed(5)}, ${lngLat.lat.toFixed(5)}`;
+  
+  // Limpiar campos
+  document.getElementById('add-codigo').value = '';
+  document.getElementById('add-nombre').value = '';
+  document.getElementById('add-arquitecto').value = '';
+  document.getElementById('add-ano').value = '';
+  document.getElementById('add-sistema').value = '';
+  document.getElementById('add-error').classList.add('hidden');
+  
+  document.getElementById('modal-add-building').classList.add('open');
+}
 
 /* ---------------------------------------------------------------------
-   5. DIBUJADO DE ICONOS (CANVAS)
+   5. MÓDULO DE LOGIN
+   --------------------------------------------------------------------- */
+const mLogin = document.getElementById('modal-login');
+const bLoginT = document.getElementById('btn-login-trigger');
+bLoginT.addEventListener('click', () => mLogin.classList.add('open'));
+document.getElementById('btn-login-close').addEventListener('click', () => mLogin.classList.remove('open'));
+
+document.getElementById('btn-do-login').addEventListener('click', async () => {
+  const err = document.getElementById('login-error'); err.classList.add('hidden');
+  const e = document.getElementById('login-email').value.trim(); const p = document.getElementById('login-password').value.trim();
+  if (!e || !p) { err.textContent = "Datos incompletos."; err.classList.remove('hidden'); return; }
+  
+  document.getElementById('btn-do-login').textContent = "VERIFICANDO...";
+  try {
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: e, password: p })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error_description || 'ACCESO DENEGADO.');
+    
+    sessionToken = data.access_token;
+    mLogin.classList.remove('open');
+    bLoginT.textContent = "[ SISTEMA DESBLOQUEADO ]";
+    bLoginT.style.color = "var(--accent-2)"; bLoginT.style.borderColor = "var(--accent-2)";
+    bLoginT.style.background = "rgba(57, 255, 20, 0.1)";
+  } catch (error) {
+    err.textContent = error.message; err.classList.remove('hidden');
+  } finally {
+    document.getElementById('btn-do-login').textContent = "AUTORIZAR ACCESO";
+  }
+});
+
+/* ---------------------------------------------------------------------
+   6. MÓDULO DE INSERCIÓN EN BD
+   --------------------------------------------------------------------- */
+const mAdd = document.getElementById('modal-add-building');
+const closeAdd = () => { mAdd.classList.remove('open'); pendingLngLat = null; };
+document.getElementById('btn-add-close').addEventListener('click', closeAdd);
+document.getElementById('btn-add-cancel').addEventListener('click', closeAdd);
+
+document.getElementById('btn-add-save').addEventListener('click', async () => {
+  const err = document.getElementById('add-error'); err.classList.add('hidden');
+  const codigo = document.getElementById('add-codigo').value.trim();
+  const nombre = document.getElementById('add-nombre').value.trim();
+  const arq = document.getElementById('add-arquitecto').value.trim();
+  const ano = parseInt(document.getElementById('add-ano').value);
+  const sist = document.getElementById('add-sistema').value.trim().toUpperCase(); // Normalizar a mayúsculas
+  
+  if (!codigo || !nombre || !sist || !pendingLngLat) {
+    err.textContent = "Faltan datos obligatorios."; err.classList.remove('hidden'); return;
+  }
+
+  document.getElementById('btn-add-save').innerHTML = "PUBLICANDO...";
+  
+  const nuevoEdificio = {
+    codigo_obra: codigo,
+    nombre_obra: nombre,
+    arquitecto: arq,
+    año_construccion: isNaN(ano) ? null : ano,
+    sistema_estructural: sist,
+    longitud: pendingLngLat.lng,
+    latitud: pendingLngLat.lat
+  };
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/Buildings`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${sessionToken}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation' // Pide que Supabase devuelva el objeto insertado con su ID
+      },
+      body: JSON.stringify(nuevoEdificio)
+    });
+
+    if (!res.ok) throw new Error("Fallo al guardar en la base de datos.");
+    const insertedData = await res.json();
+    
+    // Añadir al mapa en vivo sin recargar la web
+    const nuevoObj = { ...nuevoEdificio, id: insertedData[0].id, coordenadas: [pendingLngLat.lng, pendingLngLat.lat] };
+    OBRAS.push(nuevoObj);
+    actualizarFuenteMapa();
+    
+    // Actualizar filtros si hay un sistema nuevo
+    if (!SISTEMAS.includes(sist)) {
+      SISTEMAS.push(sist);
+      activeSistemas.add(sist);
+      generarFiltrosUI();
+    }
+    
+    closeAdd();
+  } catch (error) {
+    err.textContent = error.message; err.classList.remove('hidden');
+  } finally {
+    document.getElementById('btn-add-save').innerHTML = `<span class="inline-flex items-center gap-1"><i data-lucide="database" width="13" height="13"></i> PUBLICAR</span>`;
+    lucide.createIcons();
+  }
+});
+
+/* ---------------------------------------------------------------------
+   7. DIBUJO DE ICONOS
    --------------------------------------------------------------------- */
 function buildIcon(draw, size = 64) {
-  const canvas = document.createElement('canvas');
-  canvas.width = size; canvas.height = size;
-  const ctx = canvas.getContext('2d');
-  draw(ctx, size);
-  return ctx.getImageData(0, 0, size, size);
+  const c = document.createElement('canvas'); c.width = size; c.height = size;
+  const ctx = c.getContext('2d'); draw(ctx, size); return ctx.getImageData(0, 0, size, size);
 }
-
 function drawTargetIcon(ctx, s) {
-  const c = s / 2;
-  ctx.strokeStyle = '#FF4500';
-  ctx.lineWidth = 4;
+  const c = s / 2; ctx.strokeStyle = '#FF4500'; ctx.lineWidth = 4;
   ctx.beginPath(); ctx.arc(c, c, s * 0.30, 0, Math.PI * 2); ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(c, s * 0.06); ctx.lineTo(c, s * 0.28);
-  ctx.moveTo(c, s * 0.72); ctx.lineTo(c, s * 0.94);
-  ctx.moveTo(s * 0.06, c); ctx.lineTo(s * 0.28, c);
-  ctx.moveTo(s * 0.72, c); ctx.lineTo(s * 0.94, c);
-  ctx.stroke();
-  ctx.fillStyle = '#FF4500';
-  ctx.beginPath(); ctx.arc(c, c, 3.5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(c, s * 0.06); ctx.lineTo(c, s * 0.28); ctx.moveTo(c, s * 0.72); ctx.lineTo(c, s * 0.94); ctx.moveTo(s * 0.06, c); ctx.lineTo(s * 0.28, c); ctx.moveTo(s * 0.72, c); ctx.lineTo(s * 0.94, c); ctx.stroke();
+  ctx.fillStyle = '#FF4500'; ctx.beginPath(); ctx.arc(c, c, 3.5, 0, Math.PI * 2); ctx.fill();
 }
-
-function drawNoteIcon(ctx, s) {
-  const m = s * 0.16;
-  ctx.strokeStyle = '#39FF14';
-  ctx.lineWidth = 4;
-  ctx.strokeRect(m, m, s - m * 2, s - m * 2);
-  ctx.beginPath();
-  ctx.moveTo(m + 6, m + 6); ctx.lineTo(s - m - 6, s - m - 6);
-  ctx.moveTo(s - m - 6, m + 6); ctx.lineTo(m + 6, s - m - 6);
-  ctx.stroke();
-}
-
 lucide.createIcons();
-
-// ARRANQUE DEL SISTEMA
 inicializarRadar();
 
 </script>
