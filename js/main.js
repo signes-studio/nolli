@@ -21,6 +21,7 @@ async function inicializarRadar() {
       arquitecto: fila.arquitecto,
       año_construccion: fila.año_construccion,
       importancia: Number(fila.importancia) || 1,
+      añadido_por: fila.añadido_por || null,
       coordenadas: [fila.longitud, fila.latitud],
       selected: false,
     }));

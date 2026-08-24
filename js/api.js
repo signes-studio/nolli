@@ -41,7 +41,10 @@ export async function createBuilding(nuevoEdificio, sessionToken) {
     },
     body: JSON.stringify(nuevoEdificio),
   });
-  if (!res.ok) throw new Error('Fallo al guardar en la base de datos.');
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error.message || error.details || 'Fallo al guardar en la base de datos.');
+  }
   return res.json();
 }
 
