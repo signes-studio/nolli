@@ -6,12 +6,14 @@ import { state, separarArquitectos } from './state.js';
 import { deleteBuilding } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
+import { MAPBOX_TOKEN, GEOCODING_LANGUAGE } from './config.js';
 
 const panel = document.getElementById('admin-panel');
 const button = document.getElementById('btn-admin-panel');
 const search = document.getElementById('admin-search');
 const count = document.getElementById('admin-count');
 const list = document.getElementById('admin-project-list');
+const cityCache = new Map();
 
 export function initAdminUI() {
   button.addEventListener('click', () => {
@@ -43,7 +45,7 @@ export function initAdminUI() {
   document.addEventListener('radar:user-login', () => button.classList.add('hidden'));
 }
 
-function renderList() {
+async function renderList() {
   if (state.userRole !== 'admin') return;
   const text = search.value.trim().toLowerCase();
   const projects = state.OBRAS.filter((obra) => `${obra.nombre_obra} ${obra.arquitecto}`.toLowerCase().includes(text));
@@ -57,6 +59,7 @@ function renderList() {
       <div class="admin-project-info">
         <strong>${obra.nombre_obra}</strong>
         <span>${obra.arquitecto || 'Sin arquitecto'}</span>
+        <span class="admin-project-city" data-city-for="${obra.featureId}">LOCALIZACIÓN...</span>
       </div>
       <div class="admin-project-actions">
         <button type="button" class="btn admin-action-edit" data-admin-edit="${obra.id}">EDITAR</button>
@@ -64,6 +67,30 @@ function renderList() {
       </div>
     </div>
   `).join('');
+
+  await Promise.all(projects.map(async (obra) => {
+    const cityElement = list.querySelector(`[data-city-for="${obra.featureId}"]`);
+    if (!cityElement) return;
+    cityElement.textContent = await obtenerCiudad(obra);
+  }));
+}
+
+async function obtenerCiudad(obra) {
+  if (obra.ciudad) return obra.ciudad;
+  const coordinates = obra.coordenadas || [];
+  if (coordinates.length !== 2 || !coordinates.every(Number.isFinite)) return 'Ubicación no disponible';
+  const cacheKey = coordinates.join(',');
+  if (cityCache.has(cacheKey)) return cityCache.get(cacheKey);
+  try {
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${coordinates[0]},${coordinates[1]}.json?types=place,locality,municipality&language=${GEOCODING_LANGUAGE}&limit=1&access_token=${MAPBOX_TOKEN}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    const city = data.features?.[0]?.text || 'Ciudad no disponible';
+    cityCache.set(cacheKey, city);
+    return city;
+  } catch {
+    return 'Ciudad no disponible';
+  }
 }
 
 async function eliminarProyecto(id) {

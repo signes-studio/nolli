@@ -13,3 +13,5 @@ export const SUPABASE_KEY = 'sb_publishable_kYQ7Fa8nBsrkp1f8C4AuAg_4-5uBFm0';
 export const MAP_STYLE = 'mapbox://styles/mapbox/dark-v11';
 export const DEFAULT_CENTER = [-0.3690, 39.4690];
 export const DEFAULT_ZOOM = 12.4;
+
+export const GEOCODING_LANGUAGE = 'es';

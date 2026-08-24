@@ -72,6 +72,7 @@
 .admin-project-info { min-width: 0; display: grid; gap: 3px; font-size: 10px; }
 .admin-project-info strong, .admin-project-info span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .admin-project-info span { color: var(--fg-dim); }
+.admin-project-city { color: var(--accent-2) !important; }
 .admin-project-actions { display: flex; flex-shrink: 0; gap: 5px; }
 .admin-action-edit, .admin-action-delete { padding: 5px 7px; font-size: 9px; }
 .admin-action-delete { color: #ff6b6b; border-color: #ff6b6b; }

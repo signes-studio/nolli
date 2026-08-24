@@ -26,6 +26,7 @@ async function inicializarRadar() {
       año_construccion: fila.año_construccion,
       importancia: Number(fila.importancia) || 1,
       categoria: fila.categoria || 'otro',
+      ciudad: fila.ciudad || null,
       visitable: fila.visitable === true || fila.visitable === 1 || fila.visitable === 'true',
       añadido_por: fila.añadido_por || null,
       coordenadas: [fila.longitud, fila.latitud],
