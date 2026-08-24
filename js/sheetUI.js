@@ -43,7 +43,6 @@ export function abrirFicha(p, c, featureId = p.id) {
   document.getElementById('sheet-body').innerHTML = `
     <div class="data-row"><div class="label">[ARQUITECTO]</div><div class="value accent">${architectButtons}</div></div>
     <div class="data-row"><div class="label">[AÑO]</div><div class="value">${p.año_construccion}</div></div>
-    ${p.añadido_por ? `<div class="data-row"><div class="label">[AÑADIDO POR]</div><div class="value">${p.añadido_por}</div></div>` : ''}
     <div class="data-row"><div class="label">[CATEGORÍA]</div><div class="value">${p.categoria || 'otro'}</div></div>
     <div class="data-row"><div class="label">[VISITABLE]</div><div class="value">${p.visitable === true || p.visitable === 1 || p.visitable === 'true' ? 'SÍ' : 'NO'}</div></div>
     <div class="data-row"><div class="label">[COORD]</div><div class="value">${c[0].toFixed(5)}, ${c[1].toFixed(5)}</div></div>
