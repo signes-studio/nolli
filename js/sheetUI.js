@@ -12,7 +12,7 @@ export function cerrarFicha() {
   sheet.classList.remove('open');
   document.getElementById('btn-edit-building').classList.add('hidden');
   if (state.selectedFeatureId !== null) {
-    const obraAnterior = state.OBRAS.find((o) => String(o.id) === String(state.selectedFeatureId));
+      const obraAnterior = state.OBRAS.find((o) => String(o.featureId) === String(state.selectedFeatureId));
     if (obraAnterior) obraAnterior.selected = false;
     actualizarFuenteMapa();
     state.selectedFeatureId = null;
@@ -23,13 +23,13 @@ export function abrirFicha(p, c, featureId = p.id) {
   const clickedId = featureId;
 
   if (state.selectedFeatureId !== null) {
-    const obraAnterior = state.OBRAS.find((o) => String(o.id) === String(state.selectedFeatureId));
+      const obraAnterior = state.OBRAS.find((o) => String(o.featureId) === String(state.selectedFeatureId));
     if (obraAnterior) obraAnterior.selected = false;
     actualizarFuenteMapa();
   }
 
   state.selectedFeatureId = clickedId;
-  const obraNueva = state.OBRAS.find((o) => String(o.id) === String(state.selectedFeatureId));
+    const obraNueva = state.OBRAS.find((o) => String(o.featureId) === String(state.selectedFeatureId));
   if (obraNueva) obraNueva.selected = true;
   actualizarFuenteMapa();
 
@@ -47,7 +47,7 @@ export function abrirFicha(p, c, featureId = p.id) {
 
 document.addEventListener('click', (e) => {
   if (!e.target.closest('#btn-edit-building') || !state.selectedFeatureId) return;
-  const obra = state.OBRAS.find((o) => String(o.id) === String(state.selectedFeatureId));
+    const obra = state.OBRAS.find((o) => String(o.featureId) === String(state.selectedFeatureId));
   if (obra) document.dispatchEvent(new CustomEvent('radar:edit-building', { detail: { obra } }));
 });
 

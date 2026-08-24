@@ -9,7 +9,7 @@ export function actualizarFuenteMapa() {
     type: 'FeatureCollection',
     features: state.OBRAS.map((o) => ({
       type: 'Feature',
-      id: o.id,
+        id: o.featureId,
       geometry: { type: 'Point', coordinates: o.coordenadas },
       properties: { ...o, selected: o.selected ? 1 : 0 },
     })),

@@ -127,6 +127,7 @@ function initAddBuildingModal() {
         state.OBRAS.push({
           ...nuevoEdificio,
           id: insertedData[0].id,
+          featureId: String(insertedData[0].id ?? `obra-${Date.now()}`),
           coordenadas: [state.pendingLngLat.lng, state.pendingLngLat.lat],
           selected: false,
         });

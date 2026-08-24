@@ -14,8 +14,9 @@ async function inicializarRadar() {
   try {
     const datosDB = await fetchBuildings();
 
-    state.OBRAS = datosDB.map((fila) => ({
+      state.OBRAS = datosDB.map((fila, index) => ({
       id: fila.id,
+        featureId: String(fila.id ?? `obra-${index}`),
       nombre_obra: fila.nombre_obra,
       arquitecto: fila.arquitecto,
       año_construccion: fila.año_construccion,
