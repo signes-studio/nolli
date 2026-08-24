@@ -15,7 +15,9 @@ function initLoginModal() {
   const bLoginT = document.getElementById('btn-login-trigger');
 
   bLoginT.addEventListener('click', () => mLogin.classList.add('open'));
-  document.getElementById('btn-login-close').addEventListener('click', () => mLogin.classList.remove('open'));
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('#btn-login-close')) mLogin.classList.remove('open');
+  });
 
   document.getElementById('btn-do-login').addEventListener('click', async () => {
     const err = document.getElementById('login-error');
@@ -54,7 +56,9 @@ function initAddBuildingModal() {
   const mAdd = document.getElementById('modal-add-building');
   const closeAdd = () => { mAdd.classList.remove('open'); state.pendingLngLat = null; };
 
-  document.getElementById('btn-add-close').addEventListener('click', closeAdd);
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('#btn-add-close')) closeAdd();
+  });
   document.getElementById('btn-add-cancel').addEventListener('click', closeAdd);
 
   document.getElementById('btn-add-save').addEventListener('click', async () => {

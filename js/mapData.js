@@ -11,7 +11,7 @@ export function actualizarFuenteMapa() {
       type: 'Feature',
       id: o.id,
       geometry: { type: 'Point', coordinates: o.coordenadas },
-      properties: o,
+      properties: { ...o, selected: o.selected ? 1 : 0 },
     })),
   };
 

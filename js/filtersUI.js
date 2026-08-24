@@ -47,7 +47,9 @@ function initFiltersUI() {
     }
   });
 
-  document.getElementById('btn-filters-close').addEventListener('click', cerrarFiltros);
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('#btn-filters-close')) cerrarFiltros();
+  });
 
   btnFilters.addEventListener('click', () => {
     filterPanel.classList.toggle('open');

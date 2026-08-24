@@ -18,8 +18,8 @@ export function cerrarFicha() {
   }
 }
 
-export function abrirFicha(p, c) {
-  const clickedId = p.id;
+export function abrirFicha(p, c, featureId = p.id) {
+  const clickedId = featureId;
 
   if (state.selectedFeatureId !== null) {
     const obraAnterior = state.OBRAS.find((o) => String(o.id) === String(state.selectedFeatureId));

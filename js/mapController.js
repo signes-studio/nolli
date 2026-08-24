@@ -37,7 +37,7 @@ export function cargarMapaMapbox() {
       type: 'symbol',
       source: 'obras',
       layout: {
-        'icon-image': ['case', ['==', ['get', 'selected'], true], 'icon-target-selected', 'icon-target'],
+        'icon-image': ['case', ['==', ['get', 'selected'], 1], 'icon-target-selected', 'icon-target'],
         'icon-size': 0.62,
         'icon-allow-overlap': true,
       },
@@ -77,9 +77,10 @@ function iniciarInteraccionesMapa() {
   // Clic en obra
   state.map.on('click', 'obras-layer', (e) => {
     // IMPORTANTE: Leemos el ID directamente de las propiedades para evitar el bug de Mapbox
-    const p = e.features[0].properties;
-    const c = e.features[0].geometry.coordinates;
-    abrirFicha(p, c);
+    const feature = e.features[0];
+    const p = feature.properties;
+    const c = feature.geometry.coordinates;
+    abrirFicha(p, c, feature.id);
   });
 
   // Clic en el fondo vacío (Descartar selección)
