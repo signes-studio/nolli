@@ -3,9 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="description" content="Radar arquitectónico interactivo: explora y registra obras de arquitectura sobre un mapa en vivo.">
+<meta name="color-scheme" content="dark">
 <title>NOLLI // RADAR ARQUITECTÓNICO</title>
 
-<!-- Tailwind (CDN, desarrollo rápido) -->
+<!-- Tailwind (CDN, utilidades de layout puntuales) -->
 <script src="https://cdn.tailwindcss.com"></script>
 
 <!-- Mapbox GL JS -->
@@ -17,307 +19,141 @@
 
 <!-- Tipografías: mono para datos, sans geométrica gruesa para títulos -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
 
-<style>
-  :root{
-    --bg:            #000000;
-    --bg-panel:      #0a0a0a;
-    --bg-raised:     #121212;
-    --accent:        #FF4500; /* naranja técnico */
-    --accent-2:      #39FF14; /* verde fósforo */
-    --accent-select: #FFFFFF; /* blanco para selección activa */
-    --fg:            #FFFFFF;
-    --fg-dim:        #7a7a7a;
-    --border:        #2b2b2b;
-    --border-strong: #4a4a4a;
-  }
-
-  *{ border-radius:0 !important; box-sizing:border-box; }
-  html,body{ height:100%; margin:0; overscroll-behavior:none; }
-  body{
-    background:var(--bg);
-    color:var(--fg);
-    font-family:'JetBrains Mono', monospace;
-    -webkit-tap-highlight-color:transparent;
-  }
-  .font-display{
-    font-family:'Archivo Black', sans-serif;
-    letter-spacing:-0.02em;
-  }
-  ::selection{ background:var(--accent); color:#000; }
-  ::-webkit-scrollbar{ width:4px; height:4px; }
-  ::-webkit-scrollbar-track{ background:var(--bg); }
-  ::-webkit-scrollbar-thumb{ background:var(--border-strong); }
-
-  #map{ position:absolute; inset:0; }
-
-  /* Mapbox logo / attribution: mantener pero atenuar visualmente */
-  .mapboxgl-ctrl-logo, .mapboxgl-ctrl-attrib{ filter:grayscale(1) opacity(0.5); }
-  .mapboxgl-ctrl-attrib-inner a{ color:#888 !important; }
-  .mapboxgl-popup-tip{ display:none; }
-  .mapboxgl-canvas{ outline:none; }
-
-  /* ---------- HUD: marco de visor tipo instrumento óptico ---------- */
-  .hud-frame{ position:absolute; inset:0; pointer-events:none; z-index:20; }
-  .hud-corner{ position:absolute; width:22px; height:22px; border-color:var(--accent); opacity:0.85; }
-  .hud-corner.tl{ top:8px; left:8px; border-top:2px solid; border-left:2px solid; }
-  .hud-corner.tr{ top:8px; right:8px; border-top:2px solid; border-right:2px solid; }
-  .hud-corner.bl{ bottom:8px; left:8px; border-bottom:2px solid; border-left:2px solid; }
-  .hud-corner.br{ bottom:8px; right:8px; border-bottom:2px solid; border-right:2px solid; }
-
-  .hud-crosshair{
-    position:absolute; top:50%; left:50%; width:18px; height:18px;
-    transform:translate(-50%,-50%); pointer-events:none; z-index:20; opacity:0.55;
-  }
-  .hud-crosshair::before, .hud-crosshair::after{
-    content:''; position:absolute; background:var(--fg);
-  }
-  .hud-crosshair::before{ top:50%; left:0; width:100%; height:1px; transform:translateY(-50%); }
-  .hud-crosshair::after{ left:50%; top:0; height:100%; width:1px; transform:translateX(-50%); }
-
-  /* ---------- Barra superior ---------- */
-  .topbar{
-    position:absolute; top:0; left:0; right:0; z-index:30;
-    background:linear-gradient(to bottom, rgba(0,0,0,0.92), rgba(0,0,0,0));
-    padding:14px 14px 30px 14px;
-  }
-  .topbar-inner{
-    display:flex; align-items:flex-start; justify-content:space-between;
-    border-bottom:1px solid var(--border-strong);
-    padding-bottom:10px;
-  }
-  .hud-readout{ text-align:right; font-size:10px; line-height:1.5; color:var(--fg-dim); }
-  .hud-readout .val{ color:var(--accent); font-weight:700; }
-
-  /* ---------- Botones flotantes ---------- */
-  .fab{
-    width:46px; height:46px; display:flex; align-items:center; justify-content:center;
-    background:var(--bg-panel); border:1px solid var(--border-strong); color:var(--fg);
-    cursor:pointer; transition:background .1s, border-color .1s;
-  }
-  .fab:active{ background:var(--accent); color:#000; border-color:var(--accent); }
-  .fab.active-state{ background:var(--accent); color:#000; border-color:var(--accent); }
-
-  /* ---------- Panel de ficha técnica (bottom sheet) ---------- */
-  .sheet{
-    position:absolute; left:0; right:0; bottom:0; z-index:40;
-    background:var(--bg-panel);
-    border-top:1px solid var(--accent);
-    transform:translateY(100%);
-    transition:transform .22s cubic-bezier(.2,.8,.2,1);
-    max-height:62vh; overflow-y:auto;
-  }
-  .sheet.open{ transform:translateY(0); }
-  .sheet-header{
-    display:flex; align-items:center; justify-content:space-between;
-    padding:10px 14px; border-bottom:1px solid var(--border);
-    background:var(--bg-raised);
-  }
-  .data-row{
-    display:flex; border-bottom:1px solid var(--border);
-    font-size:12px;
-  }
-  .data-row .label{
-    width:130px; flex-shrink:0; padding:10px 12px; color:var(--fg-dim);
-    background:rgba(255,255,255,0.02); border-right:1px solid var(--border);
-    font-size:10px; letter-spacing:.04em;
-  }
-  .data-row .value{ padding:10px 12px; color:var(--fg); font-weight:500; word-break:break-word; }
-  .data-row .value.accent{ color:var(--accent); }
-
-  /* ---------- Panel de filtros ---------- */
-  .filter-panel{
-    position:absolute; right:14px; bottom:84px; z-index:40; /* Separado de los FABs */
-    width:min(280px, calc(100vw - 28px));
-    background:var(--bg-panel); border:1px solid var(--border-strong);
-    transform:translateY(calc(100% + 150px)); /* Totalmente oculto hacia abajo */
-    transition:transform .22s cubic-bezier(.2,.8,.2,1);
-    max-height: 40vh; overflow-y: auto;
-  }
-  .filter-panel.open{ transform:translateY(0); } /* Totalmente visible en su posición original */
-  .filter-head{
-    padding:10px 12px; border-bottom:1px solid var(--border);
-    background:var(--bg-raised); font-size:11px; letter-spacing:.06em;
-    display:flex; justify-content:space-between; align-items:center;
-    position: sticky; top: 0; z-index: 2;
-  }
-  .switch-row{
-    display:flex; align-items:center; justify-content:space-between;
-    padding:11px 12px; border-bottom:1px solid var(--border); font-size:11px;
-  }
-  .switch-row:last-child{ border-bottom:none; }
-  .tech-switch{ position:relative; width:38px; height:18px; flex-shrink:0; }
-  .tech-switch input{ position:absolute; opacity:0; width:100%; height:100%; margin:0; cursor:pointer; z-index:2; }
-  .tech-switch .track{ position:absolute; inset:0; background:#1a1a1a; border:1px solid var(--border-strong); }
-  .tech-switch .thumb{
-    position:absolute; top:2px; left:2px; width:12px; height:12px; background:var(--fg-dim);
-    transition:left .15s, background .15s;
-  }
-  .tech-switch input:checked ~ .thumb{ left:22px; background:var(--accent); }
-  .tech-switch input:checked ~ .track{ border-color:var(--accent); }
-
-  /* ---------- Modal (Genérico) ---------- */
-  .modal-overlay{
-    position:fixed; inset:0; z-index:60; background:rgba(0,0,0,0.82);
-    display:flex; align-items:center; justify-content:center;
-    opacity:0; pointer-events:none; transition:opacity .15s; padding:16px;
-  }
-  .modal-overlay.open{ opacity:1; pointer-events:all; }
-  .modal-box{
-    width:100%; max-width:420px; background:var(--bg-panel);
-    border:1px solid var(--accent); box-shadow:0 0 0 1px #000, 0 0 24px rgba(255,69,0,0.15);
-  }
-  .modal-head{
-    padding:12px 14px; border-bottom:1px solid var(--border);
-    display:flex; justify-content:space-between; align-items:center;
-  }
-  .modal-body{ padding:14px; }
-  
-  /* Inputs estéticos */
-  .tech-input {
-    width:100%; background:#000; border:1px solid var(--accent);
-    color:var(--fg); font-family:'JetBrains Mono', monospace; font-size:12px;
-    padding:10px; focus:outline-none;
-  }
-  .tech-input:focus{ outline:none; box-shadow:0 0 0 1px var(--accent); }
-
-  .btn{
-    font-size:11px; letter-spacing:.06em; padding:10px 14px;
-    border:1px solid var(--border-strong); background:var(--bg-raised); color:var(--fg);
-    cursor:pointer; font-family:'JetBrains Mono', monospace;
-  }
-  .btn-accent{ background:var(--accent); border-color:var(--accent); color:#000; font-weight:700; }
-  .btn-accent2{ background:var(--accent-2); border-color:var(--accent-2); color:#000; font-weight:700; }
-
-  .blink{ animation:blink 1.1s steps(1) infinite; }
-  @keyframes blink{ 50%{ opacity:0; } }
-</style>
+<!-- Estilos propios (orden: variables/base → layout → paneles → componentes) -->
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/map-hud.css">
+<link rel="stylesheet" href="css/panels.css">
+<link rel="stylesheet" href="css/components.css">
 </head>
 <body>
 
-<div id="map"></div>
+<main>
+  <div id="map" role="application" aria-label="Mapa interactivo de obras arquitectónicas"></div>
 
-<!-- Marco HUD decorativo -->
-<div class="hud-frame">
-  <div class="hud-corner tl"></div>
-  <div class="hud-corner tr"></div>
-  <div class="hud-corner bl"></div>
-  <div class="hud-corner br"></div>
-</div>
-<div class="hud-crosshair"></div>
-
-<!-- Barra superior -->
-<div class="topbar">
-  <div class="topbar-inner">
-    <div style="flex: 1;">
-      <div class="font-display text-2xl leading-none tracking-tight" style="color:var(--fg)">NOLLI<span style="color:var(--accent)">.</span></div>
-      <div class="text-[10px] tracking-widest mt-1" style="color:var(--fg-dim)">RADAR ARQUITECTÓNICO — V0.5 ADMIN</div>
-      <button id="btn-login-trigger" class="mt-2 text-[10px] font-bold px-2 py-1 cursor-pointer transition-colors" style="border: 1px solid var(--accent); color: var(--accent); background: rgba(255, 69, 0, 0.1);">[ ACCESO ADMIN ]</button>
-    </div>
-    <div class="hud-readout" style="text-align: right;">
-      <div>LNG <span class="val" id="hud-lng">--.-----</span></div>
-      <div>LAT <span class="val" id="hud-lat">--.-----</span></div>
-      <div>ZOOM <span class="val" id="hud-zoom">--.-</span></div>
-    </div>
+  <!-- Marco HUD decorativo -->
+  <div class="hud-frame" aria-hidden="true">
+    <div class="hud-corner tl"></div>
+    <div class="hud-corner tr"></div>
+    <div class="hud-corner bl"></div>
+    <div class="hud-corner br"></div>
   </div>
-</div>
+  <div class="hud-crosshair" aria-hidden="true"></div>
 
-<!-- FABs -->
-<div class="absolute z-30 flex flex-col gap-2" style="right:14px; bottom:14px;">
-  <button id="btn-filters" class="fab" title="Filtros">
-    <i data-lucide="sliders-horizontal" width="20" height="20"></i>
-  </button>
-  <button id="btn-recenter" class="fab" title="Recentrar">
-    <i data-lucide="crosshair" width="20" height="20"></i>
-  </button>
-</div>
-
-<!-- Panel de filtros -->
-<div id="filter-panel" class="filter-panel">
-  <div class="filter-head">
-    <span style="color:var(--fg-dim)">[ FILTRO // ARQUITECTO ]</span>
-    <i data-lucide="x" id="btn-filters-close" width="14" height="14" style="cursor:pointer; color:var(--fg-dim)"></i>
-  </div>
-  <div id="filter-switches"></div>
-</div>
-
-<!-- Sheet de ficha técnica -->
-<div id="sheet" class="sheet">
-  <div class="sheet-header">
-    <div class="flex items-center gap-2">
-      <i data-lucide="square-dashed-bottom-code" width="14" height="14" style="color:var(--accent)"></i>
-      <span style="letter-spacing:.06em; font-size:11px; color:var(--fg-dim)">FICHA_OBRA.DAT</span>
+  <!-- Barra superior -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div style="flex: 1;">
+        <h1 class="font-display text-2xl leading-none tracking-tight" style="color:var(--fg); margin:0;">NOLLI<span style="color:var(--accent)">.</span></h1>
+        <p class="text-[10px] tracking-widest mt-1" style="color:var(--fg-dim); margin:0;">RADAR ARQUITECTÓNICO — V0.5 ADMIN</p>
+        <button id="btn-login-trigger" type="button" class="mt-2 text-[10px] font-bold px-2 py-1 cursor-pointer transition-colors" style="border: 1px solid var(--accent); color: var(--accent); background: rgba(255, 69, 0, 0.1);">[ ACCESO ADMIN ]</button>
+      </div>
+      <div class="hud-readout" aria-live="polite">
+        <div>LNG <span class="val" id="hud-lng">--.-----</span></div>
+        <div>LAT <span class="val" id="hud-lat">--.-----</span></div>
+        <div>ZOOM <span class="val" id="hud-zoom">--.-</span></div>
+      </div>
     </div>
-    <i data-lucide="x" id="btn-sheet-close" width="16" height="16" style="cursor:pointer; z-index: 50;"></i>
+  </header>
+
+  <!-- FABs -->
+  <div class="absolute z-30 flex flex-col gap-2" style="right:14px; bottom:14px;">
+    <button id="btn-filters" type="button" class="fab" title="Filtros" aria-label="Abrir filtros">
+      <i data-lucide="sliders-horizontal" width="20" height="20"></i>
+    </button>
+    <button id="btn-recenter" type="button" class="fab" title="Recentrar" aria-label="Recentrar mapa">
+      <i data-lucide="crosshair" width="20" height="20"></i>
+    </button>
   </div>
-  <div id="sheet-title" class="font-display px-3.5 pt-3 pb-2 text-xl leading-tight"></div>
-  <div id="sheet-body"></div>
-</div>
+
+  <!-- Panel de filtros -->
+  <section id="filter-panel" class="filter-panel" aria-label="Filtro por arquitecto">
+    <div class="filter-head">
+      <span style="color:var(--fg-dim)">[ FILTRO // ARQUITECTO ]</span>
+      <i data-lucide="x" id="btn-filters-close" width="14" height="14" style="cursor:pointer; color:var(--fg-dim)" role="button" aria-label="Cerrar filtros"></i>
+    </div>
+    <div id="filter-switches"></div>
+  </section>
+
+  <!-- Sheet de ficha técnica -->
+  <section id="sheet" class="sheet" aria-label="Ficha técnica de la obra">
+    <div class="sheet-header">
+      <div class="flex items-center gap-2">
+        <i data-lucide="square-dashed-bottom-code" width="14" height="14" style="color:var(--accent)"></i>
+        <span style="letter-spacing:.06em; font-size:11px; color:var(--fg-dim)">FICHA_OBRA.DAT</span>
+      </div>
+      <i data-lucide="x" id="btn-sheet-close" width="16" height="16" style="cursor:pointer; z-index: 50;" role="button" aria-label="Cerrar ficha"></i>
+    </div>
+    <h2 id="sheet-title" class="font-display px-3.5 pt-3 pb-2 text-xl leading-tight" style="margin:0;"></h2>
+    <div id="sheet-body"></div>
+  </section>
+</main>
 
 <!-- Modal: Login de Administrador -->
-<div id="modal-login" class="modal-overlay">
+<div id="modal-login" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-login-title">
   <div class="modal-box">
     <div class="modal-head">
       <div class="flex items-center gap-2">
         <i data-lucide="terminal" width="14" height="14" style="color:var(--accent)"></i>
-        <span style="letter-spacing:.06em; font-size:11px;">AUTENTICACIÓN REQUERIDA</span>
+        <span id="modal-login-title" style="letter-spacing:.06em; font-size:11px;">AUTENTICACIÓN REQUERIDA</span>
       </div>
-      <i data-lucide="x" id="btn-login-close" width="16" height="16" style="cursor:pointer"></i>
+      <i data-lucide="x" id="btn-login-close" width="16" height="16" style="cursor:pointer" role="button" aria-label="Cerrar"></i>
     </div>
     <div class="modal-body">
-      <div class="flex flex-col gap-3">
+      <form class="flex flex-col gap-3" onsubmit="return false;">
         <div>
-          <label class="text-[10px] block mb-1" style="color:var(--fg-dim)">USER_EMAIL_</label>
-          <input type="email" id="login-email" placeholder="admin@signes.studio" class="tech-input">
+          <label for="login-email" class="text-[10px] block mb-1" style="color:var(--fg-dim)">USER_EMAIL_</label>
+          <input type="email" id="login-email" placeholder="admin@signes.studio" class="tech-input" autocomplete="username">
         </div>
         <div>
-          <label class="text-[10px] block mb-1" style="color:var(--fg-dim)">PASSWORD_</label>
-          <input type="password" id="login-password" placeholder="••••••••" class="tech-input">
+          <label for="login-password" class="text-[10px] block mb-1" style="color:var(--fg-dim)">PASSWORD_</label>
+          <input type="password" id="login-password" placeholder="••••••••" class="tech-input" autocomplete="current-password">
         </div>
-        <div id="login-error" class="text-[10px] text-red-500 hidden mt-1"></div>
-        <button id="btn-do-login" class="btn btn-accent mt-2 w-full">AUTORIZAR ACCESO</button>
-      </div>
+        <div id="login-error" class="text-[10px] text-red-500 hidden mt-1" role="alert"></div>
+        <button id="btn-do-login" type="submit" class="btn btn-accent mt-2 w-full">AUTORIZAR ACCESO</button>
+      </form>
     </div>
   </div>
 </div>
 
 <!-- Modal: Añadir Edificio (Admin) -->
-<div id="modal-add-building" class="modal-overlay">
+<div id="modal-add-building" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-add-title">
   <div class="modal-box">
     <div class="modal-head">
       <div class="flex items-center gap-2">
         <i data-lucide="crosshair" width="14" height="14" style="color:var(--accent-2)"></i>
-        <span style="letter-spacing:.06em; font-size:11px;">REGISTRO DE NUEVA OBRA (DB)</span>
+        <span id="modal-add-title" style="letter-spacing:.06em; font-size:11px;">REGISTRO DE NUEVA OBRA (DB)</span>
       </div>
-      <i data-lucide="x" id="btn-add-close" width="16" height="16" style="cursor:pointer"></i>
+      <i data-lucide="x" id="btn-add-close" width="16" height="16" style="cursor:pointer" role="button" aria-label="Cerrar"></i>
     </div>
     <div class="modal-body flex flex-col gap-3">
       <div class="text-[10px] mb-1" style="color:var(--fg-dim)">
         COORD <span id="add-coords" style="color:var(--accent-2)">--</span>
       </div>
-      
+
       <div>
-        <label class="text-[10px] block mb-1" style="color:var(--fg-dim)">NOMBRE DE LA OBRA</label>
+        <label for="add-nombre" class="text-[10px] block mb-1" style="color:var(--fg-dim)">NOMBRE DE LA OBRA</label>
         <input type="text" id="add-nombre" class="tech-input">
       </div>
-      
+
       <div class="flex gap-2">
         <div class="flex-1">
-          <label class="text-[10px] block mb-1" style="color:var(--fg-dim)">ARQUITECTO</label>
+          <label for="add-arquitecto" class="text-[10px] block mb-1" style="color:var(--fg-dim)">ARQUITECTO</label>
           <input type="text" id="add-arquitecto" class="tech-input">
         </div>
         <div class="w-1/3">
-          <label class="text-[10px] block mb-1" style="color:var(--fg-dim)">AÑO</label>
+          <label for="add-ano" class="text-[10px] block mb-1" style="color:var(--fg-dim)">AÑO</label>
           <input type="number" id="add-ano" class="tech-input">
         </div>
       </div>
 
-      <div id="add-error" class="text-[10px] text-red-500 hidden mt-1"></div>
+      <div id="add-error" class="text-[10px] text-red-500 hidden mt-1" role="alert"></div>
 
       <div class="flex justify-end gap-2 mt-2">
-        <button class="btn" id="btn-add-cancel">CANCELAR</button>
-        <button class="btn btn-accent2" id="btn-add-save">
+        <button class="btn" id="btn-add-cancel" type="button">CANCELAR</button>
+        <button class="btn btn-accent2" id="btn-add-save" type="button">
           <span class="inline-flex items-center gap-1"><i data-lucide="database" width="13" height="13"></i> PUBLICAR</span>
         </button>
       </div>
@@ -325,368 +161,7 @@
   </div>
 </div>
 
-<script>
-/* =========================================================================
-   NOLLI — CONEXIÓN SUPABASE EN VIVO + ADMIN LOGIN
-   ========================================================================= */
-
-// CLAVES DE ACCESO
-mapboxgl.accessToken = 'pk.eyJ1Ijoic2lnbmVzYXJjaCIsImEiOiJjbXQ3YjdzNXQyNjB2MnhxdW5vdjF6YjV3In0.tFJ9jN3e1z3ezNM9x0ofpg';
-const SUPABASE_URL = 'https://ldtfvpjigzvcagtciipn.supabase.co'; 
-const SUPABASE_KEY = 'sb_publishable_kYQ7Fa8nBsrkp1f8C4AuAg_4-5uBFm0';
-
-// VARIABLES GLOBALES
-let OBRAS = [];
-let ARQUITECTOS = [];
-let activeArquitectos = new Set();
-let sessionToken = null; 
-let pendingLngLat = null; 
-let selectedFeatureId = null; 
-let map;
-
-/* ---------------------------------------------------------------------
-   1. CONEXIÓN INICIAL (DESCARGAR EDIFICIOS)
-   --------------------------------------------------------------------- */
-async function inicializarRadar() {
-  try {
-    const respuesta = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?select=*`, {
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`
-      }
-    });
-
-    if (!respuesta.ok) throw new Error(`Error ${respuesta.status}`);
-    const datosDB = await respuesta.json();
-
-    OBRAS = datosDB.map(fila => ({
-      id: fila.id,
-      nombre_obra: fila.nombre_obra,
-      arquitecto: fila.arquitecto,
-      año_construccion: fila.año_construccion,
-      coordenadas: [fila.longitud, fila.latitud],
-      selected: false
-    }));
-
-    // Ahora filtramos por Arquitecto
-    ARQUITECTOS = [...new Set(OBRAS.map(o => o.arquitecto))];
-    activeArquitectos = new Set(ARQUITECTOS);
-
-    generarFiltrosUI();
-    cargarMapaMapbox();
-  } catch (error) {
-    console.error("Error:", error);
-    alert("Error de conexión con la base de datos.");
-  }
-}
-
-/* ---------------------------------------------------------------------
-   2. UI Y FILTROS (Por Arquitecto)
-   --------------------------------------------------------------------- */
-function generarFiltrosUI() {
-  const filterSwitches = document.getElementById('filter-switches');
-  filterSwitches.innerHTML = ''; 
-  ARQUITECTOS.forEach((arq) => {
-    if (!arq) return;
-    const row = document.createElement('div');
-    row.className = 'switch-row';
-    row.innerHTML = `
-      <span style="text-transform: uppercase;">${arq}</span>
-      <div class="tech-switch">
-        <input type="checkbox" checked data-arq="${arq}">
-        <div class="track"></div>
-        <div class="thumb"></div>
-      </div>
-    `;
-    filterSwitches.appendChild(row);
-  });
-
-  filterSwitches.addEventListener('change', (e) => {
-    if (e.target.type !== 'checkbox') return;
-    const arq = e.target.dataset.arq;
-    if (e.target.checked) activeArquitectos.add(arq);
-    else activeArquitectos.delete(arq);
-    if (map && map.getLayer('obras-layer')) {
-      map.setFilter('obras-layer', ['in', ['get', 'arquitecto'], ['literal', [...activeArquitectos]]]);
-    }
-  });
-}
-
-// Interacción del Panel de Filtros
-const filterPanel = document.getElementById('filter-panel');
-const btnFilters = document.getElementById('btn-filters');
-
-document.getElementById('btn-filters-close').addEventListener('click', () => {
-  filterPanel.classList.remove('open'); 
-  btnFilters.classList.remove('active-state');
-});
-
-btnFilters.addEventListener('click', () => {
-  filterPanel.classList.toggle('open'); 
-  btnFilters.classList.toggle('active-state');
-  cerrarFicha();
-});
-
-/* ---------------------------------------------------------------------
-   3. INICIALIZAR MAPA Y CAPAS
-   --------------------------------------------------------------------- */
-function cargarMapaMapbox() {
-  map = new mapboxgl.Map({
-    container: 'map',
-    style: 'mapbox://styles/mapbox/dark-v11',
-    center: [-0.3690, 39.4690],
-    zoom: 12.4,
-    attributionControl: true
-  });
-  map.dragRotate.disable(); map.touchZoomRotate.disableRotation();
-
-  map.on('load', () => {
-    // 2 tipos de icono: normal (naranja) y seleccionado (blanco)
-    map.addImage('icon-target', buildIcon(drawTargetIcon, '#FF4500'), { pixelRatio: 2 });
-    map.addImage('icon-target-selected', buildIcon(drawTargetIcon, '#FFFFFF'), { pixelRatio: 2 });
-    actualizarFuenteMapa();
-
-    map.addLayer({
-      id: 'obras-layer',
-      type: 'symbol',
-      source: 'obras',
-      layout: { 
-        'icon-image': ['case', ['==', ['get', 'selected'], true], 'icon-target-selected', 'icon-target'], 
-        'icon-size': 0.62, 
-        'icon-allow-overlap': true 
-      }
-    });
-
-    map.on('mouseenter', 'obras-layer', () => map.getCanvas().style.cursor = 'pointer');
-    map.on('mouseleave', 'obras-layer', () => map.getCanvas().style.cursor = '');
-    
-    iniciarInteraccionesMapa();
-  });
-
-  const hL = document.getElementById('hud-lng'); const hLa = document.getElementById('hud-lat'); const hZ = document.getElementById('hud-zoom');
-  function uH(l) { if(l){hL.textContent=l.lng.toFixed(5); hLa.textContent=l.lat.toFixed(5);} hZ.textContent=map.getZoom().toFixed(1); }
-  map.on('mousemove', e => uH(e.lngLat)); map.on('move', () => uH()); map.on('load', () => uH(map.getCenter()));
-  document.getElementById('btn-recenter').addEventListener('click', () => map.flyTo({ center: [-0.3690, 39.4690], zoom: 12.4 }));
-}
-
-function actualizarFuenteMapa() {
-  const geojson = {
-    type: 'FeatureCollection',
-    features: OBRAS.map(o => ({ type: 'Feature', id: o.id, geometry: { type: 'Point', coordinates: o.coordenadas }, properties: o }))
-  };
-
-  if (map.getSource('obras')) {
-    map.getSource('obras').setData(geojson);
-  } else {
-    map.addSource('obras', { type: 'geojson', data: geojson });
-  }
-}
-
-/* ---------------------------------------------------------------------
-   4. INTERACCIONES DEL MAPA (CLICS Y PULSACIÓN LARGA)
-   --------------------------------------------------------------------- */
-const sheet = document.getElementById('sheet');
-
-function cerrarFicha() {
-  sheet.classList.remove('open');
-  if (selectedFeatureId !== null) {
-    const obraAnterior = OBRAS.find(o => o.id === selectedFeatureId);
-    if(obraAnterior) obraAnterior.selected = false;
-    actualizarFuenteMapa();
-    selectedFeatureId = null;
-  }
-}
-
-function iniciarInteraccionesMapa() {
-  
-  // Clic en obra
-  map.on('click', 'obras-layer', (e) => {
-    // IMPORTANTE: Leemos el ID directamente de las propiedades para evitar el bug de Mapbox
-    const p = e.features[0].properties; 
-    const c = e.features[0].geometry.coordinates;
-    const clickedId = p.id;
-    
-    // Quitar color al icono anterior
-    if (selectedFeatureId !== null) {
-      const obraAnterior = OBRAS.find(o => o.id === selectedFeatureId);
-      if(obraAnterior) obraAnterior.selected = false;
-    }
-    
-    // Dar color al nuevo
-    selectedFeatureId = clickedId;
-    const obraNueva = OBRAS.find(o => o.id === selectedFeatureId);
-    if(obraNueva) obraNueva.selected = true;
-    
-    actualizarFuenteMapa();
-
-    document.getElementById('sheet-title').innerHTML = p.nombre_obra;
-    document.getElementById('sheet-body').innerHTML = `
-      <div class="data-row"><div class="label">[ARQUITECTO]</div><div class="value accent">${p.arquitecto}</div></div>
-      <div class="data-row"><div class="label">[AÑO]</div><div class="value">${p.año_construccion}</div></div>
-      <div class="data-row"><div class="label">[COORD]</div><div class="value">${c[0].toFixed(5)}, ${c[1].toFixed(5)}</div></div>
-    `;
-    sheet.classList.add('open');
-    
-    // Ocultar filtros si estuviesen abiertos
-    filterPanel.classList.remove('open');
-    btnFilters.classList.remove('active-state');
-  });
-
-  // Clic en el fondo vacío (Descartar selección)
-  map.on('click', (e) => {
-    const isObra = map.queryRenderedFeatures(e.point, { layers: ['obras-layer'] });
-    if (!isObra.length) {
-      cerrarFicha();
-    }
-  });
-
-  // Arreglo del botón "X" de la ficha
-  document.getElementById('btn-sheet-close').addEventListener('click', cerrarFicha);
-
-  // Pulsación larga para añadir (SOLO SI ESTÁ LOGEADO)
-  map.on('contextmenu', (e) => handleMapLongPress(e.lngLat));
-  let pT = null; let pS = null;
-  map.on('touchstart', (e) => { if (e.points.length > 1) return; pS = e.lngLat; pT = setTimeout(() => handleMapLongPress(pS), 600); });
-  map.on('touchmove', () => clearTimeout(pT)); map.on('touchend', () => clearTimeout(pT));
-}
-
-function handleMapLongPress(lngLat) {
-  if (!sessionToken) {
-    alert("ACCESO DENEGADO. Inicia sesión como administrador para registrar nuevas coordenadas.");
-    return;
-  }
-  pendingLngLat = lngLat;
-  document.getElementById('add-coords').textContent = `${lngLat.lng.toFixed(5)}, ${lngLat.lat.toFixed(5)}`;
-  
-  // Limpiar campos
-  document.getElementById('add-nombre').value = '';
-  document.getElementById('add-arquitecto').value = '';
-  document.getElementById('add-ano').value = '';
-  document.getElementById('add-error').classList.add('hidden');
-  
-  document.getElementById('modal-add-building').classList.add('open');
-}
-
-/* ---------------------------------------------------------------------
-   5. MÓDULO DE LOGIN
-   --------------------------------------------------------------------- */
-const mLogin = document.getElementById('modal-login');
-const bLoginT = document.getElementById('btn-login-trigger');
-bLoginT.addEventListener('click', () => mLogin.classList.add('open'));
-document.getElementById('btn-login-close').addEventListener('click', () => mLogin.classList.remove('open'));
-
-document.getElementById('btn-do-login').addEventListener('click', async () => {
-  const err = document.getElementById('login-error'); err.classList.add('hidden');
-  const e = document.getElementById('login-email').value.trim(); const p = document.getElementById('login-password').value.trim();
-  if (!e || !p) { err.textContent = "Datos incompletos."; err.classList.remove('hidden'); return; }
-  
-  document.getElementById('btn-do-login').textContent = "VERIFICANDO...";
-  try {
-    const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
-      method: 'POST',
-      headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: e, password: p })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error_description || 'ACCESO DENEGADO.');
-    
-    sessionToken = data.access_token;
-    mLogin.classList.remove('open');
-    bLoginT.textContent = "[ SISTEMA DESBLOQUEADO ]";
-    bLoginT.style.color = "var(--accent-2)"; bLoginT.style.borderColor = "var(--accent-2)";
-    bLoginT.style.background = "rgba(57, 255, 20, 0.1)";
-  } catch (error) {
-    err.textContent = error.message; err.classList.remove('hidden');
-  } finally {
-    document.getElementById('btn-do-login').textContent = "AUTORIZAR ACCESO";
-  }
-});
-
-/* ---------------------------------------------------------------------
-   6. MÓDULO DE INSERCIÓN EN BD
-   --------------------------------------------------------------------- */
-const mAdd = document.getElementById('modal-add-building');
-const closeAdd = () => { mAdd.classList.remove('open'); pendingLngLat = null; };
-document.getElementById('btn-add-close').addEventListener('click', closeAdd);
-document.getElementById('btn-add-cancel').addEventListener('click', closeAdd);
-
-document.getElementById('btn-add-save').addEventListener('click', async () => {
-  const err = document.getElementById('add-error'); err.classList.add('hidden');
-  
-  const nombre = document.getElementById('add-nombre').value.trim();
-  const arq = document.getElementById('add-arquitecto').value.trim();
-  const ano = parseInt(document.getElementById('add-ano').value);
-  
-  if (!nombre || !arq || !pendingLngLat) {
-    err.textContent = "Faltan datos obligatorios (Nombre y Arquitecto)."; err.classList.remove('hidden'); return;
-  }
-
-  document.getElementById('btn-add-save').innerHTML = "PUBLICANDO...";
-  
-  // Generamos un código técnico de fondo para la base de datos automáticamente
-  const codigoAutogenerado = 'VLC-' + Date.now();
-
-  const nuevoEdificio = {
-    codigo_obra: codigoAutogenerado,
-    nombre_obra: nombre,
-    arquitecto: arq,
-    año_construccion: isNaN(ano) ? null : ano,
-    longitud: pendingLngLat.lng,
-    latitud: pendingLngLat.lat
-  };
-
-  try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/Buildings`, {
-      method: 'POST',
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${sessionToken}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=representation'
-      },
-      body: JSON.stringify(nuevoEdificio)
-    });
-
-    if (!res.ok) throw new Error("Fallo al guardar en la base de datos.");
-    const insertedData = await res.json();
-    
-    // Añadir al mapa en vivo
-    const nuevoObj = { ...nuevoEdificio, id: insertedData[0].id, coordenadas: [pendingLngLat.lng, pendingLngLat.lat], selected: false };
-    OBRAS.push(nuevoObj);
-    actualizarFuenteMapa();
-    
-    // Actualizar filtros si hay un arquitecto nuevo
-    if (!ARQUITECTOS.includes(arq)) {
-      ARQUITECTOS.push(arq);
-      activeArquitectos.add(arq);
-      generarFiltrosUI();
-    }
-    
-    closeAdd();
-  } catch (error) {
-    err.textContent = error.message; err.classList.remove('hidden');
-  } finally {
-    document.getElementById('btn-add-save').innerHTML = `<span class="inline-flex items-center gap-1"><i data-lucide="database" width="13" height="13"></i> PUBLICAR</span>`;
-    lucide.createIcons();
-  }
-});
-
-/* ---------------------------------------------------------------------
-   7. DIBUJO DE ICONOS (Dinámico por color)
-   --------------------------------------------------------------------- */
-function buildIcon(draw, color, size = 64) {
-  const c = document.createElement('canvas'); c.width = size; c.height = size;
-  const ctx = c.getContext('2d'); draw(ctx, color, size); return ctx.getImageData(0, 0, size, size);
-}
-function drawTargetIcon(ctx, color, s) {
-  const c = s / 2; ctx.strokeStyle = color; ctx.lineWidth = 4;
-  ctx.beginPath(); ctx.arc(c, c, s * 0.30, 0, Math.PI * 2); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(c, s * 0.06); ctx.lineTo(c, s * 0.28); ctx.moveTo(c, s * 0.72); ctx.lineTo(c, s * 0.94); ctx.moveTo(s * 0.06, c); ctx.lineTo(s * 0.28, c); ctx.moveTo(s * 0.72, c); ctx.lineTo(s * 0.94, c); ctx.stroke();
-  ctx.fillStyle = color; ctx.beginPath(); ctx.arc(c, c, 3.5, 0, Math.PI * 2); ctx.fill();
-}
-lucide.createIcons();
-inicializarRadar();
-
-</script>
+<!-- Lógica de la aplicación: módulo ES6, se ejecuta en modo defer nativo -->
+<script type="module" src="js/main.js"></script>
 </body>
 </html>

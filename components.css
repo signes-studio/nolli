@@ -1,0 +1,46 @@
+/* =========================================================================
+   COMPONENTS.CSS — Botones flotantes, modales genéricos e inputs técnicos
+   ========================================================================= */
+
+/* ---------- Botones flotantes (FAB) ---------- */
+.fab {
+  width: 46px; height: 46px; display: flex; align-items: center; justify-content: center;
+  background: var(--bg-panel); border: 1px solid var(--border-strong); color: var(--fg);
+  cursor: pointer; transition: background .1s, border-color .1s;
+}
+.fab:active { background: var(--accent); color: #000; border-color: var(--accent); }
+.fab.active-state { background: var(--accent); color: #000; border-color: var(--accent); }
+
+/* ---------- Botones ---------- */
+.btn {
+  font-size: 11px; letter-spacing: .06em; padding: 10px 14px;
+  border: 1px solid var(--border-strong); background: var(--bg-raised); color: var(--fg);
+  cursor: pointer; font-family: 'JetBrains Mono', monospace;
+}
+.btn-accent { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 700; }
+.btn-accent2 { background: var(--accent-2); border-color: var(--accent-2); color: #000; font-weight: 700; }
+
+/* ---------- Modal (genérico) ---------- */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,0.82);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity .15s; padding: 16px;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal-box {
+  width: 100%; max-width: 420px; background: var(--bg-panel);
+  border: 1px solid var(--accent); box-shadow: 0 0 0 1px #000, 0 0 24px rgba(255,69,0,0.15);
+}
+.modal-head {
+  padding: 12px 14px; border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.modal-body { padding: 14px; }
+
+/* Inputs estéticos */
+.tech-input {
+  width: 100%; background: #000; border: 1px solid var(--accent);
+  color: var(--fg); font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  padding: 10px;
+}
+.tech-input:focus { outline: none; box-shadow: 0 0 0 1px var(--accent); }

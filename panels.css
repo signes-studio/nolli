@@ -1,0 +1,61 @@
+/* =========================================================================
+   PANELS.CSS — Ficha técnica (bottom sheet) y panel de filtros
+   ========================================================================= */
+
+/* ---------- Panel de ficha técnica (bottom sheet) ---------- */
+.sheet {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 40;
+  background: var(--bg-panel);
+  border-top: 1px solid var(--accent);
+  transform: translateY(100%);
+  transition: transform .22s cubic-bezier(.2,.8,.2,1);
+  max-height: 62vh; overflow-y: auto;
+}
+.sheet.open { transform: translateY(0); }
+.sheet-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; border-bottom: 1px solid var(--border);
+  background: var(--bg-raised);
+}
+.data-row {
+  display: flex; border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+.data-row .label {
+  width: 130px; flex-shrink: 0; padding: 10px 12px; color: var(--fg-dim);
+  background: rgba(255,255,255,0.02); border-right: 1px solid var(--border);
+  font-size: 10px; letter-spacing: .04em;
+}
+.data-row .value { padding: 10px 12px; color: var(--fg); font-weight: 500; word-break: break-word; }
+.data-row .value.accent { color: var(--accent); }
+
+/* ---------- Panel de filtros ---------- */
+.filter-panel {
+  position: absolute; right: 14px; bottom: 84px; z-index: 40; /* Separado de los FABs */
+  width: min(280px, calc(100vw - 28px));
+  background: var(--bg-panel); border: 1px solid var(--border-strong);
+  transform: translateY(calc(100% + 150px)); /* Totalmente oculto hacia abajo */
+  transition: transform .22s cubic-bezier(.2,.8,.2,1);
+  max-height: 40vh; overflow-y: auto;
+}
+.filter-panel.open { transform: translateY(0); } /* Totalmente visible en su posición original */
+.filter-head {
+  padding: 10px 12px; border-bottom: 1px solid var(--border);
+  background: var(--bg-raised); font-size: 11px; letter-spacing: .06em;
+  display: flex; justify-content: space-between; align-items: center;
+  position: sticky; top: 0; z-index: 2;
+}
+.switch-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 12px; border-bottom: 1px solid var(--border); font-size: 11px;
+}
+.switch-row:last-child { border-bottom: none; }
+.tech-switch { position: relative; width: 38px; height: 18px; flex-shrink: 0; }
+.tech-switch input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; z-index: 2; }
+.tech-switch .track { position: absolute; inset: 0; background: #1a1a1a; border: 1px solid var(--border-strong); }
+.tech-switch .thumb {
+  position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; background: var(--fg-dim);
+  transition: left .15s, background .15s;
+}
+.tech-switch input:checked ~ .thumb { left: 22px; background: var(--accent); }
+.tech-switch input:checked ~ .track { border-color: var(--accent); }
