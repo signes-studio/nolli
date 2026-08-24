@@ -7,12 +7,28 @@ import { loginAdmin, createBuilding, updateBuilding } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
 
+const ADMIN_SESSION_KEY = 'nolli_admin_session_token';
+
 /* -------------------------------------------------------------------------
    MÓDULO DE LOGIN
    ------------------------------------------------------------------------- */
 function initLoginModal() {
   const mLogin = document.getElementById('modal-login');
   const bLoginT = document.getElementById('btn-login-trigger');
+
+  const marcarSesionIniciada = () => {
+    bLoginT.textContent = '[ SISTEMA DESBLOQUEADO ]';
+    bLoginT.style.color = 'var(--accent-2)';
+    bLoginT.style.borderColor = 'var(--accent-2)';
+    bLoginT.style.background = 'rgba(57, 255, 20, 0.1)';
+    document.dispatchEvent(new CustomEvent('radar:admin-login'));
+  };
+
+  const tokenGuardado = localStorage.getItem(ADMIN_SESSION_KEY);
+  if (tokenGuardado) {
+    state.sessionToken = tokenGuardado;
+    marcarSesionIniciada();
+  }
 
   bLoginT.addEventListener('click', () => mLogin.classList.add('open'));
   document.addEventListener('click', (e) => {
@@ -35,12 +51,9 @@ function initLoginModal() {
     btnLogin.textContent = 'VERIFICANDO...';
     try {
       state.sessionToken = await loginAdmin(email, password);
+      localStorage.setItem(ADMIN_SESSION_KEY, state.sessionToken);
       mLogin.classList.remove('open');
-      bLoginT.textContent = '[ SISTEMA DESBLOQUEADO ]';
-      bLoginT.style.color = 'var(--accent-2)';
-      bLoginT.style.borderColor = 'var(--accent-2)';
-      bLoginT.style.background = 'rgba(57, 255, 20, 0.1)';
-      document.dispatchEvent(new CustomEvent('radar:admin-login'));
+      marcarSesionIniciada();
     } catch (error) {
       err.textContent = error.message;
       err.classList.remove('hidden');
