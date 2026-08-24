@@ -204,16 +204,17 @@
 <!-- Barra superior -->
 <div class="topbar">
   <div class="topbar-inner">
-    <div>
+    <div style="flex: 1;">
       <div class="font-display text-2xl leading-none tracking-tight" style="color:var(--fg)">NOLLI<span style="color:var(--accent)">.</span></div>
       <div class="text-[10px] tracking-widest mt-1" style="color:var(--fg-dim)">RADAR ARQUITECTÓNICO — V0.2 DB LINK</div>
+      <button id="btn-login-trigger" class="mt-2 text-[10px] font-bold px-2 py-1" style="border: 1px solid var(--accent); color: var(--accent); background: transparent;">[ ACCESO ADMIN ]</button>
     </div>
-    <div class="hud-readout">
+    <div class="hud-readout" style="text-align: right;">
       <div>LNG <span class="val" id="hud-lng">--.-----</span></div>
       <div>LAT <span class="val" id="hud-lat">--.-----</span></div>
       <div>ZOOM <span class="val" id="hud-zoom">--.-</span></div>
     </div>
-  </div>
+</div>
 </div>
 
 <!-- FABs -->
