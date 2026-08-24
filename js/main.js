@@ -19,6 +19,7 @@ async function inicializarRadar() {
       nombre_obra: fila.nombre_obra,
       arquitecto: fila.arquitecto,
       año_construccion: fila.año_construccion,
+      importancia: Number(fila.importancia) || 1,
       coordenadas: [fila.longitud, fila.latitud],
       selected: false,
     }));

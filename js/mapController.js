@@ -23,43 +23,51 @@ export function cargarMapaMapbox() {
   state.map.touchZoomRotate.disableRotation();
 
   state.map.on('load', () => {
-    // 2 tipos de icono: normal (naranja) y seleccionado (blanco)
-    state.map.addImage('icon-target', buildIcon(drawTargetIcon, '#FF4500'), { pixelRatio: 2 });
-    state.map.addImage('icon-target-selected', buildIcon(drawTargetIcon, '#FFFFFF'), { pixelRatio: 2 });
+    [1, 2, 3].forEach((importance) => {
+      state.map.addImage(`icon-l${importance}`, buildIcon(drawTargetIcon, '#FF4500', importance), { pixelRatio: 2 });
+      state.map.addImage(`icon-l${importance}-selected`, buildIcon(drawTargetIcon, '#FFFFFF', importance), { pixelRatio: 2 });
+    });
     state.map.addSource('obras', {
       type: 'geojson',
       data: { type: 'FeatureCollection', features: [] },
     });
     actualizarFuenteMapa();
 
-    state.map.addLayer({
-      id: 'obras-layer',
-      type: 'symbol',
-      source: 'obras',
-      filter: ['!=', ['get', 'selected'], 1],
-      layout: {
-        'icon-image': 'icon-target',
-        'icon-size': 0.62,
-        'icon-allow-overlap': true,
-      },
-    });
+    [1, 2, 3].forEach((importance) => {
+      const minzoom = importance === 1 ? 0 : importance === 2 ? 11 : 13.5;
+      const baseFilter = ['==', ['get', 'importancia'], importance];
 
-    state.map.addLayer({
-      id: 'obras-selected-layer',
-      type: 'symbol',
-      source: 'obras',
-      filter: ['==', ['get', 'selected'], 1],
-      layout: {
-        'icon-image': 'icon-target-selected',
-        'icon-size': 0.62,
-        'icon-allow-overlap': true,
-      },
-    });
+      state.map.addLayer({
+        id: `obras-l${importance}`,
+        type: 'symbol',
+        source: 'obras',
+        minzoom,
+        filter: ['all', baseFilter, ['!=', ['get', 'selected'], 1]],
+        layout: {
+          'icon-image': `icon-l${importance}`,
+          'icon-size': importance === 1 ? 0.78 : importance === 2 ? 0.64 : 0.52,
+          'icon-allow-overlap': true,
+        },
+      });
 
-    state.map.on('mouseenter', 'obras-layer', () => { state.map.getCanvas().style.cursor = 'pointer'; });
-    state.map.on('mouseleave', 'obras-layer', () => { state.map.getCanvas().style.cursor = ''; });
-    state.map.on('mouseenter', 'obras-selected-layer', () => { state.map.getCanvas().style.cursor = 'pointer'; });
-    state.map.on('mouseleave', 'obras-selected-layer', () => { state.map.getCanvas().style.cursor = ''; });
+      state.map.addLayer({
+        id: `obras-l${importance}-selected`,
+        type: 'symbol',
+        source: 'obras',
+        minzoom,
+        filter: ['all', baseFilter, ['==', ['get', 'selected'], 1]],
+        layout: {
+          'icon-image': `icon-l${importance}-selected`,
+          'icon-size': importance === 1 ? 0.78 : importance === 2 ? 0.64 : 0.52,
+          'icon-allow-overlap': true,
+        },
+      });
+
+      [`obras-l${importance}`, `obras-l${importance}-selected`].forEach((layerId) => {
+        state.map.on('mouseenter', layerId, () => { state.map.getCanvas().style.cursor = 'pointer'; });
+        state.map.on('mouseleave', layerId, () => { state.map.getCanvas().style.cursor = ''; });
+      });
+    });
 
     iniciarInteraccionesMapa();
   });
@@ -90,7 +98,7 @@ function initHudReadout() {
 
 function iniciarInteraccionesMapa() {
   // Clic en obra
-  ['obras-layer', 'obras-selected-layer'].forEach((layerId) => {
+  ['obras-l1', 'obras-l1-selected', 'obras-l2', 'obras-l2-selected', 'obras-l3', 'obras-l3-selected'].forEach((layerId) => {
     state.map.on('click', layerId, (e) => {
       const feature = e.features[0];
       const p = feature.properties;
@@ -101,7 +109,7 @@ function iniciarInteraccionesMapa() {
 
   // Clic en el fondo vacío (Descartar selección)
   state.map.on('click', (e) => {
-    const isObra = state.map.queryRenderedFeatures(e.point, { layers: ['obras-layer', 'obras-selected-layer'] });
+    const isObra = state.map.queryRenderedFeatures(e.point, { layers: ['obras-l1', 'obras-l1-selected', 'obras-l2', 'obras-l2-selected', 'obras-l3', 'obras-l3-selected'] });
     if (!isObra.length) cerrarFicha();
   });
 

@@ -3,7 +3,7 @@
    ========================================================================= */
 
 import { state } from './state.js';
-import { loginAdmin, createBuilding } from './api.js';
+import { loginAdmin, createBuilding, updateBuilding } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
 
@@ -40,6 +40,7 @@ function initLoginModal() {
       bLoginT.style.color = 'var(--accent-2)';
       bLoginT.style.borderColor = 'var(--accent-2)';
       bLoginT.style.background = 'rgba(57, 255, 20, 0.1)';
+      document.dispatchEvent(new CustomEvent('radar:admin-login'));
     } catch (error) {
       err.textContent = error.message;
       err.classList.remove('hidden');
@@ -54,12 +55,31 @@ function initLoginModal() {
    ------------------------------------------------------------------------- */
 function initAddBuildingModal() {
   const mAdd = document.getElementById('modal-add-building');
-  const closeAdd = () => { mAdd.classList.remove('open'); state.pendingLngLat = null; };
+  const closeAdd = () => {
+    mAdd.classList.remove('open');
+    state.pendingLngLat = null;
+    state.editingBuildingId = null;
+  };
 
   document.addEventListener('click', (e) => {
     if (e.target.closest('#btn-add-close')) closeAdd();
   });
   document.getElementById('btn-add-cancel').addEventListener('click', closeAdd);
+
+  document.addEventListener('radar:edit-building', (e) => {
+    const obra = e.detail.obra;
+    state.editingBuildingId = obra.id;
+    state.pendingLngLat = { lng: obra.coordenadas[0], lat: obra.coordenadas[1] };
+    document.getElementById('modal-add-title').textContent = 'EDITAR OBRA (DB)';
+    document.getElementById('btn-add-save').innerHTML = 'GUARDAR CAMBIOS';
+    document.getElementById('add-coords').textContent = `${obra.coordenadas[0].toFixed(5)}, ${obra.coordenadas[1].toFixed(5)}`;
+    document.getElementById('add-nombre').value = obra.nombre_obra || '';
+    document.getElementById('add-arquitecto').value = obra.arquitecto || '';
+    document.getElementById('add-ano').value = obra.año_construccion || '';
+    document.getElementById('add-importancia').value = String(obra.importancia || 1);
+    document.getElementById('add-error').classList.add('hidden');
+    mAdd.classList.add('open');
+  });
 
   document.getElementById('btn-add-save').addEventListener('click', async () => {
     const err = document.getElementById('add-error');
@@ -68,6 +88,7 @@ function initAddBuildingModal() {
     const nombre = document.getElementById('add-nombre').value.trim();
     const arq = document.getElementById('add-arquitecto').value.trim();
     const ano = parseInt(document.getElementById('add-ano').value, 10);
+    const importancia = Number(document.getElementById('add-importancia').value);
 
     if (!nombre || !arq || !state.pendingLngLat) {
       err.textContent = 'Faltan datos obligatorios (Nombre y Arquitecto).';
@@ -79,27 +100,37 @@ function initAddBuildingModal() {
     btnSave.innerHTML = 'PUBLICANDO...';
 
     // Código técnico de fondo generado automáticamente
-    const codigoAutogenerado = 'VLC-' + Date.now();
-    const nuevoEdificio = {
-      codigo_obra: codigoAutogenerado,
+    const edificio = {
       nombre_obra: nombre,
       arquitecto: arq,
       año_construccion: Number.isNaN(ano) ? null : ano,
+      importancia,
       longitud: state.pendingLngLat.lng,
       latitud: state.pendingLngLat.lat,
     };
 
     try {
-      const insertedData = await createBuilding(nuevoEdificio, state.sessionToken);
+      if (state.editingBuildingId !== null) {
+        const updatedData = await updateBuilding(state.editingBuildingId, edificio, state.sessionToken);
+        const updated = updatedData[0];
+        const obra = state.OBRAS.find((item) => String(item.id) === String(state.editingBuildingId));
+        if (obra) Object.assign(obra, {
+          ...edificio,
+          id: obra.id,
+          coordenadas: [updated.longitud, updated.latitud],
+          selected: obra.selected,
+        });
+      } else {
+        const nuevoEdificio = { ...edificio, codigo_obra: 'VLC-' + Date.now() };
+        const insertedData = await createBuilding(nuevoEdificio, state.sessionToken);
 
-      // Añadir al mapa en vivo
-      const nuevoObj = {
-        ...nuevoEdificio,
-        id: insertedData[0].id,
-        coordenadas: [state.pendingLngLat.lng, state.pendingLngLat.lat],
-        selected: false,
-      };
-      state.OBRAS.push(nuevoObj);
+        state.OBRAS.push({
+          ...nuevoEdificio,
+          id: insertedData[0].id,
+          coordenadas: [state.pendingLngLat.lng, state.pendingLngLat.lat],
+          selected: false,
+        });
+      }
       actualizarFuenteMapa();
 
       // Actualizar filtros si hay un arquitecto nuevo
@@ -110,10 +141,12 @@ function initAddBuildingModal() {
       }
 
       closeAdd();
+      document.dispatchEvent(new CustomEvent('radar:cerrar-ficha'));
     } catch (error) {
       err.textContent = error.message;
       err.classList.remove('hidden');
     } finally {
+      document.getElementById('modal-add-title').textContent = 'REGISTRO DE NUEVA OBRA (DB)';
       btnSave.innerHTML = '<span class="inline-flex items-center gap-1"><i data-lucide="database" width="13" height="13"></i> PUBLICAR</span>';
       lucide.createIcons();
     }
@@ -131,12 +164,16 @@ function handleMapLongPress(lngLat) {
     alert('ACCESO DENEGADO. Inicia sesión como administrador para registrar nuevas coordenadas.');
     return;
   }
+  state.editingBuildingId = null;
   state.pendingLngLat = lngLat;
   document.getElementById('add-coords').textContent = `${lngLat.lng.toFixed(5)}, ${lngLat.lat.toFixed(5)}`;
 
   document.getElementById('add-nombre').value = '';
   document.getElementById('add-arquitecto').value = '';
   document.getElementById('add-ano').value = '';
+  document.getElementById('add-importancia').value = '1';
+  document.getElementById('modal-add-title').textContent = 'REGISTRO DE NUEVA OBRA (DB)';
+  document.getElementById('btn-add-save').innerHTML = '<span class="inline-flex items-center gap-1"><i data-lucide="database" width="13" height="13"></i> PUBLICAR</span>';
   document.getElementById('add-error').classList.add('hidden');
 
   document.getElementById('modal-add-building').classList.add('open');

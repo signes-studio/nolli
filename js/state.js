@@ -10,6 +10,7 @@ export const state = {
   activeArquitectos: new Set(),
   sessionToken: null,
   pendingLngLat: null,
+  editingBuildingId: null,
   selectedFeatureId: null,
   map: null,
 };

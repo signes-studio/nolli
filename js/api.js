@@ -44,3 +44,19 @@ export async function createBuilding(nuevoEdificio, sessionToken) {
   if (!res.ok) throw new Error('Fallo al guardar en la base de datos.');
   return res.json();
 }
+
+/** Actualiza un edificio existente. Requiere token de sesión. */
+export async function updateBuilding(id, edificio, sessionToken) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?id=eq.${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation',
+    },
+    body: JSON.stringify(edificio),
+  });
+  if (!res.ok) throw new Error('Fallo al actualizar la obra en la base de datos.');
+  return res.json();
+}

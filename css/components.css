@@ -19,6 +19,7 @@
 }
 .btn-accent { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 700; }
 .btn-accent2 { background: var(--accent-2); border-color: var(--accent-2); color: #000; font-weight: 700; }
+.btn-edit { font-size: 10px; padding: 5px 7px; color: var(--accent-2); border-color: var(--accent-2); }
 
 /* ---------- Modal (genérico) ---------- */
 .modal-overlay {

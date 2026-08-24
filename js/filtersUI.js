@@ -40,11 +40,7 @@ function initFiltersUI() {
     if (e.target.checked) state.activeArquitectos.add(arq);
     else state.activeArquitectos.delete(arq);
 
-    if (state.map && state.map.getLayer('obras-layer')) {
-      state.map.setFilter('obras-layer', [
-        'in', ['get', 'arquitecto'], ['literal', [...state.activeArquitectos]],
-      ]);
-    }
+    aplicarFiltrosMapa();
   });
 
   document.addEventListener('click', (e) => {
@@ -55,6 +51,23 @@ function initFiltersUI() {
     filterPanel.classList.toggle('open');
     btnFilters.classList.toggle('active-state');
     document.dispatchEvent(new CustomEvent('radar:cerrar-ficha'));
+  });
+}
+
+export function aplicarFiltrosMapa() {
+  if (!state.map) return;
+  const arquitectos = ['in', ['get', 'arquitecto'], ['literal', [...state.activeArquitectos]]];
+  [1, 2, 3].forEach((importance) => {
+    [`obras-l${importance}`, `obras-l${importance}-selected`].forEach((layerId) => {
+      if (!state.map.getLayer(layerId)) return;
+      const selected = layerId.endsWith('-selected') ? 1 : 0;
+      state.map.setFilter(layerId, [
+        'all',
+        arquitectos,
+        ['==', ['get', 'importancia'], importance],
+        ['==', ['get', 'selected'], selected],
+      ]);
+    });
   });
 }
 
