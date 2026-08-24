@@ -24,12 +24,12 @@ export function abrirFicha(p, c, featureId = p.id) {
   if (state.selectedFeatureId !== null) {
     const obraAnterior = state.OBRAS.find((o) => String(o.id) === String(state.selectedFeatureId));
     if (obraAnterior) obraAnterior.selected = false;
+    actualizarFuenteMapa();
   }
 
   state.selectedFeatureId = clickedId;
   const obraNueva = state.OBRAS.find((o) => String(o.id) === String(state.selectedFeatureId));
   if (obraNueva) obraNueva.selected = true;
-
   actualizarFuenteMapa();
 
   document.getElementById('sheet-title').innerHTML = p.nombre_obra;

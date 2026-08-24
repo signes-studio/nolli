@@ -36,8 +36,21 @@ export function cargarMapaMapbox() {
       id: 'obras-layer',
       type: 'symbol',
       source: 'obras',
+      filter: ['!=', ['get', 'selected'], 1],
       layout: {
-        'icon-image': ['case', ['==', ['get', 'selected'], 1], 'icon-target-selected', 'icon-target'],
+        'icon-image': 'icon-target',
+        'icon-size': 0.62,
+        'icon-allow-overlap': true,
+      },
+    });
+
+    state.map.addLayer({
+      id: 'obras-selected-layer',
+      type: 'symbol',
+      source: 'obras',
+      filter: ['==', ['get', 'selected'], 1],
+      layout: {
+        'icon-image': 'icon-target-selected',
         'icon-size': 0.62,
         'icon-allow-overlap': true,
       },
@@ -45,6 +58,8 @@ export function cargarMapaMapbox() {
 
     state.map.on('mouseenter', 'obras-layer', () => { state.map.getCanvas().style.cursor = 'pointer'; });
     state.map.on('mouseleave', 'obras-layer', () => { state.map.getCanvas().style.cursor = ''; });
+    state.map.on('mouseenter', 'obras-selected-layer', () => { state.map.getCanvas().style.cursor = 'pointer'; });
+    state.map.on('mouseleave', 'obras-selected-layer', () => { state.map.getCanvas().style.cursor = ''; });
 
     iniciarInteraccionesMapa();
   });
@@ -75,17 +90,18 @@ function initHudReadout() {
 
 function iniciarInteraccionesMapa() {
   // Clic en obra
-  state.map.on('click', 'obras-layer', (e) => {
-    // IMPORTANTE: Leemos el ID directamente de las propiedades para evitar el bug de Mapbox
-    const feature = e.features[0];
-    const p = feature.properties;
-    const c = feature.geometry.coordinates;
-    abrirFicha(p, c, feature.id);
+  ['obras-layer', 'obras-selected-layer'].forEach((layerId) => {
+    state.map.on('click', layerId, (e) => {
+      const feature = e.features[0];
+      const p = feature.properties;
+      const c = feature.geometry.coordinates;
+      abrirFicha(p, c, feature.id);
+    });
   });
 
   // Clic en el fondo vacío (Descartar selección)
   state.map.on('click', (e) => {
-    const isObra = state.map.queryRenderedFeatures(e.point, { layers: ['obras-layer'] });
+    const isObra = state.map.queryRenderedFeatures(e.point, { layers: ['obras-layer', 'obras-selected-layer'] });
     if (!isObra.length) cerrarFicha();
   });
 
