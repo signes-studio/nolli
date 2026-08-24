@@ -212,7 +212,7 @@
   <div class="topbar-inner">
     <div style="flex: 1;">
       <div class="font-display text-2xl leading-none tracking-tight" style="color:var(--fg)">NOLLI<span style="color:var(--accent)">.</span></div>
-      <div class="text-[10px] tracking-widest mt-1" style="color:var(--fg-dim)">RADAR ARQUITECTÓNICO — V0.4 ADMIN</div>
+      <div class="text-[10px] tracking-widest mt-1" style="color:var(--fg-dim)">RADAR ARQUITECTÓNICO — V0.4.1 ADMIN</div>
       <button id="btn-login-trigger" class="mt-2 text-[10px] font-bold px-2 py-1 cursor-pointer transition-colors" style="border: 1px solid var(--accent); color: var(--accent); background: rgba(255, 69, 0, 0.1);">[ ACCESO ADMIN ]</button>
     </div>
     <div class="hud-readout" style="text-align: right;">
@@ -341,7 +341,7 @@ let ARQUITECTOS = [];
 let activeArquitectos = new Set();
 let sessionToken = null; 
 let pendingLngLat = null; 
-let selectedFeatureId = null; // Guardará el ID del edificio seleccionado para el color
+let selectedFeatureId = null; 
 let map;
 
 /* ---------------------------------------------------------------------
@@ -364,7 +364,8 @@ async function inicializarRadar() {
       nombre_obra: fila.nombre_obra,
       arquitecto: fila.arquitecto,
       año_construccion: fila.año_construccion,
-      coordenadas: [fila.longitud, fila.latitud]
+      coordenadas: [fila.longitud, fila.latitud],
+      selected: false // Propiedad inyectada para el color activo
     }));
 
     // Ahora filtramos por Arquitecto
@@ -445,8 +446,8 @@ function cargarMapaMapbox() {
       type: 'symbol',
       source: 'obras',
       layout: { 
-        // Cambia la imagen si feature-state 'selected' es true
-        'icon-image': ['case', ['boolean', ['feature-state', 'selected'], false], 'icon-target-selected', 'icon-target'], 
+        // Cambia la imagen basándose en la propiedad 'selected' (forma correcta en Mapbox)
+        'icon-image': ['case', ['==', ['get', 'selected'], true], 'icon-target-selected', 'icon-target'], 
         'icon-size': 0.62, 
         'icon-allow-overlap': true 
       }
@@ -467,7 +468,6 @@ function cargarMapaMapbox() {
 function actualizarFuenteMapa() {
   const geojson = {
     type: 'FeatureCollection',
-    // MUY IMPORTANTE: Se necesita o.id en la raíz para el feature-state
     features: OBRAS.map(o => ({ type: 'Feature', id: o.id, geometry: { type: 'Point', coordinates: o.coordenadas }, properties: o }))
   };
 
@@ -486,7 +486,9 @@ const sheet = document.getElementById('sheet');
 function cerrarFicha() {
   sheet.classList.remove('open');
   if (selectedFeatureId !== null) {
-    map.setFeatureState({ source: 'obras', id: selectedFeatureId }, { selected: false });
+    const obraAnterior = OBRAS.find(o => o.id === selectedFeatureId);
+    if(obraAnterior) obraAnterior.selected = false;
+    actualizarFuenteMapa();
     selectedFeatureId = null;
   }
 }
@@ -499,12 +501,18 @@ function iniciarInteraccionesMapa() {
     const p = f.properties; 
     const c = f.geometry.coordinates;
     
-    // Cambiar color del icono anterior y del nuevo
+    // Quitar color al icono anterior
     if (selectedFeatureId !== null) {
-      map.setFeatureState({ source: 'obras', id: selectedFeatureId }, { selected: false });
+      const obraAnterior = OBRAS.find(o => o.id === selectedFeatureId);
+      if(obraAnterior) obraAnterior.selected = false;
     }
+    
+    // Dar color al nuevo
     selectedFeatureId = f.id;
-    map.setFeatureState({ source: 'obras', id: selectedFeatureId }, { selected: true });
+    const obraNueva = OBRAS.find(o => o.id === selectedFeatureId);
+    if(obraNueva) obraNueva.selected = true;
+    
+    actualizarFuenteMapa();
 
     document.getElementById('sheet-title').innerHTML = p.nombre_obra;
     document.getElementById('sheet-body').innerHTML = `
@@ -635,7 +643,7 @@ document.getElementById('btn-add-save').addEventListener('click', async () => {
     const insertedData = await res.json();
     
     // Añadir al mapa en vivo
-    const nuevoObj = { ...nuevoEdificio, id: insertedData[0].id, coordenadas: [pendingLngLat.lng, pendingLngLat.lat] };
+    const nuevoObj = { ...nuevoEdificio, id: insertedData[0].id, coordenadas: [pendingLngLat.lng, pendingLngLat.lat], selected: false };
     OBRAS.push(nuevoObj);
     actualizarFuenteMapa();
     
