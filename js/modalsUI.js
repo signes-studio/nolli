@@ -121,10 +121,15 @@ function initAddBuildingModal() {
           selected: obra.selected,
         });
       } else {
-        const insertedData = await createBuilding({ ...edificio, añadido_por: 'administrador' }, state.sessionToken);
+        const nuevoEdificio = {
+          ...edificio,
+          id: 'VLC-' + Date.now(),
+          añadido_por: 'administrador',
+        };
+        const insertedData = await createBuilding(nuevoEdificio, state.sessionToken);
 
         state.OBRAS.push({
-          ...edificio,
+          ...nuevoEdificio,
           añadido_por: 'administrador',
           id: insertedData[0].id,
           featureId: String(insertedData[0].id ?? `obra-${Date.now()}`),
