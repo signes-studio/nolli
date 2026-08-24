@@ -26,6 +26,7 @@
     --bg-raised:     #121212;
     --accent:        #FF4500; /* naranja técnico */
     --accent-2:      #39FF14; /* verde fósforo (notas privadas) */
+    --accent-select: #FFFFFF; /* blanco para selección activa */
     --fg:            #FFFFFF;
     --fg-dim:        #7a7a7a;
     --border:        #2b2b2b;
@@ -132,12 +133,14 @@
     background:var(--bg-panel); border:1px solid var(--border-strong);
     transform:translateY(calc(100% + 14px)) translateY(-84px);
     transition:transform .22s cubic-bezier(.2,.8,.2,1);
+    max-height: 40vh; overflow-y: auto;
   }
   .filter-panel.open{ transform:translateY(-84px); }
   .filter-head{
     padding:10px 12px; border-bottom:1px solid var(--border);
     background:var(--bg-raised); font-size:11px; letter-spacing:.06em;
     display:flex; justify-content:space-between; align-items:center;
+    position: sticky; top: 0; z-index: 2;
   }
   .switch-row{
     display:flex; align-items:center; justify-content:space-between;
@@ -209,7 +212,7 @@
   <div class="topbar-inner">
     <div style="flex: 1;">
       <div class="font-display text-2xl leading-none tracking-tight" style="color:var(--fg)">NOLLI<span style="color:var(--accent)">.</span></div>
-      <div class="text-[10px] tracking-widest mt-1" style="color:var(--fg-dim)">RADAR ARQUITECTÓNICO — V0.3 ADMIN</div>
+      <div class="text-[10px] tracking-widest mt-1" style="color:var(--fg-dim)">RADAR ARQUITECTÓNICO — V0.4 ADMIN</div>
       <button id="btn-login-trigger" class="mt-2 text-[10px] font-bold px-2 py-1 cursor-pointer transition-colors" style="border: 1px solid var(--accent); color: var(--accent); background: rgba(255, 69, 0, 0.1);">[ ACCESO ADMIN ]</button>
     </div>
     <div class="hud-readout" style="text-align: right;">
@@ -233,7 +236,7 @@
 <!-- Panel de filtros -->
 <div id="filter-panel" class="filter-panel">
   <div class="filter-head">
-    <span style="color:var(--fg-dim)">[ FILTRO // SISTEMA ESTRUCTURAL ]</span>
+    <span style="color:var(--fg-dim)">[ FILTRO // ARQUITECTO ]</span>
     <i data-lucide="x" id="btn-filters-close" width="14" height="14" style="cursor:pointer; color:var(--fg-dim)"></i>
   </div>
   <div id="filter-switches"></div>
@@ -246,7 +249,7 @@
       <i data-lucide="square-dashed-bottom-code" width="14" height="14" style="color:var(--accent)"></i>
       <span style="letter-spacing:.06em; font-size:11px; color:var(--fg-dim)">FICHA_OBRA.DAT</span>
     </div>
-    <i data-lucide="x" id="btn-sheet-close" width="16" height="16" style="cursor:pointer"></i>
+    <i data-lucide="x" id="btn-sheet-close" width="16" height="16" style="cursor:pointer; z-index: 50;"></i>
   </div>
   <div id="sheet-title" class="font-display px-3.5 pt-3 pb-2 text-xl leading-tight"></div>
   <div id="sheet-body"></div>
@@ -295,11 +298,6 @@
       </div>
       
       <div>
-        <label class="text-[10px] block mb-1" style="color:var(--fg-dim)">CÓDIGO (Ej: VLC-05)</label>
-        <input type="text" id="add-codigo" class="tech-input">
-      </div>
-      
-      <div>
         <label class="text-[10px] block mb-1" style="color:var(--fg-dim)">NOMBRE DE LA OBRA</label>
         <input type="text" id="add-nombre" class="tech-input">
       </div>
@@ -313,11 +311,6 @@
           <label class="text-[10px] block mb-1" style="color:var(--fg-dim)">AÑO</label>
           <input type="number" id="add-ano" class="tech-input">
         </div>
-      </div>
-      
-      <div>
-        <label class="text-[10px] block mb-1" style="color:var(--fg-dim)">SISTEMA ESTRUCTURAL</label>
-        <input type="text" id="add-sistema" class="tech-input">
       </div>
 
       <div id="add-error" class="text-[10px] text-red-500 hidden mt-1"></div>
@@ -344,10 +337,11 @@ const SUPABASE_KEY = 'sb_publishable_kYQ7Fa8nBsrkp1f8C4AuAg_4-5uBFm0';
 
 // VARIABLES GLOBALES
 let OBRAS = [];
-let SISTEMAS = [];
-let activeSistemas = new Set();
-let sessionToken = null; // Guardará el JWT si el usuario se loguea
-let pendingLngLat = null; // Guardará las coordenadas al hacer clic
+let ARQUITECTOS = [];
+let activeArquitectos = new Set();
+let sessionToken = null; 
+let pendingLngLat = null; 
+let selectedFeatureId = null; // Guardará el ID del edificio seleccionado para el color
 let map;
 
 /* ---------------------------------------------------------------------
@@ -367,16 +361,15 @@ async function inicializarRadar() {
 
     OBRAS = datosDB.map(fila => ({
       id: fila.id,
-      codigo_obra: fila.codigo_obra,
       nombre_obra: fila.nombre_obra,
       arquitecto: fila.arquitecto,
       año_construccion: fila.año_construccion,
-      sistema_estructural: fila.sistema_estructural,
       coordenadas: [fila.longitud, fila.latitud]
     }));
 
-    SISTEMAS = [...new Set(OBRAS.map(o => o.sistema_estructural))];
-    activeSistemas = new Set(SISTEMAS);
+    // Ahora filtramos por Arquitecto
+    ARQUITECTOS = [...new Set(OBRAS.map(o => o.arquitecto))];
+    activeArquitectos = new Set(ARQUITECTOS);
 
     generarFiltrosUI();
     cargarMapaMapbox();
@@ -387,32 +380,33 @@ async function inicializarRadar() {
 }
 
 /* ---------------------------------------------------------------------
-   2. UI Y FILTROS
+   2. UI Y FILTROS (Por Arquitecto)
    --------------------------------------------------------------------- */
 function generarFiltrosUI() {
   const filterSwitches = document.getElementById('filter-switches');
   filterSwitches.innerHTML = ''; 
-  SISTEMAS.forEach((sistema) => {
-    if (!sistema) return;
+  ARQUITECTOS.forEach((arq) => {
+    if (!arq) return;
     const row = document.createElement('div');
     row.className = 'switch-row';
     row.innerHTML = `
-      <span>${sistema}</span>
+      <span style="text-transform: uppercase;">${arq}</span>
       <div class="tech-switch">
-        <input type="checkbox" checked data-sistema="${sistema}">
+        <input type="checkbox" checked data-arq="${arq}">
         <div class="track"></div>
         <div class="thumb"></div>
       </div>
     `;
     filterSwitches.appendChild(row);
   });
+
   filterSwitches.addEventListener('change', (e) => {
     if (e.target.type !== 'checkbox') return;
-    const sistema = e.target.dataset.sistema;
-    if (e.target.checked) activeSistemas.add(sistema);
-    else activeSistemas.delete(sistema);
+    const arq = e.target.dataset.arq;
+    if (e.target.checked) activeArquitectos.add(arq);
+    else activeArquitectos.delete(arq);
     if (map && map.getLayer('obras-layer')) {
-      map.setFilter('obras-layer', ['in', ['get', 'sistema_estructural'], ['literal', [...activeSistemas]]]);
+      map.setFilter('obras-layer', ['in', ['get', 'arquitecto'], ['literal', [...activeArquitectos]]]);
     }
   });
 }
@@ -424,11 +418,11 @@ document.getElementById('btn-filters-close').addEventListener('click', () => {
 });
 btnFilters.addEventListener('click', () => {
   filterPanel.classList.toggle('open'); btnFilters.classList.toggle('active-state');
-  document.getElementById('sheet').classList.remove('open');
+  cerrarFicha();
 });
 
 /* ---------------------------------------------------------------------
-   3. INICIALIZAR MAPA
+   3. INICIALIZAR MAPA Y CAPAS
    --------------------------------------------------------------------- */
 function cargarMapaMapbox() {
   map = new mapboxgl.Map({
@@ -441,14 +435,21 @@ function cargarMapaMapbox() {
   map.dragRotate.disable(); map.touchZoomRotate.disableRotation();
 
   map.on('load', () => {
-    map.addImage('icon-target', buildIcon(drawTargetIcon), { pixelRatio: 2 });
+    // 2 tipos de icono: normal (naranja) y seleccionado (blanco)
+    map.addImage('icon-target', buildIcon(drawTargetIcon, '#FF4500'), { pixelRatio: 2 });
+    map.addImage('icon-target-selected', buildIcon(drawTargetIcon, '#FFFFFF'), { pixelRatio: 2 });
     actualizarFuenteMapa();
 
     map.addLayer({
       id: 'obras-layer',
       type: 'symbol',
       source: 'obras',
-      layout: { 'icon-image': 'icon-target', 'icon-size': 0.62, 'icon-allow-overlap': true }
+      layout: { 
+        // Cambia la imagen si feature-state 'selected' es true
+        'icon-image': ['case', ['boolean', ['feature-state', 'selected'], false], 'icon-target-selected', 'icon-target'], 
+        'icon-size': 0.62, 
+        'icon-allow-overlap': true 
+      }
     });
 
     map.on('mouseenter', 'obras-layer', () => map.getCanvas().style.cursor = 'pointer');
@@ -464,38 +465,67 @@ function cargarMapaMapbox() {
 }
 
 function actualizarFuenteMapa() {
+  const geojson = {
+    type: 'FeatureCollection',
+    // MUY IMPORTANTE: Se necesita o.id en la raíz para el feature-state
+    features: OBRAS.map(o => ({ type: 'Feature', id: o.id, geometry: { type: 'Point', coordinates: o.coordenadas }, properties: o }))
+  };
+
   if (map.getSource('obras')) {
-    map.getSource('obras').setData({
-      type: 'FeatureCollection',
-      features: OBRAS.map(o => ({ type: 'Feature', geometry: { type: 'Point', coordinates: o.coordenadas }, properties: o }))
-    });
+    map.getSource('obras').setData(geojson);
   } else {
-    map.addSource('obras', {
-      type: 'geojson',
-      data: { type: 'FeatureCollection', features: OBRAS.map(o => ({ type: 'Feature', geometry: { type: 'Point', coordinates: o.coordenadas }, properties: o })) }
-    });
+    map.addSource('obras', { type: 'geojson', data: geojson });
   }
 }
 
 /* ---------------------------------------------------------------------
    4. INTERACCIONES DEL MAPA (CLICS Y PULSACIÓN LARGA)
    --------------------------------------------------------------------- */
+const sheet = document.getElementById('sheet');
+
+function cerrarFicha() {
+  sheet.classList.remove('open');
+  if (selectedFeatureId !== null) {
+    map.setFeatureState({ source: 'obras', id: selectedFeatureId }, { selected: false });
+    selectedFeatureId = null;
+  }
+}
+
 function iniciarInteraccionesMapa() {
-  const sheet = document.getElementById('sheet');
+  
+  // Clic en obra
   map.on('click', 'obras-layer', (e) => {
-    const p = e.features[0].properties; const c = e.features[0].geometry.coordinates;
+    const f = e.features[0];
+    const p = f.properties; 
+    const c = f.geometry.coordinates;
+    
+    // Cambiar color del icono anterior y del nuevo
+    if (selectedFeatureId !== null) {
+      map.setFeatureState({ source: 'obras', id: selectedFeatureId }, { selected: false });
+    }
+    selectedFeatureId = f.id;
+    map.setFeatureState({ source: 'obras', id: selectedFeatureId }, { selected: true });
+
     document.getElementById('sheet-title').innerHTML = p.nombre_obra;
     document.getElementById('sheet-body').innerHTML = `
-      <div class="data-row"><div class="label">[CÓDIGO]</div><div class="value accent">${p.codigo_obra}</div></div>
-      <div class="data-row"><div class="label">[ARQ]</div><div class="value">${p.arquitecto}</div></div>
+      <div class="data-row"><div class="label">[ARQUITECTO]</div><div class="value accent">${p.arquitecto}</div></div>
       <div class="data-row"><div class="label">[AÑO]</div><div class="value">${p.año_construccion}</div></div>
-      <div class="data-row"><div class="label">[ESTRUCTURA]</div><div class="value">${p.sistema_estructural}</div></div>
       <div class="data-row"><div class="label">[COORD]</div><div class="value">${c[0].toFixed(5)}, ${c[1].toFixed(5)}</div></div>
     `;
     sheet.classList.add('open');
     filterPanel.classList.remove('open');
   });
-  document.getElementById('btn-sheet-close').addEventListener('click', () => sheet.classList.remove('open'));
+
+  // Clic en el fondo vacío (Descartar selección)
+  map.on('click', (e) => {
+    const isObra = map.queryRenderedFeatures(e.point, { layers: ['obras-layer'] });
+    if (!isObra.length) {
+      cerrarFicha();
+    }
+  });
+
+  // Arreglo del botón "X" de la ficha
+  document.getElementById('btn-sheet-close').addEventListener('click', cerrarFicha);
 
   // Pulsación larga para añadir (SOLO SI ESTÁ LOGEADO)
   map.on('contextmenu', (e) => handleMapLongPress(e.lngLat));
@@ -513,11 +543,9 @@ function handleMapLongPress(lngLat) {
   document.getElementById('add-coords').textContent = `${lngLat.lng.toFixed(5)}, ${lngLat.lat.toFixed(5)}`;
   
   // Limpiar campos
-  document.getElementById('add-codigo').value = '';
   document.getElementById('add-nombre').value = '';
   document.getElementById('add-arquitecto').value = '';
   document.getElementById('add-ano').value = '';
-  document.getElementById('add-sistema').value = '';
   document.getElementById('add-error').classList.add('hidden');
   
   document.getElementById('modal-add-building').classList.add('open');
@@ -568,24 +596,25 @@ document.getElementById('btn-add-cancel').addEventListener('click', closeAdd);
 
 document.getElementById('btn-add-save').addEventListener('click', async () => {
   const err = document.getElementById('add-error'); err.classList.add('hidden');
-  const codigo = document.getElementById('add-codigo').value.trim();
+  
   const nombre = document.getElementById('add-nombre').value.trim();
   const arq = document.getElementById('add-arquitecto').value.trim();
   const ano = parseInt(document.getElementById('add-ano').value);
-  const sist = document.getElementById('add-sistema').value.trim().toUpperCase(); // Normalizar a mayúsculas
   
-  if (!codigo || !nombre || !sist || !pendingLngLat) {
-    err.textContent = "Faltan datos obligatorios."; err.classList.remove('hidden'); return;
+  if (!nombre || !arq || !pendingLngLat) {
+    err.textContent = "Faltan datos obligatorios (Nombre y Arquitecto)."; err.classList.remove('hidden'); return;
   }
 
   document.getElementById('btn-add-save').innerHTML = "PUBLICANDO...";
   
+  // Generamos un código técnico de fondo para la base de datos automáticamente
+  const codigoAutogenerado = 'VLC-' + Date.now();
+
   const nuevoEdificio = {
-    codigo_obra: codigo,
+    codigo_obra: codigoAutogenerado,
     nombre_obra: nombre,
     arquitecto: arq,
     año_construccion: isNaN(ano) ? null : ano,
-    sistema_estructural: sist,
     longitud: pendingLngLat.lng,
     latitud: pendingLngLat.lat
   };
@@ -597,7 +626,7 @@ document.getElementById('btn-add-save').addEventListener('click', async () => {
         'apikey': SUPABASE_KEY,
         'Authorization': `Bearer ${sessionToken}`,
         'Content-Type': 'application/json',
-        'Prefer': 'return=representation' // Pide que Supabase devuelva el objeto insertado con su ID
+        'Prefer': 'return=representation'
       },
       body: JSON.stringify(nuevoEdificio)
     });
@@ -605,15 +634,15 @@ document.getElementById('btn-add-save').addEventListener('click', async () => {
     if (!res.ok) throw new Error("Fallo al guardar en la base de datos.");
     const insertedData = await res.json();
     
-    // Añadir al mapa en vivo sin recargar la web
+    // Añadir al mapa en vivo
     const nuevoObj = { ...nuevoEdificio, id: insertedData[0].id, coordenadas: [pendingLngLat.lng, pendingLngLat.lat] };
     OBRAS.push(nuevoObj);
     actualizarFuenteMapa();
     
-    // Actualizar filtros si hay un sistema nuevo
-    if (!SISTEMAS.includes(sist)) {
-      SISTEMAS.push(sist);
-      activeSistemas.add(sist);
+    // Actualizar filtros si hay un arquitecto nuevo
+    if (!ARQUITECTOS.includes(arq)) {
+      ARQUITECTOS.push(arq);
+      activeArquitectos.add(arq);
       generarFiltrosUI();
     }
     
@@ -627,17 +656,17 @@ document.getElementById('btn-add-save').addEventListener('click', async () => {
 });
 
 /* ---------------------------------------------------------------------
-   7. DIBUJO DE ICONOS
+   7. DIBUJO DE ICONOS (Dinámico por color)
    --------------------------------------------------------------------- */
-function buildIcon(draw, size = 64) {
+function buildIcon(draw, color, size = 64) {
   const c = document.createElement('canvas'); c.width = size; c.height = size;
-  const ctx = c.getContext('2d'); draw(ctx, size); return ctx.getImageData(0, 0, size, size);
+  const ctx = c.getContext('2d'); draw(ctx, color, size); return ctx.getImageData(0, 0, size, size);
 }
-function drawTargetIcon(ctx, s) {
-  const c = s / 2; ctx.strokeStyle = '#FF4500'; ctx.lineWidth = 4;
+function drawTargetIcon(ctx, color, s) {
+  const c = s / 2; ctx.strokeStyle = color; ctx.lineWidth = 4;
   ctx.beginPath(); ctx.arc(c, c, s * 0.30, 0, Math.PI * 2); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(c, s * 0.06); ctx.lineTo(c, s * 0.28); ctx.moveTo(c, s * 0.72); ctx.lineTo(c, s * 0.94); ctx.moveTo(s * 0.06, c); ctx.lineTo(s * 0.28, c); ctx.moveTo(s * 0.72, c); ctx.lineTo(s * 0.94, c); ctx.stroke();
-  ctx.fillStyle = '#FF4500'; ctx.beginPath(); ctx.arc(c, c, 3.5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = color; ctx.beginPath(); ctx.arc(c, c, 3.5, 0, Math.PI * 2); ctx.fill();
 }
 lucide.createIcons();
 inicializarRadar();
