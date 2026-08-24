@@ -299,15 +299,16 @@ let map; // Instancia global del mapa
    --------------------------------------------------------------------- */
 async function inicializarRadar() {
   try {
-    const respuesta = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?select=*`, {
+    // Petición directa con tus datos hardcodeados (cero margen de error)
+    const respuesta = await fetch('https://ldtfvpjigzvcagtciipn.supabase.co/rest/v1/Buildings?select=*', {
       headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`
+        'apikey': 'sb_publishable_kYQ7Fa8nBsrkp1f8C4AuAg_4-5uBFm0',
+        'Authorization': 'Bearer sb_publishable_kYQ7Fa8nBsrkp1f8C4AuAg_4-5uBFm0'
       }
     });
 
     if (!respuesta.ok) {
-      throw new Error('Fallo al conectar con la base de datos.');
+      throw new Error(`Error del servidor: ${respuesta.status}`);
     }
 
     const datosDB = await respuesta.json();
@@ -333,7 +334,7 @@ async function inicializarRadar() {
 
   } catch (error) {
     console.error("Error cargando el radar:", error);
-    alert("Error de conexión. Comprueba que SUPABASE_URL está correctamente puesta en el código y que la tabla 'edificios' existe.");
+    alert("Error de conexión. Mira la consola (F12) para más detalles.");
   }
 }
 
