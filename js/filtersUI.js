@@ -97,18 +97,23 @@ export function aplicarFiltrosMapa() {
   if (state.activeCategoria) detalles.push(['==', ['get', 'categoria'], state.activeCategoria]);
   if (state.activeVisitable) detalles.push(['==', ['get', 'visitable'], Number(state.activeVisitable)]);
   [1, 2, 3].forEach((importance) => {
-    [`obras-l${importance}`, `obras-l${importance}-selected`].forEach((layerId) => {
+    [`obras-l${importance}`, `obras-l${importance}-visited`, `obras-l${importance}-selected`].forEach((layerId) => {
       if (!state.map.getLayer(layerId)) return;
       const selected = layerId.endsWith('-selected') ? 1 : 0;
+      const visited = layerId.endsWith('-visited') ? 1 : layerId.endsWith('-selected') ? null : 0;
       state.map.setFilter(layerId, [
         'all',
         arquitectos,
         ...detalles,
         ['==', ['get', 'importancia'], importance],
         ['==', ['get', 'selected'], selected],
+        ...(visited === null ? [] : [['==', ['get', 'visited'], visited]]),
       ]);
     });
   });
+  if (state.map.getLayer('obras-favorites-halo')) {
+    state.map.setFilter('obras-favorites-halo', ['all', arquitectos, ...detalles, ['==', ['get', 'favorite'], 1]]);
+  }
 }
 
 initFiltersUI();

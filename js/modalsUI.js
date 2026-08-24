@@ -3,7 +3,7 @@
    ========================================================================= */
 
 import { state, separarArquitectos } from './state.js';
-import { loginAdmin, createBuilding, updateBuilding } from './api.js';
+import { loginAdmin, registerUser, fetchUserRole, fetchCurrentUser, fetchBuildingStatuses, createBuilding, updateBuilding } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
 
@@ -12,22 +12,48 @@ const ADMIN_SESSION_KEY = 'nolli_admin_session_token';
 /* -------------------------------------------------------------------------
    MÓDULO DE LOGIN
    ------------------------------------------------------------------------- */
-function initLoginModal() {
+async function initLoginModal() {
   const mLogin = document.getElementById('modal-login');
   const bLoginT = document.getElementById('btn-login-trigger');
+  const title = document.getElementById('modal-login-title');
+  const actionButton = document.getElementById('btn-do-login');
+  const registerButton = document.getElementById('btn-register-mode');
+  const logoutButton = document.getElementById('btn-logout');
+  let registerMode = false;
 
-  const marcarSesionIniciada = () => {
-    bLoginT.textContent = '[ SISTEMA DESBLOQUEADO ]';
+  const marcarSesionIniciada = (role) => {
+    bLoginT.textContent = role === 'admin' ? '[ ADMIN DESBLOQUEADO ]' : '[ SESIÓN INICIADA ]';
     bLoginT.style.color = 'var(--accent-2)';
     bLoginT.style.borderColor = 'var(--accent-2)';
     bLoginT.style.background = 'rgba(57, 255, 20, 0.1)';
-    document.dispatchEvent(new CustomEvent('radar:admin-login'));
+    logoutButton.classList.remove('hidden');
+    if (role === 'admin') document.dispatchEvent(new CustomEvent('radar:admin-login'));
+    else document.dispatchEvent(new CustomEvent('radar:user-login'));
+  };
+
+  const cargarEstadoUsuario = async () => {
+    const user = await fetchCurrentUser(state.sessionToken);
+    state.userId = user.id;
+    const statuses = await fetchBuildingStatuses(user.id, state.sessionToken);
+    state.buildingStatuses = new Map(statuses.map((item) => [String(item.building_id), {
+      favorite: item.favorite === true,
+      visited: item.visited === true,
+    }]));
+    document.dispatchEvent(new CustomEvent('radar:user-status-ready'));
   };
 
   const tokenGuardado = localStorage.getItem(ADMIN_SESSION_KEY);
   if (tokenGuardado) {
-    state.sessionToken = tokenGuardado;
-    marcarSesionIniciada();
+    try {
+      state.sessionToken = tokenGuardado;
+      state.userRole = await fetchUserRole(tokenGuardado);
+      await cargarEstadoUsuario();
+      marcarSesionIniciada(state.userRole);
+    } catch (error) {
+      localStorage.removeItem(ADMIN_SESSION_KEY);
+      state.sessionToken = null;
+      state.userRole = null;
+    }
   }
 
   bLoginT.addEventListener('click', () => mLogin.classList.add('open'));
@@ -47,19 +73,57 @@ function initLoginModal() {
       return;
     }
 
-    const btnLogin = document.getElementById('btn-do-login');
-    btnLogin.textContent = 'VERIFICANDO...';
+    const btnLogin = actionButton;
+    btnLogin.textContent = registerMode ? 'CREANDO...' : 'VERIFICANDO...';
     try {
-      state.sessionToken = await loginAdmin(email, password);
-      localStorage.setItem(ADMIN_SESSION_KEY, state.sessionToken);
-      mLogin.classList.remove('open');
-      marcarSesionIniciada();
+      if (registerMode) {
+        const data = await registerUser(email, password);
+        if (data.access_token) {
+          state.sessionToken = data.access_token;
+          state.userRole = 'user';
+          await cargarEstadoUsuario();
+          localStorage.setItem(ADMIN_SESSION_KEY, state.sessionToken);
+          marcarSesionIniciada('user');
+        }
+        err.textContent = 'Cuenta creada. Revisa tu correo para confirmar el registro.';
+        err.classList.remove('hidden');
+      } else {
+        state.sessionToken = await loginAdmin(email, password);
+        state.userRole = await fetchUserRole(state.sessionToken);
+        await cargarEstadoUsuario();
+        localStorage.setItem(ADMIN_SESSION_KEY, state.sessionToken);
+        mLogin.classList.remove('open');
+        marcarSesionIniciada(state.userRole);
+      }
     } catch (error) {
       err.textContent = error.message;
       err.classList.remove('hidden');
     } finally {
-      btnLogin.textContent = 'AUTORIZAR ACCESO';
+      btnLogin.textContent = registerMode ? 'CREAR CUENTA' : 'AUTORIZAR ACCESO';
     }
+  });
+
+  registerButton.addEventListener('click', () => {
+    registerMode = !registerMode;
+    title.textContent = registerMode ? 'REGISTRO DE USUARIO' : 'AUTENTICACIÓN REQUERIDA';
+    actionButton.textContent = registerMode ? 'CREAR CUENTA' : 'AUTORIZAR ACCESO';
+    registerButton.textContent = registerMode ? 'VOLVER AL LOGIN' : 'CREAR CUENTA';
+  });
+
+  logoutButton.addEventListener('click', () => {
+    localStorage.removeItem(ADMIN_SESSION_KEY);
+    state.sessionToken = null;
+    state.userRole = null;
+    state.userId = null;
+    state.buildingStatuses = new Map();
+    document.dispatchEvent(new CustomEvent('radar:user-status-ready'));
+    logoutButton.classList.add('hidden');
+    bLoginT.textContent = '[ INICIAR SESIÓN ]';
+    bLoginT.style.color = 'var(--accent)';
+    bLoginT.style.borderColor = 'var(--accent)';
+    bLoginT.style.background = 'rgba(255, 69, 0, 0.1)';
+    mLogin.classList.remove('open');
+    document.dispatchEvent(new CustomEvent('radar:logout'));
   });
 }
 
@@ -188,7 +252,7 @@ function initAddBuildingModal() {
 }
 
 function handleMapLongPress(lngLat) {
-  if (!state.sessionToken) {
+  if (state.userRole !== 'admin') {
     alert('ACCESO DENEGADO. Inicia sesión como administrador para registrar nuevas coordenadas.');
     return;
   }

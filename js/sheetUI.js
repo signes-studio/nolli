@@ -5,6 +5,7 @@
 import { state } from './state.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { cerrarFiltros, generarFiltrosUI, aplicarFiltrosMapa } from './filtersUI.js';
+import { saveBuildingStatus } from './api.js';
 
 const sheet = document.getElementById('sheet');
 
@@ -46,14 +47,39 @@ export function abrirFicha(p, c, featureId = p.id) {
     <div class="data-row"><div class="label">[CATEGORÍA]</div><div class="value">${p.categoria || 'otro'}</div></div>
     <div class="data-row"><div class="label">[VISITABLE]</div><div class="value">${p.visitable === true || p.visitable === 1 || p.visitable === 'true' ? 'SÍ' : 'NO'}</div></div>
     <div class="data-row"><div class="label">[COORD]</div><div class="value">${c[0].toFixed(5)}, ${c[1].toFixed(5)}</div></div>
+    ${state.sessionToken ? `<div class="sheet-actions"><button type="button" class="status-button ${estadoObra('favorite') ? 'active' : ''}" data-status="favorite">FAVORITO</button><button type="button" class="status-button ${estadoObra('visited') ? 'active visited' : ''}" data-status="visited">VISITADO</button></div>` : ''}
   `;
   const editButton = document.getElementById('btn-edit-building');
-  editButton.classList.toggle('hidden', !state.sessionToken);
+  editButton.classList.toggle('hidden', state.userRole !== 'admin');
   sheet.classList.add('open');
   cerrarFiltros();
 }
 
+function estadoObra(status) {
+  const obra = state.OBRAS.find((item) => String(item.featureId) === String(state.selectedFeatureId));
+  return obra ? state.buildingStatuses.get(String(obra.id))?.[status] === true : false;
+}
+
 document.addEventListener('click', (e) => {
+  const statusButton = e.target.closest('.status-button');
+  if (statusButton) {
+    const obra = state.OBRAS.find((item) => String(item.featureId) === String(state.selectedFeatureId));
+    if (!obra || !state.userId || !state.sessionToken) return;
+    const key = String(obra.id);
+    const current = state.buildingStatuses.get(key) || { favorite: false, visited: false };
+    const status = { ...current, [statusButton.dataset.status]: !current[statusButton.dataset.status] };
+    state.buildingStatuses.set(key, status);
+    statusButton.classList.toggle('active', status[statusButton.dataset.status]);
+    if (statusButton.dataset.status === 'visited') statusButton.classList.toggle('visited', status.visited);
+    actualizarFuenteMapa();
+    document.dispatchEvent(new CustomEvent('radar:user-status-changed'));
+    saveBuildingStatus(state.userId, obra.id, status, state.sessionToken).catch(() => {
+      state.buildingStatuses.set(key, current);
+      abrirFicha(obra, obra.coordenadas, obra.featureId);
+      alert('No se pudo guardar el cambio.');
+    });
+    return;
+  }
   const architectButton = e.target.closest('.architect-filter');
   if (architectButton) {
     const architect = architectButton.dataset.arq;
@@ -73,6 +99,17 @@ document.addEventListener('click', (e) => {
 
 document.addEventListener('radar:admin-login', () => {
   if (state.selectedFeatureId !== null) document.getElementById('btn-edit-building').classList.remove('hidden');
+});
+
+document.addEventListener('radar:logout', () => {
+  document.getElementById('btn-edit-building').classList.add('hidden');
+});
+
+document.addEventListener('radar:user-status-ready', () => {
+  if (state.selectedFeatureId !== null) {
+    const obra = state.OBRAS.find((item) => String(item.featureId) === String(state.selectedFeatureId));
+    if (obra) abrirFicha(obra, obra.coordenadas, obra.featureId);
+  }
 });
 
 document.addEventListener('click', (e) => {

@@ -25,6 +25,7 @@ export function cargarMapaMapbox() {
   state.map.on('load', () => {
     [1, 2, 3].forEach((importance) => {
       state.map.addImage(`icon-l${importance}`, buildIcon(drawTargetIcon, '#FF4500', importance), { pixelRatio: 2 });
+      state.map.addImage(`icon-l${importance}-visited`, buildIcon(drawTargetIcon, '#39FF14', importance), { pixelRatio: 2 });
       state.map.addImage(`icon-l${importance}-selected`, buildIcon(drawTargetIcon, '#FFFFFF', importance), { pixelRatio: 2 });
     });
     state.map.addSource('obras', {
@@ -32,6 +33,19 @@ export function cargarMapaMapbox() {
       data: { type: 'FeatureCollection', features: [] },
     });
     actualizarFuenteMapa();
+
+    state.map.addLayer({
+      id: 'obras-favorites-halo',
+      type: 'circle',
+      source: 'obras',
+      filter: ['==', ['get', 'favorite'], 1],
+      paint: {
+        'circle-radius': 13,
+        'circle-color': '#FFFFFF',
+        'circle-opacity': 0.32,
+        'circle-blur': 0.55,
+      },
+    });
 
     [1, 2, 3].forEach((importance) => {
       const minzoom = importance === 1 ? 0 : importance === 2 ? 11 : 13.5;
@@ -42,9 +56,22 @@ export function cargarMapaMapbox() {
         type: 'symbol',
         source: 'obras',
         minzoom,
-        filter: ['all', baseFilter, ['!=', ['get', 'selected'], 1]],
+        filter: ['all', baseFilter, ['!=', ['get', 'selected'], 1], ['!=', ['get', 'visited'], 1]],
         layout: {
           'icon-image': `icon-l${importance}`,
+          'icon-size': importance === 1 ? 0.78 : importance === 2 ? 0.64 : 0.52,
+          'icon-allow-overlap': true,
+        },
+      });
+
+      state.map.addLayer({
+        id: `obras-l${importance}-visited`,
+        type: 'symbol',
+        source: 'obras',
+        minzoom,
+        filter: ['all', baseFilter, ['!=', ['get', 'selected'], 1], ['==', ['get', 'visited'], 1]],
+        layout: {
+          'icon-image': `icon-l${importance}-visited`,
           'icon-size': importance === 1 ? 0.78 : importance === 2 ? 0.64 : 0.52,
           'icon-allow-overlap': true,
         },
@@ -63,7 +90,7 @@ export function cargarMapaMapbox() {
         },
       });
 
-      [`obras-l${importance}`, `obras-l${importance}-selected`].forEach((layerId) => {
+      [`obras-l${importance}`, `obras-l${importance}-visited`, `obras-l${importance}-selected`].forEach((layerId) => {
         state.map.on('mouseenter', layerId, () => { state.map.getCanvas().style.cursor = 'pointer'; });
         state.map.on('mouseleave', layerId, () => { state.map.getCanvas().style.cursor = ''; });
       });
@@ -137,7 +164,7 @@ function initHudReadout() {
 
 function iniciarInteraccionesMapa() {
   // Clic en obra
-  ['obras-l1', 'obras-l1-selected', 'obras-l2', 'obras-l2-selected', 'obras-l3', 'obras-l3-selected'].forEach((layerId) => {
+  ['obras-l1', 'obras-l1-visited', 'obras-l1-selected', 'obras-l2', 'obras-l2-visited', 'obras-l2-selected', 'obras-l3', 'obras-l3-visited', 'obras-l3-selected'].forEach((layerId) => {
     state.map.on('click', layerId, (e) => {
       const feature = e.features[0];
       const p = feature.properties;
@@ -148,7 +175,7 @@ function iniciarInteraccionesMapa() {
 
   // Clic en el fondo vacío (Descartar selección)
   state.map.on('click', (e) => {
-    const isObra = state.map.queryRenderedFeatures(e.point, { layers: ['obras-l1', 'obras-l1-selected', 'obras-l2', 'obras-l2-selected', 'obras-l3', 'obras-l3-selected'] });
+    const isObra = state.map.queryRenderedFeatures(e.point, { layers: ['obras-l1', 'obras-l1-visited', 'obras-l1-selected', 'obras-l2', 'obras-l2-visited', 'obras-l2-selected', 'obras-l3', 'obras-l3-visited', 'obras-l3-selected'] });
     if (!isObra.length) cerrarFicha();
   });
 

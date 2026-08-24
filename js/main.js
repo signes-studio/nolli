@@ -10,6 +10,8 @@ import { generarFiltrosUI } from './filtersUI.js';
 import { cargarMapaMapbox } from './mapController.js';
 import { initModalsUI } from './modalsUI.js';
 import { initSearchUI } from './searchUI.js';
+import { initMyPlacesUI } from './myPlacesUI.js';
+import { initAdminUI } from './adminUI.js';
 
 async function inicializarRadar() {
   try {
@@ -44,5 +46,7 @@ async function inicializarRadar() {
 
 initModalsUI();
 initSearchUI();
+initMyPlacesUI();
+initAdminUI();
 lucide.createIcons();
 inicializarRadar();

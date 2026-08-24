@@ -29,6 +29,60 @@ export async function loginAdmin(email, password) {
   return data.access_token;
 }
 
+/** Registra un usuario público. El rol se asigna en Supabase, nunca desde el cliente. */
+export async function registerUser(email, password) {
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
+    method: 'POST',
+    headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.msg || data.message || 'No se pudo crear la cuenta.');
+  return data;
+}
+
+/** Obtiene el rol del usuario autenticado desde el perfil gestionado en Supabase. */
+export async function fetchUserRole(sessionToken) {
+  const user = await fetchCurrentUser(sessionToken);
+  const profileRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(user.id)}&select=role`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
+  });
+  if (!profileRes.ok) return 'user';
+  const profiles = await profileRes.json();
+  return profiles[0]?.role === 'admin' ? 'admin' : 'user';
+}
+
+export async function fetchCurrentUser(sessionToken) {
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
+  });
+  if (!response.ok) throw new Error('La sesión ha caducado.');
+  return response.json();
+}
+
+export async function fetchBuildingStatuses(userId, sessionToken) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_building_status?user_id=eq.${encodeURIComponent(userId)}&select=building_id,favorite,visited`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
+  });
+  if (!response.ok) return [];
+  return response.json();
+}
+
+export async function saveBuildingStatus(userId, buildingId, status, sessionToken) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_building_status`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'resolution=merge-duplicates,return=representation',
+    },
+    body: JSON.stringify({ user_id: userId, building_id: buildingId, ...status }),
+  });
+  if (!response.ok) throw new Error('No se pudo guardar tu estado personal.');
+  return response.json();
+}
+
 /** Inserta un nuevo edificio en la base de datos. Requiere token de sesión. */
 export async function createBuilding(nuevoEdificio, sessionToken) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/Buildings`, {
@@ -62,4 +116,16 @@ export async function updateBuilding(id, edificio, sessionToken) {
   });
   if (!res.ok) throw new Error('Fallo al actualizar la obra en la base de datos.');
   return res.json();
+}
+
+export async function deleteBuilding(id, sessionToken) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?id=eq.${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+      'Prefer': 'return=minimal',
+    },
+  });
+  if (!response.ok) throw new Error('No se pudo eliminar el proyecto.');
 }

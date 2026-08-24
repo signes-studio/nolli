@@ -15,6 +15,8 @@ export function actualizarFuenteMapa() {
         ...o,
         arquitectos: o.arquitectos || [],
         visitable: o.visitable ? 1 : 0,
+        favorite: state.buildingStatuses.get(String(o.id))?.favorite ? 1 : 0,
+        visited: state.buildingStatuses.get(String(o.id))?.visited ? 1 : 0,
         selected: o.selected ? 1 : 0,
       },
     })),
