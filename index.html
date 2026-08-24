@@ -27,6 +27,8 @@
 <link rel="stylesheet" href="css/map-hud.css">
 <link rel="stylesheet" href="css/panels.css">
 <link rel="stylesheet" href="css/components.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#000000">
 </head>
 <body>
 
@@ -208,6 +210,16 @@
         <input type="text" id="add-nombre" class="tech-input">
       </div>
 
+      <div>
+        <label for="add-foto" class="text-[10px] block mb-1" style="color:var(--fg-dim)">URL DE LA FOTOGRAFÍA</label>
+        <input type="url" id="add-foto" class="tech-input" placeholder="https://...">
+      </div>
+
+      <div>
+        <label for="add-enlace" class="text-[10px] block mb-1" style="color:var(--fg-dim)">ENLACE DEL PROYECTO</label>
+        <input type="url" id="add-enlace" class="tech-input" placeholder="https://...">
+      </div>
+
       <div class="flex gap-2">
         <div class="flex-1">
           <label for="add-arquitecto" class="text-[10px] block mb-1" style="color:var(--fg-dim)">ARQUITECTO</label>
@@ -264,5 +276,8 @@
 
 <!-- Lógica de la aplicación: módulo ES6, se ejecuta en modo defer nativo -->
 <script type="module" src="js/main.js"></script>
+<script>
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+</script>
 </body>
 </html>

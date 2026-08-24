@@ -77,6 +77,24 @@
 .admin-action-edit, .admin-action-delete { padding: 5px 7px; font-size: 9px; }
 .admin-action-delete { color: #ff6b6b; border-color: #ff6b6b; }
 @media (max-width: 560px) { .admin-panel { top: 106px; } .admin-project { align-items: flex-start; flex-direction: column; } }
+@media (max-width: 600px) {
+  .sheet { max-height: 76vh; }
+  .sheet-header { padding: 9px 10px; }
+  .sheet-header .btn { font-size: 9px; padding: 6px 7px; }
+  .data-row { font-size: 11px; }
+  .data-row .label { width: 104px; padding: 9px 8px; font-size: 9px; }
+  .data-row .value { padding: 9px 8px; }
+  .filter-panel, .search-panel, .my-places-panel { right: 8px; left: 8px; bottom: 76px; width: auto; max-height: 64vh; }
+  .filter-panel, .search-panel, .my-places-panel { transform: translateY(calc(100% + 130px)); }
+  .admin-panel { left: 8px; right: 8px; top: 100px; width: auto; max-height: calc(100vh - 116px); }
+  .admin-toolbar { padding: 8px; }
+  .topbar { padding: 10px 10px 24px; }
+  .topbar-inner { padding-bottom: 8px; }
+  .hud-readout { font-size: 9px; }
+  .hud-crosshair { display: none; }
+  .fab { width: 40px; height: 40px; }
+  main > .absolute { right: 8px !important; bottom: max(8px, env(safe-area-inset-bottom)) !important; gap: 6px !important; }
+}
 .search-controls { display: grid; gap: 7px; padding: 10px 12px; border-bottom: 1px solid var(--border); }
 .nearby-buildings { padding: 0 12px 8px; }
 .nearby-empty { padding: 12px 0; color: var(--fg-dim); font-size: 10px; line-height: 1.5; }
@@ -88,6 +106,9 @@
 .nearby-item:last-child { border-bottom: 0; }
 .nearby-name { font-size: 11px; line-height: 1.35; }
 .nearby-meta { flex-shrink: 0; color: var(--accent-2); font-size: 10px; white-space: nowrap; }
+.sheet-photo { display: block; width: 100%; max-height: 260px; object-fit: cover; border-bottom: 1px solid var(--border); }
+.sheet-link { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+.sheet-link a { color: var(--accent); font-size: 10px; text-decoration: underline; }
 .filter-head {
   padding: 10px 12px; border-bottom: 1px solid var(--border);
   background: var(--bg-raised); font-size: 11px; letter-spacing: .06em;

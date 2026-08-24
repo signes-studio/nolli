@@ -151,6 +151,8 @@ function initAddBuildingModal() {
     document.getElementById('btn-add-save').innerHTML = 'GUARDAR CAMBIOS';
     document.getElementById('add-coords').textContent = `${obra.coordenadas[0].toFixed(5)}, ${obra.coordenadas[1].toFixed(5)}`;
     document.getElementById('add-nombre').value = obra.nombre_obra || '';
+    document.getElementById('add-foto').value = obra.foto_url || '';
+    document.getElementById('add-enlace').value = obra.enlace_url || '';
     document.getElementById('add-arquitecto').value = obra.arquitecto || '';
     document.getElementById('add-ano').value = obra.año_construccion || '';
     document.getElementById('add-importancia').value = String(obra.importancia || 1);
@@ -165,6 +167,8 @@ function initAddBuildingModal() {
     err.classList.add('hidden');
 
     const nombre = document.getElementById('add-nombre').value.trim();
+    const fotoUrl = document.getElementById('add-foto').value.trim();
+    const enlaceUrl = document.getElementById('add-enlace').value.trim();
     const arq = document.getElementById('add-arquitecto').value.trim();
     const ano = parseInt(document.getElementById('add-ano').value, 10);
     const importancia = Number(document.getElementById('add-importancia').value);
@@ -183,6 +187,8 @@ function initAddBuildingModal() {
     // Código técnico de fondo generado automáticamente
     const edificio = {
       nombre_obra: nombre,
+      foto_url: fotoUrl || null,
+      enlace_url: enlaceUrl || null,
       arquitecto: arq,
       año_construccion: Number.isNaN(ano) ? null : ano,
       importancia,
@@ -261,6 +267,8 @@ function handleMapLongPress(lngLat) {
   document.getElementById('add-coords').textContent = `${lngLat.lng.toFixed(5)}, ${lngLat.lat.toFixed(5)}`;
 
   document.getElementById('add-nombre').value = '';
+  document.getElementById('add-foto').value = '';
+  document.getElementById('add-enlace').value = '';
   document.getElementById('add-arquitecto').value = '';
   document.getElementById('add-ano').value = '';
   document.getElementById('add-importancia').value = '1';

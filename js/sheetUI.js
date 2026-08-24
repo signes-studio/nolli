@@ -42,6 +42,8 @@ export function abrirFicha(p, c, featureId = p.id) {
 
   document.getElementById('sheet-title').innerHTML = p.nombre_obra;
   document.getElementById('sheet-body').innerHTML = `
+    ${p.foto_url ? `<img class="sheet-photo" src="${p.foto_url}" alt="Fotografía de ${p.nombre_obra}" loading="lazy">` : ''}
+    ${p.enlace_url ? `<div class="sheet-link"><a href="${p.enlace_url}" target="_blank" rel="noopener noreferrer">ABRIR ENLACE DEL PROYECTO</a></div>` : ''}
     <div class="data-row"><div class="label">[ARQUITECTO]</div><div class="value accent">${architectButtons}</div></div>
     <div class="data-row"><div class="label">[AÑO]</div><div class="value">${p.año_construccion}</div></div>
     <div class="data-row"><div class="label">[CATEGORÍA]</div><div class="value">${p.categoria || 'otro'}</div></div>
