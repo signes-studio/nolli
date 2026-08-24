@@ -98,9 +98,6 @@
   .fab:active{ background:var(--accent); color:#000; border-color:var(--accent); }
   .fab.active-state{ background:var(--accent); color:#000; border-color:var(--accent); }
 
-  /* ---------- Marcadores (capas Mapbox, no DOM markers) ---------- */
-  /* generados vía canvas -> map.addImage, ver <script> */
-
   /* ---------- Panel de ficha técnica (bottom sheet) ---------- */
   .sheet{
     position:absolute; left:0; right:0; bottom:0; z-index:40;
@@ -189,13 +186,6 @@
 
   .blink{ animation:blink 1.1s steps(1) infinite; }
   @keyframes blink{ 50%{ opacity:0; } }
-
-  .mapboxgl-popup-content{
-    background:var(--bg-panel) !important; border:1px solid var(--accent) !important;
-    color:var(--fg) !important; font-family:'JetBrains Mono', monospace !important;
-    padding:8px 10px !important; font-size:11px !important;
-  }
-  .mapboxgl-popup-close-button{ color:var(--fg-dim) !important; font-size:16px !important; }
 </style>
 </head>
 <body>
@@ -216,7 +206,7 @@
   <div class="topbar-inner">
     <div>
       <div class="font-display text-2xl leading-none tracking-tight" style="color:var(--fg)">NOLLI<span style="color:var(--accent)">.</span></div>
-      <div class="text-[10px] tracking-widest mt-1" style="color:var(--fg-dim)">RADAR ARQUITECTÓNICO — V0.1 BETA</div>
+      <div class="text-[10px] tracking-widest mt-1" style="color:var(--fg-dim)">RADAR ARQUITECTÓNICO — V0.2 DB LINK</div>
     </div>
     <div class="hud-readout">
       <div>LNG <span class="val" id="hud-lng">--.-----</span></div>
@@ -286,63 +276,298 @@
 
 <script>
 /* =========================================================================
-   NOLLI — PROTOTIPO BETA
-   Mapa de herramientas y radar arquitectónico para profesionales.
+   NOLLI — CONEXIÓN SUPABASE EN VIVO
    ========================================================================= */
 
+// CLAVES DE ACCESO
 mapboxgl.accessToken = 'pk.eyJ1Ijoic2lnbmVzYXJjaCIsImEiOiJjbXQ3YjdzNXQyNjB2MnhxdW5vdjF6YjV3In0.tFJ9jN3e1z3ezNM9x0ofpg';
 
-/* ---------------------------------------------------------------------
-   1. MOCK DATA — simulación GIS. 4 obras reales de Valencia como muestra.
-   --------------------------------------------------------------------- */
-const OBRAS = [
-  {
-    id: 1,
-    codigo_obra: 'VLC-EA-001',
-    nombre_obra: 'Ciutat de les Arts i les Ciències — L\'Hemisfèric',
-    arquitecto: 'Santiago Calatrava',
-    año_construccion: 1998,
-    sistema_estructural: 'HORMIGÓN ARMADO',
-    coordenadas: [-0.3574, 39.4539]
-  },
-  {
-    id: 2,
-    codigo_obra: 'VLC-EA-002',
-    nombre_obra: 'Mercado Central de Valencia',
-    arquitecto: 'F. Guàrdia / A. Soler March',
-    año_construccion: 1928,
-    sistema_estructural: 'ESTRUCTURA METÁLICA',
-    coordenadas: [-0.3779, 39.4738]
-  },
-  {
-    id: 3,
-    codigo_obra: 'VLC-EA-003',
-    nombre_obra: 'Edificio Veles e Vents',
-    arquitecto: 'David Chipperfield',
-    año_construccion: 2006,
-    sistema_estructural: 'HORMIGÓN ARMADO',
-    coordenadas: [-0.3275, 39.4581]
-  },
-  {
-    id: 4,
-    codigo_obra: 'VLC-EA-004',
-    nombre_obra: 'IVAM — Institut Valencià d\'Art Modern',
-    arquitecto: 'Emilio Giménez / Carlos Salvadores',
-    año_construccion: 1989,
-    sistema_estructural: 'MURO DE CARGA',
-    coordenadas: [-0.3775, 39.4805]
-  }
-];
+// ¡Sustituye esta URL por tu "Project URL" de Supabase!
+const SUPABASE_URL = 'https://ldtfvpjigzvcagtciipn.supabase.co'; 
+const SUPABASE_KEY = 'sb_publishable_kYQ7Fa8nBsrkp1f8C4AuAg_4-5uBFm0';
 
-const SISTEMAS = [...new Set(OBRAS.map(o => o.sistema_estructural))];
-let activeSistemas = new Set(SISTEMAS);
-
-/* GeoJSON de notas privadas registradas por el usuario en campo */
+// VARIABLES GLOBALES (Se rellenarán dinámicamente)
+let OBRAS = [];
+let SISTEMAS = [];
+let activeSistemas = new Set();
 let notasCollection = { type: 'FeatureCollection', features: [] };
 let notaCounter = 0;
+let map; // Instancia global del mapa
 
 /* ---------------------------------------------------------------------
-   2. ICONOS TÉCNICOS — generados por canvas, sin la típica "chincheta"
+   1. CONEXIÓN A LA BASE DE DATOS (SUPABASE)
+   --------------------------------------------------------------------- */
+async function inicializarRadar() {
+  try {
+    const respuesta = await fetch(`${SUPABASE_URL}/rest/v1/edificios?select=*`, {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`
+      }
+    });
+
+    if (!respuesta.ok) {
+      throw new Error('Fallo al conectar con la base de datos.');
+    }
+
+    const datosDB = await respuesta.json();
+
+    // Adaptamos los datos de Supabase a la estructura que usa el mapa
+    OBRAS = datosDB.map(fila => ({
+      id: fila.id,
+      codigo_obra: fila.codigo_obra,
+      nombre_obra: fila.nombre_obra,
+      arquitecto: fila.arquitecto,
+      año_construccion: fila.año_construccion,
+      sistema_estructural: fila.sistema_estructural,
+      coordenadas: [fila.longitud, fila.latitud]
+    }));
+
+    // Extraemos etiquetas únicas para los filtros
+    SISTEMAS = [...new Set(OBRAS.map(o => o.sistema_estructural))];
+    activeSistemas = new Set(SISTEMAS);
+
+    // Renderizamos la UI y el mapa
+    generarFiltrosUI();
+    cargarMapaMapbox();
+
+  } catch (error) {
+    console.error("Error cargando el radar:", error);
+    alert("Error de conexión. Comprueba que SUPABASE_URL está correctamente puesta en el código y que la tabla 'edificios' existe.");
+  }
+}
+
+/* ---------------------------------------------------------------------
+   2. GENERACIÓN DINÁMICA DE FILTROS
+   --------------------------------------------------------------------- */
+function generarFiltrosUI() {
+  const filterSwitches = document.getElementById('filter-switches');
+  filterSwitches.innerHTML = ''; 
+
+  SISTEMAS.forEach((sistema) => {
+    const row = document.createElement('div');
+    row.className = 'switch-row';
+    row.innerHTML = `
+      <span>${sistema || 'SIN ESTRUCTURA'}</span>
+      <div class="tech-switch">
+        <input type="checkbox" checked data-sistema="${sistema}">
+        <div class="track"></div>
+        <div class="thumb"></div>
+      </div>
+    `;
+    filterSwitches.appendChild(row);
+  });
+
+  filterSwitches.addEventListener('change', (e) => {
+    const input = e.target;
+    if (input.type !== 'checkbox') return;
+    const sistema = input.dataset.sistema;
+    if (input.checked) activeSistemas.add(sistema);
+    else activeSistemas.delete(sistema);
+    applyFilter();
+  });
+}
+
+function applyFilter() {
+  if (!map || !map.getLayer('obras-layer')) return;
+  map.setFilter('obras-layer', [
+    'in', ['get', 'sistema_estructural'], ['literal', [...activeSistemas]]
+  ]);
+}
+
+/* ---------------------------------------------------------------------
+   3. INICIALIZACIÓN DEL MAPA
+   --------------------------------------------------------------------- */
+function cargarMapaMapbox() {
+  map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/dark-v11',
+    center: [-0.3690, 39.4690],
+    zoom: 12.4,
+    pitch: 0,
+    attributionControl: true
+  });
+  
+  map.dragRotate.disable();
+  map.touchZoomRotate.disableRotation();
+
+  map.on('load', () => {
+    map.addImage('icon-target', buildIcon(drawTargetIcon), { pixelRatio: 2 });
+    map.addImage('icon-note', buildIcon(drawNoteIcon), { pixelRatio: 2 });
+
+    // Cargar los edificios desde la variable OBRAS (ya descargada de Supabase)
+    map.addSource('obras', {
+      type: 'geojson',
+      data: {
+        type: 'FeatureCollection',
+        features: OBRAS.map(o => ({
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: o.coordenadas },
+          properties: o
+        }))
+      }
+    });
+
+    map.addLayer({
+      id: 'obras-layer',
+      type: 'symbol',
+      source: 'obras',
+      layout: {
+        'icon-image': 'icon-target',
+        'icon-size': 0.62,
+        'icon-allow-overlap': true
+      }
+    });
+
+    map.addSource('notas', { type: 'geojson', data: notasCollection });
+    map.addLayer({
+      id: 'notas-layer',
+      type: 'symbol',
+      source: 'notas',
+      layout: {
+        'icon-image': 'icon-note',
+        'icon-size': 0.55,
+        'icon-allow-overlap': true
+      }
+    });
+
+    map.on('mouseenter', 'obras-layer', () => map.getCanvas().style.cursor = 'pointer');
+    map.on('mouseleave', 'obras-layer', () => map.getCanvas().style.cursor = '');
+    map.on('mouseenter', 'notas-layer', () => map.getCanvas().style.cursor = 'pointer');
+    map.on('mouseleave', 'notas-layer', () => map.getCanvas().style.cursor = '');
+
+    iniciarInteractividadMapbox();
+  });
+
+  // HUD actualización de coordenadas
+  const hudLng = document.getElementById('hud-lng');
+  const hudLat = document.getElementById('hud-lat');
+  const hudZoom = document.getElementById('hud-zoom');
+
+  function updateHud(lngLat) {
+    if (lngLat) {
+      hudLng.textContent = lngLat.lng.toFixed(5);
+      hudLat.textContent = lngLat.lat.toFixed(5);
+    }
+    hudZoom.textContent = map.getZoom().toFixed(1);
+  }
+  map.on('mousemove', e => updateHud(e.lngLat));
+  map.on('move', () => updateHud());
+  map.on('load', () => updateHud(map.getCenter()));
+
+  document.getElementById('btn-recenter').addEventListener('click', () => {
+    map.flyTo({ center: [-0.3690, 39.4690], zoom: 12.4 });
+  });
+}
+
+/* ---------------------------------------------------------------------
+   4. EVENTOS DE INTERFAZ Y CLICKS EN EL MAPA
+   --------------------------------------------------------------------- */
+function iniciarInteractividadMapbox() {
+  const sheet = document.getElementById('sheet');
+  const sheetTitle = document.getElementById('sheet-title');
+  const sheetBody = document.getElementById('sheet-body');
+
+  function openSheetForObra(props, coords) {
+    sheetTitle.innerHTML = props.nombre_obra;
+    sheetBody.innerHTML = `
+      <div class="data-row"><div class="label">[CÓDIGO]</div><div class="value accent">${props.codigo_obra}</div></div>
+      <div class="data-row"><div class="label">[ARQUITECTO]</div><div class="value">${props.arquitecto}</div></div>
+      <div class="data-row"><div class="label">[AÑO]</div><div class="value">${props.año_construccion}</div></div>
+      <div class="data-row"><div class="label">[ESTRUCTURA]</div><div class="value">${props.sistema_estructural}</div></div>
+      <div class="data-row"><div class="label">[COORD]</div><div class="value">${coords[0].toFixed(5)}, ${coords[1].toFixed(5)}</div></div>
+    `;
+    sheet.classList.add('open');
+    closeFilters();
+  }
+
+  function openSheetForNota(props, coords) {
+    sheetTitle.innerHTML = `ENTRADA DE REGISTRO`;
+    sheetBody.innerHTML = `
+      <div class="data-row"><div class="label" style="border-color:var(--accent-2)">[ID]</div><div class="value" style="color:var(--accent-2)">NOTA-${String(props.id).padStart(3,'0')}</div></div>
+      <div class="data-row"><div class="label">[FECHA]</div><div class="value">${props.fecha}</div></div>
+      <div class="data-row"><div class="label">[COORD]</div><div class="value">${coords[0].toFixed(5)}, ${coords[1].toFixed(5)}</div></div>
+      <div class="data-row"><div class="label">[NOTA]</div><div class="value">${props.nota}</div></div>
+    `;
+    sheet.classList.add('open');
+    closeFilters();
+  }
+
+  document.getElementById('btn-sheet-close').addEventListener('click', () => sheet.classList.remove('open'));
+
+  map.on('click', 'obras-layer', (e) => {
+    const feature = e.features[0];
+    openSheetForObra(feature.properties, feature.geometry.coordinates);
+  });
+
+  map.on('click', 'notas-layer', (e) => {
+    const feature = e.features[0];
+    openSheetForNota(feature.properties, feature.geometry.coordinates);
+  });
+
+  // Funcionalidad extra del mapa (Pulsación Larga para notas)
+  const modalOverlay = document.getElementById('modal-overlay');
+  const modalCoords = document.getElementById('modal-coords');
+  const modalTextarea = document.getElementById('modal-textarea');
+  let pendingLngLat = null;
+
+  map.on('contextmenu', (e) => openRegistroModal(e.lngLat));
+
+  let pressTimer = null;
+  let pressStart = null;
+  map.on('touchstart', (e) => {
+    if (e.points.length > 1) return;
+    pressStart = e.lngLat;
+    pressTimer = setTimeout(() => openRegistroModal(pressStart), 600);
+  });
+  map.on('touchmove', () => clearTimeout(pressTimer));
+  map.on('touchend', () => clearTimeout(pressTimer));
+
+  function openRegistroModal(lngLat) {
+    pendingLngLat = lngLat;
+    modalCoords.textContent = `${lngLat.lng.toFixed(5)}, ${lngLat.lat.toFixed(5)}`;
+    modalTextarea.value = '';
+    modalOverlay.classList.add('open');
+    setTimeout(() => modalTextarea.focus(), 50);
+  }
+
+  function closeModal() { modalOverlay.classList.remove('open'); pendingLngLat = null; }
+
+  document.getElementById('btn-modal-close').addEventListener('click', closeModal);
+  document.getElementById('btn-modal-cancel').addEventListener('click', closeModal);
+  modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
+
+  document.getElementById('btn-modal-save').addEventListener('click', () => {
+    const texto = modalTextarea.value.trim();
+    if (!texto || !pendingLngLat) { closeModal(); return; }
+    notaCounter += 1;
+    const feature = {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [pendingLngLat.lng, pendingLngLat.lat] },
+      properties: {
+        id: notaCounter,
+        nota: texto,
+        fecha: new Date().toISOString().slice(0, 16).replace('T', ' ')
+      }
+    };
+    notasCollection.features.push(feature);
+    if (map.getSource('notas')) map.getSource('notas').setData(notasCollection);
+    closeModal();
+  });
+}
+
+const filterPanel = document.getElementById('filter-panel');
+const btnFilters = document.getElementById('btn-filters');
+function closeFilters() { filterPanel.classList.remove('open'); btnFilters.classList.remove('active-state'); }
+btnFilters.addEventListener('click', () => {
+  filterPanel.classList.toggle('open');
+  btnFilters.classList.toggle('active-state');
+  document.getElementById('sheet').classList.remove('open');
+});
+document.getElementById('btn-filters-close').addEventListener('click', closeFilters);
+
+/* ---------------------------------------------------------------------
+   5. DIBUJADO DE ICONOS (CANVAS)
    --------------------------------------------------------------------- */
 function buildIcon(draw, size = 64) {
   const canvas = document.createElement('canvas');
@@ -352,7 +577,6 @@ function buildIcon(draw, size = 64) {
   return ctx.getImageData(0, 0, size, size);
 }
 
-// Marcador de obra: círculo hueco + cruz técnica (diana de topógrafo)
 function drawTargetIcon(ctx, s) {
   const c = s / 2;
   ctx.strokeStyle = '#FF4500';
@@ -368,7 +592,6 @@ function drawTargetIcon(ctx, s) {
   ctx.beginPath(); ctx.arc(c, c, 3.5, 0, Math.PI * 2); ctx.fill();
 }
 
-// Marcador de nota privada: X sobre cuadrado abierto (verde fósforo)
 function drawNoteIcon(ctx, s) {
   const m = s * 0.16;
   ctx.strokeStyle = '#39FF14';
@@ -380,254 +603,11 @@ function drawNoteIcon(ctx, s) {
   ctx.stroke();
 }
 
-/* ---------------------------------------------------------------------
-   3. INICIALIZACIÓN DEL MAPA
-   --------------------------------------------------------------------- */
-const map = new mapboxgl.Map({
-  container: 'map',
-  style: 'mapbox://styles/mapbox/dark-v11',
-  center: [-0.3690, 39.4690],
-  zoom: 12.4,
-  pitch: 0,
-  attributionControl: true
-});
-map.dragRotate.disable();
-map.touchZoomRotate.disableRotation();
-
-map.on('load', () => {
-  map.addImage('icon-target', buildIcon(drawTargetIcon), { pixelRatio: 2 });
-  map.addImage('icon-note', buildIcon(drawNoteIcon), { pixelRatio: 2 });
-
-  // Fuente + capa: obras catalogadas
-  map.addSource('obras', {
-    type: 'geojson',
-    data: {
-      type: 'FeatureCollection',
-      features: OBRAS.map(o => ({
-        type: 'Feature',
-        geometry: { type: 'Point', coordinates: o.coordenadas },
-        properties: o
-      }))
-    }
-  });
-
-  map.addLayer({
-    id: 'obras-layer',
-    type: 'symbol',
-    source: 'obras',
-    layout: {
-      'icon-image': 'icon-target',
-      'icon-size': 0.62,
-      'icon-allow-overlap': true
-    }
-  });
-
-  // Fuente + capa: notas de registro privadas
-  map.addSource('notas', { type: 'geojson', data: notasCollection });
-  map.addLayer({
-    id: 'notas-layer',
-    type: 'symbol',
-    source: 'notas',
-    layout: {
-      'icon-image': 'icon-note',
-      'icon-size': 0.55,
-      'icon-allow-overlap': true
-    }
-  });
-
-  map.on('mouseenter', 'obras-layer', () => map.getCanvas().style.cursor = 'pointer');
-  map.on('mouseleave', 'obras-layer', () => map.getCanvas().style.cursor = '');
-  map.on('mouseenter', 'notas-layer', () => map.getCanvas().style.cursor = 'pointer');
-  map.on('mouseleave', 'notas-layer', () => map.getCanvas().style.cursor = '');
-});
-
-/* ---------------------------------------------------------------------
-   4. HUD — lectura de coordenadas y zoom en vivo
-   --------------------------------------------------------------------- */
-const hudLng = document.getElementById('hud-lng');
-const hudLat = document.getElementById('hud-lat');
-const hudZoom = document.getElementById('hud-zoom');
-
-function updateHud(lngLat) {
-  if (lngLat) {
-    hudLng.textContent = lngLat.lng.toFixed(5);
-    hudLat.textContent = lngLat.lat.toFixed(5);
-  }
-  hudZoom.textContent = map.getZoom().toFixed(1);
-}
-map.on('mousemove', e => updateHud(e.lngLat));
-map.on('move', () => updateHud());
-map.on('load', () => updateHud(map.getCenter()));
-
-document.getElementById('btn-recenter').addEventListener('click', () => {
-  map.flyTo({ center: [-0.3690, 39.4690], zoom: 12.4 });
-});
-
-/* ---------------------------------------------------------------------
-   5. FICHA DE EDIFICIO — panel inferior tipo volcado de datos
-   --------------------------------------------------------------------- */
-const sheet = document.getElementById('sheet');
-const sheetTitle = document.getElementById('sheet-title');
-const sheetBody = document.getElementById('sheet-body');
-
-function openSheetForObra(p) {
-  sheetTitle.innerHTML = `${p.nombre_obra}`;
-  sheetBody.innerHTML = `
-    <div class="data-row"><div class="label">[CÓDIGO]</div><div class="value accent">${p.codigo_obra}</div></div>
-    <div class="data-row"><div class="label">[ARQUITECTO]</div><div class="value">${p.arquitecto}</div></div>
-    <div class="data-row"><div class="label">[AÑO]</div><div class="value">${p.año_construccion}</div></div>
-    <div class="data-row"><div class="label">[ESTRUCTURA]</div><div class="value">${p.sistema_estructural}</div></div>
-    <div class="data-row"><div class="label">[COORD]</div><div class="value">${(+p.coordenadas).toString ? '' : ''}${JSON.parse(p.coordenadas ? '[]' : '[]')}</div></div>
-  `;
-  // coordenadas vienen serializadas por Mapbox (properties planas); reconstituimos desde geometry
-  sheet.classList.add('open');
-}
-
-function openSheetForNota(p, lngLat) {
-  sheetTitle.innerHTML = `ENTRADA DE REGISTRO`;
-  sheetBody.innerHTML = `
-    <div class="data-row"><div class="label" style="border-color:var(--accent-2)">[ID]</div><div class="value" style="color:var(--accent-2)">NOTA-${String(p.id).padStart(3,'0')}</div></div>
-    <div class="data-row"><div class="label">[FECHA]</div><div class="value">${p.fecha}</div></div>
-    <div class="data-row"><div class="label">[COORD]</div><div class="value">${lngLat[0].toFixed(5)}, ${lngLat[1].toFixed(5)}</div></div>
-    <div class="data-row"><div class="label">[NOTA]</div><div class="value">${p.nota}</div></div>
-  `;
-  sheet.classList.add('open');
-}
-
-document.getElementById('btn-sheet-close').addEventListener('click', () => sheet.classList.remove('open'));
-
-map.on('load', () => {
-  map.on('click', 'obras-layer', (e) => {
-    const feature = e.features[0];
-    const props = feature.properties;
-    // properties.coordenadas llega como string JSON al pasar por Mapbox; reconstruimos con geometry real
-    const coords = feature.geometry.coordinates;
-    sheetTitle.innerHTML = props.nombre_obra;
-    sheetBody.innerHTML = `
-      <div class="data-row"><div class="label">[CÓDIGO]</div><div class="value accent">${props.codigo_obra}</div></div>
-      <div class="data-row"><div class="label">[ARQUITECTO]</div><div class="value">${props.arquitecto}</div></div>
-      <div class="data-row"><div class="label">[AÑO]</div><div class="value">${props.año_construccion}</div></div>
-      <div class="data-row"><div class="label">[ESTRUCTURA]</div><div class="value">${props.sistema_estructural}</div></div>
-      <div class="data-row"><div class="label">[COORD]</div><div class="value">${coords[0].toFixed(5)}, ${coords[1].toFixed(5)}</div></div>
-    `;
-    sheet.classList.add('open');
-    closeFilters();
-  });
-
-  map.on('click', 'notas-layer', (e) => {
-    const feature = e.features[0];
-    const props = feature.properties;
-    const coords = feature.geometry.coordinates;
-    openSheetForNota(props, coords);
-    closeFilters();
-  });
-});
-
-/* ---------------------------------------------------------------------
-   6. FILTROS — panel de interruptores + map.setFilter()
-   --------------------------------------------------------------------- */
-const filterSwitches = document.getElementById('filter-switches');
-SISTEMAS.forEach((sistema, i) => {
-  const row = document.createElement('div');
-  row.className = 'switch-row';
-  row.innerHTML = `
-    <span>${sistema}</span>
-    <div class="tech-switch">
-      <input type="checkbox" checked data-sistema="${sistema}">
-      <div class="track"></div>
-      <div class="thumb"></div>
-    </div>
-  `;
-  filterSwitches.appendChild(row);
-});
-
-filterSwitches.addEventListener('change', (e) => {
-  const input = e.target;
-  if (input.type !== 'checkbox') return;
-  const sistema = input.dataset.sistema;
-  if (input.checked) activeSistemas.add(sistema);
-  else activeSistemas.delete(sistema);
-  applyFilter();
-});
-
-function applyFilter() {
-  map.setFilter('obras-layer', [
-    'in', ['get', 'sistema_estructural'], ['literal', [...activeSistemas]]
-  ]);
-}
-
-const filterPanel = document.getElementById('filter-panel');
-const btnFilters = document.getElementById('btn-filters');
-function closeFilters() { filterPanel.classList.remove('open'); btnFilters.classList.remove('active-state'); }
-btnFilters.addEventListener('click', () => {
-  filterPanel.classList.toggle('open');
-  btnFilters.classList.toggle('active-state');
-  sheet.classList.remove('open');
-});
-document.getElementById('btn-filters-close').addEventListener('click', closeFilters);
-
-/* ---------------------------------------------------------------------
-   7. REGISTRAR COORDENADA — pulsación larga sobre el mapa
-   --------------------------------------------------------------------- */
-const modalOverlay = document.getElementById('modal-overlay');
-const modalCoords = document.getElementById('modal-coords');
-const modalTextarea = document.getElementById('modal-textarea');
-let pendingLngLat = null;
-
-// El evento 'contextmenu' de Mapbox cubre tanto click-derecho (desktop)
-// como pulsación larga (touch), que es el gesto nativo del navegador.
-map.on('contextmenu', (e) => {
-  openRegistroModal(e.lngLat);
-});
-
-// Refuerzo manual para touch en navegadores donde contextmenu no dispara
-let pressTimer = null;
-let pressStart = null;
-map.on('touchstart', (e) => {
-  if (e.points.length > 1) return;
-  pressStart = e.lngLat;
-  pressTimer = setTimeout(() => {
-    openRegistroModal(pressStart);
-  }, 600);
-});
-map.on('touchmove', () => clearTimeout(pressTimer));
-map.on('touchend', () => clearTimeout(pressTimer));
-
-function openRegistroModal(lngLat) {
-  pendingLngLat = lngLat;
-  modalCoords.textContent = `${lngLat.lng.toFixed(5)}, ${lngLat.lat.toFixed(5)}`;
-  modalTextarea.value = '';
-  modalOverlay.classList.add('open');
-  setTimeout(() => modalTextarea.focus(), 50);
-}
-function closeModal() { modalOverlay.classList.remove('open'); pendingLngLat = null; }
-
-document.getElementById('btn-modal-close').addEventListener('click', closeModal);
-document.getElementById('btn-modal-cancel').addEventListener('click', closeModal);
-modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
-
-document.getElementById('btn-modal-save').addEventListener('click', () => {
-  const texto = modalTextarea.value.trim();
-  if (!texto || !pendingLngLat) { closeModal(); return; }
-  notaCounter += 1;
-  const feature = {
-    type: 'Feature',
-    geometry: { type: 'Point', coordinates: [pendingLngLat.lng, pendingLngLat.lat] },
-    properties: {
-      id: notaCounter,
-      nota: texto,
-      fecha: new Date().toISOString().slice(0, 16).replace('T', ' ')
-    }
-  };
-  notasCollection.features.push(feature);
-  if (map.getSource('notas')) map.getSource('notas').setData(notasCollection);
-  closeModal();
-});
-
-/* ---------------------------------------------------------------------
-   8. ICONOS UI
-   --------------------------------------------------------------------- */
 lucide.createIcons();
+
+// ARRANQUE DEL SISTEMA
+inicializarRadar();
+
 </script>
 </body>
 </html>
