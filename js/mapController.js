@@ -26,6 +26,10 @@ export function cargarMapaMapbox() {
     // 2 tipos de icono: normal (naranja) y seleccionado (blanco)
     state.map.addImage('icon-target', buildIcon(drawTargetIcon, '#FF4500'), { pixelRatio: 2 });
     state.map.addImage('icon-target-selected', buildIcon(drawTargetIcon, '#FFFFFF'), { pixelRatio: 2 });
+    state.map.addSource('obras', {
+      type: 'geojson',
+      data: { type: 'FeatureCollection', features: [] },
+    });
     actualizarFuenteMapa();
 
     state.map.addLayer({
