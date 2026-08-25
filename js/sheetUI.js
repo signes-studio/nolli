@@ -6,6 +6,7 @@ import { state, separarArquitectos } from './state.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { cerrarFiltros, generarFiltrosUI, aplicarFiltrosMapa } from './filtersUI.js';
 import { saveBuildingStatus, deleteBuilding } from './api.js';
+import { saveBuildingStatus, deleteBuilding, deletePrivateBuilding } from './api.js';
 
 const sheet = document.getElementById('sheet');
 
@@ -52,7 +53,8 @@ export function abrirFicha(p, c, featureId = p.id) {
     <div class="personal-notes">${state.sessionToken ? `<div class="rating-row"><div class="rating-stars">${[1, 2, 3, 4, 5].map((value) => `<button type="button" class="rating-star ${estadoObra('valoracion') >= value ? 'active' : ''}" data-rating="${value}" aria-label="Valorar ${value} de 5">★</button>`).join('')}</div></div><button type="button" class="btn note-toggle" data-note-toggle>AÑADIR NOTA</button><div class="personal-note-editor" data-note-editor><label for="building-notes">NOTA PRIVADA</label><textarea id="building-notes" class="tech-input" rows="3" placeholder="Escribe una nota privada..."></textarea><button type="button" class="btn save-personal-status" data-save-personal>GUARDAR NOTA</button></div>` : ''}</div>
     ${state.sessionToken && !(state.userRole === 'admin' && state.adminMode) ? '<button type="button" class="report-link" data-open-report>¿Ves un error en esta ficha?</button>' : ''}
   `;
-  document.getElementById('sheet-header-actions').innerHTML = `<button type="button" class="sheet-action-button" data-share-action="open">COMPARTIR</button>${state.userRole === 'admin' && state.adminMode ? '<button type="button" id="btn-edit-building" class="sheet-action-button admin-only-action" data-edit-building>EDITAR</button><button type="button" class="sheet-action-button admin-delete-action" data-delete-building>ELIMINAR</button>' : ''}${state.sessionToken ? `<button type="button" class="sheet-action-button ${estadoObra('favorite') ? 'active favorite' : ''}" data-status="favorite">FAVORITO</button><button type="button" class="sheet-action-button ${estadoObra('visited') ? 'active visited' : ''}" data-status="visited">VISITADO</button>` : ''}`;
+  const canDeletePrivate = Boolean(obraNueva?.private && state.userId && String(obraNueva.user_id) === String(state.userId));
+  document.getElementById('sheet-header-actions').innerHTML = `<button type="button" class="sheet-action-button" data-share-action="open">COMPARTIR</button>${state.userRole === 'admin' && state.adminMode ? '<button type="button" id="btn-edit-building" class="sheet-action-button admin-only-action" data-edit-building>EDITAR</button><button type="button" class="sheet-action-button admin-delete-action" data-delete-building>ELIMINAR</button>' : ''}${canDeletePrivate ? '<button type="button" class="sheet-action-button private-delete-action" data-delete-private>ELIMINAR</button>' : ''}${state.sessionToken ? `<button type="button" class="sheet-action-button ${estadoObra('favorite') ? 'active favorite' : ''}" data-status="favorite">FAVORITO</button><button type="button" class="sheet-action-button ${estadoObra('visited') ? 'active visited' : ''}" data-status="visited">VISITADO</button>` : ''}`;
   sheet.classList.add('open');
   cerrarFiltros();
   const personal = state.buildingStatuses.get(String(obraNueva?.id || p.id)) || {};
@@ -79,6 +81,10 @@ document.addEventListener('click', (e) => {
     document.getElementById('report-description').value = '';
     document.getElementById('report-error').classList.add('hidden');
     document.getElementById('modal-report').classList.add('open');
+    return;
+  }
+  if (e.target.closest('[data-delete-private]')) {
+    eliminarChinchetaPrivada();
     return;
   }
   if (e.target.closest('[data-delete-building]')) {
@@ -184,6 +190,21 @@ document.addEventListener('click', (e) => {
     const obra = state.OBRAS.find((o) => String(o.featureId) === String(state.selectedFeatureId));
   if (obra) document.dispatchEvent(new CustomEvent('radar:edit-building', { detail: { obra } }));
 });
+
+async function eliminarChinchetaPrivada() {
+  const obra = state.OBRAS.find((item) => String(item.featureId) === String(state.selectedFeatureId));
+  if (!obra || !obra.private || !state.userId || String(obra.user_id) !== String(state.userId)) return;
+  if (!window.confirm(`¿Eliminar "${obra.nombre_obra}" de tus chinchetas privadas?`)) return;
+  try {
+    await deletePrivateBuilding(obra.id, state.userId, state.sessionToken);
+    state.OBRAS = state.OBRAS.filter((item) => item !== obra);
+    state.privateBuildings = state.privateBuildings.filter((item) => item !== obra);
+    cerrarFicha();
+    actualizarFuenteMapa();
+  } catch (error) {
+    alert(error.message);
+  }
+}
 
 async function eliminarEdificioSeleccionado() {
   const obra = state.OBRAS.find((item) => String(item.featureId) === String(state.selectedFeatureId));

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nolli-shell-v1';
+const CACHE_NAME = 'nolli-shell-v2';
 const APP_SHELL = [
   './',
   './index.html',
@@ -28,7 +28,11 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches.keys().then((cacheNames) => Promise.all(
+      cacheNames.filter((cacheName) => cacheName !== CACHE_NAME).map((cacheName) => caches.delete(cacheName)),
+    )).then(() => self.clients.claim()),
+  );
 });
 
 self.addEventListener('fetch', (event) => {

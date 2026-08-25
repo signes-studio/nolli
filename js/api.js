@@ -59,6 +59,24 @@ export async function createPrivateBuilding(building, sessionToken) {
   return response.json();
 }
 
+export async function deletePrivateBuilding(id, userId, sessionToken) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_private_buildings?id=eq.${encodeURIComponent(id)}&user_id=eq.${encodeURIComponent(userId)}`, {
+    method: 'DELETE',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+      'Prefer': 'return=representation',
+    },
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || error.details || 'No se pudo eliminar la chincheta privada.');
+  }
+  const deleted = await response.json().catch(() => []);
+  if (!Array.isArray(deleted) || deleted.length === 0) throw new Error('No se eliminó ninguna chincheta privada.');
+  return deleted;
+}
+
 /** Autentica al administrador y devuelve el access_token. */
 export async function loginAdmin(email, password) {
   const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
