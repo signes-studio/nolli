@@ -146,6 +146,32 @@ export async function createBuildingReport(report, sessionToken) {
   return response.json();
 }
 
+export async function fetchBuildingReports(sessionToken) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/building_reports?estado=eq.pendiente&select=id,user_id,building_id,descripcion,estado,created_at&order=created_at.desc`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
+  });
+  if (!response.ok) return [];
+  return response.json();
+}
+
+export async function updateBuildingReport(id, estado, sessionToken) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/building_reports?id=eq.${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation',
+    },
+    body: JSON.stringify({ estado }),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || error.details || 'No se pudo actualizar el reporte.');
+  }
+  return response.json();
+}
+
 export async function fetchRatingAverages(sessionToken) {
   const response = await fetch(`${SUPABASE_URL}/rest/v1/user_building_status?select=building_id,valoracion&valoracion=not.is.null&limit=10000`, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },

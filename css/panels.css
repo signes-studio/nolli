@@ -113,6 +113,12 @@
 .admin-project-info span { color: var(--fg-dim); }
 .admin-project-city { color: var(--accent-2) !important; }
 .admin-project-rating { color: var(--accent) !important; }
+.admin-inbox-head { display: flex; justify-content: space-between; padding: 10px 12px; border-top: 1px solid var(--accent-2); background: rgba(57,255,20,.04); color: var(--accent-2); font-size: 10px; letter-spacing: .05em; }
+.admin-report { display: flex; justify-content: space-between; gap: 12px; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+.admin-report-copy { min-width: 0; display: grid; gap: 4px; font-size: 10px; }
+.admin-report-copy span { color: var(--fg); line-height: 1.4; }
+.admin-report-copy small { color: var(--fg-dim); font-size: 9px; }
+.admin-report-actions { display: flex; flex-shrink: 0; align-items: flex-start; gap: 5px; }
 .admin-project-status { color: var(--fg-dim) !important; }
 .admin-project-status.pending { color: var(--accent) !important; }
 .admin-project-actions { display: flex; flex-shrink: 0; gap: 5px; }

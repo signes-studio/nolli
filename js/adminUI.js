@@ -3,7 +3,7 @@
    ========================================================================= */
 
 import { state, separarArquitectos } from './state.js';
-import { deleteBuilding, fetchRatingAverages, reviewBuilding } from './api.js';
+import { deleteBuilding, fetchRatingAverages, reviewBuilding, fetchBuildingReports, updateBuildingReport } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
 
@@ -13,13 +13,15 @@ const search = document.getElementById('admin-search');
 const reviewFilter = document.getElementById('admin-review-filter');
 const count = document.getElementById('admin-count');
 const list = document.getElementById('admin-project-list');
+const reportList = document.getElementById('admin-report-list');
+const reportCount = document.getElementById('admin-report-count');
 const cityCache = new Map();
 let ratingAverages = new Map();
 
 export function initAdminUI() {
   button.addEventListener('click', () => {
     panel.classList.toggle('open');
-    if (panel.classList.contains('open')) renderList();
+    if (panel.classList.contains('open')) { renderList(); renderReports(); }
   });
   search.addEventListener('input', renderList);
   reviewFilter.addEventListener('change', () => {
@@ -41,6 +43,8 @@ export function initAdminUI() {
     if (remove) eliminarProyecto(remove.dataset.adminDelete);
     const review = event.target.closest('[data-admin-review]');
     if (review) revisarProyecto(review.dataset.adminReview, review.dataset.reviewStatus);
+    const report = event.target.closest('[data-report-id]');
+    if (report) actualizarReporte(report.dataset.reportId, report.dataset.reportStatus);
   });
 
   document.addEventListener('radar:admin-login', () => button.classList.remove('hidden'));
@@ -52,6 +56,7 @@ export function initAdminUI() {
   document.addEventListener('radar:user-login', () => button.classList.add('hidden'));
   document.addEventListener('radar:admin-login', cargarMedias);
   document.addEventListener('radar:buildings-changed', renderList);
+  document.addEventListener('radar:admin-login', renderReports);
 }
 
 async function cargarMedias() {
@@ -91,6 +96,29 @@ async function renderList() {
     if (!cityElement) return;
     cityElement.textContent = await obtenerCiudad(obra);
   }));
+}
+
+async function renderReports() {
+  if (state.userRole !== 'admin') return;
+  const reports = await fetchBuildingReports(state.sessionToken);
+  reportCount.textContent = `${reports.length} pendientes`;
+  if (!reports.length) {
+    reportList.innerHTML = '<div class="nearby-empty">No hay reportes pendientes.</div>';
+    return;
+  }
+  reportList.innerHTML = reports.map((report) => {
+    const obra = state.OBRAS.find((item) => String(item.id) === String(report.building_id));
+    return `<article class="admin-report"><div class="admin-report-copy"><strong>${obra?.nombre_obra || `Obra ${report.building_id}`}</strong><span>${report.descripcion}</span><small>${new Date(report.created_at).toLocaleString('es-ES')}</small></div><div class="admin-report-actions"><button type="button" class="btn admin-action-review" data-report-id="${report.id}" data-report-status="revisado">REVISADO</button><button type="button" class="btn admin-action-reject" data-report-id="${report.id}" data-report-status="descartado">DESCARTAR</button></div></article>`;
+  }).join('');
+}
+
+async function actualizarReporte(id, estado) {
+  try {
+    await updateBuildingReport(id, estado, state.sessionToken);
+    renderReports();
+  } catch (error) {
+    alert(error.message);
+  }
 }
 
 function formatearEstadoRevision(status) {
