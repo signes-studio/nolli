@@ -31,6 +31,7 @@ async function inicializarRadar() {
       ciudad: fila.ciudad || null,
       estado_acceso: fila.estado_acceso || (fila.visitable ? 'publico' : 'privado'),
       añadido_por: fila.añadido_por || null,
+      estado_revision: fila.estado_revision || 'publicada',
       coordenadas: [fila.longitud, fila.latitud],
       selected: false,
     }));

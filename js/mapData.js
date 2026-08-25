@@ -7,7 +7,7 @@ import { state } from './state.js';
 export function actualizarFuenteMapa() {
   const geojson = {
     type: 'FeatureCollection',
-    features: state.OBRAS.map((o) => ({
+    features: state.OBRAS.filter((o) => o.estado_revision !== 'pendiente' && o.estado_revision !== 'rechazada').map((o) => ({
       type: 'Feature',
       id: o.featureId,
       geometry: { type: 'Point', coordinates: o.coordenadas },
@@ -15,6 +15,7 @@ export function actualizarFuenteMapa() {
         ...o,
         arquitectos: o.arquitectos || [],
         estado_acceso: o.estado_acceso || 'privado',
+        estado_revision: o.estado_revision || 'publicada',
         favorite: state.buildingStatuses.get(String(o.id))?.favorite ? 1 : 0,
         visited: state.buildingStatuses.get(String(o.id))?.visited ? 1 : 0,
         selected: o.selected ? 1 : 0,

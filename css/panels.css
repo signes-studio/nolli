@@ -107,9 +107,13 @@
 .admin-project-info span { color: var(--fg-dim); }
 .admin-project-city { color: var(--accent-2) !important; }
 .admin-project-rating { color: var(--accent) !important; }
+.admin-project-status { color: var(--fg-dim) !important; }
+.admin-project-status.pending { color: var(--accent) !important; }
 .admin-project-actions { display: flex; flex-shrink: 0; gap: 5px; }
 .admin-action-edit, .admin-action-delete { padding: 5px 7px; font-size: 9px; }
 .admin-action-delete { color: #ff6b6b; border-color: #ff6b6b; }
+.admin-action-review { color: var(--accent-2); border-color: var(--accent-2); }
+.admin-action-reject { color: #ffb36b; border-color: #ffb36b; }
 @media (max-width: 560px) { .admin-panel { top: 106px; } .admin-project { align-items: flex-start; flex-direction: column; } }
 @media (max-width: 600px) {
   .sheet { max-height: 76vh; }

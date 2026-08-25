@@ -11,6 +11,7 @@ export const state = {
   sessionToken: null,
   userRole: null,
   userId: null,
+  userEmail: null,
   buildingStatuses: new Map(),
   pendingLngLat: null,
   editingBuildingId: null,

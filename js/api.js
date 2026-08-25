@@ -160,3 +160,21 @@ export async function deleteBuilding(id, sessionToken) {
   });
   if (!response.ok) throw new Error('No se pudo eliminar el proyecto.');
 }
+
+export async function reviewBuilding(id, estadoRevision, sessionToken) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?id=eq.${encodeURIComponent(String(id).trim())}`, {
+    method: 'PATCH',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation',
+    },
+    body: JSON.stringify({ estado_revision: estadoRevision }),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || error.details || 'No se pudo revisar la propuesta.');
+  }
+  return response.json();
+}

@@ -3,7 +3,7 @@
    ========================================================================= */
 
 import { state, separarArquitectos } from './state.js';
-import { deleteBuilding, fetchRatingAverages } from './api.js';
+import { deleteBuilding, fetchRatingAverages, reviewBuilding } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
 
@@ -34,6 +34,8 @@ export function initAdminUI() {
     }
     const remove = event.target.closest('[data-admin-delete]');
     if (remove) eliminarProyecto(remove.dataset.adminDelete);
+    const review = event.target.closest('[data-admin-review]');
+    if (review) revisarProyecto(review.dataset.adminReview, review.dataset.reviewStatus);
   });
 
   document.addEventListener('radar:admin-login', () => button.classList.remove('hidden'));
@@ -68,9 +70,11 @@ async function renderList() {
         <span>${obra.arquitecto || 'Sin arquitecto'}</span>
         <span class="admin-project-city" data-city-for="${obra.featureId}">LOCALIZACIÓN...</span>
         <span class="admin-project-rating">${formatearMedia(obra.id)}</span>
+        <span class="admin-project-status ${obra.estado_revision === 'pendiente' ? 'pending' : ''}">${formatearEstadoRevision(obra.estado_revision)}</span>
       </div>
       <div class="admin-project-actions">
         <button type="button" class="btn admin-action-edit" data-admin-edit="${obra.id}">EDITAR</button>
+        ${obra.estado_revision === 'pendiente' ? '<button type="button" class="btn admin-action-review" data-admin-review="' + obra.id + '" data-review-status="publicada">ACEPTAR</button><button type="button" class="btn admin-action-reject" data-admin-review="' + obra.id + '" data-review-status="rechazada">RECHAZAR</button>' : ''}
         <button type="button" class="btn admin-action-delete" data-admin-delete="${obra.id}">BORRAR</button>
       </div>
     </div>
@@ -81,6 +85,23 @@ async function renderList() {
     if (!cityElement) return;
     cityElement.textContent = await obtenerCiudad(obra);
   }));
+}
+
+function formatearEstadoRevision(status) {
+  return status === 'pendiente' ? 'PENDIENTE DE REVISIÓN' : status === 'rechazada' ? 'RECHAZADA' : 'PUBLICADA';
+}
+
+async function revisarProyecto(id, estadoRevision) {
+  const obra = state.OBRAS.find((item) => String(item.id) === String(id));
+  if (!obra || state.userRole !== 'admin') return;
+  try {
+    await reviewBuilding(id, estadoRevision, state.sessionToken);
+    obra.estado_revision = estadoRevision;
+    actualizarFuenteMapa();
+    renderList();
+  } catch (error) {
+    alert(error.message);
+  }
 }
 
 function formatearMedia(buildingId) {

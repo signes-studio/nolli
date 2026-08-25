@@ -34,6 +34,7 @@ async function initLoginModal() {
   const cargarEstadoUsuario = async () => {
     const user = await fetchCurrentUser(state.sessionToken);
     state.userId = user.id;
+    state.userEmail = user.email || null;
     const statuses = await fetchBuildingStatuses(user.id, state.sessionToken);
     state.buildingStatuses = new Map(statuses.map((item) => [String(item.building_id), {
       favorite: item.favorite === true,
@@ -117,6 +118,7 @@ async function initLoginModal() {
     state.sessionToken = null;
     state.userRole = null;
     state.userId = null;
+    state.userEmail = null;
     state.buildingStatuses = new Map();
     document.dispatchEvent(new CustomEvent('radar:user-status-ready'));
     logoutButton.classList.add('hidden');
@@ -184,7 +186,7 @@ function initAddBuildingModal() {
     }
 
     const btnSave = document.getElementById('btn-add-save');
-    btnSave.innerHTML = 'PUBLICANDO...';
+    btnSave.innerHTML = state.userRole === 'admin' ? 'PUBLICANDO...' : 'ENVIANDO A REVISIÓN...';
 
     // Código técnico de fondo generado automáticamente
     const edificio = {
@@ -217,14 +219,16 @@ function initAddBuildingModal() {
         const nuevoEdificio = {
           ...edificio,
           id: 'VLC-' + Date.now(),
-          añadido_por: 'administrador',
+          añadido_por: state.userRole === 'admin' ? 'administrador' : (state.userEmail || 'usuario'),
+          estado_revision: state.userRole === 'admin' ? 'publicada' : 'pendiente',
         };
         const insertedData = await createBuilding(nuevoEdificio, state.sessionToken);
 
         state.OBRAS.push({
           ...nuevoEdificio,
           arquitectos: separarArquitectos(arq),
-          añadido_por: 'administrador',
+          añadido_por: nuevoEdificio.añadido_por,
+          estado_revision: nuevoEdificio.estado_revision,
           id: insertedData[0].id,
           featureId: String(insertedData[0].id ?? `obra-${Date.now()}`),
           coordenadas: [state.pendingLngLat.lng, state.pendingLngLat.lat],
@@ -261,8 +265,8 @@ function initAddBuildingModal() {
 }
 
 function handleMapLongPress(lngLat) {
-  if (state.userRole !== 'admin') {
-    alert('ACCESO DENEGADO. Inicia sesión como administrador para registrar nuevas coordenadas.');
+  if (!state.sessionToken) {
+    alert('Inicia sesión para proponer una nueva obra.');
     return;
   }
   state.editingBuildingId = null;
@@ -277,8 +281,8 @@ function handleMapLongPress(lngLat) {
   document.getElementById('add-importancia').value = '1';
   document.getElementById('add-categoria').value = 'otro';
   document.getElementById('add-acceso').value = 'publico';
-  document.getElementById('modal-add-title').textContent = 'REGISTRO DE NUEVA OBRA (DB)';
-  document.getElementById('btn-add-save').innerHTML = '<span class="inline-flex items-center gap-1"><i data-lucide="database" width="13" height="13"></i> PUBLICAR</span>';
+  document.getElementById('modal-add-title').textContent = state.userRole === 'admin' ? 'REGISTRO DE NUEVA OBRA (DB)' : 'PROPONER NUEVA OBRA';
+  document.getElementById('btn-add-save').innerHTML = state.userRole === 'admin' ? '<span class="inline-flex items-center gap-1"><i data-lucide="database" width="13" height="13"></i> PUBLICAR</span>' : 'ENVIAR A REVISIÓN';
   document.getElementById('add-error').classList.add('hidden');
 
   document.getElementById('modal-add-building').classList.add('open');

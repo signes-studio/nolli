@@ -104,7 +104,7 @@ export function cargarMapaMapbox() {
         id: labelLayerId,
         type: 'symbol',
         source: 'obras',
-        minzoom: importance === 1 ? 13 : importance === 2 ? 15 : 17,
+        minzoom: importance === 1 ? 13 : importance === 2 ? 14 : 16,
         filter: ['==', ['get', 'importancia'], importance],
         layout: {
           'text-field': ['get', 'nombre_obra'],
