@@ -137,6 +137,9 @@ async function initLoginModal() {
     state.userId = null;
     state.userEmail = null;
     state.buildingStatuses = new Map();
+    state.userCollections = [];
+    state.userCollectionItems = [];
+    state.userPrivateLabels = [];
     document.dispatchEvent(new CustomEvent('radar:user-status-ready'));
     logoutButton.classList.add('hidden');
     bLoginT.textContent = '[ INICIAR SESIÓN ]';

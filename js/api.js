@@ -85,6 +85,132 @@ export async function deletePrivateBuilding(id, userId, sessionToken) {
   return deleted;
 }
 
+export async function fetchUserCollections(userId, sessionToken) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?user_id=eq.${encodeURIComponent(userId)}&select=id,name,created_at&order=created_at.asc`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
+  });
+  if (!response.ok) return [];
+  return response.json();
+}
+
+export async function createUserCollection(collection, sessionToken) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation',
+    },
+    body: JSON.stringify(collection),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || error.details || 'No se pudo crear la lista personal.');
+  }
+  return response.json();
+}
+
+export async function deleteUserCollection(collectionId, userId, sessionToken) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?id=eq.${encodeURIComponent(collectionId)}&user_id=eq.${encodeURIComponent(userId)}`, {
+    method: 'DELETE',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+      'Prefer': 'return=representation',
+    },
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || error.details || 'No se pudo borrar la lista personal.');
+  }
+  return response.json().catch(() => []);
+}
+
+export async function fetchUserCollectionItems(userId, sessionToken) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_collection_items?user_id=eq.${encodeURIComponent(userId)}&select=id,collection_id,building_id,created_at&order=created_at.asc`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
+  });
+  if (!response.ok) return [];
+  return response.json();
+}
+
+export async function addUserCollectionItem(item, sessionToken) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_collection_items`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'resolution=merge-duplicates,return=representation',
+    },
+    body: JSON.stringify(item),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || error.details || 'No se pudo guardar la obra en la lista.');
+  }
+  return response.json();
+}
+
+export async function deleteUserCollectionItem(collectionId, userId, buildingId, sessionToken) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_collection_items?collection_id=eq.${encodeURIComponent(collectionId)}&user_id=eq.${encodeURIComponent(userId)}&building_id=eq.${encodeURIComponent(buildingId)}`, {
+    method: 'DELETE',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+      'Prefer': 'return=representation',
+    },
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || error.details || 'No se pudo quitar la obra de la lista.');
+  }
+  return response.json().catch(() => []);
+}
+
+export async function fetchUserPrivateLabels(userId, sessionToken) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_private_labels?user_id=eq.${encodeURIComponent(userId)}&select=id,building_id,label,created_at&order=created_at.desc`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
+  });
+  if (!response.ok) return [];
+  return response.json();
+}
+
+export async function createUserPrivateLabel(label, sessionToken) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_private_labels`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation',
+    },
+    body: JSON.stringify(label),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || error.details || 'No se pudo guardar la etiqueta privada.');
+  }
+  return response.json();
+}
+
+export async function deleteUserPrivateLabel(id, userId, sessionToken) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_private_labels?id=eq.${encodeURIComponent(id)}&user_id=eq.${encodeURIComponent(userId)}`, {
+    method: 'DELETE',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+      'Prefer': 'return=representation',
+    },
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || error.details || 'No se pudo borrar la etiqueta privada.');
+  }
+  return response.json().catch(() => []);
+}
+
 /** Autentica al administrador y devuelve el access_token. */
 export async function loginAdmin(email, password) {
   const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {

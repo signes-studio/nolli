@@ -1,8 +1,8 @@
 /* =========================================================================
    CONFIG.JS — Constantes de configuración
-   NOTA: MAPBOX_TOKEN y SUPABASE_KEY son claves *públicas* (pk./sb_publishable_),
-   diseñadas por Mapbox/Supabase para exponerse en el cliente. La seguridad
-   real de escritura depende de las Row Level Security policies en Supabase.
+   NOTA: MAPBOX_TOKEN y SUPABASE_KEY son claves publicas (pk./sb_publishable_),
+   disenadas para exponerse en el cliente. La seguridad real de escritura
+   depende de las Row Level Security policies en Supabase.
    ========================================================================= */
 
 export const MAPBOX_TOKEN = 'pk.eyJ1Ijoic2lnbmVzYXJjaCIsImEiOiJjbXQ3YjdzNXQyNjB2MnhxdW5vdjF6YjV3In0.tFJ9jN3e1z3ezNM9x0ofpg';

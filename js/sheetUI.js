@@ -5,7 +5,7 @@
 import { state, separarArquitectos, esRolAdmin } from './state.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { cerrarFiltros, generarFiltrosUI, aplicarFiltrosMapa } from './filtersUI.js';
-import { saveBuildingStatus, deleteBuilding, deletePrivateBuilding } from './api.js';
+import { saveBuildingStatus, deleteBuilding, deletePrivateBuilding, createUserCollection, addUserCollectionItem, createUserPrivateLabel } from './api.js';
 
 const sheet = document.getElementById('sheet');
 
@@ -54,7 +54,7 @@ export function abrirFicha(p, c, featureId = p.id) {
     ${state.sessionToken && !adminActivo ? '<button type="button" class="report-link" data-open-report>¿Ves un error en esta ficha?</button>' : ''}
   `;
   const canDeletePrivate = Boolean(obraNueva?.private && state.userId && String(obraNueva.user_id) === String(state.userId));
-  document.getElementById('sheet-header-actions').innerHTML = `<button type="button" class="sheet-action-button" data-share-action="open">COMPARTIR</button>${adminActivo ? '<button type="button" id="btn-edit-building" class="sheet-action-button admin-only-action" data-edit-building>EDITAR</button><button type="button" class="sheet-action-button admin-delete-action" data-delete-building>ELIMINAR</button>' : ''}${canDeletePrivate ? '<button type="button" class="sheet-action-button private-delete-action" data-delete-private>ELIMINAR</button>' : ''}${state.sessionToken ? `<button type="button" class="sheet-action-button ${estadoObra('favorite') ? 'active favorite' : ''}" data-status="favorite">FAVORITO</button><button type="button" class="sheet-action-button ${estadoObra('visited') ? 'active visited' : ''}" data-status="visited">VISITADO</button>` : ''}`;
+  document.getElementById('sheet-header-actions').innerHTML = `<button type="button" class="sheet-action-button" data-share-action="open">COMPARTIR</button>${state.sessionToken ? '<button type="button" class="sheet-action-button" data-save-collection>GUARDAR EN LISTA</button><button type="button" class="sheet-action-button" data-add-private-tag>ETIQUETA PRIVADA</button>' : ''}${adminActivo ? '<button type="button" id="btn-edit-building" class="sheet-action-button admin-only-action" data-edit-building>EDITAR</button><button type="button" class="sheet-action-button admin-delete-action" data-delete-building>ELIMINAR</button>' : ''}${canDeletePrivate ? '<button type="button" class="sheet-action-button private-delete-action" data-delete-private>ELIMINAR</button>' : ''}${state.sessionToken ? `<button type="button" class="sheet-action-button ${estadoObra('favorite') ? 'active favorite' : ''}" data-status="favorite">FAVORITO</button><button type="button" class="sheet-action-button ${estadoObra('visited') ? 'active visited' : ''}" data-status="visited">VISITADO</button>` : ''}`;
   sheet.classList.add('open');
   cerrarFiltros();
   const personal = state.buildingStatuses.get(String(obraNueva?.id || p.id)) || {};
@@ -89,6 +89,14 @@ document.addEventListener('click', (e) => {
   }
   if (e.target.closest('[data-delete-building]')) {
     eliminarEdificioSeleccionado();
+    return;
+  }
+  if (e.target.closest('[data-save-collection]')) {
+    guardarObraEnColeccion();
+    return;
+  }
+  if (e.target.closest('[data-add-private-tag]')) {
+    agregarEtiquetaPrivada();
     return;
   }
   const noteToggle = e.target.closest('[data-note-toggle]');
@@ -201,6 +209,58 @@ async function eliminarChinchetaPrivada() {
     state.privateBuildings = state.privateBuildings.filter((item) => item !== obra);
     cerrarFicha();
     actualizarFuenteMapa();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+async function guardarObraEnColeccion() {
+  const obra = state.OBRAS.find((item) => String(item.featureId) === String(state.selectedFeatureId));
+  if (!obra || !state.userId || !state.sessionToken) {
+    alert('Inicia sesión para guardar en tus listas.');
+    return;
+  }
+  const proposed = window.prompt('Nombre de la lista (ej: Viaje a Japón, Verano 2026):');
+  const collectionName = String(proposed || '').trim();
+  if (!collectionName) return;
+  try {
+    const existingCollection = state.userCollections.find((collection) => String(collection.name).toLowerCase() === collectionName.toLowerCase());
+    let collectionId = existingCollection?.id;
+    if (!collectionId) {
+      const created = await createUserCollection({ id: `COL-${Date.now()}`, user_id: state.userId, name: collectionName }, state.sessionToken);
+      const inserted = created[0];
+      if (!inserted?.id) throw new Error('No se pudo crear la lista personal.');
+      state.userCollections.push(inserted);
+      collectionId = inserted.id;
+    }
+    const alreadySaved = state.userCollectionItems.some((item) => String(item.collection_id) === String(collectionId) && String(item.building_id) === String(obra.id));
+    if (alreadySaved) {
+      alert(`La obra ya está en "${collectionName}".`);
+      return;
+    }
+    const saved = await addUserCollectionItem({ id: `CLI-${Date.now()}`, user_id: state.userId, collection_id: collectionId, building_id: obra.id }, state.sessionToken);
+    if (saved[0]) state.userCollectionItems.push(saved[0]);
+    document.dispatchEvent(new CustomEvent('radar:user-collections-changed'));
+    alert(`Guardado en "${collectionName}".`);
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+async function agregarEtiquetaPrivada() {
+  const obra = state.OBRAS.find((item) => String(item.featureId) === String(state.selectedFeatureId));
+  if (!obra || !state.userId || !state.sessionToken) {
+    alert('Inicia sesión para etiquetar.');
+    return;
+  }
+  const proposed = window.prompt('Escribe una etiqueta privada (ej: viaje-japon, verano-2026):');
+  const label = String(proposed || '').trim();
+  if (!label) return;
+  try {
+    const inserted = await createUserPrivateLabel({ id: `LBL-${Date.now()}`, user_id: state.userId, building_id: obra.id, label }, state.sessionToken);
+    if (inserted[0]) state.userPrivateLabels.unshift(inserted[0]);
+    document.dispatchEvent(new CustomEvent('radar:user-private-labels-changed'));
+    alert(`Etiqueta privada "${label}" guardada.`);
   } catch (error) {
     alert(error.message);
   }

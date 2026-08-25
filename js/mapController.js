@@ -1,6 +1,6 @@
 /* =========================================================================
-   MAPCONTROLLER.JS — Inicialización de Mapbox, capas e interacciones
-   ========================================================================= */
+  MAPCONTROLLER.JS — Inicialización de mapa, capas e interacciones
+  ========================================================================= */
 
 import { state } from './state.js';
 import { MAPBOX_TOKEN, MAP_STYLES, DEFAULT_CENTER, DEFAULT_ZOOM } from './config.js';

@@ -55,6 +55,13 @@
 .rating-star { padding: 0 2px; border: 0; background: transparent; color: var(--border-strong); font-size: 20px; line-height: 1; cursor: pointer; }
 .rating-star.active { color: var(--accent); }
 .my-place-note { display: block; margin-top: 3px; color: var(--fg-dim); font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.my-collections-create { display: grid; grid-template-columns: 1fr auto; gap: 7px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.my-collection-card { border-bottom: 1px solid var(--border); padding: 8px 0; }
+.my-collection-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 0 7px; }
+.my-collection-tools { display: inline-flex; align-items: center; gap: 6px; }
+.my-collection-item-row { display: flex; align-items: center; gap: 8px; }
+.my-collection-item-row .my-place-item { flex: 1; }
+.my-collection-item-row .filter-action { flex-shrink: 0; }
 .report-link { display: block; margin: 2px 12px 12px; padding: 0; border: 0; background: transparent; color: var(--fg-dim); font: inherit; font-size: 9px; text-align: left; text-decoration: underline; cursor: pointer; }
 .report-link:hover, .report-link:focus-visible { color: var(--accent); outline: none; }
 .report-box { max-width: 390px; }

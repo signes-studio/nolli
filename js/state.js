@@ -26,6 +26,9 @@ export const state = {
   mapStyle: 'dark',
   addingBuilding: false,
   privateBuildings: [],
+  userCollections: [],
+  userCollectionItems: [],
+  userPrivateLabels: [],
 };
 
 export function esRolAdmin(role = state.userRole) {
