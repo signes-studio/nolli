@@ -19,9 +19,14 @@ async function initLoginModal() {
   const actionButton = document.getElementById('btn-do-login');
   const registerButton = document.getElementById('btn-register-mode');
   const logoutButton = document.getElementById('btn-logout');
+  const adminModeControl = document.getElementById('admin-mode-control');
+  const adminModeToggle = document.getElementById('admin-mode-toggle');
   let registerMode = false;
 
   const marcarSesionIniciada = (role) => {
+    state.adminMode = role === 'admin';
+    adminModeControl.classList.toggle('hidden', role !== 'admin');
+    adminModeToggle.checked = state.adminMode;
     bLoginT.textContent = role === 'admin' ? '[ ADMIN DESBLOQUEADO ]' : '[ SESIÓN INICIADA ]';
     bLoginT.style.color = 'var(--accent-2)';
     bLoginT.style.borderColor = 'var(--accent-2)';
@@ -30,6 +35,12 @@ async function initLoginModal() {
     if (role === 'admin') document.dispatchEvent(new CustomEvent('radar:admin-login'));
     else document.dispatchEvent(new CustomEvent('radar:user-login'));
   };
+
+  adminModeToggle.addEventListener('change', () => {
+    if (state.userRole !== 'admin') return;
+    state.adminMode = adminModeToggle.checked;
+    document.dispatchEvent(new CustomEvent('radar:admin-mode-change'));
+  });
 
   const cargarEstadoUsuario = async () => {
     const user = await fetchCurrentUser(state.sessionToken);
@@ -57,6 +68,7 @@ async function initLoginModal() {
       localStorage.removeItem(ADMIN_SESSION_KEY);
       state.sessionToken = null;
       state.userRole = null;
+      state.adminMode = false;
     }
   }
 
@@ -118,6 +130,9 @@ async function initLoginModal() {
     localStorage.removeItem(ADMIN_SESSION_KEY);
     state.sessionToken = null;
     state.userRole = null;
+    state.adminMode = false;
+    adminModeControl.classList.add('hidden');
+    adminModeToggle.checked = false;
     state.userId = null;
     state.userEmail = null;
     state.buildingStatuses = new Map();
@@ -192,7 +207,7 @@ function initAddBuildingModal() {
     const btnSave = document.getElementById('btn-add-save');
     btnSave.innerHTML = visibility === 'private'
       ? 'GUARDANDO PRIVADA...'
-      : state.userRole === 'admin' ? 'PUBLICANDO...' : 'ENVIANDO A REVISIÓN...';
+      : state.userRole === 'admin' && state.adminMode ? 'PUBLICANDO...' : 'ENVIANDO A REVISIÓN...';
 
     // Código técnico de fondo generado automáticamente
     const edificio = {
@@ -225,19 +240,19 @@ function initAddBuildingModal() {
         const nuevoEdificio = {
           ...edificio,
           id: 'VLC-' + Date.now(),
-          añadido_por: state.userRole === 'admin' ? 'administrador' : (state.userEmail || 'usuario'),
-          estado_revision: state.userRole === 'admin' ? 'publicada' : 'pendiente',
+          añadido_por: state.userRole === 'admin' && state.adminMode ? 'administrador' : (state.userEmail || 'usuario'),
+          estado_revision: state.userRole === 'admin' && state.adminMode ? 'publicada' : 'pendiente',
         };
         const privateData = {
           ...edificio,
           id: 'PRIV-' + Date.now(),
           user_id: state.userId,
         };
-        const insertedData = visibility === 'private' && state.userRole !== 'admin'
+        const insertedData = visibility === 'private' && !(state.userRole === 'admin' && state.adminMode)
           ? await createPrivateBuilding(privateData, state.sessionToken)
           : await createBuilding({ ...nuevoEdificio, propuesto_por: state.userId }, state.sessionToken);
 
-        const isPrivate = visibility === 'private' && state.userRole !== 'admin';
+        const isPrivate = visibility === 'private' && !(state.userRole === 'admin' && state.adminMode);
         state.OBRAS.push({
           ...(isPrivate ? privateData : nuevoEdificio),
           arquitectos: separarArquitectos(arq),
@@ -245,7 +260,7 @@ function initAddBuildingModal() {
           estado_revision: isPrivate ? 'privada' : nuevoEdificio.estado_revision,
           id: insertedData[0].id,
           featureId: String(insertedData[0].id ?? `obra-${Date.now()}`),
-          private: visibility === 'private' && state.userRole !== 'admin',
+          private: visibility === 'private' && !(state.userRole === 'admin' && state.adminMode),
           coordenadas: [state.pendingLngLat.lng, state.pendingLngLat.lat],
           selected: false,
         });
@@ -298,8 +313,8 @@ function handleMapLongPress(lngLat) {
   document.getElementById('add-importancia').value = '1';
   document.getElementById('add-categoria').value = 'otro';
   document.getElementById('add-acceso').value = 'publico';
-  document.getElementById('modal-add-title').textContent = state.userRole === 'admin' ? 'REGISTRO DE NUEVA OBRA (DB)' : 'PROPONER NUEVA OBRA';
-  document.getElementById('btn-add-save').innerHTML = state.userRole === 'admin' ? '<span class="inline-flex items-center gap-1"><i data-lucide="database" width="13" height="13"></i> PUBLICAR</span>' : 'ENVIAR A REVISIÓN';
+  document.getElementById('modal-add-title').textContent = state.userRole === 'admin' && state.adminMode ? 'REGISTRO DE NUEVA OBRA (DB)' : 'PROPONER NUEVA OBRA';
+  document.getElementById('btn-add-save').innerHTML = state.userRole === 'admin' && state.adminMode ? '<span class="inline-flex items-center gap-1"><i data-lucide="database" width="13" height="13"></i> PUBLICAR</span>' : 'ENVIAR A REVISIÓN';
   document.getElementById('add-error').classList.add('hidden');
 
   document.getElementById('modal-add-building').classList.add('open');

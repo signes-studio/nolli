@@ -48,6 +48,10 @@ export function initAdminUI() {
   });
 
   document.addEventListener('radar:admin-login', () => button.classList.remove('hidden'));
+  document.addEventListener('radar:admin-mode-change', () => {
+    button.classList.toggle('hidden', !state.adminMode);
+    if (!state.adminMode) panel.classList.remove('open');
+  });
   document.addEventListener('radar:logout', () => {
     button.classList.add('hidden');
     panel.classList.remove('open');
@@ -65,7 +69,7 @@ async function cargarMedias() {
 }
 
 async function renderList() {
-  if (state.userRole !== 'admin') return;
+  if (state.userRole !== 'admin' || !state.adminMode) return;
   const text = search.value.trim().toLowerCase();
   const projects = state.OBRAS.filter((obra) => `${obra.nombre_obra} ${obra.arquitecto}`.toLowerCase().includes(text))
     .filter((obra) => !reviewFilter.value || obra.estado_revision === reviewFilter.value);

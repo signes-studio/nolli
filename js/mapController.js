@@ -169,6 +169,7 @@ export function cargarMapaMapbox() {
   document.addEventListener('radar:admin-login', actualizarFuenteMapa);
   document.addEventListener('radar:user-login', actualizarFuenteMapa);
   document.addEventListener('radar:logout', actualizarFuenteMapa);
+  document.addEventListener('radar:admin-mode-change', actualizarFuenteMapa);
 }
 
 function activarModoAñadir() {

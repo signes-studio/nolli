@@ -237,6 +237,8 @@ document.addEventListener('radar:logout', () => {
   actualizarFichaAbierta();
 });
 
+document.addEventListener('radar:admin-mode-change', actualizarFichaAbierta);
+
 function actualizarFichaAbierta() {
   if (state.selectedFeatureId === null) return;
   const obra = state.OBRAS.find((item) => String(item.featureId) === String(state.selectedFeatureId));
