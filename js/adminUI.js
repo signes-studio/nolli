@@ -10,6 +10,7 @@ import { generarFiltrosUI } from './filtersUI.js';
 const panel = document.getElementById('admin-panel');
 const button = document.getElementById('btn-admin-panel');
 const search = document.getElementById('admin-search');
+const reviewFilter = document.getElementById('admin-review-filter');
 const count = document.getElementById('admin-count');
 const list = document.getElementById('admin-project-list');
 const cityCache = new Map();
@@ -21,6 +22,10 @@ export function initAdminUI() {
     if (panel.classList.contains('open')) renderList();
   });
   search.addEventListener('input', renderList);
+  reviewFilter.addEventListener('change', () => {
+    renderList();
+    actualizarFuenteMapa();
+  });
 
   document.addEventListener('click', (event) => {
     if (event.target.closest('#btn-admin-close')) panel.classList.remove('open');
@@ -57,7 +62,8 @@ async function cargarMedias() {
 async function renderList() {
   if (state.userRole !== 'admin') return;
   const text = search.value.trim().toLowerCase();
-  const projects = state.OBRAS.filter((obra) => `${obra.nombre_obra} ${obra.arquitecto}`.toLowerCase().includes(text));
+  const projects = state.OBRAS.filter((obra) => `${obra.nombre_obra} ${obra.arquitecto}`.toLowerCase().includes(text))
+    .filter((obra) => !reviewFilter.value || obra.estado_revision === reviewFilter.value);
   count.textContent = `${projects.length} / ${state.OBRAS.length}`;
   if (!projects.length) {
     list.innerHTML = '<div class="nearby-empty">No hay proyectos que coincidan.</div>';

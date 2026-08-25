@@ -130,6 +130,12 @@
     </div>
     <div class="admin-toolbar">
       <input id="admin-search" class="tech-input" type="search" placeholder="BUSCAR PROYECTO..." aria-label="Buscar proyecto">
+      <select id="admin-review-filter" class="tech-input" aria-label="Filtrar por estado de revisión">
+        <option value="">TODOS</option>
+        <option value="pendiente">PENDIENTES</option>
+        <option value="publicada">PUBLICADAS</option>
+        <option value="rechazada">RECHAZADAS</option>
+      </select>
       <span id="admin-count" class="admin-count"></span>
     </div>
     <div id="admin-project-list" class="admin-project-list"></div>

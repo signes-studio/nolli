@@ -140,22 +140,26 @@ export function aplicarFiltrosMapa() {
     ? ['any', ...[...state.activeArquitectos].map((arq) => ['in', arq, ['get', 'arquitectos']])]
     : ['==', 1, 0];
   const detalles = [];
+  const adminReviewFilter = document.getElementById('admin-review-filter');
+  if (state.userRole === 'admin' && adminReviewFilter?.value) detalles.push(['==', ['get', 'estado_revision'], adminReviewFilter.value]);
   if (state.activeDecada) detalles.push(['>=', ['get', 'año_construccion'], Number(state.activeDecada)]);
   if (state.activeDecada) detalles.push(['<', ['get', 'año_construccion'], Number(state.activeDecada) + 10]);
   if (state.activeCategoria) detalles.push(['==', ['get', 'categoria'], state.activeCategoria]);
   if (state.activeVisitable) detalles.push(['==', ['get', 'estado_acceso'], state.activeVisitable]);
   [1, 2, 3].forEach((importance) => {
-    [`obras-l${importance}`, `obras-l${importance}-visited`, `obras-l${importance}-selected`].forEach((layerId) => {
+    [`obras-l${importance}`, `obras-l${importance}-visited`, `obras-l${importance}-selected`, `obras-l${importance}-pending`].forEach((layerId) => {
       if (!state.map.getLayer(layerId)) return;
       const selected = layerId.endsWith('-selected') ? 1 : 0;
       const visited = layerId.endsWith('-visited') ? 1 : layerId.endsWith('-selected') ? null : 0;
+      const pending = layerId.endsWith('-pending') ? 'pendiente' : null;
       state.map.setFilter(layerId, [
         'all',
         arquitectos,
         ...detalles,
         ['==', ['get', 'importancia'], importance],
         ['==', ['get', 'selected'], selected],
-        ...(visited === null ? [] : [['==', ['get', 'visited'], visited]]),
+        ['==', ['get', 'estado_revision'], pending || 'publicada'],
+        ...(pending ? [] : visited === null ? [] : [['==', ['get', 'visited'], visited]]),
       ]);
     });
   });
@@ -165,7 +169,7 @@ export function aplicarFiltrosMapa() {
   [1, 2, 3].forEach((importance) => {
     const labelLayerId = `obras-labels-l${importance}`;
     if (state.map.getLayer(labelLayerId)) {
-      state.map.setFilter(labelLayerId, ['all', arquitectos, ...detalles, ['==', ['get', 'importancia'], importance]]);
+      state.map.setFilter(labelLayerId, ['all', arquitectos, ...detalles, ['==', ['get', 'importancia'], importance], ['==', ['get', 'estado_revision'], 'publicada']]);
     }
   });
 }

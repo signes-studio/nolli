@@ -28,6 +28,7 @@ export function cargarMapaMapbox() {
     [1, 2, 3].forEach((importance) => {
       state.map.addImage(`icon-l${importance}`, buildIcon(drawTargetIcon, '#FF4500', importance), { pixelRatio: 2 });
       state.map.addImage(`icon-l${importance}-visited`, buildIcon(drawTargetIcon, '#39FF14', importance), { pixelRatio: 2 });
+      state.map.addImage(`icon-l${importance}-pending`, buildIcon(drawTargetIcon, '#FFD166', importance), { pixelRatio: 2 });
       state.map.addImage(`icon-l${importance}-selected`, buildIcon(drawTargetIcon, '#FFFFFF', importance), { pixelRatio: 2 });
     });
     state.map.addSource('obras', {
@@ -58,7 +59,7 @@ export function cargarMapaMapbox() {
         type: 'symbol',
         source: 'obras',
         minzoom,
-        filter: ['all', baseFilter, ['!=', ['get', 'selected'], 1], ['!=', ['get', 'visited'], 1]],
+        filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'publicada'], ['!=', ['get', 'selected'], 1], ['!=', ['get', 'visited'], 1]],
         layout: {
           'icon-image': `icon-l${importance}`,
           'icon-size': importance === 1 ? 0.78 : importance === 2 ? 0.64 : 0.52,
@@ -71,7 +72,7 @@ export function cargarMapaMapbox() {
         type: 'symbol',
         source: 'obras',
         minzoom,
-        filter: ['all', baseFilter, ['!=', ['get', 'selected'], 1], ['==', ['get', 'visited'], 1]],
+        filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'publicada'], ['!=', ['get', 'selected'], 1], ['==', ['get', 'visited'], 1]],
         layout: {
           'icon-image': `icon-l${importance}-visited`,
           'icon-size': importance === 1 ? 0.78 : importance === 2 ? 0.64 : 0.52,
@@ -84,7 +85,7 @@ export function cargarMapaMapbox() {
         type: 'symbol',
         source: 'obras',
         minzoom,
-        filter: ['all', baseFilter, ['==', ['get', 'selected'], 1]],
+        filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'publicada'], ['==', ['get', 'selected'], 1]],
         layout: {
           'icon-image': `icon-l${importance}-selected`,
           'icon-size': importance === 1 ? 0.78 : importance === 2 ? 0.64 : 0.52,
@@ -92,7 +93,20 @@ export function cargarMapaMapbox() {
         },
       });
 
-      [`obras-l${importance}`, `obras-l${importance}-visited`, `obras-l${importance}-selected`].forEach((layerId) => {
+      state.map.addLayer({
+        id: `obras-l${importance}-pending`,
+        type: 'symbol',
+        source: 'obras',
+        minzoom,
+        filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'pendiente']],
+        layout: {
+          'icon-image': `icon-l${importance}-pending`,
+          'icon-size': importance === 1 ? 0.78 : importance === 2 ? 0.64 : 0.52,
+          'icon-allow-overlap': true,
+        },
+      });
+
+      [`obras-l${importance}`, `obras-l${importance}-visited`, `obras-l${importance}-selected`, `obras-l${importance}-pending`].forEach((layerId) => {
         state.map.on('mouseenter', layerId, () => { state.map.getCanvas().style.cursor = 'pointer'; });
         state.map.on('mouseleave', layerId, () => { state.map.getCanvas().style.cursor = ''; });
       });
@@ -105,7 +119,7 @@ export function cargarMapaMapbox() {
         type: 'symbol',
         source: 'obras',
         minzoom: importance === 1 ? 13 : importance === 2 ? 14 : 16,
-        filter: ['==', ['get', 'importancia'], importance],
+        filter: ['all', ['==', ['get', 'importancia'], importance], ['==', ['get', 'estado_revision'], 'publicada']],
         layout: {
           'text-field': ['get', 'nombre_obra'],
           'text-font': ['Open Sans Regular'],
@@ -138,6 +152,9 @@ export function cargarMapaMapbox() {
   document.getElementById('btn-location').addEventListener('click', localizarDispositivo);
   document.getElementById('btn-add-project').addEventListener('click', activarModoAñadir);
   initMapStyleSelector();
+  document.addEventListener('radar:admin-login', actualizarFuenteMapa);
+  document.addEventListener('radar:user-login', actualizarFuenteMapa);
+  document.addEventListener('radar:logout', actualizarFuenteMapa);
 }
 
 function activarModoAñadir() {
@@ -251,7 +268,7 @@ function initHudReadout() {
 
 function iniciarInteraccionesMapa() {
   // Clic en obra
-  ['obras-l1', 'obras-l1-visited', 'obras-l1-selected', 'obras-l2', 'obras-l2-visited', 'obras-l2-selected', 'obras-l3', 'obras-l3-visited', 'obras-l3-selected', 'obras-labels-l1', 'obras-labels-l2', 'obras-labels-l3'].forEach((layerId) => {
+  ['obras-l1', 'obras-l1-visited', 'obras-l1-selected', 'obras-l1-pending', 'obras-l2', 'obras-l2-visited', 'obras-l2-selected', 'obras-l2-pending', 'obras-l3', 'obras-l3-visited', 'obras-l3-selected', 'obras-l3-pending', 'obras-labels-l1', 'obras-labels-l2', 'obras-labels-l3'].forEach((layerId) => {
     state.map.on('click', layerId, (e) => {
       if (state.addingBuilding) return;
       const feature = e.features[0];
@@ -271,7 +288,7 @@ function iniciarInteraccionesMapa() {
       dispatchLongPress(e.lngLat);
       return;
     }
-    const isObra = state.map.queryRenderedFeatures(e.point, { layers: ['obras-l1', 'obras-l1-visited', 'obras-l1-selected', 'obras-l2', 'obras-l2-visited', 'obras-l2-selected', 'obras-l3', 'obras-l3-visited', 'obras-l3-selected', 'obras-labels-l1', 'obras-labels-l2', 'obras-labels-l3'] });
+    const isObra = state.map.queryRenderedFeatures(e.point, { layers: ['obras-l1', 'obras-l1-visited', 'obras-l1-selected', 'obras-l1-pending', 'obras-l2', 'obras-l2-visited', 'obras-l2-selected', 'obras-l2-pending', 'obras-l3', 'obras-l3-visited', 'obras-l3-selected', 'obras-l3-pending', 'obras-labels-l1', 'obras-labels-l2', 'obras-labels-l3'] });
     if (!isObra.length) cerrarFicha();
   });
 
