@@ -240,7 +240,11 @@ document.addEventListener('click', (event) => {
   const architectWork = target.closest('[data-architect-work-id]');
   if (architectWork) {
     const obra = state.OBRAS.find((item) => String(item.featureId) === String(architectWork.dataset.architectWorkId));
-    if (obra) { cerrarFichaArquitecto(); abrirFicha(obra, obra.coordenadas, obra.featureId); }
+    if (obra) {
+      cerrarFichaArquitecto();
+      if (state.map) state.map.flyTo({ center: obra.coordenadas, zoom: Math.max(state.map.getZoom(), 15) });
+      abrirFicha(obra, obra.coordenadas, obra.featureId);
+    }
     return;
   }
   if (target.closest('[data-open-report]')) { const building = getSelectedBuilding(); if (building) { document.getElementById('report-project-name').textContent = building.nombre_obra; document.getElementById('modal-report').classList.add('open'); } return; }
