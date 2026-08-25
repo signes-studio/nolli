@@ -18,6 +18,7 @@
   padding: 10px 14px; border-bottom: 1px solid var(--border);
   background: var(--bg-raised);
 }
+.sheet-header-actions { display: flex; align-items: center; gap: 4px; }
 .data-row {
   display: flex; border-bottom: 1px solid var(--border);
   font-size: 12px;
@@ -31,7 +32,7 @@
 .data-row .value.accent { color: var(--accent); }
 .sheet-actions { display: flex; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--border); }
 .sheet-action-bar { display: flex; gap: 6px; padding: 10px 12px; border-bottom: 1px solid var(--border); }
-.sheet-action-button { flex: 1; min-width: 0; padding: 7px 8px; border: 1px solid var(--border-strong); background: var(--bg-raised); color: var(--fg-dim); font: inherit; font-size: 10px; cursor: pointer; white-space: nowrap; }
+.sheet-action-button { flex: 0 1 auto; min-width: 0; padding: 6px 7px; border: 1px solid var(--border-strong); background: var(--bg-raised); color: var(--fg-dim); font: inherit; font-size: 9px; cursor: pointer; white-space: nowrap; }
 .sheet-action-button:hover, .sheet-action-button:focus-visible { color: var(--accent); border-color: var(--accent); outline: none; }
 .sheet-action-button.active.favorite { color: #ffffff; border-color: #ffffff; }
 .sheet-action-button.active.visited { color: var(--accent-2); border-color: var(--accent-2); }
