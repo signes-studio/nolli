@@ -162,9 +162,12 @@ export function aplicarFiltrosMapa() {
   if (state.map.getLayer('obras-favorites-halo')) {
     state.map.setFilter('obras-favorites-halo', ['all', arquitectos, ...detalles, ['==', ['get', 'favorite'], 1]]);
   }
-  if (state.map.getLayer('obras-labels')) {
-    state.map.setFilter('obras-labels', ['all', arquitectos, ...detalles]);
-  }
+  [1, 2, 3].forEach((importance) => {
+    const labelLayerId = `obras-labels-l${importance}`;
+    if (state.map.getLayer(labelLayerId)) {
+      state.map.setFilter(labelLayerId, ['all', arquitectos, ...detalles, ['==', ['get', 'importancia'], importance]]);
+    }
+  });
 }
 
 initFiltersUI();
