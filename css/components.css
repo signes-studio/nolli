@@ -37,6 +37,19 @@
   padding: 0; border: 0; background: transparent; color: var(--accent);
   font: inherit; text-align: left; cursor: pointer; text-decoration: underline;
 }
+.architect-profile-box { max-width: 520px; max-height: min(76vh, 680px); display: flex; flex-direction: column; }
+.architect-profile-body { min-height: 0; overflow: auto; padding: 18px 14px 12px; }
+.architect-profile-kicker { margin: 0 0 5px; color: var(--accent); font-size: 9px; letter-spacing: .08em; }
+.architect-profile-name { margin: 0; color: var(--fg); font-family: 'Archivo Black', sans-serif; font-size: 22px; line-height: 1.05; overflow-wrap: anywhere; }
+.architect-profile-count { margin: 8px 0 13px; color: var(--fg-dim); font-size: 10px; }
+.architect-profile-works { border-top: 1px solid var(--border); }
+.architect-work-item { width: 100%; display: grid; grid-template-columns: 54px minmax(0, 1fr); gap: 10px; padding: 11px 0; border: 0; border-bottom: 1px solid var(--border); background: transparent; color: var(--fg); font: inherit; text-align: left; cursor: pointer; }
+.architect-work-item:hover, .architect-work-item:focus-visible { background: var(--bg-raised); outline: none; }
+.architect-work-year { color: var(--accent-2); font-size: 10px; padding-top: 2px; }
+.architect-work-info { display: grid; gap: 3px; min-width: 0; }
+.architect-work-info strong { font-size: 11px; line-height: 1.35; overflow-wrap: anywhere; }
+.architect-work-info small { color: var(--fg-dim); font-size: 9px; }
+.architect-profile-empty { margin: 0; padding: 14px 0; color: var(--fg-dim); font-size: 10px; }
 .share-box { max-width: 360px; }
 .share-options { display: grid; gap: 8px; padding: 14px; }
 .share-option { width: 100%; text-align: left; }
@@ -48,6 +61,7 @@
   .modal-overlay { padding: 10px; }
   .modal-head { padding: 13px 12px; }
   .modal-body { padding: 12px; }
+  .architect-profile-name { font-size: 19px; }
 }
 
 /* ---------- Modal (genérico) ---------- */

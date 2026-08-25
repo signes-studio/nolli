@@ -4,11 +4,36 @@
 
 import { state, separarArquitectos, esRolAdmin, guardarZonaPersonalLocal } from './state.js';
 import { actualizarFuenteMapa } from './mapData.js';
-import { cerrarFiltros, generarFiltrosUI, aplicarFiltrosMapa } from './filtersUI.js';
+import { cerrarFiltros, generarFiltrosUI } from './filtersUI.js';
 import { saveBuildingStatus, deleteBuilding, deletePrivateBuilding, createUserCollection, addUserCollectionItem, createUserPrivateLabel, deleteUserPrivateLabel } from './api.js';
 
 const sheet = document.getElementById('sheet');
 let organizerMode = 'collections';
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character]));
+}
+
+function abrirFichaArquitecto(nombreArquitecto) {
+  const modal = document.getElementById('modal-architect');
+  const obras = state.OBRAS
+    .filter((obra) => (obra.arquitectos || separarArquitectos(obra.arquitecto)).includes(nombreArquitecto))
+    .sort((first, second) => Number(second.año_construccion || 0) - Number(first.año_construccion || 0)
+      || String(first.nombre_obra || '').localeCompare(String(second.nombre_obra || ''), 'es'));
+  document.getElementById('architect-profile-name').textContent = nombreArquitecto;
+  document.getElementById('architect-profile-count').textContent = `${obras.length} ${obras.length === 1 ? 'OBRA REGISTRADA' : 'OBRAS REGISTRADAS'}`;
+  document.getElementById('architect-profile-works').innerHTML = obras.length ? obras.map((obra) => `
+    <button type="button" class="architect-work-item" data-architect-work-id="${escapeHtml(obra.featureId)}">
+      <span class="architect-work-year">${escapeHtml(obra.año_construccion || '----')}</span>
+      <span class="architect-work-info"><strong>${escapeHtml(obra.nombre_obra)}</strong><small>${escapeHtml(obra.categoria || 'otro').toUpperCase()}</small></span>
+    </button>
+  `).join('') : '<p class="architect-profile-empty">No hay obras registradas para este arquitecto.</p>';
+  modal.classList.add('open');
+}
+
+function cerrarFichaArquitecto() {
+  document.getElementById('modal-architect').classList.remove('open');
+}
 
 document.getElementById('btn-sheet-close').addEventListener('click', (event) => {
   event.stopPropagation();
@@ -210,7 +235,14 @@ document.addEventListener('click', (event) => {
   if (status) { const building = getSelectedBuilding(); saveStatus(status.dataset.status, !state.buildingStatuses.get(String(building?.id))?.[status.dataset.status]); return; }
   if (target.closest('[data-save-personal]')) { saveNote(target.closest('[data-save-personal]')); return; }
   const architect = target.closest('.architect-filter');
-  if (architect) { state.activeArquitectos = state.activeArquitectos.size === 1 && state.activeArquitectos.has(architect.dataset.arq) ? new Set(state.ARQUITECTOS) : new Set([architect.dataset.arq]); generarFiltrosUI(); aplicarFiltrosMapa(); return; }
+  if (architect) { abrirFichaArquitecto(architect.dataset.arq); return; }
+  if (target.closest('#btn-architect-close') || target === document.getElementById('modal-architect')) { cerrarFichaArquitecto(); return; }
+  const architectWork = target.closest('[data-architect-work-id]');
+  if (architectWork) {
+    const obra = state.OBRAS.find((item) => String(item.featureId) === String(architectWork.dataset.architectWorkId));
+    if (obra) { cerrarFichaArquitecto(); abrirFicha(obra, obra.coordenadas, obra.featureId); }
+    return;
+  }
   if (target.closest('[data-open-report]')) { const building = getSelectedBuilding(); if (building) { document.getElementById('report-project-name').textContent = building.nombre_obra; document.getElementById('modal-report').classList.add('open'); } return; }
   if (target.closest('[data-share-action]')) { document.getElementById('modal-share').classList.add('open'); return; }
   if (target.closest('[data-photo-url]')) { const viewer = document.getElementById('modal-photo'); document.getElementById('photo-viewer-image').src = target.closest('[data-photo-url]').dataset.photoUrl; viewer.classList.add('open'); return; }
