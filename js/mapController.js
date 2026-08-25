@@ -287,9 +287,8 @@ function iniciarInteraccionesMapa() {
     state.map.on('click', layerId, (e) => {
       if (state.addingBuilding) return;
       const feature = e.features[0];
-      const p = feature.properties;
-      const c = feature.geometry.coordinates;
-      abrirFicha(p, c, feature.id);
+      const obra = state.OBRAS.find((item) => String(item.featureId) === String(feature.id));
+      abrirFicha(obra || feature.properties, obra?.coordenadas || feature.geometry.coordinates, feature.id);
     });
   });
 
