@@ -120,19 +120,25 @@
   .sheet { max-height: 76vh; }
   .sheet-header { padding: 9px 10px; }
   .sheet-header .btn { font-size: 9px; padding: 6px 7px; }
-  .data-row { font-size: 11px; }
-  .data-row .label { width: 104px; padding: 9px 8px; font-size: 9px; }
-  .data-row .value { padding: 9px 8px; }
+  .data-row { font-size: 13px; }
+  .data-row .label { width: 112px; padding: 11px 9px; font-size: 10px; }
+  .data-row .value { padding: 11px 9px; }
+  .sheet-action-button { min-height: 42px; padding: 7px 5px; font-size: 10px; }
+  .personal-notes { padding: 12px 9px 14px; }
+  .rating-star { font-size: 24px; }
+  .note-toggle, .save-personal-status { min-height: 42px; font-size: 11px; }
   .filter-panel, .search-panel, .my-places-panel, .map-style-panel { right: 8px; left: 8px; bottom: 76px; width: auto; max-height: 64vh; }
   .filter-panel, .search-panel, .my-places-panel { transform: translateY(calc(100% + 130px)); }
   .admin-panel { left: 8px; right: 8px; top: 100px; width: auto; max-height: calc(100vh - 116px); }
   .admin-toolbar { padding: 8px; }
   .topbar { padding: 10px 10px 24px; }
   .topbar-inner { padding-bottom: 8px; }
-  .hud-readout { font-size: 9px; }
+  .hud-readout { font-size: 10px; }
   .hud-crosshair { display: none; }
-  .fab { width: 40px; height: 40px; }
-  main > .absolute { right: 8px !important; bottom: max(8px, env(safe-area-inset-bottom)) !important; gap: 6px !important; }
+  #map-tools { right: 8px !important; bottom: max(8px, env(safe-area-inset-bottom)) !important; gap: 6px !important; }
+  #map-tools .map-tools-toggle { display: flex; order: -1; }
+  #map-tools:not(.tools-open) > button:not(.map-tools-toggle) { display: none; }
+  #map-tools.tools-open > button:not(.map-tools-toggle) { display: flex; }
 }
 .search-controls { display: grid; gap: 7px; padding: 10px 12px; border-bottom: 1px solid var(--border); }
 .nearby-buildings { padding: 0 12px 8px; }

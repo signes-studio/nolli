@@ -42,3 +42,10 @@
 }
 .hud-readout { text-align: right; font-size: 10px; line-height: 1.5; color: var(--fg-dim); }
 .hud-readout .val { color: var(--accent); font-weight: 700; }
+
+@media (max-width: 600px) {
+  .topbar { padding: 14px 12px 30px; }
+  .topbar h1 { font-size: 28px; }
+  .topbar p { font-size: 11px; letter-spacing: .08em; }
+  .hud-readout { font-size: 10px; line-height: 1.7; }
+}

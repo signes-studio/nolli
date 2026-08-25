@@ -16,6 +16,7 @@
   background: var(--accent-2); box-shadow: 0 0 0 3px rgba(57, 255, 20, 0.18);
 }
 .fab.active-state#btn-add-project { background: var(--accent-2); color: #000; border-color: var(--accent-2); }
+.map-tools-toggle { display: none; }
 
 /* ---------- Botones ---------- */
 .btn {
@@ -33,6 +34,15 @@
 .share-box { max-width: 360px; }
 .share-options { display: grid; gap: 8px; padding: 14px; }
 .share-option { width: 100%; text-align: left; }
+
+@media (max-width: 600px) {
+  .fab { width: 48px; height: 48px; }
+  .btn { font-size: 12px; padding: 11px 12px; }
+  .tech-input { min-height: 44px; font-size: 14px; padding: 10px 11px; }
+  .modal-overlay { padding: 10px; }
+  .modal-head { padding: 13px 12px; }
+  .modal-body { padding: 12px; }
+}
 
 /* ---------- Modal (genérico) ---------- */
 .modal-overlay {
