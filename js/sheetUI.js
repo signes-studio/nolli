@@ -126,7 +126,7 @@ document.addEventListener('click', (e) => {
   if (e.target.closest('#btn-share-close') || e.target === document.getElementById('modal-share')) {
     document.getElementById('modal-share').classList.remove('open');
   }
-  const statusButton = e.target.closest('.status-button');
+  const statusButton = e.target.closest('[data-status]');
   if (statusButton) {
     const obra = state.OBRAS.find((item) => String(item.featureId) === String(state.selectedFeatureId));
     if (!obra || !state.userId || !state.sessionToken) return;
