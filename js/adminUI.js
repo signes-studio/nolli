@@ -15,6 +15,8 @@ const count = document.getElementById('admin-count');
 const list = document.getElementById('admin-project-list');
 const reportList = document.getElementById('admin-report-list');
 const reportCount = document.getElementById('admin-report-count');
+const reportBadge = document.getElementById('admin-report-badge');
+const reportsView = document.getElementById('admin-reports-view');
 const cityCache = new Map();
 let ratingAverages = new Map();
 
@@ -24,6 +26,16 @@ export function initAdminUI() {
     if (panel.classList.contains('open')) { renderList(); renderReports(); }
   });
   search.addEventListener('input', renderList);
+  document.addEventListener('click', (event) => {
+    const tab = event.target.closest('[data-admin-tab]');
+    if (!tab) return;
+    const reports = tab.dataset.adminTab === 'reports';
+    document.querySelectorAll('[data-admin-tab]').forEach((item) => item.classList.toggle('active', item === tab));
+    list.classList.toggle('admin-view-hidden', reports);
+    document.querySelector('.admin-toolbar').classList.toggle('admin-view-hidden', reports);
+    reportsView.classList.toggle('admin-view-hidden', !reports);
+    if (reports) renderReports();
+  });
   reviewFilter.addEventListener('change', () => {
     renderList();
     actualizarFuenteMapa();
@@ -45,6 +57,8 @@ export function initAdminUI() {
     if (review) revisarProyecto(review.dataset.adminReview, review.dataset.reviewStatus);
     const report = event.target.closest('[data-report-id]');
     if (report) actualizarReporte(report.dataset.reportId, report.dataset.reportStatus);
+    const reportBuilding = event.target.closest('[data-report-building]');
+    if (reportBuilding) abrirProyectoDesdeReporte(reportBuilding.dataset.reportBuilding);
   });
 
   document.addEventListener('radar:admin-login', () => button.classList.remove('hidden'));
@@ -106,13 +120,14 @@ async function renderReports() {
   if (state.userRole !== 'admin') return;
   const reports = await fetchBuildingReports(state.sessionToken);
   reportCount.textContent = `${reports.length} pendientes`;
+  reportBadge.textContent = reports.length;
   if (!reports.length) {
     reportList.innerHTML = '<div class="nearby-empty">No hay reportes pendientes.</div>';
     return;
   }
   reportList.innerHTML = reports.map((report) => {
     const obra = state.OBRAS.find((item) => String(item.id) === String(report.building_id));
-    return `<article class="admin-report"><div class="admin-report-copy"><strong>${obra?.nombre_obra || `Obra ${report.building_id}`}</strong><span>${report.descripcion}</span><small>${new Date(report.created_at).toLocaleString('es-ES')}</small></div><div class="admin-report-actions"><button type="button" class="btn admin-action-review" data-report-id="${report.id}" data-report-status="revisado">REVISADO</button><button type="button" class="btn admin-action-reject" data-report-id="${report.id}" data-report-status="descartado">DESCARTAR</button></div></article>`;
+    return `<article class="admin-report"><div class="admin-report-copy"><strong>${obra?.nombre_obra || `Obra ${report.building_id}`}</strong><span>${report.descripcion}</span><small>${new Date(report.created_at).toLocaleString('es-ES')}</small></div><div class="admin-report-actions"><button type="button" class="btn admin-action-open" data-report-building="${report.building_id}">VER OBRA</button><button type="button" class="btn admin-action-review" data-report-id="${report.id}" data-report-status="revisado">REVISADO</button><button type="button" class="btn admin-action-reject" data-report-id="${report.id}" data-report-status="descartado">DESCARTAR</button></div></article>`;
   }).join('');
 }
 
@@ -123,6 +138,14 @@ async function actualizarReporte(id, estado) {
   } catch (error) {
     alert(error.message);
   }
+}
+
+function abrirProyectoDesdeReporte(buildingId) {
+  const obra = state.OBRAS.find((item) => String(item.id) === String(buildingId));
+  if (!obra || !state.map) return;
+  state.map.flyTo({ center: obra.coordenadas, zoom: Math.max(state.map.getZoom(), 15) });
+  document.dispatchEvent(new CustomEvent('radar:open-building', { detail: { obra } }));
+  panel.classList.remove('open');
 }
 
 function formatearEstadoRevision(status) {

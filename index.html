@@ -54,16 +54,16 @@
         <p class="text-[10px] tracking-widest mt-1" style="color:var(--fg-dim); margin:0;">RADAR ARQUITECTÓNICO — V0.5</p>
         <button id="btn-login-trigger" type="button" class="mt-2 text-[10px] font-bold px-2 py-1 cursor-pointer transition-colors" style="border: 1px solid var(--accent); color: var(--accent); background: rgba(255, 69, 0, 0.1);">[ INICIAR SESIÓN ]</button>
         <button id="btn-admin-panel" type="button" class="btn btn-admin hidden mt-2">PANEL ADMIN</button>
-        <label id="admin-mode-control" class="admin-mode-control hidden" for="admin-mode-toggle">
-          <span>MODO ADMIN</span>
-          <input id="admin-mode-toggle" type="checkbox" checked>
-          <span class="admin-mode-track"></span>
-        </label>
       </div>
       <div class="hud-readout" aria-live="polite">
         <div>LNG <span class="val" id="hud-lng">--.-----</span></div>
         <div>LAT <span class="val" id="hud-lat">--.-----</span></div>
         <div>ZOOM <span class="val" id="hud-zoom">--.-</span></div>
+        <label id="admin-mode-control" class="admin-mode-control hidden" for="admin-mode-toggle">
+          <span>MODO ADMIN</span>
+          <input id="admin-mode-toggle" type="checkbox" checked>
+          <span class="admin-mode-track"></span>
+        </label>
       </div>
     </div>
   </header>
@@ -148,9 +148,15 @@
       </select>
       <span id="admin-count" class="admin-count"></span>
     </div>
+    <div class="admin-tabs">
+      <button type="button" class="admin-tab active" data-admin-tab="projects">PROYECTOS</button>
+      <button type="button" class="admin-tab admin-inbox-button" data-admin-tab="reports" title="Buzón de reportes" aria-label="Abrir buzón de reportes"><i data-lucide="inbox" width="15" height="15"></i><span id="admin-report-badge" class="admin-report-badge">0</span></button>
+    </div>
     <div id="admin-project-list" class="admin-project-list"></div>
-    <div class="admin-inbox-head"><span>[ BUZÓN // REPORTES ]</span><span id="admin-report-count" class="admin-count"></span></div>
-    <div id="admin-report-list" class="admin-report-list"></div>
+    <div id="admin-reports-view" class="admin-reports-view admin-view-hidden">
+      <div class="admin-inbox-head"><span>[ BUZÓN // REPORTES ]</span><span id="admin-report-count" class="admin-count"></span></div>
+      <div id="admin-report-list" class="admin-report-list"></div>
+    </div>
   </section>
 
   <section id="map-style-panel" class="map-style-panel" aria-label="Tipo de mapa">

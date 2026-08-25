@@ -239,6 +239,11 @@ document.addEventListener('radar:logout', () => {
 
 document.addEventListener('radar:admin-mode-change', actualizarFichaAbierta);
 
+document.addEventListener('radar:open-building', (event) => {
+  const obra = event.detail?.obra;
+  if (obra) abrirFicha(obra, obra.coordenadas, obra.featureId);
+});
+
 function actualizarFichaAbierta() {
   if (state.selectedFeatureId === null) return;
   const obra = state.OBRAS.find((item) => String(item.featureId) === String(state.selectedFeatureId));
