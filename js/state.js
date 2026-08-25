@@ -25,7 +25,7 @@ export const state = {
 
 export function separarArquitectos(valor) {
   return String(valor || '')
-    .split(',')
+    .split(/[,/]/)
     .map((nombre) => nombre.trim())
     .filter(Boolean);
 }

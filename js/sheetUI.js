@@ -2,7 +2,7 @@
    SHEETUI.JS — Ficha técnica (bottom sheet)
    ========================================================================= */
 
-import { state } from './state.js';
+import { state, separarArquitectos } from './state.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { cerrarFiltros, generarFiltrosUI, aplicarFiltrosMapa } from './filtersUI.js';
 import { saveBuildingStatus, deleteBuilding } from './api.js';
@@ -24,7 +24,7 @@ export function abrirFicha(p, c, featureId = p.id) {
   const clickedId = featureId;
   const arquitectos = Array.isArray(p.arquitectos)
     ? p.arquitectos
-    : String(p.arquitecto || '').split(',').map((nombre) => nombre.trim()).filter(Boolean);
+    : separarArquitectos(p.arquitecto);
   const architectButtons = arquitectos.map((arq) => (
     `<button type="button" class="architect-filter" data-arq="${arq}">${arq}</button>`
   )).join(', ');
@@ -181,7 +181,7 @@ async function eliminarEdificioSeleccionado() {
   try {
     await deleteBuilding(obra.id, state.sessionToken);
     state.OBRAS = state.OBRAS.filter((item) => String(item.id) !== String(obra.id));
-    state.ARQUITECTOS = [...new Set(state.OBRAS.flatMap((item) => item.arquitectos || String(item.arquitecto || '').split(',').map((name) => name.trim()).filter(Boolean)))];
+    state.ARQUITECTOS = [...new Set(state.OBRAS.flatMap((item) => item.arquitectos || separarArquitectos(item.arquitecto)))];
     state.activeArquitectos = new Set([...state.activeArquitectos].filter((architect) => state.ARQUITECTOS.includes(architect)));
     state.buildingStatuses.delete(String(obra.id));
     cerrarFicha();
