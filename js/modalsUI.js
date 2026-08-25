@@ -252,6 +252,7 @@ function initAddBuildingModal() {
 
   document.addEventListener('radar:edit-building', (e) => {
     const obra = e.detail.obra;
+    document.getElementById('sheet')?.classList.remove('open');
     state.editingBuildingId = obra.id;
     state.pendingLngLat = { lng: obra.coordenadas[0], lat: obra.coordenadas[1] };
     document.getElementById('modal-add-title').textContent = 'EDITAR OBRA (DB)';

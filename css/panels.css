@@ -19,6 +19,8 @@
   background: var(--bg-raised);
 }
 .sheet-header-actions { display: flex; align-items: center; gap: 4px; }
+.sheet-close-button { display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; background: transparent; color: var(--fg-dim); cursor: pointer; }
+.sheet-close-button:hover, .sheet-close-button:focus-visible { color: var(--accent); outline: none; }
 .data-row {
   display: flex; border-bottom: 1px solid var(--border);
   font-size: 12px;
