@@ -140,6 +140,8 @@ function initAddBuildingModal() {
     mAdd.classList.remove('open');
     state.pendingLngLat = null;
     state.editingBuildingId = null;
+    state.addingBuilding = false;
+    document.getElementById('btn-add-project').classList.remove('active-state');
   };
 
   document.addEventListener('click', (e) => {
@@ -270,6 +272,8 @@ function handleMapLongPress(lngLat) {
     return;
   }
   state.editingBuildingId = null;
+  state.addingBuilding = false;
+  document.getElementById('btn-add-project').classList.remove('active-state');
   state.pendingLngLat = lngLat;
   document.getElementById('add-coords').textContent = `${lngLat.lng.toFixed(5)}, ${lngLat.lat.toFixed(5)}`;
 

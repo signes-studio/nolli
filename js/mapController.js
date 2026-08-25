@@ -136,7 +136,20 @@ export function cargarMapaMapbox() {
     state.map.flyTo({ center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM });
   });
   document.getElementById('btn-location').addEventListener('click', localizarDispositivo);
+  document.getElementById('btn-add-project').addEventListener('click', activarModoAñadir);
   initMapStyleSelector();
+}
+
+function activarModoAñadir() {
+  if (!state.sessionToken) {
+    alert('Inicia sesión para proponer una nueva obra.');
+    return;
+  }
+  state.addingBuilding = !state.addingBuilding;
+  const button = document.getElementById('btn-add-project');
+  button.classList.toggle('active-state', state.addingBuilding);
+  button.title = state.addingBuilding ? 'Selecciona una ubicación en el mapa' : 'Añadir obra';
+  state.map.getCanvas().style.cursor = state.addingBuilding ? 'crosshair' : '';
 }
 
 function aplicarTratamientoSatelite() {
@@ -240,6 +253,7 @@ function iniciarInteraccionesMapa() {
   // Clic en obra
   ['obras-l1', 'obras-l1-visited', 'obras-l1-selected', 'obras-l2', 'obras-l2-visited', 'obras-l2-selected', 'obras-l3', 'obras-l3-visited', 'obras-l3-selected', 'obras-labels-l1', 'obras-labels-l2', 'obras-labels-l3'].forEach((layerId) => {
     state.map.on('click', layerId, (e) => {
+      if (state.addingBuilding) return;
       const feature = e.features[0];
       const p = feature.properties;
       const c = feature.geometry.coordinates;
@@ -249,6 +263,14 @@ function iniciarInteraccionesMapa() {
 
   // Clic en el fondo vacío (Descartar selección)
   state.map.on('click', (e) => {
+    if (state.addingBuilding) {
+      state.addingBuilding = false;
+      document.getElementById('btn-add-project').classList.remove('active-state');
+      document.getElementById('btn-add-project').title = 'Añadir obra';
+      state.map.getCanvas().style.cursor = '';
+      dispatchLongPress(e.lngLat);
+      return;
+    }
     const isObra = state.map.queryRenderedFeatures(e.point, { layers: ['obras-l1', 'obras-l1-visited', 'obras-l1-selected', 'obras-l2', 'obras-l2-visited', 'obras-l2-selected', 'obras-l3', 'obras-l3-visited', 'obras-l3-selected', 'obras-labels-l1', 'obras-labels-l2', 'obras-labels-l3'] });
     if (!isObra.length) cerrarFicha();
   });
