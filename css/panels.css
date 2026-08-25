@@ -54,6 +54,11 @@
 .rating-star { padding: 0 2px; border: 0; background: transparent; color: var(--border-strong); font-size: 20px; line-height: 1; cursor: pointer; }
 .rating-star.active { color: var(--accent); }
 .my-place-note { display: block; margin-top: 3px; color: var(--fg-dim); font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.report-link { display: block; margin: 2px 12px 12px; padding: 0; border: 0; background: transparent; color: var(--fg-dim); font: inherit; font-size: 9px; text-align: left; text-decoration: underline; cursor: pointer; }
+.report-link:hover, .report-link:focus-visible { color: var(--accent); outline: none; }
+.report-box { max-width: 390px; }
+.report-body { display: grid; gap: 8px; }
+.report-project-name { margin: 0 0 2px; color: var(--fg); font-size: 12px; }
 .share-actions { flex-wrap: wrap; }
 .share-actions .status-button { color: var(--fg); border-color: var(--border-strong); }
 .share-actions .status-button:hover, .share-actions .status-button:focus-visible { color: var(--accent); border-color: var(--accent); outline: none; }

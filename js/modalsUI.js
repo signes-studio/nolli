@@ -3,7 +3,7 @@
    ========================================================================= */
 
 import { state, separarArquitectos } from './state.js';
-import { loginAdmin, registerUser, fetchUserRole, fetchCurrentUser, fetchBuildingStatuses, createBuilding, createPrivateBuilding, updateBuilding } from './api.js';
+import { loginAdmin, registerUser, fetchUserRole, fetchCurrentUser, fetchBuildingStatuses, createBuildingReport, createBuilding, createPrivateBuilding, updateBuilding } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
 
@@ -190,7 +190,9 @@ function initAddBuildingModal() {
     }
 
     const btnSave = document.getElementById('btn-add-save');
-    btnSave.innerHTML = state.userRole === 'admin' ? 'PUBLICANDO...' : 'ENVIANDO A REVISIÓN...';
+    btnSave.innerHTML = visibility === 'private'
+      ? 'GUARDANDO PRIVADA...'
+      : state.userRole === 'admin' ? 'PUBLICANDO...' : 'ENVIANDO A REVISIÓN...';
 
     // Código técnico de fondo generado automáticamente
     const edificio = {
@@ -226,16 +228,21 @@ function initAddBuildingModal() {
           añadido_por: state.userRole === 'admin' ? 'administrador' : (state.userEmail || 'usuario'),
           estado_revision: state.userRole === 'admin' ? 'publicada' : 'pendiente',
         };
-        const privateData = { ...edificio, user_id: state.userId };
+        const privateData = {
+          ...edificio,
+          id: 'PRIV-' + Date.now(),
+          user_id: state.userId,
+        };
         const insertedData = visibility === 'private' && state.userRole !== 'admin'
           ? await createPrivateBuilding(privateData, state.sessionToken)
           : await createBuilding({ ...nuevoEdificio, propuesto_por: state.userId }, state.sessionToken);
 
+        const isPrivate = visibility === 'private' && state.userRole !== 'admin';
         state.OBRAS.push({
-          ...(visibility === 'private' && state.userRole !== 'admin' ? privateData : nuevoEdificio),
+          ...(isPrivate ? privateData : nuevoEdificio),
           arquitectos: separarArquitectos(arq),
           añadido_por: nuevoEdificio.añadido_por,
-          estado_revision: nuevoEdificio.estado_revision,
+          estado_revision: isPrivate ? 'privada' : nuevoEdificio.estado_revision,
           id: insertedData[0].id,
           featureId: String(insertedData[0].id ?? `obra-${Date.now()}`),
           private: visibility === 'private' && state.userRole !== 'admin',
@@ -301,4 +308,38 @@ function handleMapLongPress(lngLat) {
 export function initModalsUI() {
   initLoginModal();
   initAddBuildingModal();
+  initReportModal();
+}
+
+function initReportModal() {
+  const modal = document.getElementById('modal-report');
+  const close = () => modal.classList.remove('open');
+  document.addEventListener('click', (event) => {
+    if (event.target.closest('#btn-report-close') || event.target === modal) close();
+  });
+  document.getElementById('btn-report-submit').addEventListener('click', async () => {
+    const description = document.getElementById('report-description').value.trim();
+    const errorElement = document.getElementById('report-error');
+    const obra = state.OBRAS.find((item) => String(item.featureId) === String(state.selectedFeatureId));
+    if (!obra || !state.userId || !state.sessionToken) return;
+    if (!description) {
+      errorElement.textContent = 'Describe el error antes de enviarlo.';
+      errorElement.classList.remove('hidden');
+      return;
+    }
+    const button = document.getElementById('btn-report-submit');
+    button.textContent = 'ENVIANDO...';
+    button.disabled = true;
+    try {
+      await createBuildingReport({ user_id: state.userId, building_id: obra.id, descripcion: description }, state.sessionToken);
+      button.textContent = 'ENVIADO';
+      setTimeout(close, 700);
+    } catch (error) {
+      errorElement.textContent = error.message;
+      errorElement.classList.remove('hidden');
+    } finally {
+      button.disabled = false;
+      if (!modal.classList.contains('open')) button.textContent = 'ENVIAR REPORTE';
+    }
+  });
 }

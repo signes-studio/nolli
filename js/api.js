@@ -128,6 +128,24 @@ export async function saveBuildingStatus(userId, buildingId, status, sessionToke
   return response.json();
 }
 
+export async function createBuildingReport(report, sessionToken) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/building_reports`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation',
+    },
+    body: JSON.stringify({ ...report, estado: 'pendiente' }),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || error.details || 'No se pudo enviar el reporte.');
+  }
+  return response.json();
+}
+
 export async function fetchRatingAverages(sessionToken) {
   const response = await fetch(`${SUPABASE_URL}/rest/v1/user_building_status?select=building_id,valoracion&valoracion=not.is.null&limit=10000`, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
@@ -192,15 +210,24 @@ export async function updateBuilding(id, edificio, sessionToken) {
 }
 
 export async function deleteBuilding(id, sessionToken) {
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?id=eq.${encodeURIComponent(id)}`, {
+  const normalizedId = String(id).trim();
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?id=eq.${encodeURIComponent(normalizedId)}`, {
     method: 'DELETE',
     headers: {
       'apikey': SUPABASE_KEY,
       'Authorization': `Bearer ${sessionToken}`,
-      'Prefer': 'return=minimal',
+      'Prefer': 'return=representation',
     },
   });
-  if (!response.ok) throw new Error('No se pudo eliminar el proyecto.');
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || error.details || 'No se pudo eliminar el proyecto.');
+  }
+  const deleted = await response.json().catch(() => []);
+  if (!Array.isArray(deleted) || deleted.length === 0) {
+    throw new Error('No se eliminó ninguna obra. Comprueba el id y la política RLS de DELETE en Buildings.');
+  }
+  return deleted;
 }
 
 export async function reviewBuilding(id, estadoRevision, sessionToken) {

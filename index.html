@@ -192,6 +192,22 @@
   </section>
 </main>
 
+<div id="modal-report" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-report-title">
+  <div class="modal-box report-box">
+    <div class="modal-head">
+      <span id="modal-report-title" style="letter-spacing:.06em; font-size:11px;">REPORTAR ERROR</span>
+      <i data-lucide="x" id="btn-report-close" width="16" height="16" style="cursor:pointer" role="button" aria-label="Cerrar reporte"></i>
+    </div>
+    <div class="modal-body report-body">
+      <p id="report-project-name" class="report-project-name"></p>
+      <label for="report-description" class="text-[10px]" style="color:var(--fg-dim)">DESCRIPCIÓN DEL ERROR</label>
+      <textarea id="report-description" class="tech-input" rows="5" placeholder="¿Qué dato debería corregirse?"></textarea>
+      <div id="report-error" class="text-[10px] text-red-500 hidden" role="alert"></div>
+      <button type="button" id="btn-report-submit" class="btn btn-accent">ENVIAR REPORTE</button>
+    </div>
+  </div>
+</div>
+
 <div id="modal-share" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-share-title">
   <div class="modal-box share-box">
     <div class="modal-head">
