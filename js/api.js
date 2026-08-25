@@ -127,7 +127,8 @@ export async function createBuilding(nuevoEdificio, sessionToken) {
 
 /** Actualiza un edificio existente. Requiere token de sesión. */
 export async function updateBuilding(id, edificio, sessionToken) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?id=eq.${encodeURIComponent(id)}`, {
+  const normalizedId = String(id).trim();
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?id=eq.${encodeURIComponent(normalizedId)}`, {
     method: 'PATCH',
     headers: {
       'apikey': SUPABASE_KEY,
@@ -141,7 +142,11 @@ export async function updateBuilding(id, edificio, sessionToken) {
     const error = await res.json().catch(() => ({}));
     throw new Error(error.message || error.details || 'Fallo al actualizar la obra en la base de datos.');
   }
-  return res.json();
+  const updated = await res.json().catch(() => []);
+  if (!Array.isArray(updated) || updated.length === 0) {
+    throw new Error('No se actualizó ninguna obra. Comprueba el id y las políticas RLS de UPDATE en Buildings.');
+  }
+  return updated;
 }
 
 export async function deleteBuilding(id, sessionToken) {
