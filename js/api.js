@@ -137,7 +137,10 @@ export async function updateBuilding(id, edificio, sessionToken) {
     },
     body: JSON.stringify(edificio),
   });
-  if (!res.ok) throw new Error('Fallo al actualizar la obra en la base de datos.');
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error.message || error.details || 'Fallo al actualizar la obra en la base de datos.');
+  }
   return res.json();
 }
 

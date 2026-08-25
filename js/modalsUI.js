@@ -203,13 +203,13 @@ function initAddBuildingModal() {
     try {
       if (state.editingBuildingId !== null) {
         const updatedData = await updateBuilding(state.editingBuildingId, edificio, state.sessionToken);
-        const updated = updatedData[0];
+        const updated = Array.isArray(updatedData) ? updatedData[0] : updatedData;
         const obra = state.OBRAS.find((item) => String(item.id) === String(state.editingBuildingId));
         if (obra) Object.assign(obra, {
           ...edificio,
           arquitectos: separarArquitectos(arq),
           id: obra.id,
-          coordenadas: [updated.longitud, updated.latitud],
+          coordenadas: [updated?.longitud ?? edificio.longitud, updated?.latitud ?? edificio.latitud],
           featureId: obra.featureId,
           selected: obra.selected,
         });
