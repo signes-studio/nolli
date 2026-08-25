@@ -3,7 +3,7 @@
    ========================================================================= */
 
 import { state, separarArquitectos, esRolAdmin } from './state.js';
-import { loginAdmin, registerUser, fetchUserRole, fetchCurrentUser, fetchBuildingStatuses, createBuildingReport, createBuilding, createPrivateBuilding, updateBuilding } from './api.js';
+import { loginAdmin, registerUser, refreshUserSession, requestPasswordReset, fetchUserRole, fetchCurrentUser, fetchBuildingStatuses, upsertCurrentProfile, createBuildingReport, createBuilding, createPrivateBuilding, updateBuilding } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
 
@@ -17,11 +17,17 @@ async function initLoginModal() {
   const bLoginT = document.getElementById('btn-login-trigger');
   const title = document.getElementById('modal-login-title');
   const actionButton = document.getElementById('btn-do-login');
+  const loginForm = document.getElementById('login-form');
   const registerButton = document.getElementById('btn-register-mode');
   const logoutButton = document.getElementById('btn-logout');
   const adminModeControl = document.getElementById('admin-mode-control');
   const adminModeToggle = document.getElementById('admin-mode-toggle');
   const registerOnlyFields = document.querySelectorAll('.register-only-field');
+  const loginEntryFields = document.querySelectorAll('.login-entry-field');
+  const keepSession = document.getElementById('keep-session');
+  const forgotPasswordButton = document.getElementById('btn-forgot-password');
+  const passwordInput = document.getElementById('login-password');
+  const togglePassword = document.getElementById('toggle-password');
   let registerMode = false;
 
   const marcarSesionIniciada = (role) => {
@@ -34,6 +40,7 @@ async function initLoginModal() {
     bLoginT.style.borderColor = 'var(--accent-2)';
     bLoginT.style.background = 'rgba(57, 255, 20, 0.1)';
     logoutButton.classList.remove('hidden');
+    loginEntryFields.forEach((field) => field.classList.add('hidden'));
     if (canUseAdminTools) document.dispatchEvent(new CustomEvent('radar:admin-login'));
     else document.dispatchEvent(new CustomEvent('radar:user-login'));
   };
@@ -54,6 +61,7 @@ async function initLoginModal() {
       city: user.user_metadata?.city || '',
       country: user.user_metadata?.country || '',
     };
+    upsertCurrentProfile(user, state.userProfile, state.sessionToken).catch(() => {});
     const statuses = await fetchBuildingStatuses(user.id, state.sessionToken);
     state.buildingStatuses = new Map(statuses.map((item) => [String(item.building_id), {
       favorite: item.favorite === true,
@@ -65,12 +73,23 @@ async function initLoginModal() {
     document.dispatchEvent(new CustomEvent('radar:user-session-ready'));
   };
 
-  const tokenGuardado = localStorage.getItem(ADMIN_SESSION_KEY);
-  if (tokenGuardado) {
+  const sesionGuardada = localStorage.getItem(ADMIN_SESSION_KEY) || sessionStorage.getItem(ADMIN_SESSION_KEY);
+  if (sesionGuardada) {
     try {
-      state.sessionToken = tokenGuardado;
-      state.userRole = await fetchUserRole(tokenGuardado);
+      let savedSession = JSON.parse(sesionGuardada);
+      if (typeof savedSession === 'string') savedSession = { access_token: savedSession };
+      if (!savedSession.access_token && savedSession.refresh_token) savedSession = await refreshUserSession(savedSession.refresh_token);
+      state.sessionToken = savedSession.access_token;
+      try {
+        state.userRole = await fetchUserRole(state.sessionToken);
+      } catch (error) {
+        if (!savedSession.refresh_token) throw error;
+        savedSession = await refreshUserSession(savedSession.refresh_token);
+        state.sessionToken = savedSession.access_token;
+        state.userRole = await fetchUserRole(state.sessionToken);
+      }
       await cargarEstadoUsuario();
+      localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(savedSession));
       marcarSesionIniciada(state.userRole);
     } catch (error) {
       localStorage.removeItem(ADMIN_SESSION_KEY);
@@ -81,6 +100,36 @@ async function initLoginModal() {
   }
 
   bLoginT.addEventListener('click', () => mLogin.classList.add('open'));
+  togglePassword.addEventListener('click', () => {
+    const showing = passwordInput.type === 'text';
+    passwordInput.type = showing ? 'password' : 'text';
+    togglePassword.setAttribute('aria-label', showing ? 'Mostrar contraseña' : 'Ocultar contraseña');
+    togglePassword.setAttribute('aria-pressed', String(!showing));
+    togglePassword.innerHTML = `<i data-lucide="${showing ? 'eye' : 'eye-off'}" width="15" height="15"></i>`;
+    lucide.createIcons();
+  });
+  forgotPasswordButton.addEventListener('click', async () => {
+    const email = document.getElementById('login-email').value.trim();
+    const err = document.getElementById('login-error');
+    if (!email) {
+      err.textContent = 'Escribe tu email para enviarte el enlace.';
+      err.classList.remove('hidden');
+      return;
+    }
+    forgotPasswordButton.disabled = true;
+    forgotPasswordButton.textContent = 'ENVIANDO ENLACE...';
+    try {
+      await requestPasswordReset(email);
+      err.textContent = 'Revisa tu correo para restablecer la contraseña.';
+      err.classList.remove('hidden');
+    } catch (error) {
+      err.textContent = error.message;
+      err.classList.remove('hidden');
+    } finally {
+      forgotPasswordButton.disabled = false;
+      forgotPasswordButton.textContent = '¿OLVIDASTE LA CONTRASEÑA?';
+    }
+  });
   document.addEventListener('click', (e) => {
     if (e.target.closest('#btn-login-close')) mLogin.classList.remove('open');
   });
@@ -115,16 +164,21 @@ async function initLoginModal() {
           state.sessionToken = data.access_token;
           state.userRole = 'user';
           await cargarEstadoUsuario();
-          localStorage.setItem(ADMIN_SESSION_KEY, state.sessionToken);
+          const sessionData = { access_token: data.access_token, refresh_token: data.refresh_token };
+          if (keepSession.checked) localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(sessionData));
+          else sessionStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(sessionData));
           marcarSesionIniciada('user');
         }
         err.textContent = 'Cuenta creada. Revisa tu correo para confirmar el registro.';
         err.classList.remove('hidden');
       } else {
-        state.sessionToken = await loginAdmin(email, password);
+        const auth = await loginAdmin(email, password);
+        state.sessionToken = auth.access_token;
         state.userRole = await fetchUserRole(state.sessionToken);
         await cargarEstadoUsuario();
-        localStorage.setItem(ADMIN_SESSION_KEY, state.sessionToken);
+        const sessionData = { access_token: auth.access_token, refresh_token: auth.refresh_token };
+        if (keepSession.checked) localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(sessionData));
+        else sessionStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(sessionData));
         mLogin.classList.remove('open');
         marcarSesionIniciada(state.userRole);
       }
@@ -136,16 +190,24 @@ async function initLoginModal() {
     }
   });
 
+  loginForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    actionButton.click();
+  });
+
   registerButton.addEventListener('click', () => {
     registerMode = !registerMode;
     title.textContent = registerMode ? 'REGISTRO DE USUARIO' : 'AUTENTICACIÓN REQUERIDA';
     actionButton.textContent = registerMode ? 'CREAR CUENTA' : 'AUTORIZAR ACCESO';
     registerButton.textContent = registerMode ? 'VOLVER AL LOGIN' : 'CREAR CUENTA';
     registerOnlyFields.forEach((field) => field.classList.toggle('hidden', !registerMode));
+    forgotPasswordButton.classList.toggle('hidden', registerMode);
+    passwordInput.autocomplete = registerMode ? 'new-password' : 'current-password';
   });
 
   logoutButton.addEventListener('click', () => {
     localStorage.removeItem(ADMIN_SESSION_KEY);
+    sessionStorage.removeItem(ADMIN_SESSION_KEY);
     state.sessionToken = null;
     state.userRole = null;
     state.adminMode = false;
@@ -160,6 +222,7 @@ async function initLoginModal() {
     state.userPrivateLabels = [];
     document.dispatchEvent(new CustomEvent('radar:user-status-ready'));
     logoutButton.classList.add('hidden');
+    loginEntryFields.forEach((field) => field.classList.remove('hidden'));
     bLoginT.textContent = '[ INICIAR SESIÓN ]';
     bLoginT.style.color = 'var(--accent)';
     bLoginT.style.borderColor = 'var(--accent)';

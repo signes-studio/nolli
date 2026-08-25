@@ -3,7 +3,7 @@
    ========================================================================= */
 
 import { state, separarArquitectos, esRolAdmin } from './state.js';
-import { deleteBuilding, fetchRatingAverages, reviewBuilding, fetchBuildingReports, updateBuildingReport } from './api.js';
+import { deleteBuilding, fetchRatingAverages, reviewBuilding, fetchBuildingReports, fetchUserDirectory, updateBuildingReport } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
 
@@ -17,6 +17,11 @@ const reportList = document.getElementById('admin-report-list');
 const reportCount = document.getElementById('admin-report-count');
 const reportBadge = document.getElementById('admin-report-badge');
 const reportsView = document.getElementById('admin-reports-view');
+const usersView = document.getElementById('admin-users-view');
+const userList = document.getElementById('admin-user-list');
+const userSearch = document.getElementById('admin-user-search');
+const userCount = document.getElementById('admin-user-count');
+const usersTab = document.querySelector('[data-admin-tab="users"]');
 const cityCache = new Map();
 let ratingAverages = new Map();
 
@@ -30,16 +35,20 @@ export function initAdminUI() {
     const tab = event.target.closest('[data-admin-tab]');
     if (!tab) return;
     const reports = tab.dataset.adminTab === 'reports';
+    const users = tab.dataset.adminTab === 'users';
     document.querySelectorAll('[data-admin-tab]').forEach((item) => item.classList.toggle('active', item === tab));
-    list.classList.toggle('admin-view-hidden', reports);
-    document.querySelector('.admin-toolbar').classList.toggle('admin-view-hidden', reports);
+    list.classList.toggle('admin-view-hidden', reports || users);
+    document.querySelector('.admin-toolbar').classList.toggle('admin-view-hidden', reports || users);
     reportsView.classList.toggle('admin-view-hidden', !reports);
+    usersView.classList.toggle('admin-view-hidden', !users);
     if (reports) renderReports();
+    if (users) renderUsers();
   });
   reviewFilter.addEventListener('change', () => {
     renderList();
     actualizarFuenteMapa();
   });
+  userSearch.addEventListener('input', renderUsers);
 
   document.addEventListener('click', (event) => {
     if (event.target.closest('#btn-admin-close')) panel.classList.remove('open');
@@ -61,7 +70,10 @@ export function initAdminUI() {
     if (reportBuilding) abrirProyectoDesdeReporte(reportBuilding.dataset.reportBuilding);
   });
 
-  document.addEventListener('radar:admin-login', () => button.classList.remove('hidden'));
+  document.addEventListener('radar:admin-login', () => {
+    button.classList.remove('hidden');
+    usersTab.classList.toggle('hidden', state.userRole !== 'superadmin');
+  });
   document.addEventListener('radar:admin-mode-change', () => {
     button.classList.toggle('hidden', !state.adminMode);
     if (!state.adminMode) panel.classList.remove('open');
@@ -69,6 +81,7 @@ export function initAdminUI() {
   document.addEventListener('radar:logout', () => {
     button.classList.add('hidden');
     panel.classList.remove('open');
+    usersTab.classList.add('hidden');
   });
   document.addEventListener('radar:data-ready', renderList);
   document.addEventListener('radar:user-login', () => button.classList.add('hidden'));
@@ -129,6 +142,22 @@ async function renderReports() {
     const obra = state.OBRAS.find((item) => String(item.id) === String(report.building_id));
     return `<article class="admin-report"><div class="admin-report-copy"><strong>${obra?.nombre_obra || `Obra ${report.building_id}`}</strong><span>${report.descripcion}</span><small>${new Date(report.created_at).toLocaleString('es-ES')}</small></div><div class="admin-report-actions"><button type="button" class="btn admin-action-open" data-report-building="${report.building_id}">VER OBRA</button><button type="button" class="btn admin-action-review" data-report-id="${report.id}" data-report-status="revisado">REVISADO</button><button type="button" class="btn admin-action-reject" data-report-id="${report.id}" data-report-status="descartado">DESCARTAR</button></div></article>`;
   }).join('');
+}
+
+let users = [];
+async function renderUsers() {
+  if (state.userRole !== 'superadmin') {
+    userList.innerHTML = '<div class="nearby-empty">El directorio de usuarios está reservado al superadmin.</div>';
+    return;
+  }
+  if (!users.length) {
+    try { users = await fetchUserDirectory(state.sessionToken); }
+    catch (error) { userList.innerHTML = `<div class="nearby-empty">${error.message}</div>`; return; }
+  }
+  const query = userSearch.value.trim().toLowerCase();
+  const filtered = users.filter((user) => `${user.first_name || ''} ${user.last_name || ''} ${user.email || ''} ${user.city || ''} ${user.country || ''}`.toLowerCase().includes(query));
+  userCount.textContent = `${filtered.length} / ${users.length}`;
+  userList.innerHTML = filtered.length ? filtered.map((user) => `<article class="admin-user"><div class="admin-user-main"><strong>${user.first_name || ''} ${user.last_name || ''}</strong><span>${user.email || 'Email no disponible'}</span><span>${user.city || 'Ciudad no indicada'} · ${user.country || 'País no indicado'}</span></div><span class="admin-user-role">${(user.role || 'user').toUpperCase()}</span></article>`).join('') : '<div class="nearby-empty">No hay usuarios que coincidan.</div>';
 }
 
 async function actualizarReporte(id, estado) {

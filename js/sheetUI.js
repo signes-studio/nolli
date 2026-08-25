@@ -5,7 +5,7 @@
 import { state, separarArquitectos, esRolAdmin, guardarZonaPersonalLocal } from './state.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { cerrarFiltros, generarFiltrosUI, aplicarFiltrosMapa } from './filtersUI.js';
-import { saveBuildingStatus, deleteBuilding, deletePrivateBuilding, createUserCollection, addUserCollectionItem, createUserPrivateLabel } from './api.js';
+import { saveBuildingStatus, deleteBuilding, deletePrivateBuilding, createUserCollection, addUserCollectionItem, createUserPrivateLabel, deleteUserPrivateLabel } from './api.js';
 
 const sheet = document.getElementById('sheet');
 
@@ -64,72 +64,114 @@ export function abrirFicha(p, c, featureId = p.id) {
   if (notes && personal.notas) notes.closest('[data-note-editor]').classList.add('open');
 }
 
-function formatearAcceso(value) {
+let personalOrganizerMode = 'collections';
+
+function abrirOrganizadorPersonal(mode) {
   return { publico: 'PÚBLICO', exterior_visible: 'EXTERIOR VISIBLE', con_reserva: 'CON RESERVA', privado: 'PRIVADO', cerrado_temporalmente: 'CERRADO TEMPORALMENTE', desaparecido: 'DESAPARECIDO' }[value] || value;
 }
-
+    alert('Inicia sesión para organizar tus obras.');
 function estadoObra(status) {
   const obra = state.OBRAS.find((item) => String(item.featureId) === String(state.selectedFeatureId));
-  return obra ? state.buildingStatuses.get(String(obra.id))?.[status] || false : false;
+  personalOrganizerMode = mode;
+  document.getElementById('personal-organizer-title').textContent = mode === 'collections' ? 'GUARDAR EN LISTAS' : 'AÑADIR ETIQUETAS';
+  document.getElementById('personal-organizer-project').textContent = obra.nombre_obra;
+  document.getElementById('personal-organizer-help').textContent = mode === 'collections'
+    ? 'Selecciona una o varias listas. Una obra puede estar en varias listas.'
+    : 'Selecciona una o varias etiquetas. Las etiquetas son privadas y solo las ves tú.';
+  document.getElementById('personal-new-name').placeholder = mode === 'collections' ? 'NOMBRE DE NUEVA LISTA' : 'NUEVA ETIQUETA';
+  document.getElementById('personal-organizer-options').innerHTML = renderOrganizerOptions(obra, mode);
+  document.getElementById('personal-organizer-error').classList.add('hidden');
+  document.getElementById('modal-personal-organizer').classList.add('open');
+    return;
+  }
+function renderOrganizerOptions(obra, mode) {
+  if (mode === 'collections') {
+    return state.userCollections.length
+      ? state.userCollections.map((collection) => {
+        const checked = state.userCollectionItems.some((item) => String(item.collection_id) === String(collection.id) && String(item.building_id) === String(obra.id));
+        return `<label class="personal-organizer-option"><input type="checkbox" value="${collection.id}" ${checked ? 'checked' : ''}><span>${collection.name}</span></label>`;
+      }).join('')
+      : '<div class="nearby-empty">Todavía no tienes listas. Crea la primera abajo.</div>';
+  }
+  const labels = [...new Set(state.userPrivateLabels.map((item) => item.label).filter(Boolean))];
+  return labels.length
+    ? labels.map((label) => {
+      const checked = state.userPrivateLabels.some((item) => String(item.building_id) === String(obra.id) && String(item.label).toLowerCase() === label.toLowerCase());
+      return `<label class="personal-organizer-option"><input type="checkbox" value="${label}" ${checked ? 'checked' : ''}><span>#${label}</span></label>`;
+    }).join('')
+    : '<div class="nearby-empty">Todavía no tienes etiquetas. Crea la primera abajo.</div>';
 }
 
-document.addEventListener('click', (e) => {
-  if (e.target.closest('[data-open-report]')) {
-    const obra = state.OBRAS.find((item) => String(item.featureId) === String(state.selectedFeatureId));
-    if (!obra) return;
-    document.getElementById('report-project-name').textContent = obra.nombre_obra;
-    document.getElementById('report-description').value = '';
-    document.getElementById('report-error').classList.add('hidden');
-    document.getElementById('modal-report').classList.add('open');
-    return;
-  }
-  if (e.target.closest('[data-delete-private]')) {
-    eliminarChinchetaPrivada();
-    return;
-  }
-  if (e.target.closest('[data-delete-building]')) {
-    eliminarEdificioSeleccionado();
-    return;
-  }
-  if (e.target.closest('[data-save-collection]')) {
-    guardarObraEnColeccion();
-    return;
-  }
-  if (e.target.closest('[data-add-private-tag]')) {
-    agregarEtiquetaPrivada();
-    return;
-  }
-  const noteToggle = e.target.closest('[data-note-toggle]');
-  if (noteToggle) {
-    noteToggle.nextElementSibling.classList.toggle('open');
-    noteToggle.textContent = noteToggle.nextElementSibling.classList.contains('open') ? 'OCULTAR NOTA' : 'AÑADIR NOTA';
-    return;
-  }
-  const ratingStar = e.target.closest('[data-rating]');
+async function crearElementoPersonal() {
   if (ratingStar) {
     const obra = state.OBRAS.find((item) => String(item.featureId) === String(state.selectedFeatureId));
-    if (!obra || !state.userId || !state.sessionToken) return;
+    return;
     const key = String(obra.id);
-    const current = state.buildingStatuses.get(key) || { favorite: false, visited: false };
-    const status = { ...current, valoracion: Number(ratingStar.dataset.rating) };
-    state.buildingStatuses.set(key, status);
-    ratingStar.parentElement.querySelectorAll('[data-rating]').forEach((star) => star.classList.toggle('active', Number(star.dataset.rating) <= status.valoracion));
-    saveBuildingStatus(state.userId, obra.id, status, state.sessionToken).catch(() => alert('No se pudo guardar la valoración.'));
-    return;
+  const input = document.getElementById('personal-new-name');
+  const name = String(input?.value || '').trim();
+  if (!name) return;
+  try {
+    if (personalOrganizerMode === 'collections') {
+      const created = await createUserCollection({ id: `COL-${Date.now()}`, user_id: state.userId, name }, state.sessionToken);
+      if (!created[0]?.id) throw new Error('No se pudo crear la lista.');
+      state.userCollections.push(created[0]);
+    } else {
+      const existing = state.userPrivateLabels.some((item) => String(item.building_id) === String(obra.id) && String(item.label).toLowerCase() === name.toLowerCase());
+      if (!existing) state.userPrivateLabels.unshift({ id: `LBL-${Date.now()}`, user_id: state.userId, building_id: obra.id, label: name, created_at: new Date().toISOString() });
+    }
+    input.value = '';
+    guardarZonaPersonalLocal(state.userId);
+    abrirOrganizadorPersonal(personalOrganizerMode);
+  } catch (error) {
+    const errorElement = document.getElementById('personal-organizer-error');
+    errorElement.textContent = error.message;
+    errorElement.classList.remove('hidden');
   }
-  const photoThumb = e.target.closest('[data-photo-url]');
-  if (photoThumb) {
-    const viewer = document.getElementById('modal-photo');
-    const image = document.getElementById('photo-viewer-image');
-    image.src = photoThumb.dataset.photoUrl;
-    image.alt = document.getElementById('sheet-title').textContent;
-    viewer.classList.add('open');
-    return;
+}
+
+async function guardarSeleccionPersonal() {
+  const obra = state.OBRAS.find((item) => String(item.featureId) === String(state.selectedFeatureId));
+  if (!obra) return;
+  const selected = [...document.querySelectorAll('#personal-organizer-options input:checked')].map((input) => input.value);
+  try {
+    if (personalOrganizerMode === 'collections') {
+      const current = state.userCollectionItems.filter((item) => String(item.building_id) === String(obra.id));
+      for (const collection of state.userCollections) {
+        const shouldHave = selected.includes(String(collection.id));
+        const existing = current.find((item) => String(item.collection_id) === String(collection.id));
+        if (shouldHave && !existing) {
+          const saved = await addUserCollectionItem({ id: `CLI-${Date.now()}-${collection.id}`, user_id: state.userId, collection_id: collection.id, building_id: obra.id }, state.sessionToken);
+          if (saved[0]) state.userCollectionItems.push(saved[0]);
+        }
+        if (!shouldHave && existing) state.userCollectionItems = state.userCollectionItems.filter((item) => item !== existing);
+      }
+    } else {
+      const current = state.userPrivateLabels.filter((item) => String(item.building_id) === String(obra.id));
+      const allLabels = [...new Set(state.userPrivateLabels.map((item) => item.label).filter(Boolean))];
+      for (const label of allLabels) {
+        const existing = current.find((item) => String(item.label).toLowerCase() === label.toLowerCase());
+        if (selected.includes(label) && !existing) {
+          const created = await createUserPrivateLabel({ user_id: state.userId, building_id: obra.id, label }, state.sessionToken);
+          if (created[0]) state.userPrivateLabels.push(created[0]);
+        }
+        if (!selected.includes(label) && existing) {
+          await deleteUserPrivateLabel(existing.id, state.userId, state.sessionToken);
+          state.userPrivateLabels = state.userPrivateLabels.filter((item) => item !== existing);
+        }
+      }
+    }
+    guardarZonaPersonalLocal(state.userId);
+    cerrarOrganizadorPersonal();
+    document.dispatchEvent(new CustomEvent(personalOrganizerMode === 'collections' ? 'radar:user-collections-changed' : 'radar:user-private-labels-changed'));
+  } catch (error) {
+    const errorElement = document.getElementById('personal-organizer-error');
+    errorElement.textContent = error.message;
+    errorElement.classList.remove('hidden');
   }
-  if (e.target.closest('#btn-photo-close') || e.target === document.getElementById('modal-photo')) {
-    document.getElementById('modal-photo').classList.remove('open');
-    return;
-  }
+}
+
+function cerrarOrganizadorPersonal() {
+  document.getElementById('modal-personal-organizer').classList.remove('open');
   const shareButton = e.target.closest('[data-share-action]');
   if (shareButton) {
     document.getElementById('modal-share').classList.add('open');
@@ -273,11 +315,11 @@ async function agregarEtiquetaPrivada() {
     alert('Inicia sesión para etiquetar.');
     return;
   }
-  const proposed = window.prompt('Escribe una etiqueta privada (ej: viaje-japon, verano-2026):');
+  const proposed = window.prompt('Etiqueta privada para organizar esta obra (ej: viaje-japon, favorito, por-visitar):');
   const label = String(proposed || '').trim();
   if (!label) return;
   try {
-    const inserted = await createUserPrivateLabel({ id: `LBL-${Date.now()}`, user_id: state.userId, building_id: obra.id, label }, state.sessionToken);
+    const inserted = await createUserPrivateLabel({ user_id: state.userId, building_id: obra.id, label }, state.sessionToken);
     if (inserted[0]) state.userPrivateLabels.unshift(inserted[0]);
     document.dispatchEvent(new CustomEvent('radar:user-private-labels-changed'));
     alert(`Etiqueta privada "${label}" guardada.`);

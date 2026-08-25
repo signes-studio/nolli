@@ -53,6 +53,7 @@
         <h1 class="font-display text-2xl leading-none tracking-tight" style="color:var(--fg); margin:0;">NOLLI<span style="color:var(--accent)">.</span></h1>
         <p class="text-[10px] tracking-widest mt-1" style="color:var(--fg-dim); margin:0;">RADAR ARQUITECTÓNICO — V0.5</p>
         <button id="btn-login-trigger" type="button" class="mt-2 text-[10px] font-bold px-2 py-1 cursor-pointer transition-colors" style="border: 1px solid var(--accent); color: var(--accent); background: rgba(255, 69, 0, 0.1);">[ INICIAR SESIÓN ]</button>
+        <a href="./perfil.html" class="profile-page-link mt-2" aria-label="Abrir perfil personal">[ PERFIL PERSONAL ]</a>
         <button id="btn-admin-panel" type="button" class="btn btn-admin hidden mt-2">PANEL ADMIN</button>
       </div>
       <div class="hud-readout" aria-live="polite">
@@ -99,8 +100,8 @@
   <!-- Panel de filtros -->
   <section id="filter-panel" class="filter-panel" aria-label="Filtro por arquitecto">
     <div class="filter-head">
-      <span style="color:var(--fg-dim)">[ FILTRO // ARQUITECTO ]</span>
-      <i data-lucide="x" id="btn-filters-close" width="14" height="14" style="cursor:pointer; color:var(--fg-dim)" role="button" aria-label="Cerrar filtros"></i>
+      <div><span style="color:var(--fg-dim)">[ FILTROS ]</span><small id="filter-summary" class="filter-summary">TODAS LAS OBRAS</small></div>
+      <div class="filter-head-actions"><button type="button" class="filter-clear" data-filter-reset>LIMPIAR</button><i data-lucide="x" id="btn-filters-close" width="14" height="14" style="cursor:pointer; color:var(--fg-dim)" role="button" aria-label="Cerrar filtros"></i></div>
     </div>
     <div class="filter-group" data-filter-group="decade">
       <button type="button" class="filter-group-head" aria-expanded="true"><span>[ DÉCADA ]</span><span class="filter-chevron">−</span></button>
@@ -122,8 +123,15 @@
 
   <section id="my-places-panel" class="my-places-panel" aria-label="Mis edificios">
     <div class="filter-head">
-      <span style="color:var(--fg-dim)">[ MI RADAR ]</span>
+      <div>
+        <span style="color:var(--fg-dim)">[ MI RADAR ]</span>
+        <small class="personal-panel-subtitle">TU ESPACIO PERSONAL</small>
+      </div>
       <i data-lucide="x" id="btn-my-places-close" width="14" height="14" style="cursor:pointer; color:var(--fg-dim)" role="button" aria-label="Cerrar mis edificios"></i>
+    </div>
+    <div class="personal-panel-intro">
+      <strong>TODO TU RADAR, EN UN SOLO LUGAR</strong>
+      <span>Organiza tus visitas, guarda recorridos, escribe notas y añade etiquetas privadas para clasificar tus edificios.</span>
     </div>
     <div class="places-tabs">
       <button type="button" class="places-tab active" data-place-tab="favorite">FAVORITOS</button>
@@ -155,11 +163,17 @@
     <div class="admin-tabs">
       <button type="button" class="admin-tab active" data-admin-tab="projects">PROYECTOS</button>
       <button type="button" class="admin-tab admin-inbox-button" data-admin-tab="reports" title="Buzón de reportes" aria-label="Abrir buzón de reportes"><i data-lucide="inbox" width="15" height="15"></i><span id="admin-report-badge" class="admin-report-badge">0</span></button>
+      <button type="button" class="admin-tab" data-admin-tab="users">USUARIOS</button>
     </div>
     <div id="admin-project-list" class="admin-project-list"></div>
     <div id="admin-reports-view" class="admin-reports-view admin-view-hidden">
       <div class="admin-inbox-head"><span>[ BUZÓN // REPORTES ]</span><span id="admin-report-count" class="admin-count"></span></div>
       <div id="admin-report-list" class="admin-report-list"></div>
+    </div>
+    <div id="admin-users-view" class="admin-users-view admin-view-hidden">
+      <div class="admin-inbox-head"><span>[ DIRECTORIO // USUARIOS ]</span><span id="admin-user-count" class="admin-count"></span></div>
+      <input id="admin-user-search" class="tech-input admin-user-search" type="search" placeholder="BUSCAR NOMBRE, EMAIL, CIUDAD O PAÍS..." aria-label="Buscar usuarios">
+      <div id="admin-user-list" class="admin-user-list"></div>
     </div>
   </section>
 
@@ -247,6 +261,20 @@
   </div>
 </div>
 
+<div id="modal-personal-organizer" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="personal-organizer-title">
+  <div class="modal-box personal-organizer-box">
+    <div class="modal-head"><span id="personal-organizer-title">ORGANIZAR OBRA</span><i data-lucide="x" id="btn-personal-organizer-close" width="16" height="16" style="cursor:pointer" role="button" aria-label="Cerrar"></i></div>
+    <div class="modal-body personal-organizer-body">
+      <p id="personal-organizer-project" class="personal-organizer-project"></p>
+      <div id="personal-organizer-help" class="personal-organizer-help"></div>
+      <div id="personal-organizer-options" class="personal-organizer-options"></div>
+      <div class="personal-create-row"><input id="personal-new-name" class="tech-input" type="text"><button type="button" id="btn-personal-create" class="btn">CREAR</button></div>
+      <div id="personal-organizer-error" class="text-[10px] text-red-500 hidden" role="alert"></div>
+      <button type="button" id="btn-personal-organizer-save" class="btn btn-accent">GUARDAR SELECCIÓN</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal: Login de Administrador -->
 <div id="modal-login" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-login-title">
   <div class="modal-box">
@@ -258,14 +286,14 @@
       <i data-lucide="x" id="btn-login-close" width="16" height="16" style="cursor:pointer" role="button" aria-label="Cerrar"></i>
     </div>
     <div class="modal-body">
-      <form class="flex flex-col gap-3" onsubmit="return false;">
-        <div>
+      <form id="login-form" class="flex flex-col gap-3" autocomplete="on">
+        <div class="login-entry-field">
           <label for="login-email" class="text-[10px] block mb-1" style="color:var(--fg-dim)">USER_EMAIL_</label>
-          <input type="email" id="login-email" placeholder="admin@signes.studio" class="tech-input" autocomplete="username">
+          <input type="email" id="login-email" name="email" placeholder="admin@signes.studio" class="tech-input" autocomplete="username" required>
         </div>
-        <div>
+        <div class="login-entry-field password-field">
           <label for="login-password" class="text-[10px] block mb-1" style="color:var(--fg-dim)">PASSWORD_</label>
-          <input type="password" id="login-password" placeholder="••••••••" class="tech-input" autocomplete="current-password">
+          <div class="password-input-wrap"><input type="password" id="login-password" name="password" placeholder="••••••••" class="tech-input" autocomplete="current-password" required><button type="button" id="toggle-password" class="password-toggle" aria-label="Mostrar contraseña" aria-pressed="false"><i data-lucide="eye" width="15" height="15"></i></button></div>
         </div>
         <div class="register-only-field hidden">
           <label for="register-first-name" class="text-[10px] block mb-1" style="color:var(--fg-dim)">NOMBRE</label>
@@ -284,8 +312,10 @@
           <input type="text" id="register-country" placeholder="País" class="tech-input" autocomplete="country-name">
         </div>
         <div id="login-error" class="text-[10px] text-red-500 hidden mt-1" role="alert"></div>
-        <button id="btn-do-login" type="submit" class="btn btn-accent mt-2 w-full">AUTORIZAR ACCESO</button>
-        <button id="btn-register-mode" type="button" class="btn mt-1 w-full">CREAR CUENTA</button>
+        <label class="keep-session login-entry-field"><input id="keep-session" type="checkbox" checked> MANTENER SESIÓN INICIADA</label>
+        <button id="btn-forgot-password" type="button" class="forgot-password login-entry-field">¿OLVIDASTE LA CONTRASEÑA?</button>
+        <button id="btn-do-login" type="submit" class="btn btn-accent mt-2 w-full login-entry-field">AUTORIZAR ACCESO</button>
+        <button id="btn-register-mode" type="button" class="btn mt-1 w-full login-entry-field">CREAR CUENTA</button>
         <button id="btn-logout" type="button" class="btn hidden mt-1 w-full">CERRAR SESIÓN</button>
       </form>
     </div>

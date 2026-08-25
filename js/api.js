@@ -89,7 +89,7 @@ export async function fetchUserCollections(userId, sessionToken) {
   const response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?user_id=eq.${encodeURIComponent(userId)}&select=id,name,created_at&order=created_at.asc`, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
   });
-  if (!response.ok) return [];
+  if (!response.ok) throw new Error('No se pudieron cargar las listas personales.');
   return response.json();
 }
 
@@ -131,7 +131,7 @@ export async function fetchUserCollectionItems(userId, sessionToken) {
   const response = await fetch(`${SUPABASE_URL}/rest/v1/user_collection_items?user_id=eq.${encodeURIComponent(userId)}&select=id,collection_id,building_id,created_at&order=created_at.asc`, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
   });
-  if (!response.ok) return [];
+  if (!response.ok) throw new Error('No se pudieron cargar los edificios guardados.');
   return response.json();
 }
 
@@ -173,7 +173,7 @@ export async function fetchUserPrivateLabels(userId, sessionToken) {
   const response = await fetch(`${SUPABASE_URL}/rest/v1/user_private_labels?user_id=eq.${encodeURIComponent(userId)}&select=id,building_id,label,created_at&order=created_at.desc`, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
   });
-  if (!response.ok) return [];
+  if (!response.ok) throw new Error('No se pudieron cargar las etiquetas privadas.');
   return response.json();
 }
 
@@ -220,7 +220,29 @@ export async function loginAdmin(email, password) {
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error_description || 'ACCESO DENEGADO.');
-  return data.access_token;
+  return data;
+}
+
+export async function refreshUserSession(refreshToken) {
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
+    method: 'POST',
+    headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refresh_token: refreshToken }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.access_token) throw new Error('La sesión ha caducado.');
+  return data;
+}
+
+export async function requestPasswordReset(email) {
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/recover`, {
+    method: 'POST',
+    headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, redirect_to: `${window.location.origin}${window.location.pathname}` }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error_description || data.msg || data.message || 'No se pudo enviar el correo de recuperación.');
+  return data;
 }
 
 /** Registra un usuario público con metadatos básicos de perfil. */
@@ -260,6 +282,39 @@ export async function updateCurrentUserProfile(sessionToken, profile = {}) {
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error_description || data.msg || data.message || 'No se pudo actualizar el perfil.');
   return data;
+}
+
+export async function upsertCurrentProfile(user, profile, sessionToken) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/profiles?on_conflict=id`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'resolution=merge-duplicates,return=representation',
+    },
+    body: JSON.stringify({
+      id: user.id,
+      email: user.email || null,
+      first_name: String(profile.firstName || '').trim(),
+      last_name: String(profile.lastName || '').trim(),
+      city: String(profile.city || '').trim(),
+      country: String(profile.country || '').trim(),
+    }),
+  });
+  if (!response.ok) throw new Error('No se pudo sincronizar el perfil público.');
+  return response.json();
+}
+
+export async function fetchUserDirectory(sessionToken) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/profiles?select=id,email,first_name,last_name,city,country,role,created_at&order=created_at.desc`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || error.details || 'No se pudo cargar el directorio de usuarios. Ejecuta supabase_profiles.sql.');
+  }
+  return response.json();
 }
 
 /** Obtiene el rol del usuario autenticado desde el perfil gestionado en Supabase. */

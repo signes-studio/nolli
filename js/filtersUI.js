@@ -33,6 +33,18 @@ export function generarFiltrosUI() {
     `;
     filterSwitches.appendChild(row);
   });
+  actualizarResumenFiltros();
+}
+
+function actualizarResumenFiltros() {
+  const summary = document.getElementById('filter-summary');
+  if (!summary) return;
+  const active = [];
+  if (state.activeDecada) active.push(`${state.activeDecada}s`);
+  if (state.activeCategoria) active.push(state.activeCategoria.toUpperCase());
+  if (state.activeVisitable) active.push(state.activeVisitable.replaceAll('_', ' ').toUpperCase());
+  if (state.activeArquitectos.size < state.ARQUITECTOS.length) active.push(`${state.activeArquitectos.size} ARQUITECTOS`);
+  summary.textContent = active.length ? active.join(' · ') : 'TODAS LAS OBRAS';
 }
 
 function actualizarOpcionesFiltros() {
@@ -97,6 +109,16 @@ function initFiltersUI() {
         aplicarFiltrosMapa();
         return;
       }
+      const resetFilters = e.target.closest('[data-filter-reset]');
+      if (resetFilters) {
+        state.activeArquitectos = new Set(state.ARQUITECTOS);
+        state.activeDecada = '';
+        state.activeCategoria = '';
+        state.activeVisitable = '';
+        generarFiltrosUI();
+        aplicarFiltrosMapa();
+        return;
+      }
       const isolateFilter = e.target.closest('[data-filter-isolate]');
       if (isolateFilter) {
         const group = isolateFilter.dataset.filterIsolate;
@@ -135,6 +157,7 @@ function initFiltersUI() {
 }
 
 export function aplicarFiltrosMapa() {
+  actualizarResumenFiltros();
   if (!state.map) return;
   const arquitectos = state.activeArquitectos.size
     ? ['any', ...[...state.activeArquitectos].map((arq) => ['in', arq, ['get', 'arquitectos']])]

@@ -321,10 +321,15 @@ function renderProfile() {
 
 function renderLabels() {
   if (!state.userPrivateLabels.length) {
-    list.innerHTML = '<div class="nearby-empty">Todavía no tienes etiquetas privadas.</div>';
+    list.innerHTML = `
+      <div class="my-collection-card">
+        <div class="my-collection-head"><strong>ETIQUETAS PRIVADAS</strong></div>
+        <div class="nearby-empty">Son palabras o categorías que solo tú puedes ver para organizar tus obras. Añádelas desde el botón ETIQUETA PRIVADA de cualquier ficha.</div>
+      </div>
+    `;
     return;
   }
-  list.innerHTML = state.userPrivateLabels.map((label) => {
+  const rows = state.userPrivateLabels.map((label) => {
     const obra = state.OBRAS.find((candidate) => String(candidate.id) === String(label.building_id));
     if (!obra) return '';
     return `
@@ -337,4 +342,11 @@ function renderLabels() {
       </div>
     `;
   }).join('');
+  list.innerHTML = `
+    <div class="my-collection-card">
+      <div class="my-collection-head"><strong>ETIQUETAS PRIVADAS</strong><span class="nearby-meta">${state.userPrivateLabels.length}</span></div>
+      <div class="nearby-empty" style="padding:0 0 10px;">Clasificaciones personales, visibles solo para ti. Pulsa QUITAR para eliminar una etiqueta.</div>
+      ${rows || '<div class="nearby-empty">Las obras etiquetadas ya no están disponibles.</div>'}
+    </div>
+  `;
 }

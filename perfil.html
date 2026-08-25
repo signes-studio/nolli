@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<title>NOLLI // PERFIL PERSONAL</title>
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/profile.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="profile-page">
+  <main class="profile-shell">
+    <header class="profile-topbar">
+      <a class="profile-brand" href="./index.html">NOLLI<span>.</span></a>
+      <a class="profile-back" href="./index.html">[ VOLVER AL MAPA ]</a>
+    </header>
+
+    <section class="profile-hero" aria-labelledby="profile-title">
+      <div>
+        <div class="profile-kicker">[ CUENTA // ESPACIO PERSONAL ]</div>
+        <h1 id="profile-title" class="profile-title">MI PERFIL</h1>
+        <p class="profile-lead">Tu archivo personal de arquitectura. Aquí puedes consultar y gestionar todo lo que marcas mientras exploras el radar.</p>
+      </div>
+      <div id="profile-stats" class="profile-stats" aria-label="Resumen personal"></div>
+    </section>
+
+    <section id="profile-auth-required" class="profile-card hidden">
+      <h2 class="profile-section-title">INICIA SESIÓN PARA VER TU PERFIL</h2>
+      <p class="profile-lead">Tu perfil, favoritos y listas están vinculados a tu cuenta.</p>
+      <a class="btn profile-login-link" href="./index.html">IR AL MAPA E INICIAR SESIÓN</a>
+    </section>
+
+    <section id="profile-app" class="profile-layout hidden">
+      <nav class="profile-nav" aria-label="Secciones del perfil">
+        <button type="button" class="active" data-profile-tab="overview">RESUMEN</button>
+        <button type="button" data-profile-tab="favorite">FAVORITOS</button>
+        <button type="button" data-profile-tab="visited">VISITADOS</button>
+        <button type="button" data-profile-tab="saved">GUARDADOS</button>
+        <button type="button" data-profile-tab="notes">NOTAS</button>
+        <button type="button" data-profile-tab="labels">ETIQUETAS</button>
+        <button type="button" data-profile-tab="collections">LISTAS</button>
+        <button type="button" data-profile-tab="account">DATOS PERSONALES</button>
+      </nav>
+      <div id="profile-content" class="profile-content" aria-live="polite"></div>
+    </section>
+  </main>
+  <script type="module" src="js/profile.js"></script>
+</body>
+</html>
