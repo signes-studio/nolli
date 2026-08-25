@@ -112,6 +112,7 @@
     <div class="places-tabs">
       <button type="button" class="places-tab active" data-place-tab="favorite">FAVORITOS</button>
       <button type="button" class="places-tab" data-place-tab="visited">VISITADOS</button>
+      <button type="button" class="places-tab" data-place-tab="notes">NOTAS</button>
     </div>
     <div id="my-places-list" class="my-places-list"></div>
   </section>
@@ -174,6 +175,13 @@
       <button type="button" class="btn share-option" data-share-choice="google">GOOGLE MAPS</button>
       <button type="button" class="btn share-option" data-share-choice="copy">COPIAR ENLACE</button>
     </div>
+  </div>
+</div>
+
+<div id="modal-photo" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Fotografía del proyecto">
+  <div class="photo-viewer">
+    <button type="button" id="btn-photo-close" class="photo-close" aria-label="Cerrar fotografía">X</button>
+    <img id="photo-viewer-image" src="" alt="">
   </div>
 </div>
 

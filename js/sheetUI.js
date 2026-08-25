@@ -42,7 +42,7 @@ export function abrirFicha(p, c, featureId = p.id) {
 
   document.getElementById('sheet-title').innerHTML = p.nombre_obra;
   document.getElementById('sheet-body').innerHTML = `
-    ${p.foto_url ? `<img class="sheet-photo" src="${p.foto_url}" alt="Fotografía de ${p.nombre_obra}" loading="lazy">` : ''}
+    ${p.foto_url ? `<button type="button" class="photo-thumb" data-photo-url="${p.foto_url}" aria-label="Ampliar fotografía"><img class="sheet-photo" src="${p.foto_url}" alt="Fotografía de ${p.nombre_obra}" loading="lazy"></button>` : ''}
     ${p.enlace_url ? `<div class="sheet-link"><a href="${p.enlace_url}" target="_blank" rel="noopener noreferrer">ABRIR ENLACE DEL PROYECTO</a></div>` : ''}
     <div class="data-row"><div class="label">[ARQUITECTO]</div><div class="value accent">${architectButtons}</div></div>
     <div class="data-row"><div class="label">[AÑO]</div><div class="value">${p.año_construccion}</div></div>
@@ -52,7 +52,7 @@ export function abrirFicha(p, c, featureId = p.id) {
     <div class="sheet-actions share-actions">
       <button type="button" class="status-button" data-share-action="open">COMPARTIR</button>
     </div>
-    ${state.sessionToken ? `<div class="sheet-actions"><button type="button" class="status-button ${estadoObra('favorite') ? 'active' : ''}" data-status="favorite">FAVORITO</button><button type="button" class="status-button ${estadoObra('visited') ? 'active visited' : ''}" data-status="visited">VISITADO</button></div><div class="personal-notes"><label for="building-notes">NOTAS PRIVADAS</label><textarea id="building-notes" class="tech-input" rows="3" placeholder="Escribe una nota privada..."></textarea><label for="building-rating">VALORACIÓN PERSONAL</label><select id="building-rating" class="tech-input"><option value="">SIN VALORAR</option><option value="1">1 / 5</option><option value="2">2 / 5</option><option value="3">3 / 5</option><option value="4">4 / 5</option><option value="5">5 / 5</option></select><button type="button" class="btn save-personal-status" data-save-personal>GUARDAR NOTAS</button></div>` : ''}
+    ${state.sessionToken ? `<div class="sheet-actions"><button type="button" class="status-button ${estadoObra('favorite') ? 'active' : ''}" data-status="favorite">FAVORITO</button><button type="button" class="status-button ${estadoObra('visited') ? 'active visited' : ''}" data-status="visited">VISITADO</button></div><div class="personal-notes"><div class="rating-row"><label>VALORACIÓN</label><div class="rating-stars">${[1, 2, 3, 4, 5].map((value) => `<button type="button" class="rating-star ${estadoObra('valoracion') >= value ? 'active' : ''}" data-rating="${value}" aria-label="Valorar ${value} de 5">★</button>`).join('')}</div></div><button type="button" class="btn note-toggle" data-note-toggle>AÑADIR NOTA</button><div class="personal-note-editor" data-note-editor><label for="building-notes">NOTA PRIVADA</label><textarea id="building-notes" class="tech-input" rows="3" placeholder="Escribe una nota privada..."></textarea><button type="button" class="btn save-personal-status" data-save-personal>GUARDAR NOTA</button></div></div>` : ''}
   `;
   const editButton = document.getElementById('btn-edit-building');
   editButton.classList.toggle('hidden', state.userRole !== 'admin');
@@ -62,7 +62,7 @@ export function abrirFicha(p, c, featureId = p.id) {
   const notes = document.getElementById('building-notes');
   const rating = document.getElementById('building-rating');
   if (notes) notes.value = personal.notas || '';
-  if (rating) rating.value = personal.valoracion || '';
+  if (notes && personal.notas) notes.closest('[data-note-editor]').classList.add('open');
 }
 
 function formatearAcceso(value) {
@@ -71,10 +71,41 @@ function formatearAcceso(value) {
 
 function estadoObra(status) {
   const obra = state.OBRAS.find((item) => String(item.featureId) === String(state.selectedFeatureId));
-  return obra ? state.buildingStatuses.get(String(obra.id))?.[status] === true : false;
+  return obra ? state.buildingStatuses.get(String(obra.id))?.[status] || false : false;
 }
 
 document.addEventListener('click', (e) => {
+  const noteToggle = e.target.closest('[data-note-toggle]');
+  if (noteToggle) {
+    noteToggle.nextElementSibling.classList.toggle('open');
+    noteToggle.textContent = noteToggle.nextElementSibling.classList.contains('open') ? 'OCULTAR NOTA' : 'AÑADIR NOTA';
+    return;
+  }
+  const ratingStar = e.target.closest('[data-rating]');
+  if (ratingStar) {
+    const obra = state.OBRAS.find((item) => String(item.featureId) === String(state.selectedFeatureId));
+    if (!obra || !state.userId || !state.sessionToken) return;
+    const key = String(obra.id);
+    const current = state.buildingStatuses.get(key) || { favorite: false, visited: false };
+    const status = { ...current, valoracion: Number(ratingStar.dataset.rating) };
+    state.buildingStatuses.set(key, status);
+    ratingStar.parentElement.querySelectorAll('[data-rating]').forEach((star) => star.classList.toggle('active', Number(star.dataset.rating) <= status.valoracion));
+    saveBuildingStatus(state.userId, obra.id, status, state.sessionToken).catch(() => alert('No se pudo guardar la valoración.'));
+    return;
+  }
+  const photoThumb = e.target.closest('[data-photo-url]');
+  if (photoThumb) {
+    const viewer = document.getElementById('modal-photo');
+    const image = document.getElementById('photo-viewer-image');
+    image.src = photoThumb.dataset.photoUrl;
+    image.alt = document.getElementById('sheet-title').textContent;
+    viewer.classList.add('open');
+    return;
+  }
+  if (e.target.closest('#btn-photo-close') || e.target === document.getElementById('modal-photo')) {
+    document.getElementById('modal-photo').classList.remove('open');
+    return;
+  }
   const shareButton = e.target.closest('[data-share-action]');
   if (shareButton) {
     document.getElementById('modal-share').classList.add('open');
@@ -109,7 +140,7 @@ document.addEventListener('click', (e) => {
     if (!obra || !state.userId || !state.sessionToken) return;
     const key = String(obra.id);
     const current = state.buildingStatuses.get(key) || { favorite: false, visited: false };
-    const status = { ...current, notas: document.getElementById('building-notes').value, valoracion: Number(document.getElementById('building-rating').value) || null };
+    const status = { ...current, notas: document.getElementById('building-notes').value, valoracion: current.valoracion || null };
     state.buildingStatuses.set(key, status);
     saveBuildingStatus(state.userId, obra.id, status, state.sessionToken).catch(() => alert('No se pudieron guardar tus notas.'));
     return;

@@ -58,14 +58,16 @@ function renderList() {
     list.innerHTML = '<div class="nearby-empty">Inicia sesión para guardar y consultar tus edificios.</div>';
     return;
   }
-  const results = state.OBRAS.filter((obra) => state.buildingStatuses.get(String(obra.id))?.[activeTab]);
+  const results = state.OBRAS.filter((obra) => activeTab === 'notes'
+    ? Boolean(state.buildingStatuses.get(String(obra.id))?.notas?.trim())
+    : state.buildingStatuses.get(String(obra.id))?.[activeTab]);
   if (!results.length) {
-    list.innerHTML = `<div class="nearby-empty">Todavía no tienes edificios ${activeTab === 'favorite' ? 'favoritos' : 'visitados'}.</div>`;
+    list.innerHTML = `<div class="nearby-empty">Todavía no tienes ${activeTab === 'favorite' ? 'edificios favoritos' : activeTab === 'visited' ? 'edificios visitados' : 'notas guardadas'}.</div>`;
     return;
   }
   list.innerHTML = results.map((obra) => `
     <button type="button" class="my-place-item" data-feature-id="${obra.featureId}">
-      <span>${obra.nombre_obra}</span>
+      <span><strong>${obra.nombre_obra}</strong>${activeTab === 'notes' ? `<span class="my-place-note">${state.buildingStatuses.get(String(obra.id))?.notas || ''}</span>` : ''}</span>
       <span class="nearby-meta">${obra.arquitecto || ''}</span>
     </button>
   `).join('');
