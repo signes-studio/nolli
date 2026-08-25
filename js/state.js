@@ -24,6 +24,7 @@ export const state = {
   map: null,
   mapStyle: 'dark',
   addingBuilding: false,
+  privateBuildings: [],
 };
 
 export function separarArquitectos(valor) {

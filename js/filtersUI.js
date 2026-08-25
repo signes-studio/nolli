@@ -147,19 +147,20 @@ export function aplicarFiltrosMapa() {
   if (state.activeCategoria) detalles.push(['==', ['get', 'categoria'], state.activeCategoria]);
   if (state.activeVisitable) detalles.push(['==', ['get', 'estado_acceso'], state.activeVisitable]);
   [1, 2, 3].forEach((importance) => {
-    [`obras-l${importance}`, `obras-l${importance}-visited`, `obras-l${importance}-selected`, `obras-l${importance}-pending`].forEach((layerId) => {
+    [`obras-l${importance}`, `obras-l${importance}-visited`, `obras-l${importance}-selected`, `obras-l${importance}-pending`, `obras-l${importance}-private`].forEach((layerId) => {
       if (!state.map.getLayer(layerId)) return;
       const selected = layerId.endsWith('-selected') ? 1 : 0;
       const visited = layerId.endsWith('-visited') ? 1 : layerId.endsWith('-selected') ? null : 0;
       const pending = layerId.endsWith('-pending') ? 'pendiente' : null;
+      const privateStatus = layerId.endsWith('-private') ? 'privada' : null;
       state.map.setFilter(layerId, [
         'all',
         arquitectos,
         ...detalles,
         ['==', ['get', 'importancia'], importance],
         ['==', ['get', 'selected'], selected],
-        ['==', ['get', 'estado_revision'], pending || 'publicada'],
-        ...(pending ? [] : visited === null ? [] : [['==', ['get', 'visited'], visited]]),
+        ['==', ['get', 'estado_revision'], pending || privateStatus || 'publicada'],
+        ...(pending || privateStatus ? [] : visited === null ? [] : [['==', ['get', 'visited'], visited]]),
       ]);
     });
   });

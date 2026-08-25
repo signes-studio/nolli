@@ -3,7 +3,7 @@
    ========================================================================= */
 
 import { state, separarArquitectos } from './state.js';
-import { loginAdmin, registerUser, fetchUserRole, fetchCurrentUser, fetchBuildingStatuses, createBuilding, updateBuilding } from './api.js';
+import { loginAdmin, registerUser, fetchUserRole, fetchCurrentUser, fetchBuildingStatuses, createBuilding, createPrivateBuilding, updateBuilding } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
 
@@ -43,6 +43,7 @@ async function initLoginModal() {
       valoracion: item.valoracion || null,
     }]));
     document.dispatchEvent(new CustomEvent('radar:user-status-ready'));
+    document.dispatchEvent(new CustomEvent('radar:user-session-ready'));
   };
 
   const tokenGuardado = localStorage.getItem(ADMIN_SESSION_KEY);
@@ -180,6 +181,7 @@ function initAddBuildingModal() {
     const importancia = Number(document.getElementById('add-importancia').value);
     const categoria = document.getElementById('add-categoria').value;
     const estadoAcceso = document.getElementById('add-acceso').value;
+    const visibility = document.getElementById('add-visibility').value;
 
     if (!nombre || !arq || !state.pendingLngLat) {
       err.textContent = 'Faltan datos obligatorios (Nombre y Arquitecto).';
@@ -224,15 +226,19 @@ function initAddBuildingModal() {
           añadido_por: state.userRole === 'admin' ? 'administrador' : (state.userEmail || 'usuario'),
           estado_revision: state.userRole === 'admin' ? 'publicada' : 'pendiente',
         };
-        const insertedData = await createBuilding(nuevoEdificio, state.sessionToken);
+        const privateData = { ...edificio, user_id: state.userId };
+        const insertedData = visibility === 'private' && state.userRole !== 'admin'
+          ? await createPrivateBuilding(privateData, state.sessionToken)
+          : await createBuilding({ ...nuevoEdificio, propuesto_por: state.userId }, state.sessionToken);
 
         state.OBRAS.push({
-          ...nuevoEdificio,
+          ...(visibility === 'private' && state.userRole !== 'admin' ? privateData : nuevoEdificio),
           arquitectos: separarArquitectos(arq),
           añadido_por: nuevoEdificio.añadido_por,
           estado_revision: nuevoEdificio.estado_revision,
           id: insertedData[0].id,
           featureId: String(insertedData[0].id ?? `obra-${Date.now()}`),
+          private: visibility === 'private' && state.userRole !== 'admin',
           coordenadas: [state.pendingLngLat.lng, state.pendingLngLat.lat],
           selected: false,
         });

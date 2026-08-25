@@ -5,7 +5,8 @@
    ========================================================================= */
 
 import { state, separarArquitectos } from './state.js';
-import { fetchBuildings } from './api.js';
+import { fetchBuildings, fetchUserPendingBuildings, fetchPendingBuildings, fetchPrivateBuildings } from './api.js';
+import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
 import { cargarMapaMapbox } from './mapController.js';
 import { initModalsUI } from './modalsUI.js';
@@ -47,6 +48,54 @@ async function inicializarRadar() {
     alert('Error de conexión con la base de datos.');
   }
 }
+
+async function cargarContenidoPrivado() {
+  if (!state.userId || !state.sessionToken) return;
+  const [pending, privateBuildings] = await Promise.all([
+    state.userRole === 'admin' ? fetchPendingBuildings(state.sessionToken) : fetchUserPendingBuildings(state.userId, state.sessionToken),
+    fetchPrivateBuildings(state.userId, state.sessionToken),
+  ]);
+  const existingIds = new Set(state.OBRAS.map((obra) => String(obra.id)));
+  const pendingObjects = pending.filter((fila) => !existingIds.has(String(fila.id))).map((fila, index) => ({
+    id: fila.id,
+    featureId: String(fila.id),
+    nombre_obra: fila.nombre_obra,
+    foto_url: fila.foto_url || null,
+    enlace_url: fila.enlace_url || null,
+    arquitecto: fila.arquitecto,
+    arquitectos: separarArquitectos(fila.arquitecto),
+    año_construccion: fila.año_construccion,
+    importancia: Number(fila.importancia) || 1,
+    categoria: fila.categoria || 'otro',
+    ciudad: fila.ciudad || null,
+    estado_acceso: fila.estado_acceso || 'privado',
+    añadido_por: fila.añadido_por || state.userEmail,
+    estado_revision: 'pendiente',
+    coordenadas: [fila.longitud, fila.latitud],
+    selected: false,
+  }));
+  const privateObjects = privateBuildings.map((fila, index) => ({
+    ...fila,
+    id: fila.id || `private-${index}`,
+    featureId: `private-${fila.id || index}`,
+    arquitectos: separarArquitectos(fila.arquitecto),
+    importancia: Number(fila.importancia) || 1,
+    categoria: fila.categoria || 'otro',
+    estado_acceso: fila.estado_acceso || 'privado',
+    estado_revision: 'privada',
+    private: true,
+    coordenadas: [fila.longitud, fila.latitud],
+    selected: false,
+  }));
+  state.OBRAS.push(...pendingObjects, ...privateObjects);
+  state.privateBuildings = privateObjects;
+  state.ARQUITECTOS = [...new Set(state.OBRAS.flatMap((obra) => obra.arquitectos))];
+  state.activeArquitectos = new Set(state.ARQUITECTOS);
+  generarFiltrosUI();
+  actualizarFuenteMapa();
+}
+
+document.addEventListener('radar:user-session-ready', cargarContenidoPrivado);
 
 initModalsUI();
 initSearchUI();
