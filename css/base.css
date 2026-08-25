@@ -25,7 +25,10 @@ html, body {
   height: 100%;
   margin: 0;
   overscroll-behavior: none;
+  overflow: hidden;
 }
+
+main { position: fixed; inset: 0; overflow: hidden; }
 
 body {
   background: var(--bg);

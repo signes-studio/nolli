@@ -6,6 +6,7 @@
 
 /* Mapbox: mantener atribución legal pero atenuada visualmente */
 .mapboxgl-ctrl-logo, .mapboxgl-ctrl-attrib { filter: grayscale(1) opacity(0.5); }
+.mapboxgl-ctrl-attrib { background: rgba(0, 0, 0, 0.72) !important; padding: 2px 5px !important; }
 .mapboxgl-ctrl-attrib-inner a { color: #888 !important; }
 .mapboxgl-popup-tip { display: none; }
 .mapboxgl-canvas { outline: none; }
