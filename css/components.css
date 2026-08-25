@@ -29,6 +29,9 @@
   padding: 0; border: 0; background: transparent; color: var(--accent);
   font: inherit; text-align: left; cursor: pointer; text-decoration: underline;
 }
+.share-box { max-width: 360px; }
+.share-options { display: grid; gap: 8px; padding: 14px; }
+.share-option { width: 100%; text-align: left; }
 
 /* ---------- Modal (genérico) ---------- */
 .modal-overlay {

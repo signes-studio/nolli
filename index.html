@@ -86,21 +86,22 @@
       <span style="color:var(--fg-dim)">[ FILTRO // ARQUITECTO ]</span>
       <i data-lucide="x" id="btn-filters-close" width="14" height="14" style="cursor:pointer; color:var(--fg-dim)" role="button" aria-label="Cerrar filtros"></i>
     </div>
-    <div class="filter-controls">
-      <input id="architect-search" class="tech-input" type="search" placeholder="BUSCAR ARQUITECTO..." aria-label="Buscar arquitecto">
-      <select id="filter-decade" class="tech-input" aria-label="Filtrar por década">
-        <option value="">TODAS LAS DÉCADAS</option>
-      </select>
-      <select id="filter-category" class="tech-input" aria-label="Filtrar por categoría">
-        <option value="">TODAS LAS CATEGORÍAS</option>
-      </select>
-      <select id="filter-visitable" class="tech-input" aria-label="Filtrar por visitabilidad">
-        <option value="">VISITABILIDAD: TODAS</option>
-        <option value="1">SOLO VISITABLES</option>
-        <option value="0">SOLO NO VISITABLES</option>
-      </select>
+    <div class="filter-group" data-filter-group="decade">
+      <button type="button" class="filter-group-head" aria-expanded="true"><span>[ DÉCADA ]</span><span class="filter-chevron">−</span></button>
+      <div class="filter-group-body"><div class="filter-group-actions"><button type="button" class="filter-action" data-filter-all="decade">TODOS</button><button type="button" class="filter-action" data-filter-isolate="decade">AISLAR</button></div><select id="filter-decade" class="tech-input" aria-label="Filtrar por década"><option value="">TODAS LAS DÉCADAS</option></select></div>
     </div>
-    <div id="filter-switches"></div>
+    <div class="filter-group" data-filter-group="category">
+      <button type="button" class="filter-group-head" aria-expanded="true"><span>[ CATEGORÍA ]</span><span class="filter-chevron">−</span></button>
+      <div class="filter-group-body"><div class="filter-group-actions"><button type="button" class="filter-action" data-filter-all="category">TODOS</button><button type="button" class="filter-action" data-filter-isolate="category">AISLAR</button></div><select id="filter-category" class="tech-input" aria-label="Filtrar por categoría"><option value="">TODAS LAS CATEGORÍAS</option></select></div>
+    </div>
+    <div class="filter-group" data-filter-group="visitable">
+      <button type="button" class="filter-group-head" aria-expanded="true"><span>[ VISITABLE ]</span><span class="filter-chevron">−</span></button>
+      <div class="filter-group-body"><div class="filter-group-actions"><button type="button" class="filter-action" data-filter-all="visitable">TODOS</button><button type="button" class="filter-action" data-filter-isolate="visitable">AISLAR</button></div><select id="filter-visitable" class="tech-input" aria-label="Filtrar por visitabilidad"><option value="">VISITABILIDAD: TODAS</option><option value="1">SOLO VISITABLES</option><option value="0">SOLO NO VISITABLES</option></select></div>
+    </div>
+    <div class="filter-group filter-group-architects" data-filter-group="architects">
+      <button type="button" class="filter-group-head" aria-expanded="true"><span>[ ARQUITECTOS ]</span><span class="filter-chevron">−</span></button>
+      <div class="filter-group-body"><div class="filter-group-actions"><button type="button" class="filter-action" data-filter-all="architects">TODOS</button><button type="button" class="filter-action" data-filter-isolate="architects">AISLAR</button></div><input id="architect-search" class="tech-input" type="search" placeholder="BUSCAR ARQUITECTO..." aria-label="Buscar arquitecto"><div id="filter-switches"></div></div>
+    </div>
   </section>
 
   <section id="my-places-panel" class="my-places-panel" aria-label="Mis edificios">
@@ -160,6 +161,21 @@
     <div id="sheet-body"></div>
   </section>
 </main>
+
+<div id="modal-share" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-share-title">
+  <div class="modal-box share-box">
+    <div class="modal-head">
+      <span id="modal-share-title" style="letter-spacing:.06em; font-size:11px;">COMPARTIR UBICACIÓN</span>
+      <i data-lucide="x" id="btn-share-close" width="16" height="16" style="cursor:pointer" role="button" aria-label="Cerrar compartir"></i>
+    </div>
+    <div class="share-options">
+      <button type="button" class="btn share-option" data-share-choice="native">OTRAS APLICACIONES</button>
+      <button type="button" class="btn share-option" data-share-choice="whatsapp">WHATSAPP</button>
+      <button type="button" class="btn share-option" data-share-choice="google">GOOGLE MAPS</button>
+      <button type="button" class="btn share-option" data-share-choice="copy">COPIAR ENLACE</button>
+    </div>
+  </div>
+</div>
 
 <!-- Modal: Login de Administrador -->
 <div id="modal-login" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-login-title">

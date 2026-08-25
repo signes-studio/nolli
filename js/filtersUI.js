@@ -29,6 +29,7 @@ export function generarFiltrosUI() {
         <div class="track"></div>
         <div class="thumb"></div>
       </div>
+      <button type="button" class="filter-action filter-isolate" data-isolate-arq="${arq}">AISLAR</button>
     `;
     filterSwitches.appendChild(row);
   });
@@ -77,6 +78,53 @@ function initFiltersUI() {
 
   document.addEventListener('click', (e) => {
     if (e.target.closest('#btn-filters-close')) cerrarFiltros();
+      const groupHead = e.target.closest('.filter-group-head');
+      if (groupHead) {
+        const group = groupHead.closest('.filter-group');
+        const isOpen = group.classList.toggle('collapsed') === false;
+        groupHead.setAttribute('aria-expanded', String(isOpen));
+        group.querySelector('.filter-chevron').textContent = isOpen ? '−' : '+';
+        return;
+      }
+      const clearFilter = e.target.closest('[data-filter-all]');
+      if (clearFilter) {
+        const group = clearFilter.dataset.filterAll;
+        if (group === 'architects') state.activeArquitectos = new Set(state.ARQUITECTOS);
+        if (group === 'decade') state.activeDecada = '';
+        if (group === 'category') state.activeCategoria = '';
+        if (group === 'visitable') state.activeVisitable = '';
+        generarFiltrosUI();
+        aplicarFiltrosMapa();
+        return;
+      }
+      const isolateFilter = e.target.closest('[data-filter-isolate]');
+      if (isolateFilter) {
+        const group = isolateFilter.dataset.filterIsolate;
+        state.activeArquitectos = group === 'architects' ? new Set(state.activeArquitectos) : new Set(state.ARQUITECTOS);
+        if (group !== 'decade') state.activeDecada = '';
+        if (group !== 'category') state.activeCategoria = '';
+        if (group !== 'visitable') state.activeVisitable = '';
+        if (group === 'decade' && !state.activeDecada) return;
+        if (group === 'category' && !state.activeCategoria) return;
+        if (group === 'visitable' && !state.activeVisitable) return;
+        generarFiltrosUI();
+        aplicarFiltrosMapa();
+        return;
+      }
+      const action = e.target.closest('[data-filter-mode]');
+    const isolate = e.target.closest('[data-isolate-arq]');
+    if (isolate) {
+      state.activeArquitectos = new Set([isolate.dataset.isolateArq]);
+      generarFiltrosUI();
+      aplicarFiltrosMapa();
+      return;
+    }
+    if (!action) return;
+    if (action.dataset.filterMode === 'all') {
+      state.activeArquitectos = new Set(state.ARQUITECTOS);
+    }
+    generarFiltrosUI();
+    aplicarFiltrosMapa();
   });
 
   btnFilters.addEventListener('click', () => {

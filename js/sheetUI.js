@@ -49,6 +49,9 @@ export function abrirFicha(p, c, featureId = p.id) {
     <div class="data-row"><div class="label">[CATEGORÍA]</div><div class="value">${p.categoria || 'otro'}</div></div>
     <div class="data-row"><div class="label">[VISITABLE]</div><div class="value">${p.visitable === true || p.visitable === 1 || p.visitable === 'true' ? 'SÍ' : 'NO'}</div></div>
     <div class="data-row"><div class="label">[COORD]</div><div class="value">${c[0].toFixed(5)}, ${c[1].toFixed(5)}</div></div>
+    <div class="sheet-actions share-actions">
+      <button type="button" class="status-button" data-share-action="open">COMPARTIR</button>
+    </div>
     ${state.sessionToken ? `<div class="sheet-actions"><button type="button" class="status-button ${estadoObra('favorite') ? 'active' : ''}" data-status="favorite">FAVORITO</button><button type="button" class="status-button ${estadoObra('visited') ? 'active visited' : ''}" data-status="visited">VISITADO</button></div>` : ''}
   `;
   const editButton = document.getElementById('btn-edit-building');
@@ -63,6 +66,16 @@ function estadoObra(status) {
 }
 
 document.addEventListener('click', (e) => {
+  const shareButton = e.target.closest('[data-share-action]');
+  if (shareButton) {
+    document.getElementById('modal-share').classList.add('open');
+    return;
+  }
+  const shareChoice = e.target.closest('[data-share-choice]');
+  if (shareChoice) compartirEn(shareChoice.dataset.shareChoice);
+  if (e.target.closest('#btn-share-close') || e.target === document.getElementById('modal-share')) {
+    document.getElementById('modal-share').classList.remove('open');
+  }
   const statusButton = e.target.closest('.status-button');
   if (statusButton) {
     const obra = state.OBRAS.find((item) => String(item.featureId) === String(state.selectedFeatureId));
@@ -98,6 +111,32 @@ document.addEventListener('click', (e) => {
     const obra = state.OBRAS.find((o) => String(o.featureId) === String(state.selectedFeatureId));
   if (obra) document.dispatchEvent(new CustomEvent('radar:edit-building', { detail: { obra } }));
 });
+
+function crearEnlaceGoogleMaps() {
+  const obra = state.OBRAS.find((item) => String(item.featureId) === String(state.selectedFeatureId));
+  if (!obra) return null;
+  const [longitude, latitude] = obra.coordenadas;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${latitude},${longitude}`)}`;
+}
+
+function compartirEn(choice) {
+  const shareUrl = crearEnlaceGoogleMaps();
+  if (!shareUrl) return;
+  const title = document.getElementById('sheet-title').textContent;
+  const text = `${title} — ubicación en Nolli`;
+  if (choice === 'native' && navigator.share) {
+    navigator.share({ title, text, url: shareUrl }).catch(() => {});
+  } else if (choice === 'whatsapp') {
+    window.open(`https://wa.me/?text=${encodeURIComponent(`${text}: ${shareUrl}`)}`, '_blank', 'noopener,noreferrer');
+  } else if (choice === 'google') {
+    window.open(shareUrl, '_blank', 'noopener,noreferrer');
+  } else if (choice === 'copy') {
+    navigator.clipboard?.writeText(shareUrl).then(() => alert('Enlace copiado.'));
+  } else {
+    alert('El menú de compartir no está disponible en este dispositivo.');
+  }
+  document.getElementById('modal-share').classList.remove('open');
+}
 
 document.addEventListener('radar:admin-login', () => {
   if (state.selectedFeatureId !== null) document.getElementById('btn-edit-building').classList.remove('hidden');
