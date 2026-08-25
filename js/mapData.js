@@ -7,7 +7,7 @@ import { state } from './state.js';
 export function actualizarFuenteMapa() {
   const geojson = {
     type: 'FeatureCollection',
-    features: state.OBRAS.filter((o) => state.userRole === 'admin'
+    features: state.OBRAS.filter((o) => state.userRole === 'admin' && state.adminMode
       ? o.estado_revision !== 'rechazada'
       : o.estado_revision !== 'pendiente' && o.estado_revision !== 'rechazada').map((o) => ({
       type: 'Feature',

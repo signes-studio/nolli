@@ -10,6 +10,7 @@ export const state = {
   activeArquitectos: new Set(),
   sessionToken: null,
   userRole: null,
+  adminMode: false,
   userId: null,
   userEmail: null,
   buildingStatuses: new Map(),
