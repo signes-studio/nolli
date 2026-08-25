@@ -24,6 +24,7 @@ export function cargarMapaMapbox() {
 
   const configurarCapas = () => {
     if (state.map.getSource('obras')) return;
+    aplicarTratamientoSatelite();
     [1, 2, 3].forEach((importance) => {
       state.map.addImage(`icon-l${importance}`, buildIcon(drawTargetIcon, '#FF4500', importance), { pixelRatio: 2 });
       state.map.addImage(`icon-l${importance}-visited`, buildIcon(drawTargetIcon, '#39FF14', importance), { pixelRatio: 2 });
@@ -133,6 +134,23 @@ export function cargarMapaMapbox() {
   });
   document.getElementById('btn-location').addEventListener('click', localizarDispositivo);
   initMapStyleSelector();
+}
+
+function aplicarTratamientoSatelite() {
+  if (state.mapStyle !== 'satellite') return;
+  const style = state.map.getStyle();
+  style.layers.forEach((layer) => {
+    const layerName = `${layer.id} ${layer['source-layer'] || ''}`.toLowerCase();
+    if (layer.type === 'symbol' && (layerName.includes('poi') || layerName.includes('housenum'))) {
+      state.map.setLayoutProperty(layer.id, 'visibility', 'none');
+    }
+    if (layer.type === 'raster') {
+      state.map.setPaintProperty(layer.id, 'raster-saturation', -0.18);
+      state.map.setPaintProperty(layer.id, 'raster-contrast', 0.08);
+      state.map.setPaintProperty(layer.id, 'raster-brightness-min', 0.04);
+      state.map.setPaintProperty(layer.id, 'raster-brightness-max', 0.92);
+    }
+  });
 }
 
 function initMapStyleSelector() {
