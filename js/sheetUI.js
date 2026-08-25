@@ -5,7 +5,6 @@
 import { state, separarArquitectos } from './state.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { cerrarFiltros, generarFiltrosUI, aplicarFiltrosMapa } from './filtersUI.js';
-import { saveBuildingStatus, deleteBuilding } from './api.js';
 import { saveBuildingStatus, deleteBuilding, deletePrivateBuilding } from './api.js';
 
 const sheet = document.getElementById('sheet');
