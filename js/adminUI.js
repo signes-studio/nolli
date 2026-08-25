@@ -6,7 +6,6 @@ import { state, separarArquitectos } from './state.js';
 import { deleteBuilding } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
-import { MAPBOX_TOKEN, GEOCODING_LANGUAGE } from './config.js';
 
 const panel = document.getElementById('admin-panel');
 const button = document.getElementById('btn-admin-panel');
@@ -82,10 +81,11 @@ async function obtenerCiudad(obra) {
   const cacheKey = coordinates.join(',');
   if (cityCache.has(cacheKey)) return cityCache.get(cacheKey);
   try {
-    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${coordinates[0]},${coordinates[1]}.json?types=place,locality,municipality&language=${GEOCODING_LANGUAGE}&limit=1&access_token=${MAPBOX_TOKEN}`;
-    const response = await fetch(url);
+    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${coordinates[1]}&lon=${coordinates[0]}&zoom=10&addressdetails=1`;
+    const response = await fetch(url, { headers: { Accept: 'application/json' } });
     const data = await response.json();
-    const city = data.features?.[0]?.text || 'Ciudad no disponible';
+    const address = data.address || {};
+    const city = address.city || address.town || address.village || address.municipality || address.county || 'Ciudad no disponible';
     cityCache.set(cacheKey, city);
     return city;
   } catch {
