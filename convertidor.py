@@ -1,93 +1,96 @@
 import json
-import pandas as pd
-import random
+import csv
 
 # 1. Cargar el archivo JSON original
-with open('edificios_ctav.json', 'r', encoding='utf-8') as f:
-    data = json.load(f)
+json_filename = 'obras_arquitectura_viva.json'
+csv_filename = 'obras_arquitectura_viva_procesado.csv'
 
-filas = []
+try:
+    with open(json_filename, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+except FileNotFoundError:
+    print(f"Error: No se encuentra el archivo {json_filename}")
+    exit()
 
-for item in data.get('content', []):
-    # Nombre de la obra
-    nombre_obra = item.get('nombre', '')
+# Definir las columnas exactas solicitadas
+fieldnames = [
+    'nombre_obra',
+    'arquitecto',
+    'año_construccion',
+    'latitud',
+    'longitud',
+    'importancia',
+    'id',
+    'añadido_por',
+    'categoria',
+    'visitable',
+    'foto_url',
+    'enlace_url',
+    'estado_acceso'
+]
+
+rows_to_write = []
+
+# 2. Recorrer cada obra y transformar los datos
+for index, item in enumerate(data, start=1):
+    # Generar el ID con formato AVXXX (ej. AV001, AV002...)
+    av_id = f"AV{index:03d}"
     
-    # Arquitectos
-    arqs = item.get('arquitectos', [])
-    nombres_arqs = []
-    for a in arqs:
-        nombre = a.get('nombre', '').strip()
-        apellidos = a.get('apellidos', '').strip()
-        completo = f"{nombre} {apellidos}".strip()
-        if completo:
-            nombres_arqs.append(completo)
-    arquitecto = ", ".join(nombres_arqs) if nombres_arqs else ""
+    # Nombre de la obra (title)
+    nombre_obra = item.get('title', '')
     
-    # Año de construcción
-    año_construccion = ""
+    # Arquitectos (viene como una lista de strings en 'author')
+    autores = item.get('author', [])
+    if autores:
+        arquitecto_str = ", ".join(autores)
+    else:
+        arquitecto_str = "Sin arquitecto"
+        
+    # Año de construcción (viene en 'date')
+    ano_construccion = item.get('date', '') or ''
     
-    # Coordenadas
-    latitud = item.get('geoLatitud', '')
-    longitud = item.get('geoLongitud', '')
-    
-    # Importancia (valores del 1 al 3)
-    importancia = random.randint(1, 3)
-    
-    # ID con prefijo CTAV
-    original_id = item.get('id', '')
-    id_ctav = f"CTAV{original_id}" if original_id else ""
-    
-    # Añadido por
-    añadido_por = "CTAV"
-    
-    # Categoría (traducción al español de la tipología)
-    categoria = ""
-    tipologia = item.get('tipologia')
-    if tipologia and tipologia.get('textContentNombre'):
-        translations = tipologia['textContentNombre'].get('translations', [])
-        for t in translations:
-            if t.get('language', {}).get('siglas') == 'es':
-                categoria = t.get('translation', '')
-                break
-                
-    # Visitable
-    visitable = "false"
-    
-    # Foto URL con el dominio añadido (comprobando que no esté vacía o sea una URL externa ya completa)
-    foto_principal = item.get('fotoPrincipal')
-    if foto_principal and foto_principal.get('url'):
-        url_parcial = foto_principal.get('url')
-        if url_parcial.startswith('http'):
-            foto_url = url_parcial  # Por si alguna ya viene completa
-        else:
-            foto_url = f"https://arquitecturavalencia.es{url_parcial}"
+    # Coordenadas (vienen juntas en una cadena tipo "lat,lng" en 'coords')
+    coords = item.get('coords', '')
+    latitud = ''
+    longitud = ''
+    if coords and ',' in coords:
+        partes = coords.split(',')
+        latitud = partes[0].strip()
+        longitud = partes[1].strip()
+        
+    # URL de la foto (construida a partir del campo 'img' o ruta relativa)
+    img_path = item.get('img', '')
+    if img_path:
+        foto_url = f"https://arquitecturaviva.com/assets/img/{img_path}" if not img_path.startswith("http") else img_path
     else:
         foto_url = ""
-    
-    # Enlace URL de la ficha
-    enlace_url = f"https://guiactav.com/obra/{original_id}" if original_id else ''
-    
-    # Estado de acceso
-    estado_acceso = "exterior_visible"
-    
-    filas.append({
-        "nombre_obra": nombre_obra,
-        "arquitecto": arquitecto,
-        "año_construccion": año_construccion,
-        "latitud": latitud,
-        "longitud": longitud,
-        "importancia": importancia,
-        "id": id_ctav,
-        "añadido_por": añadido_por,
-        "categoria": categoria,
-        "visitable": visitable,
-        "foto_url": foto_url,
-        "enlace_url": enlace_url,
-        "estado_acceso": estado_acceso
-    })
+        
+    # Enlace de referencia (usando el slug para apuntar a la web oficial)
+    slug = item.get('slug', '')
+    enlace_url = f"https://arquitecturaviva.com/obras/{slug}" if slug else "https://arquitecturaviva.com/"
 
-# 2. Exportar el resultado a CSV
-df = pd.DataFrame(filas)
-df.to_csv('proyectos_ctav_salida.csv', index=False, encoding='utf-8-sig')
+    row = {
+        'nombre_obra': nombre_obra,
+        'arquitecto': arquitecto_str,
+        'año_construccion': ano_construccion,
+        'latitud': latitud,
+        'longitud': longitud,
+        'importancia': 1,              # Fijo en 1
+        'id': av_id,                   # Formato AV001, AV002...
+        'añadido_por': 'AV',           # Fijo en AV
+        'categoria': 'Arquitectura',   # Categoría genérica por defecto
+        'visitable': 'true',           # Valor booleano estándar para CSV/Supabase
+        'foto_url': foto_url,
+        'enlace_url': enlace_url,
+        'estado_acceso': 'Desconocido'
+    }
+    
+    rows_to_write.append(row)
 
-print("¡CSV generado correctamente con las URLs de imagen completas!")
+# 3. Guardar el resultado en un archivo CSV limpio
+with open(csv_filename, 'w', newline='', encoding='utf-8') as csv_file:
+    writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+    writer.writeheader()
+    writer.writerows(rows_to_write)
+
+print(f"¡Conversión completada con éxito! Archivo guardado como '{csv_filename}'.")
