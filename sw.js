@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nolli-shell-v10';
+const CACHE_NAME = 'nolli-shell-v12';
 const APP_SHELL = [
   './',
   './index.html',
@@ -41,7 +41,14 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+  if (!event.request.url.startsWith(self.location.origin)) return;
   event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request)),
+    fetch(new Request(event.request, { cache: 'no-store' }))
+      .then((response) => {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        return response;
+      })
+      .catch(() => caches.match(event.request)),
   );
 });
