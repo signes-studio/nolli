@@ -94,9 +94,9 @@
       <button type="button" class="filter-group-head" aria-expanded="true"><span>[ CATEGORÍA ]</span><span class="filter-chevron">−</span></button>
       <div class="filter-group-body"><div class="filter-group-actions"><button type="button" class="filter-action" data-filter-all="category">TODOS</button><button type="button" class="filter-action" data-filter-isolate="category">AISLAR</button></div><select id="filter-category" class="tech-input" aria-label="Filtrar por categoría"><option value="">TODAS LAS CATEGORÍAS</option></select></div>
     </div>
-    <div class="filter-group" data-filter-group="visitable">
-      <button type="button" class="filter-group-head" aria-expanded="true"><span>[ VISITABLE ]</span><span class="filter-chevron">−</span></button>
-      <div class="filter-group-body"><div class="filter-group-actions"><button type="button" class="filter-action" data-filter-all="visitable">TODOS</button><button type="button" class="filter-action" data-filter-isolate="visitable">AISLAR</button></div><select id="filter-visitable" class="tech-input" aria-label="Filtrar por visitabilidad"><option value="">VISITABILIDAD: TODAS</option><option value="1">SOLO VISITABLES</option><option value="0">SOLO NO VISITABLES</option></select></div>
+    <div class="filter-group" data-filter-group="access">
+    <button type="button" class="filter-group-head" aria-expanded="true"><span>[ ACCESO ]</span><span class="filter-chevron">−</span></button>
+    <div class="filter-group-body"><div class="filter-group-actions"><button type="button" class="filter-action" data-filter-all="access">TODOS</button><button type="button" class="filter-action" data-filter-isolate="access">AISLAR</button></div><select id="filter-access" class="tech-input" aria-label="Filtrar por estado de acceso"><option value="">TODOS LOS ESTADOS</option><option value="publico">PÚBLICO</option><option value="exterior_visible">EXTERIOR VISIBLE</option><option value="con_reserva">CON RESERVA</option><option value="privado">PRIVADO</option><option value="cerrado_temporalmente">CERRADO TEMPORALMENTE</option><option value="desaparecido">DESAPARECIDO</option></select></div>
     </div>
     <div class="filter-group filter-group-architects" data-filter-group="architects">
       <button type="button" class="filter-group-head" aria-expanded="true"><span>[ ARQUITECTOS ]</span><span class="filter-chevron">−</span></button>
@@ -269,11 +269,15 @@
             <option value="otro">OTRO</option>
           </select>
         </div>
-        <div class="flex-1">
-          <label for="add-visitable" class="text-[10px] block mb-1" style="color:var(--fg-dim)">VISITABLE</label>
-          <select id="add-visitable" class="tech-input">
-            <option value="1">SÍ</option>
-            <option value="0">NO</option>
+          <div class="flex-1">
+          <label for="add-acceso" class="text-[10px] block mb-1" style="color:var(--fg-dim)">ESTADO DE ACCESO</label>
+          <select id="add-acceso" class="tech-input">
+            <option value="publico">PÚBLICO</option>
+            <option value="exterior_visible">EXTERIOR VISIBLE</option>
+            <option value="con_reserva">CON RESERVA</option>
+            <option value="privado">PRIVADO</option>
+            <option value="cerrado_temporalmente">CERRADO TEMPORALMENTE</option>
+            <option value="desaparecido">DESAPARECIDO</option>
           </select>
         </div>
       </div>

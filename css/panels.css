@@ -33,6 +33,10 @@
 .status-button { padding: 7px 9px; border: 1px solid var(--border-strong); background: var(--bg-raised); color: var(--fg-dim); font: inherit; font-size: 10px; cursor: pointer; }
 .status-button.active { color: #ffffff; border-color: #ffffff; box-shadow: 0 0 10px rgba(255,255,255,.16); }
 .status-button.visited.active { color: var(--accent-2); border-color: var(--accent-2); box-shadow: 0 0 10px rgba(57,255,20,.14); }
+.personal-notes { display: grid; gap: 7px; padding: 10px 12px 12px; border-bottom: 1px solid var(--border); }
+.personal-notes label { color: var(--fg-dim); font-size: 10px; letter-spacing: .04em; }
+.personal-notes textarea { resize: vertical; min-height: 68px; }
+.save-personal-status { justify-self: start; padding: 7px 9px; font-size: 10px; }
 .share-actions { flex-wrap: wrap; }
 .share-actions .status-button { color: var(--fg); border-color: var(--border-strong); }
 .share-actions .status-button:hover, .share-actions .status-button:focus-visible { color: var(--accent); border-color: var(--accent); outline: none; }
@@ -80,6 +84,7 @@
 .admin-project-info strong, .admin-project-info span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .admin-project-info span { color: var(--fg-dim); }
 .admin-project-city { color: var(--accent-2) !important; }
+.admin-project-rating { color: var(--accent) !important; }
 .admin-project-actions { display: flex; flex-shrink: 0; gap: 5px; }
 .admin-action-edit, .admin-action-delete { padding: 5px 7px; font-size: 9px; }
 .admin-action-delete { color: #ff6b6b; border-color: #ff6b6b; }

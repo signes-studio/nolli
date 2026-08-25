@@ -3,7 +3,7 @@
    ========================================================================= */
 
 import { state, separarArquitectos } from './state.js';
-import { deleteBuilding } from './api.js';
+import { deleteBuilding, fetchRatingAverages } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
 
@@ -13,6 +13,7 @@ const search = document.getElementById('admin-search');
 const count = document.getElementById('admin-count');
 const list = document.getElementById('admin-project-list');
 const cityCache = new Map();
+let ratingAverages = new Map();
 
 export function initAdminUI() {
   button.addEventListener('click', () => {
@@ -42,6 +43,12 @@ export function initAdminUI() {
   });
   document.addEventListener('radar:data-ready', renderList);
   document.addEventListener('radar:user-login', () => button.classList.add('hidden'));
+  document.addEventListener('radar:admin-login', cargarMedias);
+}
+
+async function cargarMedias() {
+  ratingAverages = await fetchRatingAverages(state.sessionToken);
+  if (panel.classList.contains('open')) renderList();
 }
 
 async function renderList() {
@@ -59,6 +66,7 @@ async function renderList() {
         <strong>${obra.nombre_obra}</strong>
         <span>${obra.arquitecto || 'Sin arquitecto'}</span>
         <span class="admin-project-city" data-city-for="${obra.featureId}">LOCALIZACIÓN...</span>
+        <span class="admin-project-rating">${formatearMedia(obra.id)}</span>
       </div>
       <div class="admin-project-actions">
         <button type="button" class="btn admin-action-edit" data-admin-edit="${obra.id}">EDITAR</button>
@@ -72,6 +80,11 @@ async function renderList() {
     if (!cityElement) return;
     cityElement.textContent = await obtenerCiudad(obra);
   }));
+}
+
+function formatearMedia(buildingId) {
+  const rating = ratingAverages.get(String(buildingId));
+  return rating ? `VALORACIÓN MEDIA ${rating.average.toFixed(1)} / 5 · ${rating.count} ${rating.count === 1 ? 'voto' : 'votos'}` : 'SIN VALORACIONES';
 }
 
 async function obtenerCiudad(obra) {

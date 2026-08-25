@@ -47,17 +47,26 @@ export function abrirFicha(p, c, featureId = p.id) {
     <div class="data-row"><div class="label">[ARQUITECTO]</div><div class="value accent">${architectButtons}</div></div>
     <div class="data-row"><div class="label">[AÑO]</div><div class="value">${p.año_construccion}</div></div>
     <div class="data-row"><div class="label">[CATEGORÍA]</div><div class="value">${p.categoria || 'otro'}</div></div>
-    <div class="data-row"><div class="label">[VISITABLE]</div><div class="value">${p.visitable === true || p.visitable === 1 || p.visitable === 'true' ? 'SÍ' : 'NO'}</div></div>
+    <div class="data-row"><div class="label">[ACCESO]</div><div class="value">${formatearAcceso(p.estado_acceso || (p.visitable ? 'publico' : 'privado'))}</div></div>
     <div class="data-row"><div class="label">[COORD]</div><div class="value">${c[0].toFixed(5)}, ${c[1].toFixed(5)}</div></div>
     <div class="sheet-actions share-actions">
       <button type="button" class="status-button" data-share-action="open">COMPARTIR</button>
     </div>
-    ${state.sessionToken ? `<div class="sheet-actions"><button type="button" class="status-button ${estadoObra('favorite') ? 'active' : ''}" data-status="favorite">FAVORITO</button><button type="button" class="status-button ${estadoObra('visited') ? 'active visited' : ''}" data-status="visited">VISITADO</button></div>` : ''}
+    ${state.sessionToken ? `<div class="sheet-actions"><button type="button" class="status-button ${estadoObra('favorite') ? 'active' : ''}" data-status="favorite">FAVORITO</button><button type="button" class="status-button ${estadoObra('visited') ? 'active visited' : ''}" data-status="visited">VISITADO</button></div><div class="personal-notes"><label for="building-notes">NOTAS PRIVADAS</label><textarea id="building-notes" class="tech-input" rows="3" placeholder="Escribe una nota privada..."></textarea><label for="building-rating">VALORACIÓN PERSONAL</label><select id="building-rating" class="tech-input"><option value="">SIN VALORAR</option><option value="1">1 / 5</option><option value="2">2 / 5</option><option value="3">3 / 5</option><option value="4">4 / 5</option><option value="5">5 / 5</option></select><button type="button" class="btn save-personal-status" data-save-personal>GUARDAR NOTAS</button></div>` : ''}
   `;
   const editButton = document.getElementById('btn-edit-building');
   editButton.classList.toggle('hidden', state.userRole !== 'admin');
   sheet.classList.add('open');
   cerrarFiltros();
+  const personal = state.buildingStatuses.get(String(obraNueva?.id || p.id)) || {};
+  const notes = document.getElementById('building-notes');
+  const rating = document.getElementById('building-rating');
+  if (notes) notes.value = personal.notas || '';
+  if (rating) rating.value = personal.valoracion || '';
+}
+
+function formatearAcceso(value) {
+  return { publico: 'PÚBLICO', exterior_visible: 'EXTERIOR VISIBLE', con_reserva: 'CON RESERVA', privado: 'PRIVADO', cerrado_temporalmente: 'CERRADO TEMPORALMENTE', desaparecido: 'DESAPARECIDO' }[value] || value;
 }
 
 function estadoObra(status) {
@@ -93,6 +102,16 @@ document.addEventListener('click', (e) => {
       abrirFicha(obra, obra.coordenadas, obra.featureId);
       alert('No se pudo guardar el cambio.');
     });
+    return;
+  }
+  if (e.target.closest('[data-save-personal]')) {
+    const obra = state.OBRAS.find((item) => String(item.featureId) === String(state.selectedFeatureId));
+    if (!obra || !state.userId || !state.sessionToken) return;
+    const key = String(obra.id);
+    const current = state.buildingStatuses.get(key) || { favorite: false, visited: false };
+    const status = { ...current, notas: document.getElementById('building-notes').value, valoracion: Number(document.getElementById('building-rating').value) || null };
+    state.buildingStatuses.set(key, status);
+    saveBuildingStatus(state.userId, obra.id, status, state.sessionToken).catch(() => alert('No se pudieron guardar tus notas.'));
     return;
   }
   const architectButton = e.target.closest('.architect-filter');

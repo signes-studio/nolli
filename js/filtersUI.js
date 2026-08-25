@@ -10,7 +10,7 @@ const filterSwitches = document.getElementById('filter-switches');
 const architectSearch = document.getElementById('architect-search');
 const decadeSelect = document.getElementById('filter-decade');
 const categorySelect = document.getElementById('filter-category');
-const visitableSelect = document.getElementById('filter-visitable');
+const accessSelect = document.getElementById('filter-access');
 
 /** Regenera los interruptores de filtro a partir de state.ARQUITECTOS. */
 export function generarFiltrosUI() {
@@ -48,7 +48,7 @@ function actualizarOpcionesFiltros() {
   categorySelect.innerHTML = '<option value="">TODAS LAS CATEGORÍAS</option>';
   categories.forEach((value) => categorySelect.insertAdjacentHTML('beforeend', `<option value="${value}">${value.toUpperCase()}</option>`));
   categorySelect.value = category;
-  visitableSelect.value = state.activeVisitable;
+  accessSelect.value = state.activeVisitable;
 }
 
 /** Cierra el panel de filtros (usado, p. ej., al abrir la ficha técnica). */
@@ -59,11 +59,11 @@ export function cerrarFiltros() {
 
 function initFiltersUI() {
   architectSearch.addEventListener('input', generarFiltrosUI);
-  [decadeSelect, categorySelect, visitableSelect].forEach((control) => {
+  [decadeSelect, categorySelect, accessSelect].forEach((control) => {
     control.addEventListener('change', () => {
       state.activeDecada = decadeSelect.value;
       state.activeCategoria = categorySelect.value;
-      state.activeVisitable = visitableSelect.value;
+      state.activeVisitable = accessSelect.value;
       aplicarFiltrosMapa();
     });
   });
@@ -92,7 +92,7 @@ function initFiltersUI() {
         if (group === 'architects') state.activeArquitectos = new Set(state.ARQUITECTOS);
         if (group === 'decade') state.activeDecada = '';
         if (group === 'category') state.activeCategoria = '';
-        if (group === 'visitable') state.activeVisitable = '';
+        if (group === 'access') state.activeVisitable = '';
         generarFiltrosUI();
         aplicarFiltrosMapa();
         return;
@@ -103,10 +103,10 @@ function initFiltersUI() {
         state.activeArquitectos = group === 'architects' ? new Set(state.activeArquitectos) : new Set(state.ARQUITECTOS);
         if (group !== 'decade') state.activeDecada = '';
         if (group !== 'category') state.activeCategoria = '';
-        if (group !== 'visitable') state.activeVisitable = '';
+        if (group !== 'access') state.activeVisitable = '';
         if (group === 'decade' && !state.activeDecada) return;
         if (group === 'category' && !state.activeCategoria) return;
-        if (group === 'visitable' && !state.activeVisitable) return;
+        if (group === 'access' && !state.activeVisitable) return;
         generarFiltrosUI();
         aplicarFiltrosMapa();
         return;
@@ -143,7 +143,7 @@ export function aplicarFiltrosMapa() {
   if (state.activeDecada) detalles.push(['>=', ['get', 'año_construccion'], Number(state.activeDecada)]);
   if (state.activeDecada) detalles.push(['<', ['get', 'año_construccion'], Number(state.activeDecada) + 10]);
   if (state.activeCategoria) detalles.push(['==', ['get', 'categoria'], state.activeCategoria]);
-  if (state.activeVisitable) detalles.push(['==', ['get', 'visitable'], Number(state.activeVisitable)]);
+  if (state.activeVisitable) detalles.push(['==', ['get', 'estado_acceso'], state.activeVisitable]);
   [1, 2, 3].forEach((importance) => {
     [`obras-l${importance}`, `obras-l${importance}-visited`, `obras-l${importance}-selected`].forEach((layerId) => {
       if (!state.map.getLayer(layerId)) return;

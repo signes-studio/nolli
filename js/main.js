@@ -29,7 +29,7 @@ async function inicializarRadar() {
       importancia: Number(fila.importancia) || 1,
       categoria: fila.categoria || 'otro',
       ciudad: fila.ciudad || null,
-      visitable: fila.visitable === true || fila.visitable === 1 || fila.visitable === 'true',
+      estado_acceso: fila.estado_acceso || (fila.visitable ? 'publico' : 'privado'),
       añadido_por: fila.añadido_por || null,
       coordenadas: [fila.longitud, fila.latitud],
       selected: false,

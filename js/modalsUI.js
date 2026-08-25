@@ -157,7 +157,7 @@ function initAddBuildingModal() {
     document.getElementById('add-ano').value = obra.año_construccion || '';
     document.getElementById('add-importancia').value = String(obra.importancia || 1);
     document.getElementById('add-categoria').value = obra.categoria || 'otro';
-    document.getElementById('add-visitable').value = obra.visitable ? '1' : '0';
+    document.getElementById('add-acceso').value = obra.estado_acceso || 'publico';
     document.getElementById('add-error').classList.add('hidden');
     mAdd.classList.add('open');
   });
@@ -173,7 +173,7 @@ function initAddBuildingModal() {
     const ano = parseInt(document.getElementById('add-ano').value, 10);
     const importancia = Number(document.getElementById('add-importancia').value);
     const categoria = document.getElementById('add-categoria').value;
-    const visitable = document.getElementById('add-visitable').value === '1';
+    const estadoAcceso = document.getElementById('add-acceso').value;
 
     if (!nombre || !arq || !state.pendingLngLat) {
       err.textContent = 'Faltan datos obligatorios (Nombre y Arquitecto).';
@@ -193,7 +193,7 @@ function initAddBuildingModal() {
       año_construccion: Number.isNaN(ano) ? null : ano,
       importancia,
       categoria,
-      visitable,
+      estado_acceso: estadoAcceso,
       longitud: state.pendingLngLat.lng,
       latitud: state.pendingLngLat.lat,
     };
@@ -208,6 +208,7 @@ function initAddBuildingModal() {
           arquitectos: separarArquitectos(arq),
           id: obra.id,
           coordenadas: [updated.longitud, updated.latitud],
+          featureId: obra.featureId,
           selected: obra.selected,
         });
       } else {
@@ -273,7 +274,7 @@ function handleMapLongPress(lngLat) {
   document.getElementById('add-ano').value = '';
   document.getElementById('add-importancia').value = '1';
   document.getElementById('add-categoria').value = 'otro';
-  document.getElementById('add-visitable').value = '1';
+  document.getElementById('add-acceso').value = 'publico';
   document.getElementById('modal-add-title').textContent = 'REGISTRO DE NUEVA OBRA (DB)';
   document.getElementById('btn-add-save').innerHTML = '<span class="inline-flex items-center gap-1"><i data-lucide="database" width="13" height="13"></i> PUBLICAR</span>';
   document.getElementById('add-error').classList.add('hidden');

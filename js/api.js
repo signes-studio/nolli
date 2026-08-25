@@ -61,7 +61,7 @@ export async function fetchCurrentUser(sessionToken) {
 }
 
 export async function fetchBuildingStatuses(userId, sessionToken) {
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_building_status?user_id=eq.${encodeURIComponent(userId)}&select=building_id,favorite,visited`, {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_building_status?user_id=eq.${encodeURIComponent(userId)}&select=building_id,favorite,visited,notas,valoracion`, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
   });
   if (!response.ok) return [];
@@ -81,6 +81,26 @@ export async function saveBuildingStatus(userId, buildingId, status, sessionToke
   });
   if (!response.ok) throw new Error('No se pudo guardar tu estado personal.');
   return response.json();
+}
+
+export async function fetchRatingAverages(sessionToken) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_building_status?select=building_id,valoracion&valoracion=not.is.null&limit=10000`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
+  });
+  if (!response.ok) return new Map();
+  const rows = await response.json();
+  const ratings = new Map();
+  rows.forEach((row) => {
+    const rating = Number(row.valoracion);
+    if (!Number.isFinite(rating)) return;
+    const key = String(row.building_id);
+    const current = ratings.get(key) || { total: 0, count: 0 };
+    ratings.set(key, { total: current.total + rating, count: current.count + 1 });
+  });
+  return new Map([...ratings].map(([key, value]) => [key, {
+    average: value.total / value.count,
+    count: value.count,
+  }]));
 }
 
 /** Inserta un nuevo edificio en la base de datos. Requiere token de sesión. */
