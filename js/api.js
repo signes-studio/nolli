@@ -79,7 +79,10 @@ export async function saveBuildingStatus(userId, buildingId, status, sessionToke
     },
     body: JSON.stringify({ user_id: userId, building_id: buildingId, ...status }),
   });
-  if (!response.ok) throw new Error('No se pudo guardar tu estado personal.');
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || error.details || 'No se pudo guardar tu estado personal.');
+  }
   return response.json();
 }
 

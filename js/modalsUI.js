@@ -38,6 +38,8 @@ async function initLoginModal() {
     state.buildingStatuses = new Map(statuses.map((item) => [String(item.building_id), {
       favorite: item.favorite === true,
       visited: item.visited === true,
+      notas: item.notas || '',
+      valoracion: item.valoracion || null,
     }]));
     document.dispatchEvent(new CustomEvent('radar:user-status-ready'));
   };

@@ -132,13 +132,26 @@ document.addEventListener('click', (e) => {
     return;
   }
   if (e.target.closest('[data-save-personal]')) {
+    const saveButton = e.target.closest('[data-save-personal]');
     const obra = state.OBRAS.find((item) => String(item.featureId) === String(state.selectedFeatureId));
-    if (!obra || !state.userId || !state.sessionToken) return;
+    if (!obra || !state.userId || !state.sessionToken) {
+      alert('Inicia sesión para guardar notas.');
+      return;
+    }
     const key = String(obra.id);
     const current = state.buildingStatuses.get(key) || { favorite: false, visited: false };
     const status = { ...current, notas: document.getElementById('building-notes').value, valoracion: current.valoracion || null };
     state.buildingStatuses.set(key, status);
-    saveBuildingStatus(state.userId, obra.id, status, state.sessionToken).catch(() => alert('No se pudieron guardar tus notas.'));
+    saveButton.textContent = 'GUARDANDO...';
+    saveButton.disabled = true;
+    saveBuildingStatus(state.userId, obra.id, status, state.sessionToken).then(() => {
+      saveButton.textContent = 'GUARDADO';
+      document.dispatchEvent(new CustomEvent('radar:user-status-changed'));
+    }).catch((error) => {
+      state.buildingStatuses.set(key, current);
+      saveButton.textContent = 'REINTENTAR';
+      alert(error.message);
+    }).finally(() => { saveButton.disabled = false; });
     return;
   }
   const architectButton = e.target.closest('.architect-filter');
