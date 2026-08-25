@@ -21,6 +21,7 @@ export const state = {
   activeCategoria: '',
   activeVisitable: '',
   map: null,
+  mapStyle: 'dark',
 };
 
 export function separarArquitectos(valor) {

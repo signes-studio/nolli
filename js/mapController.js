@@ -3,7 +3,7 @@
    ========================================================================= */
 
 import { state } from './state.js';
-import { MAPBOX_TOKEN, MAP_STYLE, DEFAULT_CENTER, DEFAULT_ZOOM } from './config.js';
+import { MAPBOX_TOKEN, MAP_STYLES, DEFAULT_CENTER, DEFAULT_ZOOM } from './config.js';
 import { buildIcon, drawTargetIcon } from './icons.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { abrirFicha, cerrarFicha } from './sheetUI.js';
@@ -14,7 +14,7 @@ mapboxgl.accessToken = MAPBOX_TOKEN;
 export function cargarMapaMapbox() {
   state.map = new mapboxgl.Map({
     container: 'map',
-    style: MAP_STYLE,
+    style: MAP_STYLES.dark,
     center: DEFAULT_CENTER,
     zoom: DEFAULT_ZOOM,
     attributionControl: true,
@@ -22,7 +22,8 @@ export function cargarMapaMapbox() {
   state.map.dragRotate.disable();
   state.map.touchZoomRotate.disableRotation();
 
-  state.map.on('load', () => {
+  const configurarCapas = () => {
+    if (state.map.getSource('obras')) return;
     [1, 2, 3].forEach((importance) => {
       state.map.addImage(`icon-l${importance}`, buildIcon(drawTargetIcon, '#FF4500', importance), { pixelRatio: 2 });
       state.map.addImage(`icon-l${importance}-visited`, buildIcon(drawTargetIcon, '#39FF14', importance), { pixelRatio: 2 });
@@ -122,13 +123,40 @@ export function cargarMapaMapbox() {
     state.map.on('mouseleave', 'obras-labels', () => { state.map.getCanvas().style.cursor = ''; });
 
     iniciarInteraccionesMapa();
-  });
+  };
+  state.map.on('load', configurarCapas);
+  state.map.on('style.load', configurarCapas);
 
   initHudReadout();
   document.getElementById('btn-recenter').addEventListener('click', () => {
     state.map.flyTo({ center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM });
   });
   document.getElementById('btn-location').addEventListener('click', localizarDispositivo);
+  initMapStyleSelector();
+}
+
+function initMapStyleSelector() {
+  const panel = document.getElementById('map-style-panel');
+  const button = document.getElementById('btn-map-style');
+  document.addEventListener('click', (event) => {
+    if (event.target.closest('#btn-map-style-close')) {
+      panel.classList.remove('open');
+      button.classList.remove('active-state');
+    }
+    const option = event.target.closest('[data-map-style]');
+    if (!option) return;
+    const style = option.dataset.mapStyle;
+    if (style === state.mapStyle) return;
+    state.mapStyle = style;
+    panel.querySelectorAll('[data-map-style]').forEach((item) => item.classList.toggle('active', item === option));
+    state.map.setStyle(MAP_STYLES[style]);
+    panel.classList.remove('open');
+    button.classList.remove('active-state');
+  });
+  button.addEventListener('click', () => {
+    panel.classList.toggle('open');
+    button.classList.toggle('active-state');
+  });
 }
 
 function localizarDispositivo() {

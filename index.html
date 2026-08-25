@@ -78,6 +78,9 @@
     <button id="btn-my-places" type="button" class="fab" title="Mis edificios" aria-label="Ver favoritos y visitados">
       <i data-lucide="bookmark" width="20" height="20"></i>
     </button>
+    <button id="btn-map-style" type="button" class="fab" title="Tipo de mapa" aria-label="Cambiar tipo de mapa">
+      <i data-lucide="layers-2" width="20" height="20"></i>
+    </button>
   </div>
 
   <!-- Panel de filtros -->
@@ -127,6 +130,18 @@
       <span id="admin-count" class="admin-count"></span>
     </div>
     <div id="admin-project-list" class="admin-project-list"></div>
+  </section>
+
+  <section id="map-style-panel" class="map-style-panel" aria-label="Tipo de mapa">
+    <div class="filter-head">
+      <span style="color:var(--fg-dim)">[ TIPO DE MAPA ]</span>
+      <i data-lucide="x" id="btn-map-style-close" width="14" height="14" style="cursor:pointer; color:var(--fg-dim)" role="button" aria-label="Cerrar tipos de mapa"></i>
+    </div>
+    <div class="map-style-options">
+      <button type="button" class="map-style-option" data-map-style="light">CLARO</button>
+      <button type="button" class="map-style-option active" data-map-style="dark">OSCURO</button>
+      <button type="button" class="map-style-option" data-map-style="satellite">SATÉLITE</button>
+    </div>
   </section>
 
   <section id="search-panel" class="search-panel" aria-label="Buscar edificios">
