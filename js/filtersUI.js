@@ -2,7 +2,7 @@
    FILTERSUI.JS — Panel de filtros por arquitecto
    ========================================================================= */
 
-import { state } from './state.js';
+import { state, esRolAdmin } from './state.js';
 
 const filterPanel = document.getElementById('filter-panel');
 const btnFilters = document.getElementById('btn-filters');
@@ -141,7 +141,7 @@ export function aplicarFiltrosMapa() {
     : ['==', 1, 0];
   const detalles = [];
   const adminReviewFilter = document.getElementById('admin-review-filter');
-  if (state.userRole === 'admin' && adminReviewFilter?.value) detalles.push(['==', ['get', 'estado_revision'], adminReviewFilter.value]);
+  if (esRolAdmin(state.userRole) && adminReviewFilter?.value) detalles.push(['==', ['get', 'estado_revision'], adminReviewFilter.value]);
   if (state.activeDecada) detalles.push(['>=', ['get', 'año_construccion'], Number(state.activeDecada)]);
   if (state.activeDecada) detalles.push(['<', ['get', 'año_construccion'], Number(state.activeDecada) + 10]);
   if (state.activeCategoria) detalles.push(['==', ['get', 'categoria'], state.activeCategoria]);

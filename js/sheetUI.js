@@ -2,7 +2,7 @@
    SHEETUI.JS — Ficha técnica (bottom sheet)
    ========================================================================= */
 
-import { state, separarArquitectos } from './state.js';
+import { state, separarArquitectos, esRolAdmin } from './state.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { cerrarFiltros, generarFiltrosUI, aplicarFiltrosMapa } from './filtersUI.js';
 import { saveBuildingStatus, deleteBuilding, deletePrivateBuilding } from './api.js';
@@ -36,9 +36,10 @@ export function abrirFicha(p, c, featureId = p.id) {
   }
 
   state.selectedFeatureId = clickedId;
-    const obraNueva = state.OBRAS.find((o) => String(o.featureId) === String(state.selectedFeatureId));
+  const obraNueva = state.OBRAS.find((o) => String(o.featureId) === String(state.selectedFeatureId));
   if (obraNueva) obraNueva.selected = true;
   actualizarFuenteMapa();
+  const adminActivo = esRolAdmin(state.userRole) && state.adminMode;
 
   document.getElementById('sheet-title').innerHTML = p.nombre_obra;
   document.getElementById('sheet-body').innerHTML = `
@@ -50,10 +51,10 @@ export function abrirFicha(p, c, featureId = p.id) {
     <div class="data-row"><div class="label">[ACCESO]</div><div class="value">${formatearAcceso(p.estado_acceso || (p.visitable ? 'publico' : 'privado'))}</div></div>
     <div class="data-row"><div class="label">[COORD]</div><div class="value">${c[0].toFixed(5)}, ${c[1].toFixed(5)}</div></div>
     <div class="personal-notes">${state.sessionToken ? `<div class="rating-row"><div class="rating-stars">${[1, 2, 3, 4, 5].map((value) => `<button type="button" class="rating-star ${estadoObra('valoracion') >= value ? 'active' : ''}" data-rating="${value}" aria-label="Valorar ${value} de 5">★</button>`).join('')}</div></div><button type="button" class="btn note-toggle" data-note-toggle>AÑADIR NOTA</button><div class="personal-note-editor" data-note-editor><label for="building-notes">NOTA PRIVADA</label><textarea id="building-notes" class="tech-input" rows="3" placeholder="Escribe una nota privada..."></textarea><button type="button" class="btn save-personal-status" data-save-personal>GUARDAR NOTA</button></div>` : ''}</div>
-    ${state.sessionToken && !(state.userRole === 'admin' && state.adminMode) ? '<button type="button" class="report-link" data-open-report>¿Ves un error en esta ficha?</button>' : ''}
+    ${state.sessionToken && !adminActivo ? '<button type="button" class="report-link" data-open-report>¿Ves un error en esta ficha?</button>' : ''}
   `;
   const canDeletePrivate = Boolean(obraNueva?.private && state.userId && String(obraNueva.user_id) === String(state.userId));
-  document.getElementById('sheet-header-actions').innerHTML = `<button type="button" class="sheet-action-button" data-share-action="open">COMPARTIR</button>${state.userRole === 'admin' && state.adminMode ? '<button type="button" id="btn-edit-building" class="sheet-action-button admin-only-action" data-edit-building>EDITAR</button><button type="button" class="sheet-action-button admin-delete-action" data-delete-building>ELIMINAR</button>' : ''}${canDeletePrivate ? '<button type="button" class="sheet-action-button private-delete-action" data-delete-private>ELIMINAR</button>' : ''}${state.sessionToken ? `<button type="button" class="sheet-action-button ${estadoObra('favorite') ? 'active favorite' : ''}" data-status="favorite">FAVORITO</button><button type="button" class="sheet-action-button ${estadoObra('visited') ? 'active visited' : ''}" data-status="visited">VISITADO</button>` : ''}`;
+  document.getElementById('sheet-header-actions').innerHTML = `<button type="button" class="sheet-action-button" data-share-action="open">COMPARTIR</button>${adminActivo ? '<button type="button" id="btn-edit-building" class="sheet-action-button admin-only-action" data-edit-building>EDITAR</button><button type="button" class="sheet-action-button admin-delete-action" data-delete-building>ELIMINAR</button>' : ''}${canDeletePrivate ? '<button type="button" class="sheet-action-button private-delete-action" data-delete-private>ELIMINAR</button>' : ''}${state.sessionToken ? `<button type="button" class="sheet-action-button ${estadoObra('favorite') ? 'active favorite' : ''}" data-status="favorite">FAVORITO</button><button type="button" class="sheet-action-button ${estadoObra('visited') ? 'active visited' : ''}" data-status="visited">VISITADO</button>` : ''}`;
   sheet.classList.add('open');
   cerrarFiltros();
   const personal = state.buildingStatuses.get(String(obraNueva?.id || p.id)) || {};
@@ -207,7 +208,7 @@ async function eliminarChinchetaPrivada() {
 
 async function eliminarEdificioSeleccionado() {
   const obra = state.OBRAS.find((item) => String(item.featureId) === String(state.selectedFeatureId));
-  if (!obra || state.userRole !== 'admin' || !state.adminMode || !window.confirm(`¿Eliminar "${obra.nombre_obra}"?`)) return;
+  if (!obra || !esRolAdmin(state.userRole) || !state.adminMode || !window.confirm(`¿Eliminar "${obra.nombre_obra}"?`)) return;
   try {
     await deleteBuilding(obra.id, state.sessionToken);
     state.OBRAS = state.OBRAS.filter((item) => String(item.id) !== String(obra.id));

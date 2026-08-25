@@ -2,7 +2,7 @@
    ADMINUI.JS — Gestión de proyectos para administradores
    ========================================================================= */
 
-import { state, separarArquitectos } from './state.js';
+import { state, separarArquitectos, esRolAdmin } from './state.js';
 import { deleteBuilding, fetchRatingAverages, reviewBuilding, fetchBuildingReports, updateBuildingReport } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
@@ -83,7 +83,7 @@ async function cargarMedias() {
 }
 
 async function renderList() {
-  if (state.userRole !== 'admin' || !state.adminMode) return;
+  if (!esRolAdmin(state.userRole) || !state.adminMode) return;
   const text = search.value.trim().toLowerCase();
   const projects = state.OBRAS.filter((obra) => `${obra.nombre_obra} ${obra.arquitecto}`.toLowerCase().includes(text))
     .filter((obra) => !reviewFilter.value || obra.estado_revision === reviewFilter.value);
@@ -117,7 +117,7 @@ async function renderList() {
 }
 
 async function renderReports() {
-  if (state.userRole !== 'admin') return;
+  if (!esRolAdmin(state.userRole)) return;
   const reports = await fetchBuildingReports(state.sessionToken);
   reportCount.textContent = `${reports.length} pendientes`;
   reportBadge.textContent = reports.length;
@@ -154,7 +154,7 @@ function formatearEstadoRevision(status) {
 
 async function revisarProyecto(id, estadoRevision) {
   const obra = state.OBRAS.find((item) => String(item.id) === String(id));
-  if (!obra || state.userRole !== 'admin') return;
+  if (!obra || !esRolAdmin(state.userRole)) return;
   try {
     await reviewBuilding(id, estadoRevision, state.sessionToken);
     obra.estado_revision = estadoRevision;

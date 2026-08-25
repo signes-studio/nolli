@@ -2,12 +2,12 @@
    MAPDATA.JS — Sincroniza OBRAS (state) con la fuente GeoJSON de Mapbox
    ========================================================================= */
 
-import { state } from './state.js';
+import { state, esRolAdmin } from './state.js';
 
 export function actualizarFuenteMapa() {
   const geojson = {
     type: 'FeatureCollection',
-    features: state.OBRAS.filter((o) => state.userRole === 'admin' && state.adminMode
+    features: state.OBRAS.filter((o) => esRolAdmin(state.userRole) && state.adminMode
       ? o.estado_revision !== 'rechazada'
       : o.estado_revision !== 'pendiente' && o.estado_revision !== 'rechazada').map((o) => ({
       type: 'Feature',

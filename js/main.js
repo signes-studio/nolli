@@ -4,8 +4,8 @@
    <script type="module"> por lo que se ejecuta en modo defer de forma nativa.
    ========================================================================= */
 
-import { state, separarArquitectos } from './state.js';
-import { fetchBuildings, fetchUserPendingBuildings, fetchPendingBuildings, fetchPrivateBuildings } from './api.js';
+import { state, separarArquitectos, esRolAdmin } from './state.js';
+import { fetchBuildings, fetchUserPendingBuildings, fetchPendingBuildings, fetchPrivateBuildings, fetchAllPrivateBuildings } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
 import { cargarMapaMapbox } from './mapController.js';
@@ -51,9 +51,10 @@ async function inicializarRadar() {
 
 async function cargarContenidoPrivado() {
   if (!state.userId || !state.sessionToken) return;
+  const isSuperadmin = state.userRole === 'superadmin';
   const [pending, privateBuildings] = await Promise.all([
-    state.userRole === 'admin' ? fetchPendingBuildings(state.sessionToken) : fetchUserPendingBuildings(state.userId, state.sessionToken),
-    fetchPrivateBuildings(state.userId, state.sessionToken),
+    esRolAdmin(state.userRole) ? fetchPendingBuildings(state.sessionToken) : fetchUserPendingBuildings(state.userId, state.sessionToken),
+    isSuperadmin ? fetchAllPrivateBuildings(state.sessionToken) : fetchPrivateBuildings(state.userId, state.sessionToken),
   ]);
   const existingIds = new Set(state.OBRAS.map((obra) => String(obra.id)));
   const pendingObjects = pending.filter((fila) => !existingIds.has(String(fila.id))).map((fila, index) => ({

@@ -28,6 +28,10 @@ export const state = {
   privateBuildings: [],
 };
 
+export function esRolAdmin(role = state.userRole) {
+  return role === 'admin' || role === 'superadmin';
+}
+
 export function separarArquitectos(valor) {
   return String(valor || '')
     .split(/[,/]/)

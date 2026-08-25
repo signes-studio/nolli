@@ -41,6 +41,14 @@ export async function fetchPrivateBuildings(userId, sessionToken) {
   return response.json();
 }
 
+export async function fetchAllPrivateBuildings(sessionToken) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_private_buildings?select=*`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
+  });
+  if (!response.ok) return [];
+  return response.json();
+}
+
 export async function createPrivateBuilding(building, sessionToken) {
   const response = await fetch(`${SUPABASE_URL}/rest/v1/user_private_buildings`, {
     method: 'POST',
@@ -109,7 +117,8 @@ export async function fetchUserRole(sessionToken) {
   });
   if (!profileRes.ok) return 'user';
   const profiles = await profileRes.json();
-  return profiles[0]?.role === 'admin' ? 'admin' : 'user';
+  const role = String(profiles[0]?.role || '').toLowerCase();
+  return role === 'admin' || role === 'superadmin' ? role : 'user';
 }
 
 export async function fetchCurrentUser(sessionToken) {
