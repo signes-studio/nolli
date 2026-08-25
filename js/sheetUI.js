@@ -2,7 +2,7 @@
    SHEETUI.JS — Ficha técnica (bottom sheet)
    ========================================================================= */
 
-import { state, separarArquitectos, esRolAdmin } from './state.js';
+import { state, separarArquitectos, esRolAdmin, guardarZonaPersonalLocal } from './state.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { cerrarFiltros, generarFiltrosUI, aplicarFiltrosMapa } from './filtersUI.js';
 import { saveBuildingStatus, deleteBuilding, deletePrivateBuilding, createUserCollection, addUserCollectionItem, createUserPrivateLabel } from './api.js';
@@ -223,9 +223,11 @@ async function guardarObraEnColeccion() {
   const proposed = window.prompt('Nombre de la lista (ej: Viaje a Japón, Verano 2026):');
   const collectionName = String(proposed || '').trim();
   if (!collectionName) return;
+
+  const existingCollection = state.userCollections.find((collection) => String(collection.name).toLowerCase() === collectionName.toLowerCase());
+  let collectionId = existingCollection?.id;
+
   try {
-    const existingCollection = state.userCollections.find((collection) => String(collection.name).toLowerCase() === collectionName.toLowerCase());
-    let collectionId = existingCollection?.id;
     if (!collectionId) {
       const created = await createUserCollection({ id: `COL-${Date.now()}`, user_id: state.userId, name: collectionName }, state.sessionToken);
       const inserted = created[0];
@@ -243,7 +245,25 @@ async function guardarObraEnColeccion() {
     document.dispatchEvent(new CustomEvent('radar:user-collections-changed'));
     alert(`Guardado en "${collectionName}".`);
   } catch (error) {
-    alert(error.message);
+    if (!collectionId) {
+      collectionId = `COL-${Date.now()}`;
+      state.userCollections.push({ id: collectionId, user_id: state.userId, name: collectionName, created_at: new Date().toISOString() });
+    }
+    const alreadySaved = state.userCollectionItems.some((item) => String(item.collection_id) === String(collectionId) && String(item.building_id) === String(obra.id));
+    if (alreadySaved) {
+      alert(`La obra ya está en "${collectionName}".`);
+      return;
+    }
+    state.userCollectionItems.push({
+      id: `CLI-${Date.now()}`,
+      user_id: state.userId,
+      collection_id: collectionId,
+      building_id: obra.id,
+      created_at: new Date().toISOString(),
+    });
+    guardarZonaPersonalLocal(state.userId);
+    document.dispatchEvent(new CustomEvent('radar:user-collections-changed'));
+    alert(`Guardado en "${collectionName}" (modo local temporal).`);
   }
 }
 
@@ -262,7 +282,16 @@ async function agregarEtiquetaPrivada() {
     document.dispatchEvent(new CustomEvent('radar:user-private-labels-changed'));
     alert(`Etiqueta privada "${label}" guardada.`);
   } catch (error) {
-    alert(error.message);
+    state.userPrivateLabels.unshift({
+      id: `LBL-${Date.now()}`,
+      user_id: state.userId,
+      building_id: obra.id,
+      label,
+      created_at: new Date().toISOString(),
+    });
+    guardarZonaPersonalLocal(state.userId);
+    document.dispatchEvent(new CustomEvent('radar:user-private-labels-changed'));
+    alert(`Etiqueta privada "${label}" guardada (modo local temporal).`);
   }
 }
 

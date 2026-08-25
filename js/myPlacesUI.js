@@ -2,7 +2,7 @@
    MYPLACESUI.JS — Zona personal del usuario
    ========================================================================= */
 
-import { state } from './state.js';
+import { state, cargarZonaPersonalLocal, guardarZonaPersonalLocal } from './state.js';
 import { abrirFicha } from './sheetUI.js';
 import {
   fetchUserCollections,
@@ -12,6 +12,7 @@ import {
   deleteUserCollection,
   deleteUserCollectionItem,
   deleteUserPrivateLabel,
+  updateCurrentUserProfile,
 } from './api.js';
 
 const panel = document.getElementById('my-places-panel');
@@ -69,6 +70,12 @@ export function initMyPlacesUI() {
       return;
     }
 
+    const saveProfileButton = event.target.closest('[data-save-profile]');
+    if (saveProfileButton) {
+      guardarPerfil();
+      return;
+    }
+
     const item = event.target.closest('.my-place-item');
     if (item) {
       const obra = state.OBRAS.find((candidate) => String(candidate.featureId) === item.dataset.featureId);
@@ -98,14 +105,19 @@ export function initMyPlacesUI() {
 
 async function syncZonaPersonal() {
   if (!state.userId || !state.sessionToken) return;
-  const [collections, collectionItems, labels] = await Promise.all([
-    fetchUserCollections(state.userId, state.sessionToken),
-    fetchUserCollectionItems(state.userId, state.sessionToken),
-    fetchUserPrivateLabels(state.userId, state.sessionToken),
-  ]);
-  state.userCollections = collections;
-  state.userCollectionItems = collectionItems;
-  state.userPrivateLabels = labels;
+  try {
+    const [collections, collectionItems, labels] = await Promise.all([
+      fetchUserCollections(state.userId, state.sessionToken),
+      fetchUserCollectionItems(state.userId, state.sessionToken),
+      fetchUserPrivateLabels(state.userId, state.sessionToken),
+    ]);
+    state.userCollections = collections;
+    state.userCollectionItems = collectionItems;
+    state.userPrivateLabels = labels;
+    guardarZonaPersonalLocal(state.userId);
+  } catch {
+    cargarZonaPersonalLocal(state.userId);
+  }
   renderList();
 }
 
@@ -124,7 +136,11 @@ async function crearListaDesdePanel() {
     if (input) input.value = '';
     renderList();
   } catch (error) {
-    alert(error.message);
+    const localId = `COL-${Date.now()}`;
+    state.userCollections.push({ id: localId, user_id: state.userId, name, created_at: new Date().toISOString() });
+    guardarZonaPersonalLocal(state.userId);
+    if (input) input.value = '';
+    renderList();
   }
 }
 
@@ -138,7 +154,10 @@ async function borrarLista(collectionId) {
     state.userCollectionItems = state.userCollectionItems.filter((item) => String(item.collection_id) !== String(collectionId));
     renderList();
   } catch (error) {
-    alert(error.message);
+    state.userCollections = state.userCollections.filter((item) => String(item.id) !== String(collectionId));
+    state.userCollectionItems = state.userCollectionItems.filter((item) => String(item.collection_id) !== String(collectionId));
+    guardarZonaPersonalLocal(state.userId);
+    renderList();
   }
 }
 
@@ -149,7 +168,9 @@ async function quitarGuardado(collectionId, buildingId) {
     state.userCollectionItems = state.userCollectionItems.filter((item) => !(String(item.collection_id) === String(collectionId) && String(item.building_id) === String(buildingId)));
     renderList();
   } catch (error) {
-    alert(error.message);
+    state.userCollectionItems = state.userCollectionItems.filter((item) => !(String(item.collection_id) === String(collectionId) && String(item.building_id) === String(buildingId)));
+    guardarZonaPersonalLocal(state.userId);
+    renderList();
   }
 }
 
@@ -160,8 +181,30 @@ async function borrarEtiqueta(labelId) {
     state.userPrivateLabels = state.userPrivateLabels.filter((label) => String(label.id) !== String(labelId));
     renderList();
   } catch (error) {
-    alert(error.message);
+    state.userPrivateLabels = state.userPrivateLabels.filter((label) => String(label.id) !== String(labelId));
+    guardarZonaPersonalLocal(state.userId);
+    renderList();
   }
+}
+
+async function guardarPerfil() {
+  if (!state.sessionToken) return;
+  const firstName = String(document.getElementById('profile-first-name')?.value || '').trim();
+  const lastName = String(document.getElementById('profile-last-name')?.value || '').trim();
+  const city = String(document.getElementById('profile-city')?.value || '').trim();
+  const country = String(document.getElementById('profile-country')?.value || '').trim();
+  if (!firstName || !lastName || !city || !country) {
+    alert('Completa nombre, apellido, ciudad y país.');
+    return;
+  }
+  try {
+    await updateCurrentUserProfile(state.sessionToken, { firstName, lastName, city, country });
+  } catch {
+    // Si falla backend, mantenemos datos locales en sesión igualmente.
+  }
+  state.userProfile = { firstName, lastName, city, country };
+  renderList();
+  alert('Perfil actualizado.');
 }
 
 function renderList() {
@@ -172,6 +215,11 @@ function renderList() {
 
   if (activeTab === 'collections') {
     renderCollections();
+    return;
+  }
+
+  if (activeTab === 'profile') {
+    renderProfile();
     return;
   }
 
@@ -243,6 +291,31 @@ function renderCollections() {
       <button type="button" class="btn" data-create-collection>CREAR LISTA</button>
     </div>
     ${cards || '<div class="nearby-empty">Crea tu primera lista personalizada.</div>'}
+  `;
+}
+
+function renderProfile() {
+  const profile = state.userProfile || { firstName: '', lastName: '', city: '', country: '' };
+  const savedCount = new Set(state.userCollectionItems.map((item) => String(item.building_id))).size;
+  const favoriteCount = state.OBRAS.filter((obra) => state.buildingStatuses.get(String(obra.id))?.favorite).length;
+  const visitedCount = state.OBRAS.filter((obra) => state.buildingStatuses.get(String(obra.id))?.visited).length;
+  list.innerHTML = `
+    <div class="my-collection-card">
+      <div class="my-collection-head"><strong>MI PERFIL</strong></div>
+      <div class="nearby-empty" style="padding:8px 0 4px;">
+        CUENTA: ${state.userEmail || '-'} · ROL: ${(state.userRole || 'user').toUpperCase()}
+      </div>
+      <div class="my-collections-create" style="grid-template-columns:1fr; border-bottom:0; padding-top:0;">
+        <input id="profile-first-name" class="tech-input" type="text" placeholder="Nombre" value="${profile.firstName || ''}">
+        <input id="profile-last-name" class="tech-input" type="text" placeholder="Apellido" value="${profile.lastName || ''}">
+        <input id="profile-city" class="tech-input" type="text" placeholder="Ciudad" value="${profile.city || ''}">
+        <input id="profile-country" class="tech-input" type="text" placeholder="País" value="${profile.country || ''}">
+        <button type="button" class="btn" data-save-profile>GUARDAR PERFIL</button>
+      </div>
+      <div class="nearby-empty" style="padding-top:6px;">
+        FAVORITOS: ${favoriteCount} · VISITADOS: ${visitedCount} · GUARDADOS: ${savedCount} · ETIQUETAS: ${state.userPrivateLabels.length}
+      </div>
+    </div>
   `;
 }
 

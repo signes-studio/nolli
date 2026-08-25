@@ -132,6 +132,7 @@
       <button type="button" class="places-tab" data-place-tab="labels">ETIQUETAS</button>
       <button type="button" class="places-tab" data-place-tab="notes">NOTAS</button>
       <button type="button" class="places-tab" data-place-tab="collections">LISTAS</button>
+      <button type="button" class="places-tab" data-place-tab="profile">PERFIL</button>
     </div>
     <div id="my-places-list" class="my-places-list"></div>
   </section>
@@ -265,6 +266,22 @@
         <div>
           <label for="login-password" class="text-[10px] block mb-1" style="color:var(--fg-dim)">PASSWORD_</label>
           <input type="password" id="login-password" placeholder="••••••••" class="tech-input" autocomplete="current-password">
+        </div>
+        <div class="register-only-field hidden">
+          <label for="register-first-name" class="text-[10px] block mb-1" style="color:var(--fg-dim)">NOMBRE</label>
+          <input type="text" id="register-first-name" placeholder="Nombre" class="tech-input" autocomplete="given-name">
+        </div>
+        <div class="register-only-field hidden">
+          <label for="register-last-name" class="text-[10px] block mb-1" style="color:var(--fg-dim)">APELLIDO</label>
+          <input type="text" id="register-last-name" placeholder="Apellido" class="tech-input" autocomplete="family-name">
+        </div>
+        <div class="register-only-field hidden">
+          <label for="register-city" class="text-[10px] block mb-1" style="color:var(--fg-dim)">CIUDAD</label>
+          <input type="text" id="register-city" placeholder="Ciudad" class="tech-input" autocomplete="address-level2">
+        </div>
+        <div class="register-only-field hidden">
+          <label for="register-country" class="text-[10px] block mb-1" style="color:var(--fg-dim)">PAÍS</label>
+          <input type="text" id="register-country" placeholder="País" class="tech-input" autocomplete="country-name">
         </div>
         <div id="login-error" class="text-[10px] text-red-500 hidden mt-1" role="alert"></div>
         <button id="btn-do-login" type="submit" class="btn btn-accent mt-2 w-full">AUTORIZAR ACCESO</button>

@@ -21,6 +21,7 @@ async function initLoginModal() {
   const logoutButton = document.getElementById('btn-logout');
   const adminModeControl = document.getElementById('admin-mode-control');
   const adminModeToggle = document.getElementById('admin-mode-toggle');
+  const registerOnlyFields = document.querySelectorAll('.register-only-field');
   let registerMode = false;
 
   const marcarSesionIniciada = (role) => {
@@ -47,6 +48,12 @@ async function initLoginModal() {
     const user = await fetchCurrentUser(state.sessionToken);
     state.userId = user.id;
     state.userEmail = user.email || null;
+    state.userProfile = {
+      firstName: user.user_metadata?.first_name || '',
+      lastName: user.user_metadata?.last_name || '',
+      city: user.user_metadata?.city || '',
+      country: user.user_metadata?.country || '',
+    };
     const statuses = await fetchBuildingStatuses(user.id, state.sessionToken);
     state.buildingStatuses = new Map(statuses.map((item) => [String(item.building_id), {
       favorite: item.favorite === true,
@@ -84,8 +91,17 @@ async function initLoginModal() {
 
     const email = document.getElementById('login-email').value.trim();
     const password = document.getElementById('login-password').value.trim();
+    const firstName = document.getElementById('register-first-name')?.value.trim() || '';
+    const lastName = document.getElementById('register-last-name')?.value.trim() || '';
+    const city = document.getElementById('register-city')?.value.trim() || '';
+    const country = document.getElementById('register-country')?.value.trim() || '';
     if (!email || !password) {
       err.textContent = 'Datos incompletos.';
+      err.classList.remove('hidden');
+      return;
+    }
+    if (registerMode && (!firstName || !lastName || !city || !country)) {
+      err.textContent = 'Completa nombre, apellido, ciudad y país.';
       err.classList.remove('hidden');
       return;
     }
@@ -94,7 +110,7 @@ async function initLoginModal() {
     btnLogin.textContent = registerMode ? 'CREANDO...' : 'VERIFICANDO...';
     try {
       if (registerMode) {
-        const data = await registerUser(email, password);
+        const data = await registerUser(email, password, { firstName, lastName, city, country });
         if (data.access_token) {
           state.sessionToken = data.access_token;
           state.userRole = 'user';
@@ -125,6 +141,7 @@ async function initLoginModal() {
     title.textContent = registerMode ? 'REGISTRO DE USUARIO' : 'AUTENTICACIÓN REQUERIDA';
     actionButton.textContent = registerMode ? 'CREAR CUENTA' : 'AUTORIZAR ACCESO';
     registerButton.textContent = registerMode ? 'VOLVER AL LOGIN' : 'CREAR CUENTA';
+    registerOnlyFields.forEach((field) => field.classList.toggle('hidden', !registerMode));
   });
 
   logoutButton.addEventListener('click', () => {
@@ -136,6 +153,7 @@ async function initLoginModal() {
     adminModeToggle.checked = false;
     state.userId = null;
     state.userEmail = null;
+    state.userProfile = null;
     state.buildingStatuses = new Map();
     state.userCollections = [];
     state.userCollectionItems = [];

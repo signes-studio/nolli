@@ -223,15 +223,42 @@ export async function loginAdmin(email, password) {
   return data.access_token;
 }
 
-/** Registra un usuario público. El rol se asigna en Supabase, nunca desde el cliente. */
-export async function registerUser(email, password) {
+/** Registra un usuario público con metadatos básicos de perfil. */
+export async function registerUser(email, password, profile = {}) {
+  const metadata = {
+    first_name: String(profile.firstName || '').trim(),
+    last_name: String(profile.lastName || '').trim(),
+    city: String(profile.city || '').trim(),
+    country: String(profile.country || '').trim(),
+  };
   const res = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
     method: 'POST',
     headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password, data: metadata }),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.msg || data.message || 'No se pudo crear la cuenta.');
+  return data;
+}
+
+export async function updateCurrentUserProfile(sessionToken, profile = {}) {
+  const metadata = {
+    first_name: String(profile.firstName || '').trim(),
+    last_name: String(profile.lastName || '').trim(),
+    city: String(profile.city || '').trim(),
+    country: String(profile.country || '').trim(),
+  };
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+    method: 'PUT',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ data: metadata }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error_description || data.msg || data.message || 'No se pudo actualizar el perfil.');
   return data;
 }
 
