@@ -52,7 +52,7 @@ export function cargarMapaMapbox() {
     });
 
     [1, 2, 3].forEach((importance) => {
-      const minzoom = importance === 1 ? 0 : importance === 2 ? 11 : 13.5;
+      const minzoom = importance === 1 ? 0 : importance === 2 ? 6.5 : 13.5;
       const baseFilter = ['==', ['get', 'importancia'], importance];
 
       state.map.addLayer({
