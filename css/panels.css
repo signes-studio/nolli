@@ -37,6 +37,7 @@
 .sheet-action-button.active.favorite { color: #ffffff; border-color: #ffffff; }
 .sheet-action-button.active.visited { color: var(--accent-2); border-color: var(--accent-2); }
 .admin-only-action { color: var(--accent-2); border-color: var(--accent-2); }
+.admin-delete-action { color: #ff6b6b; border-color: #ff6b6b; }
 .status-button { padding: 7px 9px; border: 1px solid var(--border-strong); background: var(--bg-raised); color: var(--fg-dim); font: inherit; font-size: 10px; cursor: pointer; }
 .status-button.active { color: #ffffff; border-color: #ffffff; box-shadow: 0 0 10px rgba(255,255,255,.16); }
 .status-button.visited.active { color: var(--accent-2); border-color: var(--accent-2); box-shadow: 0 0 10px rgba(57,255,20,.14); }

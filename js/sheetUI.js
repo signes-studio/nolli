@@ -5,7 +5,7 @@
 import { state } from './state.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { cerrarFiltros, generarFiltrosUI, aplicarFiltrosMapa } from './filtersUI.js';
-import { saveBuildingStatus } from './api.js';
+import { saveBuildingStatus, deleteBuilding } from './api.js';
 
 const sheet = document.getElementById('sheet');
 
@@ -51,7 +51,7 @@ export function abrirFicha(p, c, featureId = p.id) {
     <div class="data-row"><div class="label">[COORD]</div><div class="value">${c[0].toFixed(5)}, ${c[1].toFixed(5)}</div></div>
     <div class="personal-notes">${state.sessionToken ? `<div class="rating-row"><div class="rating-stars">${[1, 2, 3, 4, 5].map((value) => `<button type="button" class="rating-star ${estadoObra('valoracion') >= value ? 'active' : ''}" data-rating="${value}" aria-label="Valorar ${value} de 5">★</button>`).join('')}</div></div><button type="button" class="btn note-toggle" data-note-toggle>AÑADIR NOTA</button><div class="personal-note-editor" data-note-editor><label for="building-notes">NOTA PRIVADA</label><textarea id="building-notes" class="tech-input" rows="3" placeholder="Escribe una nota privada..."></textarea><button type="button" class="btn save-personal-status" data-save-personal>GUARDAR NOTA</button></div>` : ''}</div>
   `;
-  document.getElementById('sheet-header-actions').innerHTML = `<button type="button" class="sheet-action-button" data-share-action="open">COMPARTIR</button>${state.userRole === 'admin' ? '<button type="button" id="btn-edit-building" class="sheet-action-button admin-only-action" data-edit-building>EDITAR</button>' : ''}${state.sessionToken ? `<button type="button" class="sheet-action-button ${estadoObra('favorite') ? 'active favorite' : ''}" data-status="favorite">FAVORITO</button><button type="button" class="sheet-action-button ${estadoObra('visited') ? 'active visited' : ''}" data-status="visited">VISITADO</button>` : ''}`;
+  document.getElementById('sheet-header-actions').innerHTML = `<button type="button" class="sheet-action-button" data-share-action="open">COMPARTIR</button>${state.userRole === 'admin' ? '<button type="button" id="btn-edit-building" class="sheet-action-button admin-only-action" data-edit-building>EDITAR</button><button type="button" class="sheet-action-button admin-delete-action" data-delete-building>ELIMINAR</button>' : ''}${state.sessionToken ? `<button type="button" class="sheet-action-button ${estadoObra('favorite') ? 'active favorite' : ''}" data-status="favorite">FAVORITO</button><button type="button" class="sheet-action-button ${estadoObra('visited') ? 'active visited' : ''}" data-status="visited">VISITADO</button>` : ''}`;
   sheet.classList.add('open');
   cerrarFiltros();
   const personal = state.buildingStatuses.get(String(obraNueva?.id || p.id)) || {};
@@ -71,6 +71,10 @@ function estadoObra(status) {
 }
 
 document.addEventListener('click', (e) => {
+  if (e.target.closest('[data-delete-building]')) {
+    eliminarEdificioSeleccionado();
+    return;
+  }
   const noteToggle = e.target.closest('[data-note-toggle]');
   if (noteToggle) {
     noteToggle.nextElementSibling.classList.toggle('open');
@@ -170,6 +174,24 @@ document.addEventListener('click', (e) => {
     const obra = state.OBRAS.find((o) => String(o.featureId) === String(state.selectedFeatureId));
   if (obra) document.dispatchEvent(new CustomEvent('radar:edit-building', { detail: { obra } }));
 });
+
+async function eliminarEdificioSeleccionado() {
+  const obra = state.OBRAS.find((item) => String(item.featureId) === String(state.selectedFeatureId));
+  if (!obra || state.userRole !== 'admin' || !window.confirm(`¿Eliminar "${obra.nombre_obra}"?`)) return;
+  try {
+    await deleteBuilding(obra.id, state.sessionToken);
+    state.OBRAS = state.OBRAS.filter((item) => String(item.id) !== String(obra.id));
+    state.ARQUITECTOS = [...new Set(state.OBRAS.flatMap((item) => item.arquitectos || String(item.arquitecto || '').split(',').map((name) => name.trim()).filter(Boolean)))];
+    state.activeArquitectos = new Set([...state.activeArquitectos].filter((architect) => state.ARQUITECTOS.includes(architect)));
+    state.buildingStatuses.delete(String(obra.id));
+    cerrarFicha();
+    actualizarFuenteMapa();
+    generarFiltrosUI();
+    document.dispatchEvent(new CustomEvent('radar:buildings-changed'));
+  } catch (error) {
+    alert(error.message);
+  }
+}
 
 function crearEnlaceGoogleMaps() {
   const obra = state.OBRAS.find((item) => String(item.featureId) === String(state.selectedFeatureId));

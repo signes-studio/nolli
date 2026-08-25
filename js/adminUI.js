@@ -44,6 +44,7 @@ export function initAdminUI() {
   document.addEventListener('radar:data-ready', renderList);
   document.addEventListener('radar:user-login', () => button.classList.add('hidden'));
   document.addEventListener('radar:admin-login', cargarMedias);
+  document.addEventListener('radar:buildings-changed', renderList);
 }
 
 async function cargarMedias() {
