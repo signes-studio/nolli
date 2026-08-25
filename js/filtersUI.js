@@ -162,6 +162,9 @@ export function aplicarFiltrosMapa() {
   if (state.map.getLayer('obras-favorites-halo')) {
     state.map.setFilter('obras-favorites-halo', ['all', arquitectos, ...detalles, ['==', ['get', 'favorite'], 1]]);
   }
+  if (state.map.getLayer('obras-labels')) {
+    state.map.setFilter('obras-labels', ['all', arquitectos, ...detalles]);
+  }
 }
 
 initFiltersUI();

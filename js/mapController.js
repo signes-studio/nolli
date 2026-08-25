@@ -96,6 +96,31 @@ export function cargarMapaMapbox() {
       });
     });
 
+    state.map.addLayer({
+      id: 'obras-labels',
+      type: 'symbol',
+      source: 'obras',
+      minzoom: 15,
+      layout: {
+        'text-field': ['get', 'nombre_obra'],
+        'text-font': ['Open Sans Regular'],
+        'text-size': 12,
+        'text-offset': [1.15, 0],
+        'text-anchor': 'left',
+        'text-allow-overlap': true,
+        'text-ignore-placement': true,
+      },
+      paint: {
+        'text-color': '#FFFFFF',
+        'text-halo-color': '#000000',
+        'text-halo-width': 1.5,
+        'text-halo-blur': 0.3,
+      },
+    });
+
+    state.map.on('mouseenter', 'obras-labels', () => { state.map.getCanvas().style.cursor = 'pointer'; });
+    state.map.on('mouseleave', 'obras-labels', () => { state.map.getCanvas().style.cursor = ''; });
+
     iniciarInteraccionesMapa();
   });
 
@@ -164,7 +189,7 @@ function initHudReadout() {
 
 function iniciarInteraccionesMapa() {
   // Clic en obra
-  ['obras-l1', 'obras-l1-visited', 'obras-l1-selected', 'obras-l2', 'obras-l2-visited', 'obras-l2-selected', 'obras-l3', 'obras-l3-visited', 'obras-l3-selected'].forEach((layerId) => {
+  ['obras-l1', 'obras-l1-visited', 'obras-l1-selected', 'obras-l2', 'obras-l2-visited', 'obras-l2-selected', 'obras-l3', 'obras-l3-visited', 'obras-l3-selected', 'obras-labels'].forEach((layerId) => {
     state.map.on('click', layerId, (e) => {
       const feature = e.features[0];
       const p = feature.properties;
@@ -175,7 +200,7 @@ function iniciarInteraccionesMapa() {
 
   // Clic en el fondo vacío (Descartar selección)
   state.map.on('click', (e) => {
-    const isObra = state.map.queryRenderedFeatures(e.point, { layers: ['obras-l1', 'obras-l1-visited', 'obras-l1-selected', 'obras-l2', 'obras-l2-visited', 'obras-l2-selected', 'obras-l3', 'obras-l3-visited', 'obras-l3-selected'] });
+    const isObra = state.map.queryRenderedFeatures(e.point, { layers: ['obras-l1', 'obras-l1-visited', 'obras-l1-selected', 'obras-l2', 'obras-l2-visited', 'obras-l2-selected', 'obras-l3', 'obras-l3-visited', 'obras-l3-selected', 'obras-labels'] });
     if (!isObra.length) cerrarFicha();
   });
 
