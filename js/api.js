@@ -5,16 +5,26 @@
 
 import { SUPABASE_URL, SUPABASE_KEY } from './config.js';
 
-/** Descarga el listado completo de edificios. */
+/** Descarga el listado completo de edificios, superando el límite REST de 1.000 filas. */
 export async function fetchBuildings() {
-  const respuesta = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?select=*`, {
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${SUPABASE_KEY}`,
-    },
-  });
-  if (!respuesta.ok) throw new Error(`Error ${respuesta.status}`);
-  return respuesta.json();
+  const pageSize = 1000;
+  const buildings = [];
+  let start = 0;
+
+  while (true) {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?select=*&order=id.asc`, {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        Range: `${start}-${start + pageSize - 1}`,
+      },
+    });
+    if (!response.ok) throw new Error(`Error ${response.status}`);
+    const page = await response.json();
+    buildings.push(...page);
+    if (page.length < pageSize) return buildings;
+    start += pageSize;
+  }
 }
 
 export async function fetchUserPendingBuildings(userId, sessionToken) {

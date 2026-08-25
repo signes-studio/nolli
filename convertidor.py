@@ -5,6 +5,9 @@ import csv
 json_filename = 'obras_arquitectura_viva.json'
 csv_filename = 'obras_arquitectura_viva_procesado.csv'
 
+# Define aquí el prefijo que quieras para los IDs (ej: 'NOLLI', 'ARC', 'VAL', etc.)
+prefix = 'NOLLIv02'
+
 try:
     with open(json_filename, 'r', encoding='utf-8') as f:
         data = json.load(f)
@@ -33,8 +36,8 @@ rows_to_write = []
 
 # 2. Recorrer cada obra y transformar los datos
 for index, item in enumerate(data, start=1):
-    # Generar el ID con formato AVXXX (ej. AV001, AV002...)
-    av_id = f"AV{index:03d}"
+    # Generar el ID dinámicamente con el prefijo elegido y formato numérico (ej. NOLLI001, NOLLI002...)
+    custom_id = f"{prefix}{index:03d}"
     
     # Nombre de la obra (title)
     nombre_obra = item.get('title', '')
@@ -75,14 +78,14 @@ for index, item in enumerate(data, start=1):
         'año_construccion': ano_construccion,
         'latitud': latitud,
         'longitud': longitud,
-        'importancia': 1,              # Fijo en 1
-        'id': av_id,                   # Formato AV001, AV002...
-        'añadido_por': 'AV',           # Fijo en AV
-        'categoria': 'Arquitectura',   # Categoría genérica por defecto
-        'visitable': 'true',           # Valor booleano estándar para CSV/Supabase
+        'importancia': 1,               # Fijo en 1
+        'id': custom_id,                # ID personalizado generado arriba
+        'añadido_por': 'AV',           # Manteniendo AV en la procedencia si lo deseas
+        'categoria': 'Otros',           # Categoría genérica por defecto
+        'visitable': 'false',           # Valor booleano estándar para CSV/Supabase
         'foto_url': foto_url,
         'enlace_url': enlace_url,
-        'estado_acceso': 'Desconocido'
+        'estado_acceso': 'exterior_visitable'
     }
     
     rows_to_write.append(row)
