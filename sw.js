@@ -19,7 +19,7 @@ const APP_SHELL = [
   './js/sheetUI.js',
   './js/state.js',
   './manifest.webmanifest',
-  './icons/nolli.svg',
+  './icon.svg',
 ];
 
 self.addEventListener('install', (event) => {

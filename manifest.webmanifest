@@ -9,7 +9,7 @@
   "theme_color": "#000000",
   "icons": [
     {
-      "src": "./icons/nolli.svg",
+      "src": "./icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
