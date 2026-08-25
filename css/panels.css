@@ -30,6 +30,12 @@
 .data-row .value { padding: 10px 12px; color: var(--fg); font-weight: 500; word-break: break-word; }
 .data-row .value.accent { color: var(--accent); }
 .sheet-actions { display: flex; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+.sheet-action-bar { display: flex; gap: 6px; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+.sheet-action-button { flex: 1; min-width: 0; padding: 7px 8px; border: 1px solid var(--border-strong); background: var(--bg-raised); color: var(--fg-dim); font: inherit; font-size: 10px; cursor: pointer; white-space: nowrap; }
+.sheet-action-button:hover, .sheet-action-button:focus-visible { color: var(--accent); border-color: var(--accent); outline: none; }
+.sheet-action-button.active.favorite { color: #ffffff; border-color: #ffffff; }
+.sheet-action-button.active.visited { color: var(--accent-2); border-color: var(--accent-2); }
+.admin-only-action { color: var(--accent-2); border-color: var(--accent-2); }
 .status-button { padding: 7px 9px; border: 1px solid var(--border-strong); background: var(--bg-raised); color: var(--fg-dim); font: inherit; font-size: 10px; cursor: pointer; }
 .status-button.active { color: #ffffff; border-color: #ffffff; box-shadow: 0 0 10px rgba(255,255,255,.16); }
 .status-button.visited.active { color: var(--accent-2); border-color: var(--accent-2); box-shadow: 0 0 10px rgba(57,255,20,.14); }

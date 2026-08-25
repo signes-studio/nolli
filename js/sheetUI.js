@@ -49,13 +49,11 @@ export function abrirFicha(p, c, featureId = p.id) {
     <div class="data-row"><div class="label">[CATEGORÍA]</div><div class="value">${p.categoria || 'otro'}</div></div>
     <div class="data-row"><div class="label">[ACCESO]</div><div class="value">${formatearAcceso(p.estado_acceso || (p.visitable ? 'publico' : 'privado'))}</div></div>
     <div class="data-row"><div class="label">[COORD]</div><div class="value">${c[0].toFixed(5)}, ${c[1].toFixed(5)}</div></div>
-    <div class="sheet-actions share-actions">
-      <button type="button" class="status-button" data-share-action="open">COMPARTIR</button>
-    </div>
-    ${state.sessionToken ? `<div class="sheet-actions"><button type="button" class="status-button ${estadoObra('favorite') ? 'active' : ''}" data-status="favorite">FAVORITO</button><button type="button" class="status-button ${estadoObra('visited') ? 'active visited' : ''}" data-status="visited">VISITADO</button></div><div class="personal-notes"><div class="rating-row"><label>VALORACIÓN</label><div class="rating-stars">${[1, 2, 3, 4, 5].map((value) => `<button type="button" class="rating-star ${estadoObra('valoracion') >= value ? 'active' : ''}" data-rating="${value}" aria-label="Valorar ${value} de 5">★</button>`).join('')}</div></div><button type="button" class="btn note-toggle" data-note-toggle>AÑADIR NOTA</button><div class="personal-note-editor" data-note-editor><label for="building-notes">NOTA PRIVADA</label><textarea id="building-notes" class="tech-input" rows="3" placeholder="Escribe una nota privada..."></textarea><button type="button" class="btn save-personal-status" data-save-personal>GUARDAR NOTA</button></div></div>` : ''}
+    <div class="sheet-action-bar"><button type="button" class="sheet-action-button" data-share-action="open">COMPARTIR</button>${state.sessionToken ? `<button type="button" class="sheet-action-button ${estadoObra('favorite') ? 'active favorite' : ''}" data-status="favorite">FAVORITO</button><button type="button" class="sheet-action-button ${estadoObra('visited') ? 'active visited' : ''}" data-status="visited">VISITADO</button><button type="button" id="btn-edit-building" class="sheet-action-button admin-only-action hidden" data-edit-building>EDITAR</button>` : ''}</div>
+    ${state.sessionToken ? `<div class="personal-notes"><div class="rating-row"><label>VALORACIÓN</label><div class="rating-stars">${[1, 2, 3, 4, 5].map((value) => `<button type="button" class="rating-star ${estadoObra('valoracion') >= value ? 'active' : ''}" data-rating="${value}" aria-label="Valorar ${value} de 5">★</button>`).join('')}</div></div><button type="button" class="btn note-toggle" data-note-toggle>AÑADIR NOTA</button><div class="personal-note-editor" data-note-editor><label for="building-notes">NOTA PRIVADA</label><textarea id="building-notes" class="tech-input" rows="3" placeholder="Escribe una nota privada..."></textarea><button type="button" class="btn save-personal-status" data-save-personal>GUARDAR NOTA</button></div></div>` : ''}
   `;
   const editButton = document.getElementById('btn-edit-building');
-  editButton.classList.toggle('hidden', state.userRole !== 'admin');
+  if (editButton) editButton.classList.toggle('hidden', state.userRole !== 'admin');
   sheet.classList.add('open');
   cerrarFiltros();
   const personal = state.buildingStatuses.get(String(obraNueva?.id || p.id)) || {};
@@ -157,7 +155,7 @@ document.addEventListener('click', (e) => {
     aplicarFiltrosMapa();
     return;
   }
-  if (!e.target.closest('#btn-edit-building') || !state.selectedFeatureId) return;
+  if (!e.target.closest('#btn-edit-building') || state.selectedFeatureId === null) return;
     const obra = state.OBRAS.find((o) => String(o.featureId) === String(state.selectedFeatureId));
   if (obra) document.dispatchEvent(new CustomEvent('radar:edit-building', { detail: { obra } }));
 });
