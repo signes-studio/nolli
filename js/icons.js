@@ -1,5 +1,5 @@
 /* =========================================================================
-   ICONS.JS — Dibujo de iconos dinámicos (canvas) para las capas de Mapbox
+   ICONS.JS — Dibujo de iconos dinámicos (canvas) con jerarquía original
    ========================================================================= */
 
 export function buildIcon(draw, color, importance, size = 64) {
@@ -52,9 +52,10 @@ export function drawTargetIcon(ctx, color, importance, s) {
     ctx.fill();
   } else {
     ctx.lineWidth = 3;
+    ctx.globalAlpha = 0.7;
     ctx.beginPath();
-    ctx.moveTo(c, s * 0.24); ctx.lineTo(c, s * 0.76);
-    ctx.moveTo(s * 0.24, c); ctx.lineTo(s * 0.76, c);
+    ctx.moveTo(c, s * 0.28); ctx.lineTo(c, s * 0.72);
+    ctx.moveTo(s * 0.28, c); ctx.lineTo(s * 0.72, c);
     ctx.stroke();
   }
 }

@@ -1,6 +1,6 @@
 /* =========================================================================
-  MAPCONTROLLER.JS — Inicialización de mapa, capas e interacciones
-  ========================================================================= */
+   MAPCONTROLLER.JS — Inicialización de mapa, capas e interacciones
+   ========================================================================= */
 
 import { state } from './state.js';
 import { MAPBOX_TOKEN, MAP_STYLES, DEFAULT_CENTER, DEFAULT_ZOOM } from './config.js';
@@ -25,14 +25,33 @@ export function cargarMapaMapbox() {
   const configurarCapas = () => {
     if (state.map.getSource('obras')) return;
     aplicarTratamientoSatelite();
+
+    // Paleta de colores sutiles por categoría para el fondo oscuro
+    const categoryColors = {
+      'residencial': '#FF4500',             
+      'dotacional_equipamiento': '#FF4500', 
+      'industrial_logistico': '#FF4500',    
+      'religioso_funerario': '#FF4500',     
+      'comercial_terciario': '#FF4500',     
+      'espacio_publico_paisaje': '#FF4500', 
+      'infraestructura_urbanismo': '#FF4500',
+      'otro': '#FF4500'                    
+    };
+
+    // Registrar iconos combinando importancia y categoría con prefijo 'icon-l{imp}-{cat}'
     [0, 1, 2, 3].forEach((importance) => {
-      const iconColor = importance === 0 ? '#FFD166' : '#FF4500';
-      state.map.addImage(`icon-l${importance}`, buildIcon(drawTargetIcon, iconColor, importance), { pixelRatio: 2 });
-      state.map.addImage(`icon-l${importance}-visited`, buildIcon(drawTargetIcon, '#39FF14', importance), { pixelRatio: 2 });
-      state.map.addImage(`icon-l${importance}-pending`, buildIcon(drawTargetIcon, '#FFD166', importance), { pixelRatio: 2 });
-      state.map.addImage(`icon-l${importance}-private`, buildIcon(drawTargetIcon, '#5EEAD4', importance), { pixelRatio: 2 });
-      state.map.addImage(`icon-l${importance}-selected`, buildIcon(drawTargetIcon, '#FFFFFF', importance), { pixelRatio: 2 });
+      Object.entries(categoryColors).forEach(([cat, color]) => {
+        const iconColor = importance === 0 ? '#FFD166' : color;
+        const prefix = `icon-l${importance}-${cat}`;
+
+        state.map.addImage(prefix, buildIcon(drawTargetIcon, iconColor, importance), { pixelRatio: 2 });
+        state.map.addImage(`${prefix}-visited`, buildIcon(drawTargetIcon, '#39FF14', importance), { pixelRatio: 2 });
+        state.map.addImage(`${prefix}-pending`, buildIcon(drawTargetIcon, '#FFD166', importance), { pixelRatio: 2 });
+        state.map.addImage(`${prefix}-private`, buildIcon(drawTargetIcon, '#5EEAD4', importance), { pixelRatio: 2 });
+        state.map.addImage(`${prefix}-selected`, buildIcon(drawTargetIcon, '#FFFFFF', importance), { pixelRatio: 2 });
+      });
     });
+
     state.map.addSource('obras', {
       type: 'geojson',
       data: { type: 'FeatureCollection', features: [] },
@@ -80,11 +99,17 @@ export function cargarMapaMapbox() {
         'circle-opacity': 0.92,
       },
     });
+
     [0, 1, 2, 3].forEach((importance) => {
       const minzoom = importance === 0 ? 0 : importance === 1 ? 0 : importance === 2 ? 6.5 : 13.5;
       const baseFilter = ['==', ['get', 'importancia'], importance];
       const sourceId = importance === 0 ? 'obras-maestras' : 'obras';
+      const iconSize = importance === 0 ? 0.92 : importance === 1 ? 0.70 : importance === 2 ? 0.56 : 0.52;
 
+      // Expresión para obtener la categoría de la feature de forma segura (fallback a 'otro')
+      const catExpr = ['coalesce', ['get', 'categoria'], 'otro'];
+
+      // Capa normal
       state.map.addLayer({
         id: `obras-l${importance}`,
         type: 'symbol',
@@ -92,12 +117,13 @@ export function cargarMapaMapbox() {
         minzoom,
         filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'publicada'], ['!=', ['get', 'selected'], 1], ['!=', ['get', 'visited'], 1]],
         layout: {
-          'icon-image': `icon-l${importance}`,
-          'icon-size': importance === 0 ? 0.92 : importance === 1 ? 0.70 : importance === 2 ? 0.56 : 0.52,
+          'icon-image': ['concat', `icon-l${importance}-`, catExpr],
+          'icon-size': iconSize,
           'icon-allow-overlap': true,
         },
       });
 
+      // Capa visitada
       state.map.addLayer({
         id: `obras-l${importance}-visited`,
         type: 'symbol',
@@ -105,12 +131,13 @@ export function cargarMapaMapbox() {
         minzoom,
         filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'publicada'], ['!=', ['get', 'selected'], 1], ['==', ['get', 'visited'], 1]],
         layout: {
-          'icon-image': `icon-l${importance}-visited`,
-          'icon-size': importance === 0 ? 0.92 : importance === 1 ? 0.70 : importance === 2 ? 0.56 : 0.52,
+          'icon-image': ['concat', `icon-l${importance}-`, catExpr, '-visited'],
+          'icon-size': iconSize,
           'icon-allow-overlap': true,
         },
       });
 
+      // Capa seleccionada (pasa a blanco `#FFFFFF` al pulsar la obra o etiqueta)
       state.map.addLayer({
         id: `obras-l${importance}-selected`,
         type: 'symbol',
@@ -118,12 +145,13 @@ export function cargarMapaMapbox() {
         minzoom,
         filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'publicada'], ['==', ['get', 'selected'], 1]],
         layout: {
-          'icon-image': `icon-l${importance}-selected`,
-          'icon-size': importance === 0 ? 0.92 : importance === 1 ? 0.70 : importance === 2 ? 0.56 : 0.52,
+          'icon-image': ['concat', `icon-l${importance}-`, catExpr, '-selected'],
+          'icon-size': iconSize,
           'icon-allow-overlap': true,
         },
       });
 
+      // Capa pendiente
       state.map.addLayer({
         id: `obras-l${importance}-pending`,
         type: 'symbol',
@@ -131,12 +159,13 @@ export function cargarMapaMapbox() {
         minzoom,
         filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'pendiente']],
         layout: {
-          'icon-image': `icon-l${importance}-pending`,
-          'icon-size': importance === 0 ? 0.92 : importance === 1 ? 0.70 : importance === 2 ? 0.56 : 0.52,
+          'icon-image': ['concat', `icon-l${importance}-`, catExpr, '-pending'],
+          'icon-size': iconSize,
           'icon-allow-overlap': true,
         },
       });
 
+      // Capa privada
       state.map.addLayer({
         id: `obras-l${importance}-private`,
         type: 'symbol',
@@ -144,8 +173,8 @@ export function cargarMapaMapbox() {
         minzoom,
         filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'privada']],
         layout: {
-          'icon-image': `icon-l${importance}-private`,
-          'icon-size': importance === 0 ? 0.92 : importance === 1 ? 0.70 : importance === 2 ? 0.56 : 0.52,
+          'icon-image': ['concat', `icon-l${importance}-`, catExpr, '-private'],
+          'icon-size': iconSize,
           'icon-allow-overlap': true,
         },
       });
@@ -317,14 +346,23 @@ function initHudReadout() {
 }
 
 function iniciarInteraccionesMapa() {
-  // Clic en obra
-  ['obras-l0', 'obras-l0-visited', 'obras-l0-selected', 'obras-l0-pending', 'obras-l0-private', 'obras-l1', 'obras-l1-visited', 'obras-l1-selected', 'obras-l1-pending', 'obras-l1-private', 'obras-l2', 'obras-l2-visited', 'obras-l2-selected', 'obras-l2-pending', 'obras-l2-private', 'obras-l3', 'obras-l3-visited', 'obras-l3-selected', 'obras-l3-pending', 'obras-l3-private', 'obras-labels-l0', 'obras-labels-l1', 'obras-labels-l2', 'obras-labels-l3'].forEach((layerId) => {
-    state.map.on('click', layerId, (e) => {
-      if (state.addingBuilding) return;
-      const feature = e.features[0];
-      const obra = state.OBRAS.find((item) => String(item.featureId) === String(feature.id));
-      abrirFicha(obra || feature.properties, obra?.coordenadas || feature.geometry.coordinates, feature.id);
+  const allLayerIds = [];
+  [0, 1, 2, 3].forEach((imp) => {
+    ['', '-visited', '-selected', '-pending', '-private'].forEach((suf) => {
+      allLayerIds.push(`obras-l${imp}${suf}`);
     });
+    allLayerIds.push(`obras-labels-l${imp}`);
+  });
+
+  allLayerIds.forEach((layerId) => {
+    if (state.map.getLayer(layerId)) {
+      state.map.on('click', layerId, (e) => {
+        if (state.addingBuilding) return;
+        const feature = e.features[0];
+        const obra = state.OBRAS.find((item) => String(item.featureId) === String(feature.id));
+        abrirFicha(obra || feature.properties, obra?.coordenadas || feature.geometry.coordinates, feature.id);
+      });
+    }
   });
 
   state.map.on('click', 'obras-clusters', (e) => {
@@ -346,7 +384,6 @@ function iniciarInteraccionesMapa() {
   state.map.on('mouseenter', 'obras-clusters-core', () => { state.map.getCanvas().style.cursor = 'pointer'; });
   state.map.on('mouseleave', 'obras-clusters-core', () => { state.map.getCanvas().style.cursor = ''; });
 
-  // Clic en el fondo vacío (Descartar selección)
   state.map.on('click', (e) => {
     if (state.addingBuilding) {
       state.addingBuilding = false;
@@ -356,12 +393,10 @@ function iniciarInteraccionesMapa() {
       dispatchLongPress(e.lngLat);
       return;
     }
-    const isObra = state.map.queryRenderedFeatures(e.point, { layers: ['obras-clusters', 'obras-clusters-core', 'obras-l0', 'obras-l0-visited', 'obras-l0-selected', 'obras-l0-pending', 'obras-l0-private', 'obras-l1', 'obras-l1-visited', 'obras-l1-selected', 'obras-l1-pending', 'obras-l1-private', 'obras-l2', 'obras-l2-visited', 'obras-l2-selected', 'obras-l2-pending', 'obras-l2-private', 'obras-l3', 'obras-l3-visited', 'obras-l3-selected', 'obras-l3-pending', 'obras-l3-private', 'obras-labels-l0', 'obras-labels-l1', 'obras-labels-l2', 'obras-labels-l3'] });
+    const isObra = state.map.queryRenderedFeatures(e.point, { layers: ['obras-clusters', 'obras-clusters-core', ...allLayerIds] });
     if (!isObra.length) cerrarFicha();
   });
 
-  // Pulsación larga para añadir (SOLO SI ESTÁ LOGEADO): se delega en un
-  // evento del DOM para que este módulo no dependa de la UI de modales.
   state.map.on('contextmenu', (e) => dispatchLongPress(e.lngLat));
 
   let pressTimer = null;
