@@ -4,13 +4,18 @@
 
 import { state } from './state.js';
 import { abrirFicha } from './sheetUI.js';
+import { searchPlaces } from './api.js';
 
 const searchPanel = document.getElementById('search-panel');
 const btnSearch = document.getElementById('btn-search');
 const searchResults = document.getElementById('nearby-buildings');
+const locationResults = document.getElementById('location-results');
+const locationInput = document.getElementById('location-search');
 const searchInput = document.getElementById('building-search');
-const architectSelect = document.getElementById('building-architect');
-const decadeSelect = document.getElementById('building-decade');
+const architectInput = document.getElementById('building-architect');
+const architectSuggestions = document.getElementById('architect-suggestions');
+let locationSearchTimer = null;
+let locationSearchRequest = 0;
 
 export function initSearchUI() {
   btnSearch.addEventListener('click', () => {
@@ -30,33 +35,68 @@ export function initSearchUI() {
     }
   });
 
-  [searchInput, architectSelect, decadeSelect].forEach((control) => {
+  [searchInput, architectInput].forEach((control) => {
     control.addEventListener('input', renderizarResultados);
     control.addEventListener('change', renderizarResultados);
+  });
+  architectInput.addEventListener('input', mostrarSugerenciasArquitectos);
+  locationInput.addEventListener('input', () => {
+    clearTimeout(locationSearchTimer);
+    const query = locationInput.value.trim();
+    if (query.length < 2) {
+      locationResults.innerHTML = '';
+      return;
+    }
+    locationSearchTimer = setTimeout(() => buscarUbicaciones(query), 280);
   });
 
   document.addEventListener('radar:data-ready', actualizarOpciones);
 }
 
-function actualizarOpciones() {
-  const previousArchitect = architectSelect.value;
-  const previousDecade = decadeSelect.value;
-  architectSelect.innerHTML = '<option value="">TODOS LOS ARQUITECTOS</option>';
-  [...state.ARQUITECTOS].sort((a, b) => a.localeCompare(b)).forEach((architect) => {
-    architectSelect.insertAdjacentHTML('beforeend', `<option value="${architect}">${architect}</option>`);
-  });
-  architectSelect.value = previousArchitect;
+async function buscarUbicaciones(query) {
+  const requestId = ++locationSearchRequest;
+  locationResults.innerHTML = '<div class="nearby-empty">BUSCANDO UBICACIONES...</div>';
+  try {
+    const data = await searchPlaces(query);
+    if (requestId !== locationSearchRequest) return;
+    const places = data.features || [];
+    locationResults.innerHTML = places.length ? places.map((place) => `
+      <button type="button" class="nearby-item location-result" data-location-center="${place.center.join(',')}" data-location-zoom="${place.bbox ? 12 : 14}">
+        <span class="nearby-name">${escapeHtml(place.text || place.place_name)}</span>
+        <span class="nearby-meta">${escapeHtml(place.place_name || '')}</span>
+      </button>
+    `).join('') : '<div class="nearby-empty">No se encontraron ubicaciones.</div>';
+  } catch (error) {
+    if (requestId !== locationSearchRequest) return;
+    console.error('Error buscando ubicación:', error);
+    locationResults.innerHTML = '<div class="nearby-empty">No se pudo buscar la ubicación.</div>';
+  }
+}
 
-  const decades = [...new Set(state.OBRAS
-    .map((obra) => Number(obra.año_construccion))
-    .filter((year) => Number.isFinite(year))
-    .map((year) => Math.floor(year / 10) * 10))]
-    .sort((a, b) => b - a);
-  decadeSelect.innerHTML = '<option value="">TODAS LAS DÉCADAS</option>';
-  decades.forEach((decade) => decadeSelect.insertAdjacentHTML(
-    'beforeend', `<option value="${decade}">${decade}s</option>`,
-  ));
-  decadeSelect.value = previousDecade;
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character]));
+}
+
+function actualizarOpciones() {
+  const previousArchitect = architectInput.value;
+  architectInput.value = previousArchitect;
+}
+
+function mostrarSugerenciasArquitectos() {
+  const query = architectInput.value.trim().toLowerCase();
+  if (!query) {
+    architectSuggestions.innerHTML = '';
+    architectSuggestions.hidden = true;
+    return;
+  }
+  const matches = state.ARQUITECTOS
+    .filter((architect) => architect.toLowerCase().includes(query))
+    .sort((first, second) => first.localeCompare(second, 'es'))
+    .slice(0, 8);
+  architectSuggestions.innerHTML = matches.map((architect) => `
+    <button type="button" class="architect-suggestion" data-architect-suggestion="${escapeHtml(architect)}">${escapeHtml(architect)}</button>
+  `).join('');
+  architectSuggestions.hidden = !matches.length;
 }
 
 function solicitarUbicacion() {
@@ -82,12 +122,10 @@ function renderizarResultados(message = '') {
   }
 
   const text = searchInput.value.trim().toLowerCase();
-  const selectedArchitect = architectSelect.value;
-  const selectedDecade = decadeSelect.value;
+  const selectedArchitect = architectInput.value.trim().toLowerCase();
   const results = state.OBRAS
     .filter((obra) => !text || String(obra.nombre_obra || '').toLowerCase().includes(text))
-    .filter((obra) => !selectedArchitect || (obra.arquitectos || []).includes(selectedArchitect))
-    .filter((obra) => !selectedDecade || Math.floor(Number(obra.año_construccion) / 10) * 10 === Number(selectedDecade))
+    .filter((obra) => !selectedArchitect || (obra.arquitectos || []).some((architect) => architect.toLowerCase() === selectedArchitect))
     .map((obra) => ({ obra, distance: distanciaEnKm(state.userLocation, obra.coordenadas) }))
     .sort((a, b) => a.distance - b.distance)
     .slice(0, 10);
@@ -120,6 +158,24 @@ function formatearDistancia(distanceKm) {
 }
 
 document.addEventListener('click', (event) => {
+  const suggestion = event.target.closest('[data-architect-suggestion]');
+  if (suggestion) {
+    architectInput.value = suggestion.dataset.architectSuggestion;
+    architectSuggestions.innerHTML = '';
+    architectSuggestions.hidden = true;
+    renderizarResultados();
+    return;
+  }
+  const location = event.target.closest('.location-result');
+  if (location && state.map) {
+    const center = location.dataset.locationCenter.split(',').map(Number);
+    state.map.flyTo({ center, zoom: Number(location.dataset.locationZoom) || 13 });
+    locationInput.value = location.querySelector('.nearby-name')?.textContent || locationInput.value;
+    locationResults.innerHTML = '';
+    searchPanel.classList.remove('open');
+    btnSearch.classList.remove('active-state');
+    return;
+  }
   const item = event.target.closest('.nearby-item');
   if (!item) return;
   const obra = state.OBRAS.find((candidate) => String(candidate.featureId) === item.dataset.featureId);

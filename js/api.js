@@ -3,7 +3,19 @@
    Toda petición de red vive aquí; el resto de la app no conoce fetch/URLs.
    ========================================================================= */
 
-import { SUPABASE_URL, SUPABASE_KEY } from './config.js';
+import { SUPABASE_URL, SUPABASE_KEY, MAPBOX_TOKEN } from './config.js';
+
+export async function searchPlaces(query) {
+  const params = new URLSearchParams({
+    access_token: MAPBOX_TOKEN,
+    language: 'es',
+    limit: '5',
+    types: 'place,locality,neighborhood,address,poi',
+  });
+  const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?${params.toString()}`);
+  if (!response.ok) throw new Error(`Error ${response.status}`);
+  return response.json();
+}
 
 /** Descarga las obras públicas del encuadre y nivel de zoom actuales. */
 export async function fetchBuildings({ bounds, zoom, architect, includeAllImportance = false } = {}) {
