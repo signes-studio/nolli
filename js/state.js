@@ -6,6 +6,7 @@
 
 export const state = {
   OBRAS: [],
+  BUILDING_CATALOG: [],
   ARQUITECTOS: [],
   activeArquitectos: new Set(),
   sessionToken: null,

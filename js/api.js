@@ -5,14 +5,27 @@
 
 import { SUPABASE_URL, SUPABASE_KEY } from './config.js';
 
-/** Descarga el listado completo de edificios, superando el límite REST de 1.000 filas. */
-export async function fetchBuildings() {
+/** Descarga las obras públicas del encuadre y nivel de zoom actuales. */
+export async function fetchBuildings({ bounds, zoom, architect, includeAllImportance = false } = {}) {
   const pageSize = 1000;
   const buildings = [];
   let start = 0;
+  const publicFields = 'id,nombre_obra,foto_url,enlace_url,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,añadido_por,estado_revision,longitud,latitud';
+  const params = new URLSearchParams({ select: publicFields, order: 'id.asc' });
+
+  if (bounds) {
+    const [[minLongitude, minLatitude], [maxLongitude, maxLatitude]] = bounds.toArray();
+    params.append('longitud', `gte.${minLongitude}`);
+    params.append('latitud', `gte.${minLatitude}`);
+    params.append('longitud', `lte.${maxLongitude}`);
+    params.append('latitud', `lte.${maxLatitude}`);
+  }
+  if (architect) params.set('arquitecto', `ilike.*${architect}*`);
+  const maxImportance = includeAllImportance ? 3 : Number(zoom) >= 13.5 ? 3 : Number(zoom) >= 6.5 ? 2 : 1;
+  params.set('importancia', `lte.${maxImportance}`);
 
   while (true) {
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?select=*&order=id.asc`, {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?${params.toString()}`, {
       headers: {
         'apikey': SUPABASE_KEY,
         'Authorization': `Bearer ${SUPABASE_KEY}`,
@@ -23,6 +36,32 @@ export async function fetchBuildings() {
     const page = await response.json();
     buildings.push(...page);
     if (page.length < pageSize) return buildings;
+    start += pageSize;
+  }
+}
+
+/** Descarga solo los metadatos necesarios para construir filtros globales. */
+export async function fetchBuildingFacets() {
+  const pageSize = 1000;
+  const facets = [];
+  let start = 0;
+  const params = new URLSearchParams({
+    select: 'arquitecto,año_construccion,categoria,estado_acceso,visitable',
+    order: 'id.asc',
+  });
+
+  while (true) {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?${params.toString()}`, {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        Range: `${start}-${start + pageSize - 1}`,
+      },
+    });
+    if (!response.ok) throw new Error(`Error ${response.status}`);
+    const page = await response.json();
+    facets.push(...page);
+    if (page.length < pageSize) return facets;
     start += pageSize;
   }
 }

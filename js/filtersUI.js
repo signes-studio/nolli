@@ -50,13 +50,14 @@ function actualizarResumenFiltros() {
 function actualizarOpcionesFiltros() {
   const decade = decadeSelect.value || state.activeDecada;
   const category = categorySelect.value || state.activeCategoria;
-  const decades = [...new Set(state.OBRAS.map((obra) => Number(obra.año_construccion))
+  const catalogo = state.BUILDING_CATALOG.length ? state.BUILDING_CATALOG : state.OBRAS;
+  const decades = [...new Set(catalogo.map((obra) => Number(obra.año_construccion))
     .filter(Number.isFinite).map((year) => Math.floor(year / 10) * 10))].sort((a, b) => b - a);
   decadeSelect.innerHTML = '<option value="">TODAS LAS DÉCADAS</option>';
   decades.forEach((value) => decadeSelect.insertAdjacentHTML('beforeend', `<option value="${value}">${value}s</option>`));
   decadeSelect.value = decade;
 
-  const categories = [...new Set(state.OBRAS.map((obra) => obra.categoria).filter(Boolean))].sort();
+  const categories = [...new Set(catalogo.map((obra) => obra.categoria).filter(Boolean))].sort();
   categorySelect.innerHTML = '<option value="">TODAS LAS CATEGORÍAS</option>';
   categories.forEach((value) => categorySelect.insertAdjacentHTML('beforeend', `<option value="${value}">${value.toUpperCase()}</option>`));
   categorySelect.value = category;
@@ -196,6 +197,7 @@ export function aplicarFiltrosMapa() {
       state.map.setFilter(labelLayerId, ['all', arquitectos, ...detalles, ['==', ['get', 'importancia'], importance], ['==', ['get', 'estado_revision'], 'publicada']]);
     }
   });
+  document.dispatchEvent(new CustomEvent('radar:filters-changed'));
 }
 
 initFiltersUI();

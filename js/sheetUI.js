@@ -5,7 +5,7 @@
 import { state, separarArquitectos, esRolAdmin, guardarZonaPersonalLocal } from './state.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { cerrarFiltros, generarFiltrosUI } from './filtersUI.js';
-import { saveBuildingStatus, deleteBuilding, deletePrivateBuilding, createUserCollection, addUserCollectionItem, createUserPrivateLabel, deleteUserPrivateLabel } from './api.js';
+import { fetchBuildings, saveBuildingStatus, deleteBuilding, deletePrivateBuilding, createUserCollection, addUserCollectionItem, createUserPrivateLabel, deleteUserPrivateLabel } from './api.js';
 
 const sheet = document.getElementById('sheet');
 let organizerMode = 'collections';
@@ -14,21 +14,53 @@ function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character]));
 }
 
-function abrirFichaArquitecto(nombreArquitecto) {
+async function abrirFichaArquitecto(nombreArquitecto) {
   const modal = document.getElementById('modal-architect');
-  const obras = state.OBRAS
-    .filter((obra) => (obra.arquitectos || separarArquitectos(obra.arquitecto)).includes(nombreArquitecto))
+  const works = document.getElementById('architect-profile-works');
+  document.getElementById('architect-profile-name').textContent = nombreArquitecto;
+  document.getElementById('architect-profile-count').textContent = 'CARGANDO OBRAS...';
+  works.innerHTML = '<p class="architect-profile-empty">Consultando todas las obras...</p>';
+  modal.classList.add('open');
+
+  let obras;
+  try {
+    const filas = await fetchBuildings({ architect: nombreArquitecto, includeAllImportance: true });
+    obras = filas.map((fila, index) => ({
+      id: fila.id,
+      featureId: String(fila.id ?? `obra-${index}`),
+      nombre_obra: fila.nombre_obra,
+      foto_url: fila.foto_url || null,
+      enlace_url: fila.enlace_url || null,
+      arquitecto: fila.arquitecto,
+      arquitectos: separarArquitectos(fila.arquitecto),
+      año_construccion: fila.año_construccion,
+      importancia: Number(fila.importancia) || 1,
+      categoria: fila.categoria || 'otro',
+      estado_acceso: fila.estado_acceso || (fila.visitable ? 'publico' : 'privado'),
+      estado_revision: fila.estado_revision || 'publicada',
+      coordenadas: [fila.longitud, fila.latitud],
+      selected: false,
+    }));
+    const obrasPorId = new Map(state.OBRAS.map((obra) => [String(obra.id), obra]));
+    obras.forEach((obra) => obrasPorId.set(String(obra.id), { ...obrasPorId.get(String(obra.id)), ...obra }));
+    state.OBRAS = [...obrasPorId.values()];
+  } catch (error) {
+    console.error('Error cargando obras del arquitecto:', error);
+    document.getElementById('architect-profile-count').textContent = 'ERROR DE CARGA';
+    works.innerHTML = '<p class="architect-profile-empty">No se pudieron cargar las obras.</p>';
+    return;
+  }
+
+  obras = obras
     .sort((first, second) => Number(second.año_construccion || 0) - Number(first.año_construccion || 0)
       || String(first.nombre_obra || '').localeCompare(String(second.nombre_obra || ''), 'es'));
-  document.getElementById('architect-profile-name').textContent = nombreArquitecto;
   document.getElementById('architect-profile-count').textContent = `${obras.length} ${obras.length === 1 ? 'OBRA REGISTRADA' : 'OBRAS REGISTRADAS'}`;
-  document.getElementById('architect-profile-works').innerHTML = obras.length ? obras.map((obra) => `
+  works.innerHTML = obras.length ? obras.map((obra) => `
     <button type="button" class="architect-work-item" data-architect-work-id="${escapeHtml(obra.featureId)}">
       <span class="architect-work-year">${escapeHtml(obra.año_construccion || '----')}</span>
       <span class="architect-work-info"><strong>${escapeHtml(obra.nombre_obra)}</strong><small>${escapeHtml(obra.categoria || 'otro').toUpperCase()}</small></span>
     </button>
   `).join('') : '<p class="architect-profile-empty">No hay obras registradas para este arquitecto.</p>';
-  modal.classList.add('open');
 }
 
 function cerrarFichaArquitecto() {

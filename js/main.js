@@ -5,7 +5,7 @@
    ========================================================================= */
 
 import { state, separarArquitectos, esRolAdmin } from './state.js';
-import { fetchBuildings, fetchUserPendingBuildings, fetchPendingBuildings, fetchPrivateBuildings, fetchAllPrivateBuildings } from './api.js';
+import { fetchBuildings, fetchBuildingFacets, fetchUserPendingBuildings, fetchPendingBuildings, fetchPrivateBuildings, fetchAllPrivateBuildings } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
 import { cargarMapaMapbox } from './mapController.js';
@@ -14,35 +14,82 @@ import { initSearchUI } from './searchUI.js';
 import { initMyPlacesUI } from './myPlacesUI.js';
 import { initAdminUI } from './adminUI.js';
 
+let publicLoadRequest = 0;
+let publicLoadTimer = null;
+
+function transformarEdificio(fila, index) {
+  return {
+    id: fila.id,
+    featureId: String(fila.id ?? `obra-${index}`),
+    nombre_obra: fila.nombre_obra,
+    foto_url: fila.foto_url || null,
+    enlace_url: fila.enlace_url || null,
+    arquitecto: fila.arquitecto,
+    arquitectos: separarArquitectos(fila.arquitecto),
+    año_construccion: fila.año_construccion,
+    importancia: Number(fila.importancia) || 1,
+    categoria: fila.categoria || 'otro',
+    ciudad: fila.ciudad || null,
+    estado_acceso: fila.estado_acceso || (fila.visitable ? 'publico' : 'privado'),
+    añadido_por: fila.añadido_por || null,
+    estado_revision: fila.estado_revision || 'publicada',
+    coordenadas: [fila.longitud, fila.latitud],
+    selected: false,
+  };
+}
+
+async function cargarEdificiosVisibles() {
+  const requestId = ++publicLoadRequest;
+  try {
+    const arquitectosAnteriores = new Set(state.ARQUITECTOS);
+    const arquitectosActivosAnteriores = new Set(state.activeArquitectos);
+    const habiaFiltroDeArquitectos = arquitectosAnteriores.size > 0
+      && arquitectosActivosAnteriores.size < arquitectosAnteriores.size;
+    const architect = habiaFiltroDeArquitectos && arquitectosActivosAnteriores.size === 1
+      ? [...arquitectosActivosAnteriores][0]
+      : null;
+    const [datosDB, catalogo] = await Promise.all([
+      fetchBuildings({
+        bounds: architect ? null : state.map.getBounds(),
+        zoom: state.map.getZoom(),
+        architect,
+      }),
+      state.BUILDING_CATALOG.length ? Promise.resolve(state.BUILDING_CATALOG) : fetchBuildingFacets(),
+    ]);
+    if (requestId !== publicLoadRequest) return;
+    state.BUILDING_CATALOG = catalogo;
+    state.ARQUITECTOS = [...new Set(catalogo.flatMap((fila) => separarArquitectos(fila.arquitecto)))];
+    const estadosAnteriores = new Map(state.OBRAS.map((obra) => [String(obra.id), obra]));
+    const datosPublicos = datosDB.map((fila, index) => {
+      const edificio = transformarEdificio(fila, index);
+      return { ...edificio, selected: estadosAnteriores.get(String(edificio.id))?.selected || false };
+    });
+    const datosPrivados = state.OBRAS.filter((obra) => obra.private || obra.estado_revision === 'pendiente');
+    state.OBRAS = [...datosPublicos, ...datosPrivados];
+    state.activeArquitectos = habiaFiltroDeArquitectos
+      ? new Set([...arquitectosActivosAnteriores].filter((arquitecto) => state.ARQUITECTOS.includes(arquitecto)))
+      : new Set(state.ARQUITECTOS);
+    document.dispatchEvent(new CustomEvent('radar:data-ready'));
+    generarFiltrosUI();
+    actualizarFuenteMapa();
+  } catch (error) {
+    if (requestId !== publicLoadRequest) return;
+    console.error('Error:', error);
+    alert('Error de conexión con la base de datos.');
+  }
+}
+
+function programarCargaEdificiosVisibles() {
+  clearTimeout(publicLoadTimer);
+  publicLoadTimer = setTimeout(cargarEdificiosVisibles, 120);
+}
+
 async function inicializarRadar() {
   try {
-    const datosDB = await fetchBuildings();
-
-      state.OBRAS = datosDB.map((fila, index) => ({
-      id: fila.id,
-        featureId: String(fila.id ?? `obra-${index}`),
-      nombre_obra: fila.nombre_obra,
-      foto_url: fila.foto_url || null,
-      enlace_url: fila.enlace_url || null,
-      arquitecto: fila.arquitecto,
-      arquitectos: separarArquitectos(fila.arquitecto),
-      año_construccion: fila.año_construccion,
-      importancia: Number(fila.importancia) || 1,
-      categoria: fila.categoria || 'otro',
-      ciudad: fila.ciudad || null,
-      estado_acceso: fila.estado_acceso || (fila.visitable ? 'publico' : 'privado'),
-      añadido_por: fila.añadido_por || null,
-      estado_revision: fila.estado_revision || 'publicada',
-      coordenadas: [fila.longitud, fila.latitud],
-      selected: false,
-    }));
-
-    state.ARQUITECTOS = [...new Set(state.OBRAS.flatMap((o) => o.arquitectos))];
-    state.activeArquitectos = new Set(state.ARQUITECTOS);
-    document.dispatchEvent(new CustomEvent('radar:data-ready'));
-
-    generarFiltrosUI();
     cargarMapaMapbox();
+    state.map.once('load', cargarEdificiosVisibles);
+    state.map.on('moveend', programarCargaEdificiosVisibles);
+    document.addEventListener('radar:filters-changed', programarCargaEdificiosVisibles);
   } catch (error) {
     console.error('Error:', error);
     alert('Error de conexión con la base de datos.');
