@@ -16,6 +16,7 @@ import { initAdminUI } from './adminUI.js';
 
 let publicLoadRequest = 0;
 let publicLoadTimer = null;
+let publicLoadController = null;
 
 function transformarEdificio(fila, index) {
   return {
@@ -40,6 +41,8 @@ function transformarEdificio(fila, index) {
 
 async function cargarEdificiosVisibles() {
   const requestId = ++publicLoadRequest;
+  publicLoadController?.abort();
+  publicLoadController = new AbortController();
   try {
     const arquitectosAnteriores = new Set(state.ARQUITECTOS);
     const arquitectosActivosAnteriores = new Set(state.activeArquitectos);
@@ -53,6 +56,7 @@ async function cargarEdificiosVisibles() {
         bounds: architect ? null : state.map.getBounds(),
         zoom: state.map.getZoom(),
         architect,
+        signal: publicLoadController.signal,
       }),
       state.BUILDING_CATALOG.length ? Promise.resolve(state.BUILDING_CATALOG) : fetchBuildingFacets(),
     ]);
@@ -73,6 +77,7 @@ async function cargarEdificiosVisibles() {
     generarFiltrosUI();
     actualizarFuenteMapa();
   } catch (error) {
+    if (error.name === 'AbortError') return;
     if (requestId !== publicLoadRequest) return;
     console.error('Error:', error);
     alert('Error de conexión con la base de datos.');

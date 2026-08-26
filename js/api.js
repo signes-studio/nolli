@@ -18,7 +18,7 @@ export async function searchPlaces(query) {
 }
 
 /** Descarga las obras públicas del encuadre y nivel de zoom actuales. */
-export async function fetchBuildings({ bounds, zoom, architect, includeAllImportance = false } = {}) {
+export async function fetchBuildings({ bounds, zoom, architect, includeAllImportance = false, signal } = {}) {
   const pageSize = 1000;
   const buildings = [];
   let start = 0;
@@ -33,7 +33,7 @@ export async function fetchBuildings({ bounds, zoom, architect, includeAllImport
     params.append('latitud', `lte.${maxLatitude}`);
   }
   if (architect) params.set('arquitecto', `ilike.*${architect}*`);
-  const maxImportance = 3;
+  const maxImportance = includeAllImportance ? 3 : Number(zoom) >= 13.5 ? 3 : Number(zoom) >= 8 ? 2 : 1;
   params.set('importancia', `lte.${maxImportance}`);
 
   while (true) {
@@ -43,6 +43,7 @@ export async function fetchBuildings({ bounds, zoom, architect, includeAllImport
         'Authorization': `Bearer ${SUPABASE_KEY}`,
         Range: `${start}-${start + pageSize - 1}`,
       },
+      signal,
     });
     if (!response.ok) throw new Error(`Error ${response.status}`);
     const page = await response.json();
