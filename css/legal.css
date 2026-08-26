@@ -148,6 +148,10 @@
   color: var(--fg);
 }
 
+.legal-section a {
+  color: var(--accent-2);
+}
+
 .legal-section code {
   color: var(--accent-2);
   font-family: var(--font-mono);
