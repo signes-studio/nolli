@@ -122,7 +122,7 @@ export function abrirFicha(building, coordinates, featureId = building.id) {
   }
 }
 
-function formatAccess(value) { return { publico: 'PUBLICO', exterior_visible: 'EXTERIOR VISIBLE', con_reserva: 'CON RESERVA', privado: 'PRIVADO', cerrado_temporalmente: 'CERRADO TEMPORALMENTE', desaparecido: 'DESAPARECIDO' }[value] || value; }
+function formatAccess(value) { return { publico: 'PUBLICO', exterior_visible: 'EXTERIOR VISIBLE', con_reserva: 'CON RESERVA', privado: 'PRIVADO', cerrado_temporalmente: 'CERRADO TEMPORALMENTE', no_construido: 'NO CONSTRUIDO', desaparecido: 'DESAPARECIDO' }[value] || value; }
 function getSelectedBuilding() { return state.OBRAS.find((item) => String(item.featureId) === String(state.selectedFeatureId)); }
 function getStatus(status) { const building = getSelectedBuilding(); return building ? state.buildingStatuses.get(String(building.id))?.[status] || false : false; }
 function closeOrganizer() { document.getElementById('modal-personal-organizer').classList.remove('open'); }
