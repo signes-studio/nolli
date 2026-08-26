@@ -83,14 +83,14 @@ function actualizarOpciones() {
 }
 
 function mostrarSugerenciasArquitectos() {
-  const query = architectInput.value.trim().toLowerCase();
+  const query = normalizarTexto(architectInput.value);
   if (!query) {
     architectSuggestions.innerHTML = '';
     architectSuggestions.hidden = true;
     return;
   }
   const matches = state.ARQUITECTOS
-    .filter((architect) => architect.toLowerCase().includes(query))
+    .filter((architect) => normalizarTexto(architect).includes(query))
     .sort((first, second) => first.localeCompare(second, 'es'))
     .slice(0, 8);
   architectSuggestions.innerHTML = matches.map((architect) => `
@@ -122,10 +122,10 @@ function renderizarResultados(message = '') {
   }
 
   const text = searchInput.value.trim().toLowerCase();
-  const selectedArchitect = architectInput.value.trim().toLowerCase();
+  const selectedArchitect = normalizarTexto(architectInput.value);
   const results = state.OBRAS
     .filter((obra) => !text || String(obra.nombre_obra || '').toLowerCase().includes(text))
-    .filter((obra) => !selectedArchitect || (obra.arquitectos || []).some((architect) => architect.toLowerCase() === selectedArchitect))
+    .filter((obra) => !selectedArchitect || (obra.arquitectos || []).some((architect) => normalizarTexto(architect).includes(selectedArchitect)))
     .map((obra) => ({ obra, distance: distanciaEnKm(state.userLocation, obra.coordenadas) }))
     .sort((a, b) => a.distance - b.distance)
     .slice(0, 10);
@@ -140,6 +140,10 @@ function renderizarResultados(message = '') {
       <span class="nearby-meta">${formatearDistancia(distance)}</span>
     </button>
   `).join('');
+}
+
+function normalizarTexto(value) {
+  return String(value || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 
 function distanciaEnKm(origen, destino) {
