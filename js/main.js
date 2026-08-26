@@ -4,7 +4,7 @@
    <script type="module"> por lo que se ejecuta en modo defer de forma nativa.
    ========================================================================= */
 
-import { state, separarArquitectos, normalizarCategoria, esRolAdmin } from './state.js';
+import { state, separarArquitectos, normalizarCategoria, normalizarImportancia, esRolAdmin } from './state.js';
 import { fetchBuildings, fetchBuildingFacets, fetchUserPendingBuildings, fetchPendingBuildings, fetchPrivateBuildings, fetchAllPrivateBuildings } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
@@ -27,7 +27,7 @@ function transformarEdificio(fila, index) {
     arquitecto: fila.arquitecto,
     arquitectos: separarArquitectos(fila.arquitecto),
     año_construccion: fila.año_construccion,
-    importancia: Number(fila.importancia) || 1,
+    importancia: normalizarImportancia(fila.importancia),
     categoria: normalizarCategoria(fila.categoria),
     ciudad: fila.ciudad || null,
     estado_acceso: fila.estado_acceso || (fila.visitable ? 'publico' : 'privado'),
@@ -113,7 +113,7 @@ async function cargarContenidoPrivado() {
     arquitecto: fila.arquitecto,
     arquitectos: separarArquitectos(fila.arquitecto),
     año_construccion: fila.año_construccion,
-    importancia: Number(fila.importancia) || 1,
+    importancia: normalizarImportancia(fila.importancia),
     categoria: normalizarCategoria(fila.categoria),
     ciudad: fila.ciudad || null,
     estado_acceso: fila.estado_acceso || 'privado',
@@ -127,7 +127,7 @@ async function cargarContenidoPrivado() {
     id: fila.id || `private-${index}`,
     featureId: `private-${fila.id || index}`,
     arquitectos: separarArquitectos(fila.arquitecto),
-    importancia: Number(fila.importancia) || 1,
+    importancia: normalizarImportancia(fila.importancia),
     categoria: normalizarCategoria(fila.categoria),
     estado_acceso: fila.estado_acceso || 'privado',
     estado_revision: 'privada',

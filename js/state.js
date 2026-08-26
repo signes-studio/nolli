@@ -70,6 +70,11 @@ export function nombreCategoria(valor) {
   }[normalizarCategoria(valor)] || 'OTRO';
 }
 
+export function normalizarImportancia(valor) {
+  const importancia = Number(valor);
+  return Number.isFinite(importancia) && importancia >= 0 && importancia <= 3 ? importancia : 1;
+}
+
 export function getPersonalFallbackKey(userId) {
   return `nolli:personal-zone:${String(userId || 'guest')}`;
 }

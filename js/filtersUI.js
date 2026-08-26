@@ -170,7 +170,7 @@ export function aplicarFiltrosMapa() {
   if (state.activeDecada) detalles.push(['<', ['get', 'año_construccion'], Number(state.activeDecada) + 10]);
   if (state.activeCategoria) detalles.push(['==', ['get', 'categoria'], state.activeCategoria]);
   if (state.activeVisitable) detalles.push(['==', ['get', 'estado_acceso'], state.activeVisitable]);
-  [1, 2, 3].forEach((importance) => {
+  [0, 1, 2, 3].forEach((importance) => {
     [`obras-l${importance}`, `obras-l${importance}-visited`, `obras-l${importance}-selected`, `obras-l${importance}-pending`, `obras-l${importance}-private`].forEach((layerId) => {
       if (!state.map.getLayer(layerId)) return;
       const selected = layerId.endsWith('-selected') ? 1 : 0;
@@ -191,7 +191,7 @@ export function aplicarFiltrosMapa() {
   if (state.map.getLayer('obras-favorites-halo')) {
     state.map.setFilter('obras-favorites-halo', ['all', arquitectos, ...detalles, ['==', ['get', 'favorite'], 1]]);
   }
-  [1, 2, 3].forEach((importance) => {
+  [0, 1, 2, 3].forEach((importance) => {
     const labelLayerId = `obras-labels-l${importance}`;
     if (state.map.getLayer(labelLayerId)) {
       state.map.setFilter(labelLayerId, ['all', arquitectos, ...detalles, ['==', ['get', 'importancia'], importance], ['==', ['get', 'estado_revision'], 'publicada']]);

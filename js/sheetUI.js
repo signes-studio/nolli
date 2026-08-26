@@ -2,7 +2,7 @@
    SHEETUI.JS - Ficha tecnica y acciones personales de una obra
    ========================================================================= */
 
-import { state, separarArquitectos, normalizarCategoria, nombreCategoria, esRolAdmin, guardarZonaPersonalLocal } from './state.js';
+import { state, separarArquitectos, normalizarCategoria, normalizarImportancia, nombreCategoria, esRolAdmin, guardarZonaPersonalLocal } from './state.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { cerrarFiltros, generarFiltrosUI } from './filtersUI.js';
 import { fetchBuildings, saveBuildingStatus, deleteBuilding, deletePrivateBuilding, createUserCollection, addUserCollectionItem, createUserPrivateLabel, deleteUserPrivateLabel } from './api.js';
@@ -34,7 +34,7 @@ async function abrirFichaArquitecto(nombreArquitecto) {
       arquitecto: fila.arquitecto,
       arquitectos: separarArquitectos(fila.arquitecto),
       año_construccion: fila.año_construccion,
-      importancia: Number(fila.importancia) || 1,
+      importancia: normalizarImportancia(fila.importancia),
       categoria: normalizarCategoria(fila.categoria),
       estado_acceso: fila.estado_acceso || (fila.visitable ? 'publico' : 'privado'),
       estado_revision: fila.estado_revision || 'publicada',
