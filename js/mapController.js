@@ -26,13 +26,21 @@ export function cargarMapaMapbox() {
     if (state.map.getSource('obras')) return;
     aplicarTratamientoSatelite();
     [0, 1, 2, 3].forEach((importance) => {
-      state.map.addImage(`icon-l${importance}`, buildIcon(drawTargetIcon, '#FF4500', importance), { pixelRatio: 2 });
+      const iconColor = importance === 0 ? '#FFD166' : '#FF4500';
+      state.map.addImage(`icon-l${importance}`, buildIcon(drawTargetIcon, iconColor, importance), { pixelRatio: 2 });
       state.map.addImage(`icon-l${importance}-visited`, buildIcon(drawTargetIcon, '#39FF14', importance), { pixelRatio: 2 });
       state.map.addImage(`icon-l${importance}-pending`, buildIcon(drawTargetIcon, '#FFD166', importance), { pixelRatio: 2 });
       state.map.addImage(`icon-l${importance}-private`, buildIcon(drawTargetIcon, '#5EEAD4', importance), { pixelRatio: 2 });
       state.map.addImage(`icon-l${importance}-selected`, buildIcon(drawTargetIcon, '#FFFFFF', importance), { pixelRatio: 2 });
     });
     state.map.addSource('obras', {
+      type: 'geojson',
+      data: { type: 'FeatureCollection', features: [] },
+      cluster: true,
+      clusterMaxZoom: 7,
+      clusterRadius: 45,
+    });
+    state.map.addSource('obras-maestras', {
       type: 'geojson',
       data: { type: 'FeatureCollection', features: [] },
     });
@@ -42,7 +50,7 @@ export function cargarMapaMapbox() {
       id: 'obras-favorites-halo',
       type: 'circle',
       source: 'obras',
-      filter: ['==', ['get', 'favorite'], 1],
+      filter: ['all', ['!', ['has', 'point_count']], ['==', ['get', 'favorite'], 1]],
       paint: {
         'circle-radius': 13,
         'circle-color': '#FFFFFF',
@@ -50,15 +58,37 @@ export function cargarMapaMapbox() {
         'circle-blur': 0.55,
       },
     });
-
+    state.map.addLayer({
+      id: 'obras-clusters',
+      type: 'circle',
+      source: 'obras',
+      filter: ['has', 'point_count'],
+      paint: {
+        'circle-color': '#FF4500',
+        'circle-radius': 12,
+        'circle-opacity': 0.94,
+      },
+    });
+    state.map.addLayer({
+      id: 'obras-clusters-core',
+      type: 'circle',
+      source: 'obras',
+      filter: ['has', 'point_count'],
+      paint: {
+        'circle-color': '#000000',
+        'circle-radius': 4,
+        'circle-opacity': 0.92,
+      },
+    });
     [0, 1, 2, 3].forEach((importance) => {
       const minzoom = importance === 0 ? 0 : importance === 1 ? 0 : importance === 2 ? 6.5 : 13.5;
       const baseFilter = ['==', ['get', 'importancia'], importance];
+      const sourceId = importance === 0 ? 'obras-maestras' : 'obras';
 
       state.map.addLayer({
         id: `obras-l${importance}`,
         type: 'symbol',
-        source: 'obras',
+        source: sourceId,
         minzoom,
         filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'publicada'], ['!=', ['get', 'selected'], 1], ['!=', ['get', 'visited'], 1]],
         layout: {
@@ -71,7 +101,7 @@ export function cargarMapaMapbox() {
       state.map.addLayer({
         id: `obras-l${importance}-visited`,
         type: 'symbol',
-        source: 'obras',
+        source: sourceId,
         minzoom,
         filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'publicada'], ['!=', ['get', 'selected'], 1], ['==', ['get', 'visited'], 1]],
         layout: {
@@ -84,7 +114,7 @@ export function cargarMapaMapbox() {
       state.map.addLayer({
         id: `obras-l${importance}-selected`,
         type: 'symbol',
-        source: 'obras',
+        source: sourceId,
         minzoom,
         filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'publicada'], ['==', ['get', 'selected'], 1]],
         layout: {
@@ -97,7 +127,7 @@ export function cargarMapaMapbox() {
       state.map.addLayer({
         id: `obras-l${importance}-pending`,
         type: 'symbol',
-        source: 'obras',
+        source: sourceId,
         minzoom,
         filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'pendiente']],
         layout: {
@@ -110,7 +140,7 @@ export function cargarMapaMapbox() {
       state.map.addLayer({
         id: `obras-l${importance}-private`,
         type: 'symbol',
-        source: 'obras',
+        source: sourceId,
         minzoom,
         filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'privada']],
         layout: {
@@ -128,10 +158,11 @@ export function cargarMapaMapbox() {
 
     [0, 1, 2, 3].forEach((importance) => {
       const labelLayerId = `obras-labels-l${importance}`;
+      const sourceId = importance === 0 ? 'obras-maestras' : 'obras';
       state.map.addLayer({
         id: labelLayerId,
         type: 'symbol',
-        source: 'obras',
+        source: sourceId,
         minzoom: importance === 0 ? 13 : importance === 1 ? 13 : importance === 2 ? 14 : 16,
         filter: ['all', ['==', ['get', 'importancia'], importance], ['==', ['get', 'estado_revision'], 'publicada']],
         layout: {
@@ -152,6 +183,10 @@ export function cargarMapaMapbox() {
       });
       state.map.on('mouseenter', labelLayerId, () => { state.map.getCanvas().style.cursor = 'pointer'; });
       state.map.on('mouseleave', labelLayerId, () => { state.map.getCanvas().style.cursor = ''; });
+    });
+
+    ['obras-l0', 'obras-l0-visited', 'obras-l0-selected', 'obras-l0-pending', 'obras-l0-private', 'obras-labels-l0'].forEach((layerId) => {
+      state.map.moveLayer(layerId);
     });
 
     iniciarInteraccionesMapa();
@@ -292,6 +327,25 @@ function iniciarInteraccionesMapa() {
     });
   });
 
+  state.map.on('click', 'obras-clusters', (e) => {
+    const cluster = e.features[0];
+    state.map.getSource('obras').getClusterExpansionZoom(cluster.properties.cluster_id, (error, zoom) => {
+      if (error) return;
+      state.map.easeTo({ center: cluster.geometry.coordinates, zoom });
+    });
+  });
+  state.map.on('click', 'obras-clusters-core', (e) => {
+    const cluster = e.features[0];
+    state.map.getSource('obras').getClusterExpansionZoom(cluster.properties.cluster_id, (error, zoom) => {
+      if (error) return;
+      state.map.easeTo({ center: cluster.geometry.coordinates, zoom });
+    });
+  });
+  state.map.on('mouseenter', 'obras-clusters', () => { state.map.getCanvas().style.cursor = 'pointer'; });
+  state.map.on('mouseleave', 'obras-clusters', () => { state.map.getCanvas().style.cursor = ''; });
+  state.map.on('mouseenter', 'obras-clusters-core', () => { state.map.getCanvas().style.cursor = 'pointer'; });
+  state.map.on('mouseleave', 'obras-clusters-core', () => { state.map.getCanvas().style.cursor = ''; });
+
   // Clic en el fondo vacío (Descartar selección)
   state.map.on('click', (e) => {
     if (state.addingBuilding) {
@@ -302,7 +356,7 @@ function iniciarInteraccionesMapa() {
       dispatchLongPress(e.lngLat);
       return;
     }
-    const isObra = state.map.queryRenderedFeatures(e.point, { layers: ['obras-l0', 'obras-l0-visited', 'obras-l0-selected', 'obras-l0-pending', 'obras-l0-private', 'obras-l1', 'obras-l1-visited', 'obras-l1-selected', 'obras-l1-pending', 'obras-l1-private', 'obras-l2', 'obras-l2-visited', 'obras-l2-selected', 'obras-l2-pending', 'obras-l2-private', 'obras-l3', 'obras-l3-visited', 'obras-l3-selected', 'obras-l3-pending', 'obras-l3-private', 'obras-labels-l0', 'obras-labels-l1', 'obras-labels-l2', 'obras-labels-l3'] });
+    const isObra = state.map.queryRenderedFeatures(e.point, { layers: ['obras-clusters', 'obras-clusters-core', 'obras-l0', 'obras-l0-visited', 'obras-l0-selected', 'obras-l0-pending', 'obras-l0-private', 'obras-l1', 'obras-l1-visited', 'obras-l1-selected', 'obras-l1-pending', 'obras-l1-private', 'obras-l2', 'obras-l2-visited', 'obras-l2-selected', 'obras-l2-pending', 'obras-l2-private', 'obras-l3', 'obras-l3-visited', 'obras-l3-selected', 'obras-l3-pending', 'obras-l3-private', 'obras-labels-l0', 'obras-labels-l1', 'obras-labels-l2', 'obras-labels-l3'] });
     if (!isObra.length) cerrarFicha();
   });
 

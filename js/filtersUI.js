@@ -189,7 +189,7 @@ export function aplicarFiltrosMapa() {
     });
   });
   if (state.map.getLayer('obras-favorites-halo')) {
-    state.map.setFilter('obras-favorites-halo', ['all', arquitectos, ...detalles, ['==', ['get', 'favorite'], 1]]);
+    state.map.setFilter('obras-favorites-halo', ['all', ['!', ['has', 'point_count']], arquitectos, ...detalles, ['==', ['get', 'favorite'], 1]]);
   }
   [0, 1, 2, 3].forEach((importance) => {
     const labelLayerId = `obras-labels-l${importance}`;

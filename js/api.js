@@ -21,7 +21,7 @@ export async function fetchBuildings({ bounds, zoom, architect, includeAllImport
     params.append('latitud', `lte.${maxLatitude}`);
   }
   if (architect) params.set('arquitecto', `ilike.*${architect}*`);
-  const maxImportance = includeAllImportance ? 3 : Number(zoom) >= 13.5 ? 3 : Number(zoom) >= 6.5 ? 2 : 1;
+  const maxImportance = 3;
   params.set('importancia', `lte.${maxImportance}`);
 
   while (true) {
