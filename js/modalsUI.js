@@ -2,7 +2,7 @@
    MODALSUI.JS — Modal de login de administrador y modal de alta de edificio
    ========================================================================= */
 
-import { state, separarArquitectos, esRolAdmin } from './state.js';
+import { state, separarArquitectos, normalizarCategoria, esRolAdmin } from './state.js';
 import { loginAdmin, registerUser, refreshUserSession, requestPasswordReset, fetchUserRole, fetchCurrentUser, fetchBuildingStatuses, upsertCurrentProfile, createBuildingReport, createBuilding, createPrivateBuilding, updateBuilding } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
@@ -264,7 +264,7 @@ function initAddBuildingModal() {
     document.getElementById('add-arquitecto').value = obra.arquitecto || '';
     document.getElementById('add-ano').value = obra.año_construccion || '';
     document.getElementById('add-importancia').value = String(obra.importancia || 1);
-    document.getElementById('add-categoria').value = obra.categoria || 'otro';
+    document.getElementById('add-categoria').value = normalizarCategoria(obra.categoria);
     document.getElementById('add-acceso').value = obra.estado_acceso || 'publico';
     document.getElementById('add-error').classList.add('hidden');
     mAdd.classList.add('open');

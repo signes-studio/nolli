@@ -4,7 +4,7 @@
    <script type="module"> por lo que se ejecuta en modo defer de forma nativa.
    ========================================================================= */
 
-import { state, separarArquitectos, esRolAdmin } from './state.js';
+import { state, separarArquitectos, normalizarCategoria, esRolAdmin } from './state.js';
 import { fetchBuildings, fetchBuildingFacets, fetchUserPendingBuildings, fetchPendingBuildings, fetchPrivateBuildings, fetchAllPrivateBuildings } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
@@ -28,7 +28,7 @@ function transformarEdificio(fila, index) {
     arquitectos: separarArquitectos(fila.arquitecto),
     año_construccion: fila.año_construccion,
     importancia: Number(fila.importancia) || 1,
-    categoria: fila.categoria || 'otro',
+    categoria: normalizarCategoria(fila.categoria),
     ciudad: fila.ciudad || null,
     estado_acceso: fila.estado_acceso || (fila.visitable ? 'publico' : 'privado'),
     añadido_por: fila.añadido_por || null,
@@ -57,8 +57,8 @@ async function cargarEdificiosVisibles() {
       state.BUILDING_CATALOG.length ? Promise.resolve(state.BUILDING_CATALOG) : fetchBuildingFacets(),
     ]);
     if (requestId !== publicLoadRequest) return;
-    state.BUILDING_CATALOG = catalogo;
-    state.ARQUITECTOS = [...new Set(catalogo.flatMap((fila) => separarArquitectos(fila.arquitecto)))];
+    state.BUILDING_CATALOG = catalogo.map((fila) => ({ ...fila, categoria: normalizarCategoria(fila.categoria) }));
+    state.ARQUITECTOS = [...new Set(state.BUILDING_CATALOG.flatMap((fila) => separarArquitectos(fila.arquitecto)))];
     const estadosAnteriores = new Map(state.OBRAS.map((obra) => [String(obra.id), obra]));
     const datosPublicos = datosDB.map((fila, index) => {
       const edificio = transformarEdificio(fila, index);
@@ -114,7 +114,7 @@ async function cargarContenidoPrivado() {
     arquitectos: separarArquitectos(fila.arquitecto),
     año_construccion: fila.año_construccion,
     importancia: Number(fila.importancia) || 1,
-    categoria: fila.categoria || 'otro',
+    categoria: normalizarCategoria(fila.categoria),
     ciudad: fila.ciudad || null,
     estado_acceso: fila.estado_acceso || 'privado',
     añadido_por: fila.añadido_por || state.userEmail,
@@ -128,7 +128,7 @@ async function cargarContenidoPrivado() {
     featureId: `private-${fila.id || index}`,
     arquitectos: separarArquitectos(fila.arquitecto),
     importancia: Number(fila.importancia) || 1,
-    categoria: fila.categoria || 'otro',
+    categoria: normalizarCategoria(fila.categoria),
     estado_acceso: fila.estado_acceso || 'privado',
     estado_revision: 'privada',
     private: true,

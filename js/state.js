@@ -44,6 +44,32 @@ export function separarArquitectos(valor) {
     .filter(Boolean);
 }
 
+export function normalizarCategoria(valor) {
+  const categoria = String(valor || '').trim().toLowerCase();
+  if (!categoria) return 'otro';
+  if (categoria.includes('residencial') || categoria.includes('vivienda') || categoria.includes('casa')) return 'residencial';
+  if (categoria.includes('religios') || categoria.includes('funer') || categoria.includes('tanatorio') || categoria.includes('cementerio')) return 'religioso_funerario';
+  if (categoria.includes('industrial') || categoria.includes('logíst') || categoria.includes('logist')) return 'industrial_logistico';
+  if (categoria.includes('comercial') || categoria.includes('comercio') || categoria.includes('mercado') || categoria.includes('hotel') || categoria.includes('oficina')) return 'comercial_terciario';
+  if (categoria.includes('parque') || categoria.includes('plaza') || categoria.includes('paisaje') || categoria.includes('jard')) return 'espacio_publico_paisaje';
+  if (categoria.includes('infraestruct') || categoria.includes('puente') || categoria.includes('estación') || categoria.includes('estacion') || categoria.includes('urban')) return 'infraestructura_urbanismo';
+  if (categoria.includes('equipamiento') || categoria.includes('educativ') || categoria.includes('escuela') || categoria.includes('colegio') || categoria.includes('univers') || categoria.includes('biblioteca') || categoria.includes('museo') || categoria.includes('cultural') || categoria.includes('deport') || categoria.includes('salud') || categoria.includes('hospital') || categoria.includes('ayuntamiento')) return 'dotacional_equipamiento';
+  return 'otro';
+}
+
+export function nombreCategoria(valor) {
+  return {
+    residencial: 'RESIDENCIAL',
+    dotacional_equipamiento: 'DOTACIONAL Y EQUIPAMIENTO',
+    industrial_logistico: 'INDUSTRIAL Y LOGÍSTICO',
+    religioso_funerario: 'RELIGIOSO Y FUNERARIO',
+    comercial_terciario: 'COMERCIAL Y TERCIARIO',
+    espacio_publico_paisaje: 'ESPACIO PÚBLICO Y PAISAJE',
+    infraestructura_urbanismo: 'INFRAESTRUCTURA Y URBANISMO',
+    otro: 'OTRO',
+  }[normalizarCategoria(valor)] || 'OTRO';
+}
+
 export function getPersonalFallbackKey(userId) {
   return `nolli:personal-zone:${String(userId || 'guest')}`;
 }

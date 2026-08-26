@@ -2,7 +2,7 @@
    SHEETUI.JS - Ficha tecnica y acciones personales de una obra
    ========================================================================= */
 
-import { state, separarArquitectos, esRolAdmin, guardarZonaPersonalLocal } from './state.js';
+import { state, separarArquitectos, normalizarCategoria, nombreCategoria, esRolAdmin, guardarZonaPersonalLocal } from './state.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { cerrarFiltros, generarFiltrosUI } from './filtersUI.js';
 import { fetchBuildings, saveBuildingStatus, deleteBuilding, deletePrivateBuilding, createUserCollection, addUserCollectionItem, createUserPrivateLabel, deleteUserPrivateLabel } from './api.js';
@@ -35,7 +35,7 @@ async function abrirFichaArquitecto(nombreArquitecto) {
       arquitectos: separarArquitectos(fila.arquitecto),
       año_construccion: fila.año_construccion,
       importancia: Number(fila.importancia) || 1,
-      categoria: fila.categoria || 'otro',
+      categoria: normalizarCategoria(fila.categoria),
       estado_acceso: fila.estado_acceso || (fila.visitable ? 'publico' : 'privado'),
       estado_revision: fila.estado_revision || 'publicada',
       coordenadas: [fila.longitud, fila.latitud],
@@ -100,7 +100,7 @@ export function abrirFicha(building, coordinates, featureId = building.id) {
     ${building.enlace_url ? `<div class="sheet-link"><a href="${building.enlace_url}" target="_blank" rel="noopener noreferrer">ABRIR ENLACE DEL PROYECTO</a></div>` : ''}
     <div class="data-row"><div class="label">[ARQUITECTO]</div><div class="value accent">${architects}</div></div>
     <div class="data-row"><div class="label">[ANO]</div><div class="value">${building.año_construccion || '-'}</div></div>
-    <div class="data-row"><div class="label">[CATEGORIA]</div><div class="value">${building.categoria || 'otro'}</div></div>
+    <div class="data-row"><div class="label">[CATEGORIA]</div><div class="value">${nombreCategoria(building.categoria)}</div></div>
     <div class="data-row"><div class="label">[ACCESO]</div><div class="value">${formatAccess(building.estado_acceso || (building.visitable ? 'publico' : 'privado'))}</div></div>
     <div class="data-row"><div class="label">[COORD]</div><div class="value">${coordinates[0].toFixed(5)}, ${coordinates[1].toFixed(5)}</div></div>
     ${state.sessionToken ? `<div class="personal-notes"><div class="rating-stars">${[1, 2, 3, 4, 5].map((value) => `<button type="button" class="rating-star ${getStatus('valoracion') >= value ? 'active' : ''}" data-rating="${value}" aria-label="Valorar ${value} de 5">&#9733;</button>`).join('')}</div><button type="button" class="btn note-toggle" data-note-toggle>ANADIR NOTA</button><div class="personal-note-editor" data-note-editor><label for="building-notes">NOTA PRIVADA</label><textarea id="building-notes" class="tech-input" rows="3" placeholder="Escribe una nota privada..."></textarea><button type="button" class="btn save-personal-status" data-save-personal>GUARDAR NOTA</button></div></div>` : ''}

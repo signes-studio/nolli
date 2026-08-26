@@ -2,7 +2,7 @@
    FILTERSUI.JS — Panel de filtros por arquitecto
    ========================================================================= */
 
-import { state, esRolAdmin } from './state.js';
+import { state, nombreCategoria, esRolAdmin } from './state.js';
 
 const filterPanel = document.getElementById('filter-panel');
 const btnFilters = document.getElementById('btn-filters');
@@ -41,7 +41,7 @@ function actualizarResumenFiltros() {
   if (!summary) return;
   const active = [];
   if (state.activeDecada) active.push(`${state.activeDecada}s`);
-  if (state.activeCategoria) active.push(state.activeCategoria.toUpperCase());
+  if (state.activeCategoria) active.push(nombreCategoria(state.activeCategoria));
   if (state.activeVisitable) active.push(state.activeVisitable.replaceAll('_', ' ').toUpperCase());
   if (state.activeArquitectos.size < state.ARQUITECTOS.length) active.push(`${state.activeArquitectos.size} ARQUITECTOS`);
   summary.textContent = active.length ? active.join(' · ') : 'TODAS LAS OBRAS';
@@ -59,7 +59,7 @@ function actualizarOpcionesFiltros() {
 
   const categories = [...new Set(catalogo.map((obra) => obra.categoria).filter(Boolean))].sort();
   categorySelect.innerHTML = '<option value="">TODAS LAS CATEGORÍAS</option>';
-  categories.forEach((value) => categorySelect.insertAdjacentHTML('beforeend', `<option value="${value}">${value.toUpperCase()}</option>`));
+  categories.forEach((value) => categorySelect.insertAdjacentHTML('beforeend', `<option value="${value}">${nombreCategoria(value)}</option>`));
   categorySelect.value = category;
   accessSelect.value = state.activeVisitable;
 }
