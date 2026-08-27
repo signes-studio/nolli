@@ -101,7 +101,7 @@ export function cargarMapaMapbox() {
     });
 
     [0, 1, 2, 3].forEach((importance) => {
-      const minzoom = importance === 0 ? 0 : importance === 1 ? 0 : importance === 2 ? 6.5 : 13.5;
+      const minzoom = importance === 0 ? 0 : importance === 1 ? 0 : importance === 2 ? 8 : 13.5;
       const baseFilter = ['==', ['get', 'importancia'], importance];
       const sourceId = importance === 0 ? 'obras-maestras' : 'obras';
       const iconSize = importance === 0 ? 0.92 : importance === 1 ? 0.70 : importance === 2 ? 0.56 : 0.52;
@@ -192,7 +192,7 @@ export function cargarMapaMapbox() {
         id: labelLayerId,
         type: 'symbol',
         source: sourceId,
-        minzoom: importance === 0 ? 13 : importance === 1 ? 13 : importance === 2 ? 14 : 16,
+        minzoom: importance === 0 ? 13 : importance === 1 ? 13 : importance === 2 ? 15.5 : 18,
         filter: ['all', ['==', ['get', 'importancia'], importance], ['==', ['get', 'estado_revision'], 'publicada']],
         layout: {
           'text-field': ['get', 'nombre_obra'],
