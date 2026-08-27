@@ -34,6 +34,7 @@ export function cargarMapaMapbox() {
       'comercial_terciario': '#FAB755',               
       'espacio_publico_paisaje': '#3AB15A',                  
       'infraestructura_urbanismo': '#c91c1c',
+      'industrial_logistico': '#8B4513', 
       'otro': '#AAAAAA'                      
     };
 
