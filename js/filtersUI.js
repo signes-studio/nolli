@@ -1,153 +1,211 @@
 /* =========================================================================
-   FILTERSUI.JS — Panel de filtros por arquitecto
+   FILTERSUI.JS — Panel de filtros por Categorías y Accesos (Versión Corregida)
    ========================================================================= */
 
 import { state, nombreCategoria, esRolAdmin } from './state.js';
 
 const filterPanel = document.getElementById('filter-panel');
 const btnFilters = document.getElementById('btn-filters');
-const filterSwitches = document.getElementById('filter-switches');
-const architectSearch = document.getElementById('architect-search');
-const decadeSelect = document.getElementById('filter-decade');
-const categorySelect = document.getElementById('filter-category');
-const accessSelect = document.getElementById('filter-access');
 
-/** Regenera los interruptores de filtro a partir de state.ARQUITECTOS. */
+const CATEGORIAS_CONFIG = [
+  { key: 'residencial', label: 'Residencial' },
+  { key: 'dotacional_equipamiento', label: 'Dotacional / Equipamiento' },
+  { key: 'industrial_logistico', label: 'Industrial / Logístico' },
+  { key: 'religioso_funerario', label: 'Religioso / Funerario' },
+  { key: 'comercial_terciario', label: 'Comercial / Terciario' },
+  { key: 'espacio_publico_paisaje', label: 'Espacio Público / Paisaje' },
+  { key: 'infraestructura_urbanismo', label: 'Infraestructura / Urbanismo' },
+  { key: 'otro', label: 'Otros' },
+];
+
+const ACCESOS_CONFIG = [
+  { key: 'publico', label: 'Público' },
+  { key: 'exterior_visible', label: 'Exterior visible' },
+  { key: 'con_reserva', label: 'Con reserva' },
+  { key: 'privado', label: 'Privado' },
+  { key: 'cerrado_temporalmente', label: 'Cerrado temporalmente' },
+  { key: 'no_construido', label: 'No construido' },
+  { key: 'desaparecido', label: 'Desaparecido' },
+];
+
+function asegurarEstadoFiltros() {
+  if (!state.activeCategorias || !(state.activeCategorias instanceof Set)) {
+    state.activeCategorias = new Set(CATEGORIAS_CONFIG.map(c => c.key));
+  }
+  if (!state.activeAccesos || !(state.activeAccesos instanceof Set)) {
+    state.activeAccesos = new Set(ACCESOS_CONFIG.map(a => a.key));
+  }
+}
+
 export function generarFiltrosUI() {
-  actualizarOpcionesFiltros();
-  filterSwitches.innerHTML = '';
-  const search = architectSearch.value.trim().toLowerCase();
-  state.ARQUITECTOS.filter((arq) => !search || arq.toLowerCase().includes(search)).forEach((arq) => {
-    if (!arq) return;
-    const row = document.createElement('div');
-    row.className = 'switch-row';
-    const checked = state.activeArquitectos.has(arq) ? 'checked' : '';
-    row.innerHTML = `
-      <span style="text-transform: uppercase;">${arq}</span>
-      <div class="tech-switch">
-        <input type="checkbox" ${checked} data-arq="${arq}">
-        <div class="track"></div>
-        <div class="thumb"></div>
+  asegurarEstadoFiltros();
+  
+  filterPanel.innerHTML = `
+    <div class="filter-head">
+      <div>
+        <span style="color:var(--fg-dim)">[ FILTROS ]</span>
+        <small id="filter-summary" class="filter-summary">TODAS LAS OBRAS</small>
       </div>
-      <button type="button" class="filter-action filter-isolate" data-isolate-arq="${arq}">AISLAR</button>
-    `;
-    filterSwitches.appendChild(row);
-  });
+      <div class="filter-head-actions">
+        <button type="button" class="filter-clear" data-filter-reset>LIMPIAR</button>
+        <i data-lucide="x" id="btn-filters-close" width="14" height="14" style="cursor:pointer; color:var(--fg-dim)" role="button" aria-label="Cerrar filtros"></i>
+      </div>
+    </div>
+
+    <div class="filter-group" data-filter-group="categories">
+      <button type="button" class="filter-group-head" aria-expanded="true">
+        <span>[ CATEGORÍAS ]</span>
+        <span class="filter-chevron">−</span>
+      </button>
+      <div class="filter-group-body">
+        <div class="filter-group-actions">
+          <button type="button" class="filter-action" data-filter-all="categories">TODOS</button>
+          <button type="button" class="filter-action" data-filter-isolate="categories">AISLAR</button>
+        </div>
+        <div class="filter-switches-list" id="switches-categories">
+          ${CATEGORIAS_CONFIG.map(cat => {
+            const checked = state.activeCategorias.has(cat.key) ? 'checked' : '';
+            return `
+              <div class="switch-row">
+                <span>${cat.label}</span>
+                <div class="tech-switch">
+                  <input type="checkbox" ${checked} data-category-key="${cat.key}">
+                  <div class="track"></div>
+                  <div class="thumb"></div>
+                </div>
+                <button type="button" class="filter-action filter-isolate" data-isolate-category="${cat.key}">AISLAR</button>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+
+    <div class="filter-group" data-filter-group="access">
+      <button type="button" class="filter-group-head" aria-expanded="true">
+        <span>[ ESTADO DE ACCESO ]</span>
+        <span class="filter-chevron">−</span>
+      </button>
+      <div class="filter-group-body">
+        <div class="filter-group-actions">
+          <button type="button" class="filter-action" data-filter-all="access">TODOS</button>
+          <button type="button" class="filter-action" data-filter-isolate="access">AISLAR</button>
+        </div>
+        <div class="filter-switches-list" id="switches-access">
+          ${ACCESOS_CONFIG.map(acc => {
+            const checked = state.activeAccesos.has(acc.key) ? 'checked' : '';
+            return `
+              <div class="switch-row">
+                <span>${acc.label}</span>
+                <div class="tech-switch">
+                  <input type="checkbox" ${checked} data-access-key="${acc.key}">
+                  <div class="track"></div>
+                  <div class="thumb"></div>
+                </div>
+                <button type="button" class="filter-action filter-isolate" data-isolate-access="${acc.key}">AISLAR</button>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+
+  if (window.lucide) window.lucide.createIcons();
   actualizarResumenFiltros();
 }
 
 function actualizarResumenFiltros() {
   const summary = document.getElementById('filter-summary');
   if (!summary) return;
-  const active = [];
-  if (state.activeDecada) active.push(`${state.activeDecada}s`);
-  if (state.activeCategoria) active.push(nombreCategoria(state.activeCategoria));
-  if (state.activeVisitable) active.push(state.activeVisitable.replaceAll('_', ' ').toUpperCase());
-  if (state.activeArquitectos.size < state.ARQUITECTOS.length) active.push(`${state.activeArquitectos.size} ARQUITECTOS`);
-  summary.textContent = active.length ? active.join(' · ') : 'TODAS LAS OBRAS';
+  
+  asegurarEstadoFiltros();
+  const activeParts = [];
+
+  if (state.activeCategorias.size < CATEGORIAS_CONFIG.length) {
+    activeParts.push(`${state.activeCategorias.size} CAT.`);
+  }
+  if (state.activeAccesos.size < ACCESOS_CONFIG.length) {
+    activeParts.push(`${state.activeAccesos.size} ESTADOS`);
+  }
+
+  summary.textContent = activeParts.length ? activeParts.join(' · ') : 'TODAS LAS OBRAS';
 }
 
-function actualizarOpcionesFiltros() {
-  const decade = decadeSelect.value || state.activeDecada;
-  const category = categorySelect.value || state.activeCategoria;
-  const catalogo = state.BUILDING_CATALOG.length ? state.BUILDING_CATALOG : state.OBRAS;
-  const decades = [...new Set(catalogo.map((obra) => Number(obra.año_construccion))
-    .filter(Number.isFinite).map((year) => Math.floor(year / 10) * 10))].sort((a, b) => b - a);
-  decadeSelect.innerHTML = '<option value="">TODAS LAS DÉCADAS</option>';
-  decades.forEach((value) => decadeSelect.insertAdjacentHTML('beforeend', `<option value="${value}">${value}s</option>`));
-  decadeSelect.value = decade;
-
-  const categories = [...new Set(catalogo.map((obra) => obra.categoria).filter(Boolean))].sort();
-  categorySelect.innerHTML = '<option value="">TODAS LAS CATEGORÍAS</option>';
-  categories.forEach((value) => categorySelect.insertAdjacentHTML('beforeend', `<option value="${value}">${nombreCategoria(value)}</option>`));
-  categorySelect.value = category;
-  accessSelect.value = state.activeVisitable;
-}
-
-/** Cierra el panel de filtros (usado, p. ej., al abrir la ficha técnica). */
 export function cerrarFiltros() {
   filterPanel.classList.remove('open');
   btnFilters.classList.remove('active-state');
 }
 
 function initFiltersUI() {
-  architectSearch.addEventListener('input', generarFiltrosUI);
-  [decadeSelect, categorySelect, accessSelect].forEach((control) => {
-    control.addEventListener('change', () => {
-      state.activeDecada = decadeSelect.value;
-      state.activeCategoria = categorySelect.value;
-      state.activeVisitable = accessSelect.value;
-      aplicarFiltrosMapa();
-    });
-  });
-  filterSwitches.addEventListener('change', (e) => {
-    if (e.target.type !== 'checkbox') return;
-    const arq = e.target.dataset.arq;
-    if (e.target.checked) state.activeArquitectos.add(arq);
-    else state.activeArquitectos.delete(arq);
+  asegurarEstadoFiltros();
+  generarFiltrosUI();
 
+  filterPanel.addEventListener('change', (e) => {
+    const target = e.target;
+    if (target.type !== 'checkbox') return;
+
+    if (target.dataset.categoryKey) {
+      const key = target.dataset.categoryKey;
+      if (target.checked) state.activeCategorias.add(key);
+      else state.activeCategorias.delete(key);
+    } else if (target.dataset.accessKey) {
+      const key = target.dataset.accessKey;
+      if (target.checked) state.activeAccesos.add(key);
+      else state.activeAccesos.delete(key);
+    }
     aplicarFiltrosMapa();
   });
 
-  document.addEventListener('click', (e) => {
-    if (e.target.closest('#btn-filters-close')) cerrarFiltros();
-      const groupHead = e.target.closest('.filter-group-head');
-      if (groupHead) {
-        const group = groupHead.closest('.filter-group');
-        const isOpen = group.classList.toggle('collapsed') === false;
-        groupHead.setAttribute('aria-expanded', String(isOpen));
-        group.querySelector('.filter-chevron').textContent = isOpen ? '−' : '+';
-        return;
-      }
-      const clearFilter = e.target.closest('[data-filter-all]');
-      if (clearFilter) {
-        const group = clearFilter.dataset.filterAll;
-        if (group === 'architects') state.activeArquitectos = new Set(state.ARQUITECTOS);
-        if (group === 'decade') state.activeDecada = '';
-        if (group === 'category') state.activeCategoria = '';
-        if (group === 'access') state.activeVisitable = '';
-        generarFiltrosUI();
-        aplicarFiltrosMapa();
-        return;
-      }
-      const resetFilters = e.target.closest('[data-filter-reset]');
-      if (resetFilters) {
-        state.activeArquitectos = new Set(state.ARQUITECTOS);
-        state.activeDecada = '';
-        state.activeCategoria = '';
-        state.activeVisitable = '';
-        generarFiltrosUI();
-        aplicarFiltrosMapa();
-        return;
-      }
-      const isolateFilter = e.target.closest('[data-filter-isolate]');
-      if (isolateFilter) {
-        const group = isolateFilter.dataset.filterIsolate;
-        state.activeArquitectos = group === 'architects' ? new Set(state.activeArquitectos) : new Set(state.ARQUITECTOS);
-        if (group !== 'decade') state.activeDecada = '';
-        if (group !== 'category') state.activeCategoria = '';
-        if (group !== 'access') state.activeVisitable = '';
-        if (group === 'decade' && !state.activeDecada) return;
-        if (group === 'category' && !state.activeCategoria) return;
-        if (group === 'access' && !state.activeVisitable) return;
-        generarFiltrosUI();
-        aplicarFiltrosMapa();
-        return;
-      }
-      const action = e.target.closest('[data-filter-mode]');
-    const isolate = e.target.closest('[data-isolate-arq]');
-    if (isolate) {
-      state.activeArquitectos = new Set([isolate.dataset.isolateArq]);
+  filterPanel.addEventListener('click', (e) => {
+    if (e.target.closest('#btn-filters-close')) {
+      cerrarFiltros();
+      return;
+    }
+
+    const groupHead = e.target.closest('.filter-group-head');
+    if (groupHead) {
+      const group = groupHead.closest('.filter-group');
+      const isOpen = group.classList.toggle('collapsed') === false;
+      groupHead.setAttribute('aria-expanded', String(isOpen));
+      group.querySelector('.filter-chevron').textContent = isOpen ? '−' : '+';
+      return;
+    }
+
+    const resetGroup = e.target.closest('[data-filter-all]');
+    if (resetGroup) {
+      const type = resetGroup.dataset.filterAll;
+      if (type === 'categories') state.activeCategorias = new Set(CATEGORIAS_CONFIG.map(c => c.key));
+      if (type === 'access') state.activeAccesos = new Set(ACCESOS_CONFIG.map(a => a.key));
       generarFiltrosUI();
       aplicarFiltrosMapa();
       return;
     }
-    if (!action) return;
-    if (action.dataset.filterMode === 'all') {
-      state.activeArquitectos = new Set(state.ARQUITECTOS);
+
+    const resetAll = e.target.closest('[data-filter-reset]');
+    if (resetAll) {
+      state.activeCategorias = new Set(CATEGORIAS_CONFIG.map(c => c.key));
+      state.activeAccesos = new Set(ACCESOS_CONFIG.map(a => a.key));
+      generarFiltrosUI();
+      aplicarFiltrosMapa();
+      return;
     }
-    generarFiltrosUI();
-    aplicarFiltrosMapa();
+
+    const isolateCat = e.target.closest('[data-isolate-category]');
+    if (isolateCat) {
+      state.activeCategorias = new Set([isolateCat.dataset.isolateCategory]);
+      generarFiltrosUI();
+      aplicarFiltrosMapa();
+      return;
+    }
+
+    const isolateAcc = e.target.closest('[data-isolate-access]');
+    if (isolateAcc) {
+      state.activeAccesos = new Set([isolateAcc.dataset.isolateAccess]);
+      generarFiltrosUI();
+      aplicarFiltrosMapa();
+      return;
+    }
   });
 
   btnFilters.addEventListener('click', () => {
@@ -160,16 +218,33 @@ function initFiltersUI() {
 export function aplicarFiltrosMapa() {
   actualizarResumenFiltros();
   if (!state.map) return;
-  const arquitectos = state.activeArquitectos.size
-    ? ['any', ...[...state.activeArquitectos].map((arq) => ['in', arq, ['get', 'arquitectos']])]
-    : ['==', 1, 0];
+
+  asegurarEstadoFiltros();
+
+  const catsArray = [...state.activeCategorias];
+  // Sintaxis corregida de Mapbox: ['in', ['get', prop], ['literal', array]]
+  const categoriasFilter = catsArray.length === CATEGORIAS_CONFIG.length
+    ? null
+    : catsArray.length > 0
+      ? ['in', ['coalesce', ['get', 'categoria'], 'otro'], ['literal', catsArray]]
+      : ['==', 1, 0];
+
+  const accArray = [...state.activeAccesos];
+  const accesosFilter = accArray.length === ACCESOS_CONFIG.length
+    ? null
+    : accArray.length > 0
+      ? ['in', ['coalesce', ['get', 'estado_acceso'], 'publico'], ['literal', accArray]]
+      : ['==', 1, 0];
+
   const detalles = [];
+  if (categoriasFilter) detalles.push(categoriasFilter);
+  if (accesosFilter) detalles.push(accesosFilter);
+
   const adminReviewFilter = document.getElementById('admin-review-filter');
-  if (esRolAdmin(state.userRole) && adminReviewFilter?.value) detalles.push(['==', ['get', 'estado_revision'], adminReviewFilter.value]);
-  if (state.activeDecada) detalles.push(['>=', ['get', 'año_construccion'], Number(state.activeDecada)]);
-  if (state.activeDecada) detalles.push(['<', ['get', 'año_construccion'], Number(state.activeDecada) + 10]);
-  if (state.activeCategoria) detalles.push(['==', ['get', 'categoria'], state.activeCategoria]);
-  if (state.activeVisitable) detalles.push(['==', ['get', 'estado_acceso'], state.activeVisitable]);
+  if (esRolAdmin(state.userRole) && adminReviewFilter?.value) {
+    detalles.push(['==', ['get', 'estado_revision'], adminReviewFilter.value]);
+  }
+
   [0, 1, 2, 3].forEach((importance) => {
     [`obras-l${importance}`, `obras-l${importance}-visited`, `obras-l${importance}-selected`, `obras-l${importance}-pending`, `obras-l${importance}-private`].forEach((layerId) => {
       if (!state.map.getLayer(layerId)) return;
@@ -177,26 +252,34 @@ export function aplicarFiltrosMapa() {
       const visited = layerId.endsWith('-visited') ? 1 : layerId.endsWith('-selected') ? null : 0;
       const pending = layerId.endsWith('-pending') ? 'pendiente' : null;
       const privateStatus = layerId.endsWith('-private') ? 'privada' : null;
-      state.map.setFilter(layerId, [
+      
+      const layerFilters = [
         'all',
-        arquitectos,
         ...detalles,
         ['==', ['get', 'importancia'], importance],
         ['==', ['get', 'selected'], selected],
         ['==', ['get', 'estado_revision'], pending || privateStatus || 'publicada'],
-        ...(pending || privateStatus ? [] : visited === null ? [] : [['==', ['get', 'visited'], visited]]),
-      ]);
+      ];
+
+      if (!pending && !privateStatus && visited !== null) {
+        layerFilters.push(['==', ['get', 'visited'], visited]);
+      }
+
+      state.map.setFilter(layerId, layerFilters);
     });
   });
+
   if (state.map.getLayer('obras-favorites-halo')) {
-    state.map.setFilter('obras-favorites-halo', ['all', ['!', ['has', 'point_count']], arquitectos, ...detalles, ['==', ['get', 'favorite'], 1]]);
+    state.map.setFilter('obras-favorites-halo', ['all', ['!', ['has', 'point_count']], ...detalles, ['==', ['get', 'favorite'], 1]]);
   }
+
   [0, 1, 2, 3].forEach((importance) => {
     const labelLayerId = `obras-labels-l${importance}`;
     if (state.map.getLayer(labelLayerId)) {
-      state.map.setFilter(labelLayerId, ['all', arquitectos, ...detalles, ['==', ['get', 'importancia'], importance], ['==', ['get', 'estado_revision'], 'publicada']]);
+      state.map.setFilter(labelLayerId, ['all', ...detalles, ['==', ['get', 'importancia'], importance], ['==', ['get', 'estado_revision'], 'publicada']]);
     }
   });
+
   document.dispatchEvent(new CustomEvent('radar:filters-changed'));
 }
 

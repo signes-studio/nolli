@@ -1,14 +1,11 @@
 /* =========================================================================
-   STATE.JS — Estado compartido de la aplicación
-   Único objeto mutable importado por los demás módulos. Evita variables
-   sueltas en window y centraliza la fuente de verdad.
+   STATE.JS — Estado compartido de la aplicación (Actualizado para filtros de Categorías y Accesos)
    ========================================================================= */
 
 export const state = {
   OBRAS: [],
   BUILDING_CATALOG: [],
   ARQUITECTOS: [],
-  activeArquitectos: new Set(),
   sessionToken: null,
   userRole: null,
   adminMode: false,
@@ -22,8 +19,27 @@ export const state = {
   locationMarker: null,
   userLocation: null,
   activeDecada: '',
-  activeCategoria: '',
   activeVisitable: '',
+  // Nuevos conjuntos por defecto para los filtros de categorías y estados de acceso
+  activeCategorias: new Set([
+    'residencial',
+    'dotacional_equipamiento',
+    'industrial_logistico',
+    'religioso_funerario',
+    'comercial_terciario',
+    'espacio_publico_paisaje',
+    'infraestructura_urbanismo',
+    'otro',
+  ]),
+  activeAccesos: new Set([
+    'publico',
+    'exterior_visible',
+    'con_reserva',
+    'privado',
+    'cerrado_temporalmente',
+    'no_construido',
+    'desaparecido',
+  ]),
   map: null,
   mapStyle: 'dark',
   addingBuilding: false,
