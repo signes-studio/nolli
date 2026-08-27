@@ -1,5 +1,5 @@
 /* =========================================================================
-   ICONS.JS — Dibujo de iconos dinámicos (canvas) con jerarquía original
+   ICONS.JS — Dibujo de iconos dinámicos (canvas) con geometría original y color por categoría
    ========================================================================= */
 
 export function buildIcon(draw, color, importance, size = 64) {
@@ -15,6 +15,7 @@ export function drawTargetIcon(ctx, color, importance, s) {
   const c = s / 2;
   ctx.fillStyle = color;
   ctx.strokeStyle = color;
+  
   if (importance === 0) {
     ctx.save();
     ctx.translate(c, c);

@@ -20,6 +20,7 @@
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
 <!-- Tipografías: mono para datos, sans geométrica gruesa para títulos -->
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=JetBrains+Mono:wght@400;500;700;800&family=Poppins:wght@900&display=swap" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -50,7 +51,7 @@
   <header class="topbar">
     <div class="topbar-inner">
       <div style="flex: 1;">
-        <h1 class="font-display text-2xl leading-none tracking-tight" style="color:var(--fg); margin:0;">NOLLI<span style="color:var(--accent)">.</span></h1>
+        <h1 class="font-poppins text-2xl leading-none tracking-tight" style="color: #FF4500; margin: 0; text-transform: lowercase;">nolli<span style="color:var(--fg)">.</span></h1>
         <p class="text-[10px] tracking-widest mt-1" style="color:var(--fg-dim); margin:0;">RADAR ARQUITECTÓNICO — V0.5</p>
         <button id="btn-login-trigger" type="button" class="mt-2 text-[10px] font-bold px-2 py-1 cursor-pointer transition-colors" style="border: 1px solid var(--accent); color: var(--accent); background: rgba(255, 69, 0, 0.1);">[ INICIAR SESIÓN ]</button>
         <a href="./perfil.html" class="profile-page-link mt-2" aria-label="Abrir perfil personal">[ PERFIL PERSONAL ]</a>
@@ -68,6 +69,37 @@
       </div>
     </div>
   </header>
+
+  <!-- Leyenda técnica del radar (Desplegable) -->
+  <div id="map-legend" class="radar-legend collapsed" aria-label="Leyenda del mapa">
+    <button type="button" id="btn-legend-toggle" class="legend-header-btn" aria-expanded="false">
+      <span class="legend-title">[ LEYENDA TÉCNICA ]</span>
+      <span id="legend-chevron" class="legend-chevron">+</span>
+    </button>
+    
+    <div class="legend-body">
+      <div class="legend-section">
+        <span class="legend-subtitle">JERARQUÍA</span>
+        <div class="legend-item"><span class="node-icon master"></span> Obra Maestra</div>
+        <div class="legend-item"><span class="node-icon high"></span> Alta</div>
+        <div class="legend-item"><span class="node-icon mid"></span> Media</div>
+        <div class="legend-item"><span class="node-icon low"></span> Baja</div>
+      </div>
+
+      <div class="legend-section">
+        <span class="legend-subtitle">CATEGORÍAS</span>
+        <div class="legend-color-grid">
+          <span><i style="background: #FFB000;"></i></span> Residencial
+          <span><i style="background: #00F0FF;"></i></span> Dotacional
+          <span><i style="background: #FF5500;"></i></span> Industrial
+          <span><i style="background: #E000FF;"></i></span> Religioso
+          <span><i style="background: #CCFF00;"></i></span> Comercial
+          <span><i style="background: #00FF66;"></i></span> Espacio Público
+          <span><i style="background: #FF0055;"></i></span> Infraestructura
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- FABs -->
   <div id="map-tools" class="absolute z-30 flex flex-col gap-2" style="right:14px; bottom:14px;">

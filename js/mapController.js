@@ -1,5 +1,5 @@
 /* =========================================================================
-   MAPCONTROLLER.JS — Inicialización de mapa, capas e interacciones
+   MAPCONTROLLER.JS — Inicialización de mapa, capas e interacciones (Nolli)
    ========================================================================= */
 
 import { state } from './state.js';
@@ -26,28 +26,26 @@ export function cargarMapaMapbox() {
     if (state.map.getSource('obras')) return;
     aplicarTratamientoSatelite();
 
-    // Paleta de colores sutiles por categoría para el fondo oscuro
-    const categoryColors = {
+    // Paleta de tonos arquitectónicos apagados por categoría
+    const CATEGORY_COLORS = {
       'residencial': '#FF4500',             
-      'dotacional_equipamiento': '#FF4500', 
-      'industrial_logistico': '#FF4500',    
-      'religioso_funerario': '#FF4500',     
-      'comercial_terciario': '#FF4500',     
-      'espacio_publico_paisaje': '#FF4500', 
-      'infraestructura_urbanismo': '#FF4500',
-      'otro': '#FF4500'                    
+      'dotacional_equipamiento': '#50BFE1',              
+      'religioso_funerario': '#F07AC9',
+      'comercial_terciario': '#FAB755',               
+      'espacio_publico_paisaje': '#3AB15A',                  
+      'infraestructura_urbanismo': '#c91c1c',
+      'otro': '#AAAAAA'                      
     };
 
-    // Registrar iconos combinando importancia y categoría con prefijo 'icon-l{imp}-{cat}'
+    // Registrar iconos cruzando importancia y categoría con prefijo 'icon-l{imp}-{cat}'
     [0, 1, 2, 3].forEach((importance) => {
-      Object.entries(categoryColors).forEach(([cat, color]) => {
-        const iconColor = importance === 0 ? '#FFD166' : color;
+      Object.entries(CATEGORY_COLORS).forEach(([cat, color]) => {
         const prefix = `icon-l${importance}-${cat}`;
 
-        state.map.addImage(prefix, buildIcon(drawTargetIcon, iconColor, importance), { pixelRatio: 2 });
-        state.map.addImage(`${prefix}-visited`, buildIcon(drawTargetIcon, '#39FF14', importance), { pixelRatio: 2 });
-        state.map.addImage(`${prefix}-pending`, buildIcon(drawTargetIcon, '#FFD166', importance), { pixelRatio: 2 });
-        state.map.addImage(`${prefix}-private`, buildIcon(drawTargetIcon, '#5EEAD4', importance), { pixelRatio: 2 });
+        state.map.addImage(prefix, buildIcon(drawTargetIcon, color, importance), { pixelRatio: 2 });
+        state.map.addImage(`${prefix}-visited`, buildIcon(drawTargetIcon, '#7FD858', importance), { pixelRatio: 2 });
+        state.map.addImage(`${prefix}-pending`, buildIcon(drawTargetIcon, '#F2C14E', importance), { pixelRatio: 2 });
+        state.map.addImage(`${prefix}-private`, buildIcon(drawTargetIcon, '#4FBDB0', importance), { pixelRatio: 2 });
         state.map.addImage(`${prefix}-selected`, buildIcon(drawTargetIcon, '#FFFFFF', importance), { pixelRatio: 2 });
       });
     });
@@ -83,7 +81,7 @@ export function cargarMapaMapbox() {
       source: 'obras',
       filter: ['has', 'point_count'],
       paint: {
-        'circle-color': '#FF4500',
+        'circle-color': '#FF6A2B',
         'circle-radius': 12,
         'circle-opacity': 0.94,
       },
@@ -101,7 +99,7 @@ export function cargarMapaMapbox() {
     });
 
     [0, 1, 2, 3].forEach((importance) => {
-      const minzoom = importance === 0 ? 0 : importance === 1 ? 0 : importance === 2 ? 8 : 13.5;
+      const minzoom = importance === 0 ? 0 : importance === 1 ? 0 : importance === 2 ? 6.5 : 13.5;
       const baseFilter = ['==', ['get', 'importancia'], importance];
       const sourceId = importance === 0 ? 'obras-maestras' : 'obras';
       const iconSize = importance === 0 ? 0.92 : importance === 1 ? 0.70 : importance === 2 ? 0.56 : 0.52;
@@ -192,7 +190,7 @@ export function cargarMapaMapbox() {
         id: labelLayerId,
         type: 'symbol',
         source: sourceId,
-        minzoom: importance === 0 ? 13 : importance === 1 ? 13 : importance === 2 ? 15.5 : 18,
+        minzoom: importance === 0 ? 13 : importance === 1 ? 13 : importance === 2 ? 14 : 16,
         filter: ['all', ['==', ['get', 'importancia'], importance], ['==', ['get', 'estado_revision'], 'publicada']],
         layout: {
           'text-field': ['get', 'nombre_obra'],
@@ -224,6 +222,20 @@ export function cargarMapaMapbox() {
   state.map.on('style.load', configurarCapas);
 
   initHudReadout();
+
+  // Desplegable de la leyenda técnica
+  const legend = document.getElementById('map-legend');
+  const toggleBtn = document.getElementById('btn-legend-toggle');
+  const chevron = document.getElementById('legend-chevron');
+
+  if (toggleBtn && legend) {
+    toggleBtn.addEventListener('click', () => {
+      const isCollapsed = legend.classList.toggle('collapsed');
+      toggleBtn.setAttribute('aria-expanded', !isCollapsed);
+      if (chevron) chevron.textContent = isCollapsed ? '+' : '−';
+    });
+  }
+
   document.getElementById('btn-recenter').addEventListener('click', () => {
     state.map.flyTo({ center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM });
   });

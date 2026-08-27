@@ -53,3 +53,123 @@ body {
 
 .blink { animation: blink 1.1s steps(1) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
+
+.radar-legend {
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  z-index: 35;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-strong);
+  color: var(--fg);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  pointer-events: auto;
+  max-width: 240px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
+}
+
+.legend-header-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: var(--bg-raised);
+  border: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.legend-header-btn:hover {
+  color: var(--accent);
+}
+
+.legend-title {
+  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.legend-chevron {
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.radar-legend .legend-body {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px 12px;
+  border-top: 1px solid var(--border);
+}
+
+/* Estado contraído */
+.radar-legend.collapsed .legend-body {
+  display: none;
+}
+
+.legend-section {
+  border-top: 1px solid var(--border);
+  padding-top: 6px;
+}
+.legend-section:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.legend-subtitle {
+  color: var(--fg-dim);
+  display: block;
+  margin-bottom: 4px;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 3px;
+  color: var(--fg);
+}
+
+.node-icon {
+  width: 8px;
+  height: 8px;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.node-icon.master { background: #111; border: 1px solid #FFD700; transform: rotate(45deg); }
+.node-icon.high { background: var(--accent); }
+.node-icon.mid { border-radius: 50% !important; background: var(--accent); }
+.node-icon.low { border-radius: 50% !important; background: var(--accent); width: 4px; height: 4px; }
+
+.legend-color-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3px;
+  font-size: 9px;
+  color: var(--fg-dim);
+}
+
+.legend-color-grid span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--fg);
+}
+
+.legend-color-grid i {
+  width: 7px;
+  height: 7px;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.font-poppins {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 900;
+}
