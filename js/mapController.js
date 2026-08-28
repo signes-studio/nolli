@@ -26,16 +26,19 @@ export function cargarMapaMapbox() {
     if (state.map.getSource('obras')) return;
     aplicarTratamientoSatelite();
 
-    // Paleta de tonos arquitectónicos apagados por categoría
+    // Paleta NEOBAUHAUS por categoría: planos de color, sin degradado ni tono
+    // neón. Solo dos primarios (azul/amarillo) participan de la taxonomía;
+    // rojo queda reservado para 'infraestructura' por ser la única categoría
+    // con connotación de riesgo/alerta explícita del propio dominio.
     const CATEGORY_COLORS = {
-      'residencial': '#FF4500',             
-      'dotacional_equipamiento': '#50BFE1',              
-      'religioso_funerario': '#F07AC9',
-      'comercial_terciario': '#FAB755',               
-      'espacio_publico_paisaje': '#3AB15A',                  
-      'infraestructura_urbanismo': '#c91c1c',
-      'industrial_logistico': '#8B4513', 
-      'otro': '#AAAAAA'                      
+      'residencial': '#E95C0C',
+      'dotacional_equipamiento': '#4388C6',
+      'religioso_funerario': '#F2ACCD',
+      'comercial_terciario': '#EFBC02',
+      'espacio_publico_paisaje': '#0d682f',
+      'infraestructura_urbanismo': '#D6201D',
+      'industrial_logistico': '#691B14',
+      'otro': '#064773'
     };
 
     // Registrar iconos cruzando importancia y categoría con prefijo 'icon-l{imp}-{cat}'
@@ -44,10 +47,10 @@ export function cargarMapaMapbox() {
         const prefix = `icon-l${importance}-${cat}`;
 
         state.map.addImage(prefix, buildIcon(drawTargetIcon, color, importance), { pixelRatio: 2 });
-        state.map.addImage(`${prefix}-visited`, buildIcon(drawTargetIcon, '#7FD858', importance), { pixelRatio: 2 });
-        state.map.addImage(`${prefix}-pending`, buildIcon(drawTargetIcon, '#F2C14E', importance), { pixelRatio: 2 });
-        state.map.addImage(`${prefix}-private`, buildIcon(drawTargetIcon, '#4FBDB0', importance), { pixelRatio: 2 });
-        state.map.addImage(`${prefix}-selected`, buildIcon(drawTargetIcon, '#FFFFFF', importance), { pixelRatio: 2 });
+        state.map.addImage(`${prefix}-visited`, buildIcon(drawTargetIcon, '#6B6B6B', importance), { pixelRatio: 2 });
+        state.map.addImage(`${prefix}-pending`, buildIcon(drawTargetIcon, '#FFCC00', importance), { pixelRatio: 2 });
+        state.map.addImage(`${prefix}-private`, buildIcon(drawTargetIcon, '#005AC1', importance), { pixelRatio: 2 });
+        state.map.addImage(`${prefix}-selected`, buildIcon(drawTargetIcon, '#FFCC00', importance), { pixelRatio: 2 });
       });
     });
 
@@ -82,7 +85,7 @@ export function cargarMapaMapbox() {
       source: 'obras',
       filter: ['has', 'point_count'],
       paint: {
-        'circle-color': '#FF6A2B',
+        'circle-color': '#005AC1',
         'circle-radius': 12,
         'circle-opacity': 0.94,
       },
@@ -191,11 +194,11 @@ export function cargarMapaMapbox() {
         id: labelLayerId,
         type: 'symbol',
         source: sourceId,
-        minzoom: importance === 0 ? 13 : importance === 1 ? 13 : importance === 2 ? 14 : 16,
+        minzoom: importance === 0 ? 11 : importance === 1 ? 12 : importance === 2 ? 15 : 20,
         filter: ['all', ['==', ['get', 'importancia'], importance], ['==', ['get', 'estado_revision'], 'publicada']],
         layout: {
           'text-field': ['get', 'nombre_obra'],
-          'text-font': ['Open Sans Regular'],
+          'text-font': ['Inter Regular', 'Open Sans Regular', 'Arial Unicode MS Regular'], // Se intenta cargar Inter con fallbacks compatibles
           'text-size': 12,
           'text-offset': [1.15, 0],
           'text-anchor': 'left',
@@ -203,10 +206,7 @@ export function cargarMapaMapbox() {
           'text-ignore-placement': true,
         },
         paint: {
-          'text-color': '#FFFFFF',
-          'text-halo-color': '#000000',
-          'text-halo-width': 1.5,
-          'text-halo-blur': 0.3,
+          'text-color': '#04070B',
         },
       });
       state.map.on('mouseenter', labelLayerId, () => { state.map.getCanvas().style.cursor = 'pointer'; });

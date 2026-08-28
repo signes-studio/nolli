@@ -1,6 +1,6 @@
 .legal-page {
   min-height: 100vh;
-  background: #090909;
+  background: var(--bg);
   color: var(--fg);
   overflow: auto;
 }
@@ -48,7 +48,8 @@
 .legal-title {
   margin: 12px 0 10px;
   color: var(--fg);
-  font-family: 'Archivo Black', sans-serif;
+  font-family: 'Archivo Expanded', 'Archivo Black', sans-serif;
+  font-weight: 800;
   font-size: clamp(42px, 8vw, 84px);
   line-height: .95;
   letter-spacing: 0;
@@ -67,7 +68,7 @@
   margin-top: 26px;
   border-left: 2px solid var(--accent-2);
   padding: 13px 16px;
-  background: rgba(255, 209, 102, .06);
+  background: rgba(255, 204, 0, .12);
   color: var(--fg-dim);
   font-size: 11px;
   line-height: 1.65;
@@ -115,7 +116,8 @@
 .legal-section h2 {
   margin: 0 0 24px;
   color: var(--fg);
-  font-family: 'Archivo Black', sans-serif;
+  font-family: 'Archivo Expanded', 'Archivo Black', sans-serif;
+  font-weight: 800;
   font-size: clamp(22px, 4vw, 34px);
   line-height: 1.05;
   letter-spacing: 0;

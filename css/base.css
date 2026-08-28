@@ -1,23 +1,35 @@
 /* =========================================================================
    BASE.CSS — Variables globales, reset y estilos de documento
+   Sistema NEOBAUHAUS — ver /nolli-neobauhaus-sistema-diseno.md
    ========================================================================= */
 
 :root {
-  --bg:            #000000;
-  --bg-panel:      #0a0a0a;
-  --bg-raised:     #121212;
-  --accent:        #FF4500; /* naranja técnico */
-  --accent-2:      #39FF14; /* verde fósforo */
-  --accent-select: #FFFFFF; /* blanco para selección activa */
-  --fg:            #FFFFFF;
-  --fg-dim:        #7a7a7a;
-  --border:        #2b2b2b;
-  --border-strong: #4a4a4a;
+  /* Neutros — base y estructura, >90% de la superficie visual */
+  --bg:            #F8F1DF; /* papel — fondo de documento/UI */
+  --bg-panel:      #F8F1DF; /* superficie — tarjetas, paneles, fichas */
+  --bg-raised:     #F8F1DF; /* superficie ligeramente elevada (cabeceras de panel) */
+  --fg:            #141411; /* tinta — texto principal */
+  --fg-dim:        #6B6B6B; /* texto secundario / metadatos */
+  --border:        #D8D6CE; /* subdivisión interna de módulo, NO estructural */
+  --border-strong: #141411; /* línea de retícula — SIEMPRE negra */
+
+  /* Primarios Bauhaus — SOLO función, nunca decoración (ver matriz de uso) */
+  --accent:        #E95C0C; /* azul — interacción / enlace / estado activo */
+  --accent-2:      #EFBC02; /* amarillo — CTA primaria / foco cartográfico */
+  --accent-select: #EFBC02; /* selección activa en mapa/listas */
+  --red:           #064773; /* alerta / eliminar / obra en riesgo */
+
+  /* Elementos dibujados directamente sobre el lienzo oscuro del mapa
+     (el mapa conserva alto contraste; el chrome de interfaz es claro) */
+  --on-map:        #F0F1F3;
+  --on-map-dim:    #9A9A9A;
 }
 
 /* Reset ligero: sin bordes redondeados en toda la app (estética "instrumento") */
 * {
   border-radius: 0 !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
   box-sizing: border-box;
 }
 
@@ -38,13 +50,14 @@ body {
 }
 
 .font-display {
-  font-family: 'Archivo Black', sans-serif;
+  font-family: 'Archivo Expanded', 'Archivo Black', sans-serif;
+  font-weight: 800;
   letter-spacing: -0.02em;
 }
 
 ::selection {
   background: var(--accent);
-  color: #000;
+  color: #fff;
 }
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }
@@ -66,7 +79,6 @@ body {
   font-size: 10px;
   pointer-events: auto;
   max-width: 240px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
 }
 
 .legend-header-btn {
@@ -77,11 +89,14 @@ body {
   padding: 10px 12px;
   background: var(--bg-raised);
   border: 0;
+  border-bottom: 1px solid var(--border-strong);
   color: inherit;
   font: inherit;
   cursor: pointer;
   text-align: left;
 }
+
+.radar-legend.collapsed .legend-header-btn { border-bottom: 0; }
 
 .legend-header-btn:hover {
   color: var(--accent);
@@ -104,7 +119,6 @@ body {
   display: grid;
   gap: 8px;
   padding: 10px 12px 12px;
-  border-top: 1px solid var(--border);
 }
 
 /* Estado contraído */
@@ -143,7 +157,7 @@ body {
   display: inline-block;
   flex-shrink: 0;
 }
-.node-icon.master { background: #111; border: 1px solid #FFD700; transform: rotate(45deg); }
+.node-icon.master { background: var(--fg); border: 1px solid var(--accent-2); transform: rotate(45deg); }
 .node-icon.high { background: var(--accent); }
 .node-icon.mid { border-radius: 50% !important; background: var(--accent); }
 .node-icon.low { border-radius: 50% !important; background: var(--accent); width: 4px; height: 4px; }
@@ -168,8 +182,9 @@ body {
   height: 7px;
   display: inline-block;
   flex-shrink: 0;
+  border: 1px solid var(--border-strong);
 }
 .font-poppins {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 900;
+  font-family: 'Archivo Expanded', 'Archivo Black', sans-serif;
+  font-weight: 800;
 }

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Nolli: atlas de obra construida. Cataloga, mide y sitúa arquitectura sobre un mapa en vivo.">
+<meta name="color-scheme" content="light">
+<title>NOLLI // ATLAS DE OBRA CONSTRUIDA</title>
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="./icon.svg">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/base.css">
+<meta name="theme-color" content="#F5F4F0">
+
+<style>
+  html, body { overflow: auto; height: auto; }
+  main.landing-main { position: static; inset: auto; overflow: visible; }
+  body.landing-page { font-family: 'Inter', sans-serif; }
+
+  .l-shell { max-width: 1440px; margin: 0 auto; padding: 0 24px; }
+
+  .col-axis { display: grid; grid-template-columns: repeat(12, 1fr); border-bottom: 1px solid var(--border-strong); }
+  .col-axis span { padding: 4px 0 4px 6px; border-left: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--fg-dim); letter-spacing: .06em; }
+  .col-axis span:first-child { border-left: none; }
+  @media (max-width: 760px) { .col-axis span:nth-child(n+7) { display: none; } }
+
+  .l-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 24px; }
+
+  .l-header { grid-column: 1 / 13; display: flex; justify-content: space-between; align-items: flex-end; padding: 16px 0; border-bottom: 1px solid var(--border-strong); }
+  .l-logo { font-family: 'Archivo Expanded', 'Archivo Black', sans-serif; font-weight: 800; font-size: 22px; text-transform: lowercase; color: var(--fg); text-decoration: none; }
+  .l-logo em { font-style: normal; color: var(--fg-dim); }
+  .l-nav { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; display: flex; gap: 20px; align-items: center; }
+  .l-nav a { color: var(--fg); text-decoration: none; border-bottom: 1px solid transparent; }
+  .l-nav a:hover { border-color: var(--fg); }
+  .l-nav .lang { color: var(--fg-dim); }
+  .l-nav .cta-mini { border: 2px solid var(--fg); padding: 6px 10px; }
+  .l-nav .cta-mini:hover { background: var(--fg); color: var(--bg); }
+
+  .l-hero { grid-column: 1 / 10; padding: 56px 0 40px; }
+  @media (max-width: 900px) { .l-hero { grid-column: 1 / 13; } }
+  .l-hero h1 { font-family: 'Archivo Expanded', 'Archivo Black', sans-serif; font-weight: 800; font-size: clamp(34px, 6vw, 56px); line-height: 1.0; margin: 0 0 22px; letter-spacing: -.01em; }
+  .l-hero p { font-size: 15px; line-height: 1.65; color: var(--fg-dim); max-width: 460px; margin: 0 0 30px; }
+  .l-cta { display: inline-flex; align-items: center; gap: 10px; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 13px; letter-spacing: .04em; background: var(--accent-2); color: var(--fg); border: 2px solid var(--fg); padding: 15px 24px; text-transform: uppercase; text-decoration: none; cursor: pointer; }
+  .l-cta:hover { background: var(--fg); color: var(--accent-2); }
+
+  .l-map-frag { grid-column: 10 / 13; border-left: 1px solid var(--border-strong); min-height: 300px; position: relative; overflow: hidden; background: #111111; }
+  @media (max-width: 900px) { .l-map-frag { grid-column: 1 / 13; border-left: none; border-top: 1px solid var(--border-strong); min-height: 220px; } }
+  .l-map-frag svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .reg-mark { position: absolute; width: 14px; height: 14px; }
+  .reg-mark::before, .reg-mark::after { content: ''; position: absolute; background: var(--on-map); }
+  .reg-mark::before { width: 100%; height: 1px; top: 50%; }
+  .reg-mark::after { height: 100%; width: 1px; left: 50%; }
+
+  .l-stats { grid-column: 1 / 13; display: grid; grid-template-columns: repeat(12, 1fr); border-top: 1px solid var(--border-strong); }
+  .l-stats .stat { grid-column: span 4; padding: 20px 0; border-right: 1px solid var(--border); }
+  @media (max-width: 700px) { .l-stats .stat { grid-column: span 12; border-right: none; border-top: 1px solid var(--border); padding: 14px 0; } .l-stats .stat:first-child { border-top: none; } }
+  .l-stats .stat:last-child { border-right: none; }
+  .l-stats .num { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 28px; color: var(--fg); }
+  .l-stats .lbl { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: .1em; color: var(--fg-dim); text-transform: uppercase; }
+
+  .l-method { grid-column: 1 / 13; display: grid; grid-template-columns: repeat(12, 1fr); gap: 24px; padding: 48px 0; border-top: 1px solid var(--border-strong); }
+  .l-method h2 { grid-column: 1 / 5; font-family: 'Archivo Expanded', 'Archivo Black', sans-serif; font-weight: 800; font-size: 24px; margin: 0; }
+  @media (max-width: 900px) { .l-method h2 { grid-column: 1 / 13; } }
+  .l-method-items { grid-column: 5 / 13; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  @media (max-width: 900px) { .l-method-items { grid-column: 1 / 13; grid-template-columns: 1fr; } }
+  .l-method-item { border-top: 2px solid var(--fg); padding-top: 12px; }
+  .l-method-item span { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--fg-dim); letter-spacing: .08em; }
+  .l-method-item h3 { margin: 6px 0 8px; font-size: 15px; font-weight: 600; }
+  .l-method-item p { margin: 0; font-size: 13px; line-height: 1.6; color: var(--fg-dim); }
+
+  .l-footer { grid-column: 1 / 13; display: flex; justify-content: space-between; align-items: center; padding: 20px 0 40px; border-top: 1px solid var(--border-strong); font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--fg-dim); }
+  .l-footer a { color: var(--fg-dim); text-decoration: none; }
+  .l-footer a:hover { color: var(--fg); }
+</style>
+</head>
+<body class="landing-page">
+<main class="landing-main">
+  <div class="l-shell">
+    <div class="col-axis"><span>01</span><span>02</span><span>03</span><span>04</span><span>05</span><span>06</span><span>07</span><span>08</span><span>09</span><span>10</span><span>11</span><span>12</span></div>
+
+    <div class="l-grid">
+      <div class="l-header">
+        <a class="l-logo" href="./landing.html">nolli<em>.</em></a>
+        <nav class="l-nav">
+          <a href="#metodologia">Metodología</a>
+          <a href="#" class="lang">ES / EN</a>
+          <a href="./index.html" class="cta-mini">Iniciar sesión</a>
+        </nav>
+      </div>
+
+      <div class="l-hero">
+        <h1>Catalogar<br>la ciudad<br>construida.</h1>
+        <p>Nolli registra, mide y sitúa obras de arquitectura sobre un mapa vivo. Cada obra, una ficha; cada ficha, un dato verificable.</p>
+        <a class="l-cta" href="./index.html">Explorar el mapa →</a>
+      </div>
+
+      <div class="l-map-frag" aria-hidden="true">
+        <svg viewBox="0 0 300 300" preserveAspectRatio="xMidYMid slice">
+          <path d="M10 40 L120 20 L180 60 L290 50" stroke="#F5F4F0" stroke-width="1" fill="none" opacity="0.45"/>
+          <path d="M0 120 L100 130 L160 100 L300 140" stroke="#F5F4F0" stroke-width="1" fill="none" opacity="0.45"/>
+          <path d="M20 220 L140 200 L220 240 L300 210" stroke="#F5F4F0" stroke-width="1" fill="none" opacity="0.3"/>
+          <circle cx="118" cy="118" r="4" fill="#FFCC00"/>
+          <circle cx="70" cy="70" r="3" fill="#F5F4F0" opacity="0.55"/>
+          <rect x="180" y="150" width="6" height="6" fill="#F5F4F0" opacity="0.55"/>
+          <polygon points="220,60 226,72 214,72" fill="#F5F4F0" opacity="0.55"/>
+        </svg>
+        <div class="reg-mark" style="top:10px; left:10px;"></div>
+        <div class="reg-mark" style="bottom:10px; right:10px;"></div>
+      </div>
+
+      <!-- Cifras de ejemplo: sustituir por una consulta real a Supabase
+           (recuento de `buildings` publicadas / autores distintos) antes de publicar. -->
+      <div class="l-stats">
+        <div class="stat"><div class="num" id="stat-obras">····</div><div class="lbl">Obras catalogadas</div></div>
+        <div class="stat"><div class="num" id="stat-autores">···</div><div class="lbl">Autores registrados</div></div>
+        <div class="stat"><div class="num">1890–2026</div><div class="lbl">Rango temporal</div></div>
+      </div>
+
+      <div class="l-method" id="metodologia">
+        <h2>Cómo trabaja Nolli</h2>
+        <div class="l-method-items">
+          <div class="l-method-item">
+            <span>01 / SITUAR</span>
+            <h3>Coordenada verificable</h3>
+            <p>Cada obra se ancla a una posición exacta sobre el mapa, no a una dirección aproximada.</p>
+          </div>
+          <div class="l-method-item">
+            <span>02 / MEDIR</span>
+            <h3>Ficha de datos</h3>
+            <p>Superficie, altura, año, autoría y estado de conservación, en un formato tan preciso como una cartela de plano.</p>
+          </div>
+          <div class="l-method-item">
+            <span>03 / CLASIFICAR</span>
+            <h3>Tipología abierta</h3>
+            <p>Residencial, dotacional, industrial, religioso, comercial, espacio público e infraestructura.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="l-footer">
+        <span>NOLLI © 2026</span>
+        <div style="display:flex; gap:18px;">
+          <a href="./legal.html">Legal</a>
+          <a href="./index.html">Ver el mapa →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+</body>
+</html>

@@ -226,7 +226,7 @@ async function initLoginModal() {
     bLoginT.textContent = '[ INICIAR SESIÓN ]';
     bLoginT.style.color = 'var(--accent)';
     bLoginT.style.borderColor = 'var(--accent)';
-    bLoginT.style.background = 'rgba(255, 69, 0, 0.1)';
+    bLoginT.style.background = 'rgba(0, 90, 193, 0.08)';
     mLogin.classList.remove('open');
     document.dispatchEvent(new CustomEvent('radar:logout'));
   });

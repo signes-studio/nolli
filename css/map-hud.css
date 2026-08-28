@@ -1,19 +1,21 @@
 /* =========================================================================
    MAP-HUD.CSS — Contenedor del mapa, marco HUD y barra superior
+   Sistema NEOBAUHAUS: el lienzo del mapa conserva alto contraste (oscuro);
+   todo el chrome de interfaz pasa a panel opaco claro (ver 3.2 del sistema).
    ========================================================================= */
 
 #map { position: absolute; inset: 0; }
 
 /* Controles de atribucion/branding para Mapbox y MapLibre */
-.mapboxgl-ctrl-logo, .maplibregl-ctrl-logo, .mapboxgl-ctrl-attrib, .maplibregl-ctrl-attrib { filter: grayscale(1) opacity(0.35); }
-.mapboxgl-ctrl-attrib, .maplibregl-ctrl-attrib { background: rgba(0, 0, 0, 0.46) !important; padding: 1px 4px !important; font-size: 10px !important; }
-.mapboxgl-ctrl-attrib-inner a, .maplibregl-ctrl-attrib-inner a { color: #777 !important; }
+.mapboxgl-ctrl-logo, .maplibregl-ctrl-logo, .mapboxgl-ctrl-attrib, .maplibregl-ctrl-attrib { filter: grayscale(1) opacity(0.5); }
+.mapboxgl-ctrl-attrib, .maplibregl-ctrl-attrib { background: rgba(0, 0, 0, 0.5) !important; padding: 1px 4px !important; font-size: 10px !important; }
+.mapboxgl-ctrl-attrib-inner a, .maplibregl-ctrl-attrib-inner a { color: #aaa !important; }
 .mapboxgl-popup-tip, .maplibregl-popup-tip { display: none; }
 .mapboxgl-canvas, .maplibregl-canvas { outline: none; }
 
-/* ---------- HUD: marco de visor tipo instrumento óptico ---------- */
+/* ---------- HUD: marco de visor tipo instrumento — marcas de registro de plano ---------- */
 .hud-frame { position: absolute; inset: 0; pointer-events: none; z-index: 20; }
-.hud-corner { position: absolute; width: 22px; height: 22px; border-color: var(--accent); opacity: 0.85; }
+.hud-corner { position: absolute; width: 22px; height: 22px; border-color: var(--on-map); opacity: 0.9; }
 .hud-corner.tl { top: 8px; left: 8px; border-top: 2px solid; border-left: 2px solid; }
 .hud-corner.tr { top: 8px; right: 8px; border-top: 2px solid; border-right: 2px solid; }
 .hud-corner.bl { bottom: 8px; left: 8px; border-bottom: 2px solid; border-left: 2px solid; }
@@ -21,30 +23,30 @@
 
 .hud-crosshair {
   position: absolute; top: 50%; left: 50%; width: 18px; height: 18px;
-  transform: translate(-50%, -50%); pointer-events: none; z-index: 20; opacity: 0.55;
+  transform: translate(-50%, -50%); pointer-events: none; z-index: 20; opacity: 0.7;
 }
 .hud-crosshair::before, .hud-crosshair::after {
-  content: ''; position: absolute; background: var(--fg);
+  content: ''; position: absolute; background: var(--on-map);
 }
 .hud-crosshair::before { top: 50%; left: 0; width: 100%; height: 1px; transform: translateY(-50%); }
 .hud-crosshair::after { left: 50%; top: 0; height: 100%; width: 1px; transform: translateX(-50%); }
 
-/* ---------- Barra superior ---------- */
+/* ---------- Barra superior: panel opaco, no degradado sobre el mapa ---------- */
 .topbar {
   position: absolute; top: 0; left: 0; right: 0; z-index: 30;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.92), rgba(0,0,0,0));
-  padding: 14px 14px 30px 14px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border-strong);
+  padding: 14px 14px 12px 14px;
 }
 .topbar-inner {
   display: flex; align-items: flex-start; justify-content: space-between;
-  border-bottom: 1px solid var(--border-strong);
   padding-bottom: 10px;
 }
 .hud-readout { text-align: right; font-size: 10px; line-height: 1.5; color: var(--fg-dim); }
-.hud-readout .val { color: var(--accent); font-weight: 700; }
+.hud-readout .val { color: var(--fg); font-weight: 700; }
 
 @media (max-width: 600px) {
-  .topbar { padding: 14px 12px 30px; }
+  .topbar { padding: 14px 12px 12px; }
   .topbar h1 { font-size: 28px; }
   .topbar p { font-size: 11px; letter-spacing: .08em; }
   .hud-readout { font-size: 10px; line-height: 1.7; }

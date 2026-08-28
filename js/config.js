@@ -10,11 +10,11 @@ export const MAPBOX_TOKEN = 'pk.eyJ1Ijoic2lnbmVzYXJjaCIsImEiOiJjbXQ3YjdzNXQyNjB2
 export const SUPABASE_URL = 'https://ldtfvpjigzvcagtciipn.supabase.co';
 export const SUPABASE_KEY = 'sb_publishable_kYQ7Fa8nBsrkp1f8C4AuAg_4-5uBFm0';
 
-export const MAP_STYLE = 'mapbox://styles/mapbox/dark-v11';
+export const MAP_STYLE = 'mapbox://styles/signesarch/cmtcs22rq001p01sgato8bqvj';
 export const MAP_STYLES = {
-   light: 'mapbox://styles/mapbox/light-v11',
-   dark: 'mapbox://styles/mapbox/dark-v11',
-   satellite: 'mapbox://styles/mapbox/satellite-streets-v12',
+   light: 'mmapbox://styles/signesarch/cmtcs22rq001p01sgato8bqvj',
+   dark: 'mapbox://styles/signesarch/cmtcs22rq001p01sgato8bqvj',
+   satellite: 'mapbox://styles/signesarch/cmtcs22rq001p01sgato8bqvj',
 };
 export const DEFAULT_CENTER = [-0.3690, 39.4690];
 export const DEFAULT_ZOOM = 12.4;

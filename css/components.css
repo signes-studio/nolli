@@ -1,38 +1,42 @@
 /* =========================================================================
    COMPONENTS.CSS — Botones flotantes, modales genéricos e inputs técnicos
+   Sistema NEOBAUHAUS — plano-sobre-plano, sin sombra ni degradado.
    ========================================================================= */
 
 /* ---------- Botones flotantes (FAB) ---------- */
 .fab {
   width: 46px; height: 46px; display: flex; align-items: center; justify-content: center;
   background: var(--bg-panel); border: 1px solid var(--border-strong); color: var(--fg);
-  cursor: pointer; transition: background .1s, border-color .1s;
+  cursor: pointer; transition: background .1s linear, color .1s linear;
 }
-.fab:active { background: var(--accent); color: #000; border-color: var(--accent); }
-.fab.active-state { background: var(--accent); color: #000; border-color: var(--accent); }
-.location-active { color: var(--accent-2); border-color: rgba(57, 255, 20, 0.65); background: rgba(57, 255, 20, 0.08); }
+.fab:active { background: var(--fg); color: var(--bg-panel); border-color: var(--fg); }
+.fab.active-state { background: var(--accent); color: #fff; border-color: var(--accent); }
+.location-active { color: var(--accent); border-color: var(--accent); background: rgba(0, 90, 193, 0.08); }
 .location-marker {
-  width: 10px; height: 10px; border: 1px solid #ffffff; border-radius: 50% !important;
-  background: var(--accent-2); box-shadow: 0 0 0 3px rgba(57, 255, 20, 0.18);
+  width: 10px; height: 10px; border: 1px solid var(--bg-panel); border-radius: 50% !important;
+  background: var(--accent); outline: 3px solid rgba(0, 90, 193, 0.18);
 }
-.fab.active-state#btn-add-project { background: var(--accent-2); color: #000; border-color: var(--accent-2); }
+.fab.active-state#btn-add-project { background: var(--accent-2); color: var(--fg); border-color: var(--accent-2); }
 .map-tools-toggle { display: none; }
 
 /* ---------- Botones ---------- */
 .btn {
   font-size: 11px; letter-spacing: .06em; padding: 10px 14px;
-  border: 1px solid var(--border-strong); background: var(--bg-raised); color: var(--fg);
+  border: 1px solid var(--border-strong); background: var(--bg-panel); color: var(--fg);
   cursor: pointer; font-family: 'JetBrains Mono', monospace;
 }
-.btn-accent { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 700; }
-.btn-accent2 { background: var(--accent-2); border-color: var(--accent-2); color: #000; font-weight: 700; }
-.btn-edit { font-size: 10px; padding: 5px 7px; color: var(--accent-2); border-color: var(--accent-2); }
-.admin-mode-control { display: inline-flex; align-items: center; justify-content: flex-end; gap: 6px; margin-top: 8px; color: var(--accent-2); font-size: 9px; cursor: pointer; }
+.btn:hover, .btn:focus-visible { background: var(--fg); color: var(--bg-panel); outline: none; }
+.btn-accent { background: var(--accent-2); border-color: var(--accent-2); color: var(--fg); font-weight: 700; }
+.btn-accent:hover, .btn-accent:focus-visible { background: var(--fg); color: var(--accent-2); }
+.btn-accent2 { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+.btn-accent2:hover, .btn-accent2:focus-visible { background: var(--fg); color: var(--accent); }
+.btn-edit { font-size: 10px; padding: 5px 7px; color: var(--accent); border-color: var(--accent); }
+.admin-mode-control { display: inline-flex; align-items: center; justify-content: flex-end; gap: 6px; margin-top: 8px; color: var(--accent); font-size: 9px; cursor: pointer; }
 .admin-mode-control input { position: absolute; opacity: 0; pointer-events: none; }
-.admin-mode-track { position: relative; width: 30px; height: 16px; border: 1px solid var(--border-strong); background: var(--bg-raised); }
-.admin-mode-track::after { content: ''; position: absolute; top: 3px; left: 3px; width: 8px; height: 8px; background: var(--fg-dim); transition: left .15s, background .15s; }
-.admin-mode-control input:checked + .admin-mode-track { border-color: var(--accent-2); }
-.admin-mode-control input:checked + .admin-mode-track::after { left: 17px; background: var(--accent-2); }
+.admin-mode-track { position: relative; width: 30px; height: 16px; border: 1px solid var(--border-strong); background: var(--bg-panel); }
+.admin-mode-track::after { content: ''; position: absolute; top: 3px; left: 3px; width: 8px; height: 8px; background: var(--fg-dim); transition: left .12s step-end; }
+.admin-mode-control input:checked + .admin-mode-track { border-color: var(--accent); }
+.admin-mode-control input:checked + .admin-mode-track::after { left: 17px; background: var(--accent); }
 .architect-filter {
   padding: 0; border: 0; background: transparent; color: var(--accent);
   font: inherit; text-align: left; cursor: pointer; text-decoration: underline;
@@ -40,12 +44,12 @@
 .architect-profile-box { max-width: 520px; max-height: min(76vh, 680px); display: flex; flex-direction: column; }
 .architect-profile-body { min-height: 0; overflow: auto; padding: 18px 14px 12px; }
 .architect-profile-kicker { margin: 0 0 5px; color: var(--accent); font-size: 9px; letter-spacing: .08em; }
-.architect-profile-name { margin: 0; color: var(--fg); font-family: 'Archivo Black', sans-serif; font-size: 22px; line-height: 1.05; overflow-wrap: anywhere; }
+.architect-profile-name { margin: 0; color: var(--fg); font-family: 'Archivo Expanded', 'Archivo Black', sans-serif; font-weight: 800; font-size: 22px; line-height: 1.05; overflow-wrap: anywhere; }
 .architect-profile-count { margin: 8px 0 13px; color: var(--fg-dim); font-size: 10px; }
 .architect-profile-works { border-top: 1px solid var(--border); }
 .architect-work-item { width: 100%; display: grid; grid-template-columns: 54px minmax(0, 1fr); gap: 10px; padding: 11px 0; border: 0; border-bottom: 1px solid var(--border); background: transparent; color: var(--fg); font: inherit; text-align: left; cursor: pointer; }
 .architect-work-item:hover, .architect-work-item:focus-visible { background: var(--bg-raised); outline: none; }
-.architect-work-year { color: var(--accent-2); font-size: 10px; padding-top: 2px; }
+.architect-work-year { color: var(--accent); font-size: 10px; padding-top: 2px; }
 .architect-work-info { display: grid; gap: 3px; min-width: 0; }
 .architect-work-info strong { font-size: 11px; line-height: 1.35; overflow-wrap: anywhere; }
 .architect-work-info small { color: var(--fg-dim); font-size: 9px; }
@@ -66,25 +70,25 @@
 
 /* ---------- Modal (genérico) ---------- */
 .modal-overlay {
-  position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,0.82);
+  position: fixed; inset: 0; z-index: 60; background: rgba(17,17,17,0.72);
   display: flex; align-items: center; justify-content: center;
-  opacity: 0; pointer-events: none; transition: opacity .15s; padding: 16px;
+  opacity: 0; pointer-events: none; transition: opacity .15s linear; padding: 16px;
 }
 .modal-overlay.open { opacity: 1; pointer-events: all; }
 .modal-box {
   width: 100%; max-width: 420px; background: var(--bg-panel);
-  border: 1px solid var(--accent); box-shadow: 0 0 0 1px #000, 0 0 24px rgba(255,69,0,0.15);
+  border: 1px solid var(--border-strong);
 }
 .modal-head {
-  padding: 12px 14px; border-bottom: 1px solid var(--border);
+  padding: 12px 14px; border-bottom: 1px solid var(--border-strong);
   display: flex; justify-content: space-between; align-items: center;
 }
 .modal-body { padding: 14px; }
 
 /* Inputs estéticos */
 .tech-input {
-  width: 100%; background: #000; border: 1px solid var(--accent);
+  width: 100%; background: var(--bg-panel); border: 1px solid var(--border-strong);
   color: var(--fg); font-family: 'JetBrains Mono', monospace; font-size: 12px;
   padding: 10px;
 }
-.tech-input:focus { outline: none; box-shadow: 0 0 0 1px var(--accent); }
+.tech-input:focus { outline: 2px solid var(--accent-2); outline-offset: 1px; }
