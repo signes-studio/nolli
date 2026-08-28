@@ -185,15 +185,45 @@
 .admin-action-open { color: var(--accent); border-color: var(--accent); }
 @media (max-width: 560px) { .admin-panel { top: 106px; } .admin-project { align-items: flex-start; flex-direction: column; } }
 @media (max-width: 600px) {
+  /* Contenedor adaptado para que flote y no cubra de más */
   .sheet {
-    max-height: 76vh; /* Ya existente */
-    
-    /* Nuevos ajustes para estrechar la ficha */
-    width: calc(100vw - 28px);
+    max-height: 80vh;
+    width: calc(100vw - 16px);
     margin: 0 auto;
-    bottom: 14px; /* La despega del borde inferior */
-    border: 1px solid var(--accent); /* Cierra el borde alrededor de toda la ficha */
+    bottom: 8px;
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
+
+  /* Ajuste de las celdas de datos para optimizar espacio horizontal */
+  .data-row {
+    font-size: 11px;
+  }
+  .data-row .label {
+    width: 95px; /* Reduce el ancho de la etiqueta para dar aire al texto */
+    padding: 10px 8px;
+    font-size: 9px;
+  }
+  .data-row .value {
+    padding: 10px 8px;
+  }
+
+  /* Botones de cabecera y acciones distribuidos en wrap */
+  .sheet-action-bar, 
+  .sheet-header-actions {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  
+  .sheet-action-button {
+    flex: 1 1 auto;
+    padding: 6px 6px;
+    font-size: 9px;
+    text-align: center;
+  }
+}
   .sheet-header { padding: 9px 10px; }
   .sheet-header .btn { font-size: 9px; padding: 6px 7px; }
   .data-row { font-size: 13px; }
