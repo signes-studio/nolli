@@ -185,7 +185,15 @@
 .admin-action-open { color: var(--accent); border-color: var(--accent); }
 @media (max-width: 560px) { .admin-panel { top: 106px; } .admin-project { align-items: flex-start; flex-direction: column; } }
 @media (max-width: 600px) {
-  .sheet { max-height: 76vh; }
+  .sheet {
+    max-height: 76vh; /* Ya existente */
+    
+    /* Nuevos ajustes para estrechar la ficha */
+    width: calc(100vw - 28px);
+    margin: 0 auto;
+    bottom: 14px; /* La despega del borde inferior */
+    border: 1px solid var(--accent); /* Cierra el borde alrededor de toda la ficha */
+  }
   .sheet-header { padding: 9px 10px; }
   .sheet-header .btn { font-size: 9px; padding: 6px 7px; }
   .data-row { font-size: 13px; }
