@@ -107,7 +107,28 @@ export function abrirFicha(building, coordinates, featureId = building.id) {
     ${state.sessionToken && !adminActive ? '<button type="button" class="report-link" data-open-report>¿Ves un error en esta ficha?</button>' : ''}
   `;
   const canDeletePrivate = Boolean(selected?.private && state.userId && String(selected.user_id) === String(state.userId));
-  document.getElementById('sheet-header-actions').innerHTML = `<button type="button" class="sheet-action-button" data-share-action="open">COMPARTIR</button>${state.sessionToken ? '<button type="button" class="sheet-action-button" data-save-collection>GUARDAR EN LISTA</button><button type="button" class="sheet-action-button" data-add-private-tag>ETIQUETA PRIVADA</button>' : ''}${adminActive ? '<button type="button" class="sheet-action-button admin-only-action" data-edit-building>EDITAR</button><button type="button" class="sheet-action-button admin-delete-action" data-delete-building>ELIMINAR</button>' : ''}${canDeletePrivate ? '<button type="button" class="sheet-action-button private-delete-action" data-delete-private>ELIMINAR</button>' : ''}${state.sessionToken ? `<button type="button" class="sheet-action-button ${getStatus('favorite') ? 'active favorite' : ''}" data-status="favorite">FAVORITO</button><button type="button" class="sheet-action-button ${getStatus('visited') ? 'active visited' : ''}" data-status="visited">VISITADO</button>` : ''}`;
+  
+  document.getElementById('sheet-header-actions').innerHTML = `
+    <button type="button" class="sheet-icon-action" data-share-action="open" title="Compartir"><i data-lucide="share-2" width="14" height="14"></i></button>
+    ${state.sessionToken ? `
+      <button type="button" class="sheet-icon-action" data-save-collection title="Guardar en lista"><i data-lucide="bookmark" width="14" height="14"></i></button>
+      <button type="button" class="sheet-icon-action" data-add-private-tag title="Etiqueta privada"><i data-lucide="tag" width="14" height="14"></i></button>
+    ` : ''}
+    ${adminActive ? `
+      <button type="button" class="sheet-icon-action admin-only-action" data-edit-building title="Editar"><i data-lucide="pencil" width="14" height="14"></i></button>
+      <button type="button" class="sheet-icon-action admin-delete-action" data-delete-building title="Eliminar"><i data-lucide="trash-2" width="14" height="14"></i></button>
+    ` : ''}
+    ${canDeletePrivate ? `
+      <button type="button" class="sheet-icon-action private-delete-action" data-delete-private title="Eliminar"><i data-lucide="trash-2" width="14" height="14"></i></button>
+    ` : ''}
+    ${state.sessionToken ? `
+      <button type="button" class="sheet-icon-action ${getStatus('favorite') ? 'active favorite' : ''}" data-status="favorite" title="Favorito"><i data-lucide="heart" width="14" height="14"></i></button>
+      <button type="button" class="sheet-icon-action ${getStatus('visited') ? 'active visited' : ''}" data-status="visited" title="Visitado"><i data-lucide="check-circle-2" width="14" height="14"></i></button>
+    ` : ''}
+  `;
+
+  if (window.lucide) window.lucide.createIcons();
+
   const editButton = document.querySelector('#sheet-header-actions [data-edit-building]');
   if (editButton) editButton.addEventListener('click', (event) => {
     event.stopPropagation();

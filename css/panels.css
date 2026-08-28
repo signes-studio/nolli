@@ -185,39 +185,37 @@
 .admin-action-open { color: var(--accent); border-color: var(--accent); }
 @media (max-width: 560px) { .admin-panel { top: 106px; } .admin-project { align-items: flex-start; flex-direction: column; } }
 @media (max-width: 600px) {
-  /* Forzamos a la cabecera de la ficha a apilarse verticalmente */
+  /* Restauramos una cabecera limpia y compacta */
   .sheet-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-    padding: 10px 12px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
   }
 
   .sheet-header > div:first-child {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-  }
-
-  /* La botonera de acciones superior pasa a una retícula de 2 o 3 columnas limpias */
-  .sheet-header-actions {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
     gap: 6px;
-    width: 100%;
   }
 
+  /* Convertimos los botones de acción en una barra horizontal compacta o de una sola línea desplazable/dividida */
+  .sheet-header-actions {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 4px;
+    overflow-x: auto;
+    max-width: 60vw;
+    padding-bottom: 2px;
+  }
+
+  /* Ocultamos texto largo secundario si es necesario o compactamos los botones */
   .sheet-action-button {
-    width: 100%;
-    padding: 8px 4px;
-    font-size: 9px;
-    text-align: center;
-    white-space: normal; /* Permite que el texto quiebre si es largo */
-  }
-
-  /* Aseguramos que el botón de cerrar no flote mal */
-  .sheet-close-button {
-    margin-left: auto;
+    flex: 0 0 auto;
+    padding: 4px 8px;
+    font-size: 8px;
+    letter-spacing: 0.02em;
+    min-height: 28px;
   }
 }
   .sheet-header { padding: 9px 10px; }
@@ -302,3 +300,64 @@
 }
 .tech-switch input:checked ~ .thumb { left: 22px; background: var(--accent); }
 .tech-switch input:checked ~ .track { border-color: var(--accent); }
+/* Botones de acción basados en iconos para la ficha */
+.sheet-icon-action {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-raised);
+  color: var(--fg-dim);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sheet-icon-action:hover, 
+.sheet-icon-action:focus-visible {
+  color: var(--accent);
+  border-color: var(--accent);
+  outline: none;
+}
+
+/* Estados activos (ej. favorito marcado con corazón) */
+.sheet-icon-action.active.favorite {
+  color: #D6201D; /* Rojo primario para el favorito */
+  border-color: #D6201D;
+  background: rgba(214, 32, 29, 0.08);
+}
+
+.sheet-icon-action.active.visited {
+  color: var(--accent-2);
+  border-color: var(--accent-2);
+  background: rgba(0, 90, 193, 0.08);
+}
+
+/* Acciones especiales de borrado o edición */
+.sheet-icon-action.admin-only-action {
+  color: var(--accent-2);
+  border-color: var(--accent-2);
+}
+
+.sheet-icon-action.admin-delete-action,
+.sheet-icon-action.private-delete-action {
+  color: var(--red, #D6201D);
+  border-color: var(--red, #D6201D);
+}
+
+.sheet-icon-action.admin-delete-action:hover,
+.sheet-icon-action.private-delete-action:hover {
+  background: rgba(214, 32, 29, 0.08);
+}
+
+/* Alineación limpia en la cabecera móvil sin ocupar espacio de más */
+@media (max-width: 600px) {
+  .sheet-header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: flex-end;
+    max-width: 65vw;
+  }
+}
