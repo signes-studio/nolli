@@ -49,7 +49,7 @@ export function drawTargetIcon(ctx, color, importance, s) {
     ctx.arc(c, c, s * 0.28, 0, Math.PI * 2);
     ctx.stroke();
     ctx.beginPath();
-    ctx.arc(c, c, s * 0.07, 0, Math.PI * 2);
+    ctx.arc(c, c, s * 0.18, 0, Math.PI * 2);
     ctx.fill();
   } else {
     ctx.lineWidth = 3;
