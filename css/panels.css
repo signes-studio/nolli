@@ -185,43 +185,39 @@
 .admin-action-open { color: var(--accent); border-color: var(--accent); }
 @media (max-width: 560px) { .admin-panel { top: 106px; } .admin-project { align-items: flex-start; flex-direction: column; } }
 @media (max-width: 600px) {
-  /* Contenedor adaptado para que flote y no cubra de más */
-  .sheet {
-    max-height: 80vh;
-    width: calc(100vw - 16px);
-    margin: 0 auto;
-    bottom: 8px;
-    border: 1px solid var(--accent);
-    border-radius: 6px;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+  /* Forzamos a la cabecera de la ficha a apilarse verticalmente */
+  .sheet-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 10px 12px;
   }
 
-  /* Ajuste de las celdas de datos para optimizar espacio horizontal */
-  .data-row {
-    font-size: 11px;
-  }
-  .data-row .label {
-    width: 95px; /* Reduce el ancho de la etiqueta para dar aire al texto */
-    padding: 10px 8px;
-    font-size: 9px;
-  }
-  .data-row .value {
-    padding: 10px 8px;
+  .sheet-header > div:first-child {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
 
-  /* Botones de cabecera y acciones distribuidos en wrap */
-  .sheet-action-bar, 
+  /* La botonera de acciones superior pasa a una retícula de 2 o 3 columnas limpias */
   .sheet-header-actions {
-    flex-wrap: wrap;
-    gap: 4px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+    width: 100%;
   }
-  
+
   .sheet-action-button {
-    flex: 1 1 auto;
-    padding: 6px 6px;
+    width: 100%;
+    padding: 8px 4px;
     font-size: 9px;
     text-align: center;
+    white-space: normal; /* Permite que el texto quiebre si es largo */
+  }
+
+  /* Aseguramos que el botón de cerrar no flote mal */
+  .sheet-close-button {
+    margin-left: auto;
   }
 }
   .sheet-header { padding: 9px 10px; }
