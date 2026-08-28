@@ -76,3 +76,93 @@ body.profile-page main { position: static; inset: auto; min-height: 100vh; overf
   .profile-field.full { grid-column: auto; }
   .profile-footer { align-items: flex-start; flex-direction: column; gap: 10px; }
 }
+/* =========================================================================
+   CORRECCIÓN DEFINITIVA DE PANELES, FICHAS Y TEXTOS EN MODO OSCURO
+   ========================================================================= */
+
+/* 1. La Ficha de Obra completa y su cabecera */
+body.dark-mode #sheet,
+body.dark-mode .sheet-header,
+body.dark-mode .sheet-container {
+    background-color: #1a1a1a !important;
+    color: #e0e0e0 !important;
+    border-color: #333333 !important;
+}
+
+/* 2. Forzar que los textos y valores dentro de la ficha de obra sean claros */
+body.dark-mode #sheet .value,
+body.dark-mode #sheet .label,
+body.dark-mode #sheet h2, 
+body.dark-mode #sheet h3,
+body.dark-mode #sheet strong,
+body.dark-mode .sheet-title {
+    color: #f0f0f0 !important;
+}
+
+/* 3. Las filas de datos y separadores dentro de la ficha */
+body.dark-mode #sheet .data-row {
+    border-color: #333333 !important;
+}
+
+/* 4. Botones de acción dentro de la ficha (compartir, favorito, etc.) */
+body.dark-mode #sheet-header-actions .sheet-icon-action,
+body.dark-mode .sheet-icon-action {
+    background-color: #242424 !important;
+    color: #e0e0e0 !important;
+    border-color: #383838 !important;
+}
+
+body.dark-mode #sheet-header-actions .sheet-icon-action:hover {
+    background-color: #333333 !important;
+}
+
+/* 5. Botones generales de tipo .btn que sigan viéndose en crema */
+body.dark-mode .btn,
+body.dark-mode button.btn {
+    background-color: #242424 !important;
+    color: #f0f0f0 !important;
+    border-color: #383838 !important;
+}
+
+body.dark-mode .btn:hover {
+    background-color: #333333 !important;
+}
+/* =========================================================================
+   FORZAR ICONOS LATERALES Y TEXTOS SUPERIORES EN MODO OSCURO
+   ========================================================================= */
+
+/* 1. Forzar los iconos de la barra lateral derecha (incluso si usan SVG o Lucide) */
+body.dark-mode #map-tools button,
+body.dark-mode #map-tools svg,
+body.dark-mode .map-tool-btn,
+body.dark-mode .map-tool-btn svg,
+body.dark-mode .mapboxgl-ctrl-group button svg {
+    color: #f0f0f0 !important;
+    fill: #f0f0f0 !important;
+}
+
+body.dark-mode #map-tools button {
+    background-color: #242424 !important;
+    border-color: #383838 !important;
+}
+
+body.dark-mode #map-tools button:hover {
+    background-color: #333333 !important;
+}
+
+/* 2. Forzar el texto de coordenadas y zoom de la esquina superior derecha */
+body.dark-mode .mapboxgl-ctrl-top-right,
+body.dark-mode [class*="lng"],
+body.dark-mode [class*="lat"],
+body.dark-mode [class*="zoom"],
+body.dark-mode .hud-readout,
+body.dark-mode div[style*="position: absolute"] {
+    color: #f0f0f0 !important;
+}
+
+/* Selector general específico para los textos informativos de la esquina superior derecha */
+body.dark-mode div:has(> #hud-lng),
+body.dark-mode .mapboxgl-ctrl-bottom-right *,
+body.dark-mode .mapboxgl-ctrl-top-right * {
+    color: #f0f0f0 !important;
+}

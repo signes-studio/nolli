@@ -14,7 +14,7 @@ mapboxgl.accessToken = MAPBOX_TOKEN;
 export function cargarMapaMapbox() {
   state.map = new mapboxgl.Map({
     container: 'map',
-    style: MAP_STYLES.dark,
+    style: MAP_STYLES.abstract,
     center: DEFAULT_CENTER,
     zoom: DEFAULT_ZOOM,
     attributionControl: true,
@@ -283,24 +283,51 @@ function aplicarTratamientoSatelite() {
 function initMapStyleSelector() {
   const panel = document.getElementById('map-style-panel');
   const button = document.getElementById('btn-map-style');
+
+  if (!panel || !button) return;
+
+  // Abrir / Cerrar el panel flotante
+  button.addEventListener('click', (event) => {
+    event.stopPropagation();
+    const isOpen = panel.classList.toggle('open');
+    button.classList.toggle('active-state', isOpen);
+  });
+
+  // Escuchar clics en las opciones de estilo
   document.addEventListener('click', (event) => {
-    if (event.target.closest('#btn-map-style-close')) {
-      panel.classList.remove('open');
-      button.classList.remove('active-state');
-    }
     const option = event.target.closest('[data-map-style]');
-    if (!option) return;
-    const style = option.dataset.mapStyle;
-    if (style === state.mapStyle) return;
-    state.mapStyle = style;
-    panel.querySelectorAll('[data-map-style]').forEach((item) => item.classList.toggle('active', item === option));
-    state.map.setStyle(MAP_STYLES[style]);
+    if (!option) {
+      // Si haces clic fuera del panel, lo cerramos
+      if (!panel.contains(event.target) && !button.contains(event.target)) {
+        panel.classList.remove('open');
+        button.classList.remove('active-state');
+      }
+      return;
+    }
+
+    const styleKey = option.dataset.mapStyle; // 'abstract', 'dark', o 'satellite'
+    if (!styleKey || !MAP_STYLES[styleKey]) return;
+
+    state.mapStyle = styleKey;
+
+    // Actualizar clases 'active' visuales en el menú
+    panel.querySelectorAll('[data-map-style]').forEach((item) => {
+      item.classList.toggle('active', item === option);
+    });
+
+    // 1. Cambiar el estilo real en Mapbox
+    state.map.setStyle(MAP_STYLES[styleKey]);
+
+    // 2. Gestionar el diseño de la interfaz (Modo Oscuro / Claro para los menús)
+    if (styleKey === 'dark') {
+      document.body.classList.add('dark-mode');
+    } else {
+      document.body.classList.remove('dark-mode');
+    }
+
+    // Cerrar el panel
     panel.classList.remove('open');
     button.classList.remove('active-state');
-  });
-  button.addEventListener('click', () => {
-    panel.classList.toggle('open');
-    button.classList.toggle('active-state');
   });
 }
 
