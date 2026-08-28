@@ -102,7 +102,8 @@ export function cargarMapaMapbox() {
       },
     });
 
-    [0, 1, 2, 3].forEach((importance) => {
+    // Capas de iconos añadidas en orden inverso (3, 2, 1, 0) para que 1 y 0 queden siempre arriba
+    [3, 2, 1, 0].forEach((importance) => {
       const minzoom = importance === 0 ? 0 : importance === 1 ? 0 : importance === 2 ? 6.5 : 13.5;
       const baseFilter = ['==', ['get', 'importancia'], importance];
       const sourceId = importance === 0 ? 'obras-maestras' : 'obras';
@@ -187,7 +188,8 @@ export function cargarMapaMapbox() {
       });
     });
 
-    [0, 1, 2, 3].forEach((importance) => {
+    // Capas de etiquetas de texto también en orden inverso (3, 2, 1, 0)
+    [3, 2, 1, 0].forEach((importance) => {
       const labelLayerId = `obras-labels-l${importance}`;
       const sourceId = importance === 0 ? 'obras-maestras' : 'obras';
       state.map.addLayer({
@@ -198,7 +200,7 @@ export function cargarMapaMapbox() {
         filter: ['all', ['==', ['get', 'importancia'], importance], ['==', ['get', 'estado_revision'], 'publicada']],
         layout: {
           'text-field': ['get', 'nombre_obra'],
-          'text-font': ['Inter Regular', 'Open Sans Regular', 'Arial Unicode MS Regular'], // Se intenta cargar Inter con fallbacks compatibles
+          'text-font': ['Inter Regular', 'Open Sans Regular', 'Arial Unicode MS Regular'],
           'text-size': 12,
           'text-offset': [1.15, 0],
           'text-anchor': 'left',

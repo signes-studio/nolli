@@ -19,27 +19,42 @@ export function drawTargetIcon(ctx, color, importance, s) {
   if (importance === 0) {
     ctx.save();
     ctx.translate(c, c);
+    
+    // Dibujo del triángulo isósceles (apuntando hacia arriba)
     ctx.beginPath();
-    for (let point = 0; point < 10; point += 1) {
-      const radius = point % 2 === 0 ? s * 0.39 : s * 0.17;
-      const angle = -Math.PI / 2 + point * Math.PI / 5;
-      const x = Math.cos(angle) * radius;
-      const y = Math.sin(angle) * radius;
-      if (point === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
+    ctx.moveTo(0, -s * 0.38);  // Vértice superior
+    ctx.lineTo(s * 0.32, s * 0.28); // Vértice inferior derecho
+    ctx.lineTo(-s * 0.32, s * 0.28); // Vértice inferior izquierdo
     ctx.closePath();
+    
+    // Relleno dorado fijo
+    ctx.fillStyle = '#E95C0C';
     ctx.fill();
-    ctx.fillStyle = '#000000';
+
+    // Contorno exterior sutil en color #F8F1DF
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = '#F8F1DF';
+    ctx.stroke();
+
+    // Núcleo central negro
+    ctx.fillStyle = '#E95C0C';
     ctx.beginPath();
-    ctx.arc(0, 0, s * 0.08, 0, Math.PI * 2);
+    ctx.arc(0, s * 0.08, s * 0.08, 0, Math.PI * 2);
     ctx.fill();
+    
     ctx.restore();
   } else if (importance === 1) {
+    ctx.fillStyle = '#F8F1DF';
+    ctx.beginPath();
+    ctx.arc(c, c, s * 0.38, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = color;
     ctx.beginPath();
     ctx.arc(c, c, s * 0.34, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = '#000000';
+
+    ctx.fillStyle = '#141411';
     ctx.beginPath();
     ctx.arc(c, c, s * 0.10, 0, Math.PI * 2);
     ctx.fill();
