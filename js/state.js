@@ -41,7 +41,7 @@ export const state = {
     'desaparecido',
   ]),
   map: null,
-  mapStyle: 'dark',
+  mapStyle: 'abstract',
   addingBuilding: false,
   privateBuildings: [],
   userCollections: [],

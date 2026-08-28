@@ -151,16 +151,54 @@ body {
   color: var(--fg);
 }
 
+/* =========================================================================
+   ICONOS DE JERARQUÍA EN LEYENDA (Sincronizados con icons.js)
+   ========================================================================= */
+
 .node-icon {
-  width: 8px;
-  height: 8px;
   display: inline-block;
-  flex-shrink: 0;
+  vertical-align: middle;
+  margin-right: 6px;
+  box-sizing: border-box;
+  position: relative;
 }
-.node-icon.master { background: var(--fg); border: 1px solid var(--accent-2); transform: rotate(45deg); }
-.node-icon.high { background: var(--accent); }
-.node-icon.mid { border-radius: 50% !important; background: var(--accent); }
-.node-icon.low { border-radius: 50% !important; background: var(--accent); width: 4px; height: 4px; }
+
+/* 1. Obra Maestra: Triángulo con punto central */
+.node-icon.master { 
+  background: #E95C0C; 
+  clip-path: polygon(50% 0%, 100% 100%, 0% 100%); 
+  width: 12px;
+  height: 11px;
+}
+
+/* 2. Alta: Círculo con borde y núcleo */
+.node-icon.high { 
+  background: #141411; 
+  border: 3px solid #E95C0C; 
+  border-radius: 50%; 
+  width: 12px;
+  height: 12px;
+}
+
+/* 3. Media: Anillo / Círculo hueco con trazo */
+.node-icon.mid { 
+  border: 3px solid #E95C0C; 
+  background: transparent; 
+  border-radius: 50%; 
+  width: 12px;
+  height: 12px;
+}
+
+/* 4. Baja: Punto sutil con opacidad */
+.node-icon.low { 
+  background: #E95C0C; 
+  border-radius: 50%; 
+  width: 6px;
+  height: 6px;
+  opacity: 0.7;
+  margin-left: 3px;
+  margin-right: 9px;
+}
 
 .legend-color-grid {
   display: grid;
@@ -184,6 +222,7 @@ body {
   flex-shrink: 0;
   border: 1px solid var(--border-strong);
 }
+
 .font-poppins {
   font-family: 'Archivo Expanded', 'Archivo Black', sans-serif;
   font-weight: 800;
@@ -240,6 +279,7 @@ body.dark-mode button.btn {
 body.dark-mode .btn:hover {
     background-color: #333333 !important;
 }
+
 /* =========================================================================
    FORZAR ICONOS LATERALES Y TEXTOS SUPERIORES EN MODO OSCURO
    ========================================================================= */
@@ -278,4 +318,12 @@ body.dark-mode div:has(> #hud-lng),
 body.dark-mode .mapboxgl-ctrl-bottom-right *,
 body.dark-mode .mapboxgl-ctrl-top-right * {
     color: #f0f0f0 !important;
+}
+/* Forzar que los iconos de la leyenda ignoren el reset de bordes redondeados */
+.radar-legend .node-icon,
+.radar-legend .node-icon.high,
+.radar-legend .node-icon.mid,
+.radar-legend .node-icon.low,
+.legend-color-grid i {
+  border-radius: 50% !important;
 }
