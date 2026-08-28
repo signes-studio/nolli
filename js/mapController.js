@@ -58,7 +58,7 @@ export function cargarMapaMapbox() {
       type: 'geojson',
       data: { type: 'FeatureCollection', features: [] },
       cluster: true,
-      clusterMaxZoom: 7,
+      clusterMaxZoom: 4,
       clusterRadius: 45,
     });
     state.map.addSource('obras-maestras', {

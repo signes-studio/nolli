@@ -1,10 +1,10 @@
 /* =========================================================================
-   SEARCHUI.JS — Búsqueda y edificios cercanos
+   SEARCHUI.JS — Búsqueda de arquitectos con filtrado en cascada hacia edificios
    ========================================================================= */
 
-import { state } from './state.js';
+import { state, separarArquitectos } from './state.js';
 import { abrirFicha } from './sheetUI.js';
-import { searchPlaces } from './api.js';
+import { searchPlaces, fetchBuildings } from './api.js';
 
 const searchPanel = document.getElementById('search-panel');
 const btnSearch = document.getElementById('btn-search');
@@ -16,6 +16,26 @@ const architectInput = document.getElementById('building-architect');
 const architectSuggestions = document.getElementById('architect-suggestions');
 let locationSearchTimer = null;
 let locationSearchRequest = 0;
+let searchDebounceTimer = null;
+
+let cacheObrasGlobales = null;
+
+// Mapa de colores por categoría de edificio
+const COLORES_CATEGORIA = {
+  'residencial': '#E95C0C',
+  'dotacional_equipamiento': '#4388C6',
+  'religioso_funerario': '#F2ACCD',
+  'comercial_terciario': '#EFBC02',
+  'espacio_publico_paisaje': '#0d682f',
+  'infraestructura_urbanismo': '#D6201D',
+  'industrial_logistico': '#691B14',
+  'otro': '#064773'
+};
+
+function obtenerColorCategoria(categoria) {
+  const catKey = normalizarTexto(categoria || 'otro').replace(/\s+/g, '_');
+  return COLORES_CATEGORIA[catKey] || COLORES_CATEGORIA['otro'];
+}
 
 export function initSearchUI() {
   btnSearch.addEventListener('click', () => {
@@ -24,7 +44,7 @@ export function initSearchUI() {
     if (searchPanel.classList.contains('open')) {
       actualizarOpciones();
       solicitarUbicacion();
-      renderizarResultados();
+      ejecutarBusquedaGlobal();
     }
   });
 
@@ -35,22 +55,39 @@ export function initSearchUI() {
     }
   });
 
-  [searchInput, architectInput].forEach((control) => {
-    control.addEventListener('input', renderizarResultados);
-    control.addEventListener('change', renderizarResultados);
+  searchInput.addEventListener('input', () => {
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(ejecutarBusquedaGlobal, 150);
   });
-  architectInput.addEventListener('input', mostrarSugerenciasArquitectos);
-  locationInput.addEventListener('input', () => {
-    clearTimeout(locationSearchTimer);
-    const query = locationInput.value.trim();
-    if (query.length < 2) {
-      locationResults.innerHTML = '';
-      return;
+  searchInput.addEventListener('change', ejecutarBusquedaGlobal);
+
+  architectInput.addEventListener('input', () => {
+    if (architectSuggestions) {
+      architectSuggestions.innerHTML = '';
+      architectSuggestions.hidden = true;
     }
-    locationSearchTimer = setTimeout(() => buscarUbicaciones(query), 280);
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(ejecutarBusquedaGlobal, 150);
+  });
+  architectInput.addEventListener('change', ejecutarBusquedaGlobal);
+
+  locationInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      clearTimeout(locationSearchTimer);
+      const query = locationInput.value.trim();
+      if (query.length >= 2) {
+        buscarUbicaciones(query);
+      } else {
+        locationResults.innerHTML = '';
+      }
+    }
   });
 
-  document.addEventListener('radar:data-ready', actualizarOpciones);
+  document.addEventListener('radar:data-ready', () => {
+    cacheObrasGlobales = null;
+    actualizarOpciones();
+  });
 }
 
 async function buscarUbicaciones(query) {
@@ -82,68 +119,147 @@ function actualizarOpciones() {
   architectInput.value = previousArchitect;
 }
 
-function mostrarSugerenciasArquitectos() {
-  const query = normalizarTexto(architectInput.value);
-  if (!query) {
-    architectSuggestions.innerHTML = '';
-    architectSuggestions.hidden = true;
-    return;
-  }
-  const matches = state.ARQUITECTOS
-    .filter((architect) => normalizarTexto(architect).includes(query))
-    .sort((first, second) => first.localeCompare(second, 'es'))
-    .slice(0, 8);
-  architectSuggestions.innerHTML = matches.map((architect) => `
-    <button type="button" class="architect-suggestion" data-architect-suggestion="${escapeHtml(architect)}">${escapeHtml(architect)}</button>
-  `).join('');
-  architectSuggestions.hidden = !matches.length;
-}
-
 function solicitarUbicacion() {
   if (state.userLocation || !navigator.geolocation) return;
   navigator.geolocation.getCurrentPosition(
     (position) => {
       state.userLocation = { lng: position.coords.longitude, lat: position.coords.latitude };
-      renderizarResultados();
+      ejecutarBusquedaGlobal();
     },
-    () => renderizarResultados('Activa el permiso de ubicación para ordenar los edificios por cercanía.'),
+    () => ejecutarBusquedaGlobal(),
     { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 },
   );
 }
 
-function renderizarResultados(message = '') {
-  if (!state.OBRAS.length) {
-    searchResults.innerHTML = '<div class="nearby-empty">No hay edificios disponibles.</div>';
-    return;
+async function obtenerObrasGlobales() {
+  if (cacheObrasGlobales) return cacheObrasGlobales;
+
+  try {
+    const filas = await fetchBuildings({ includeAllImportance: true });
+    cacheObrasGlobales = filas.map((fila, index) => ({
+      id: fila.id,
+      featureId: String(fila.id ?? `obra-${index}`),
+      nombre_obra: fila.nombre_obra,
+      foto_url: fila.foto_url || null,
+      enlace_url: fila.enlace_url || null,
+      arquitecto: fila.arquitecto,
+      arquitectos: separarArquitectos(fila.arquitecto),
+      año_construccion: fila.año_construccion,
+      importancia: fila.importancia,
+      categoria: fila.categoria,
+      coordenadas: [fila.longitud, fila.latitud],
+    }));
+    return cacheObrasGlobales;
+  } catch (error) {
+    console.error('Error al obtener obras de Supabase:', error);
+    return [];
   }
-  if (!state.userLocation) {
-    searchResults.innerHTML = `<div class="nearby-empty">${message || 'Calculando tu ubicación...'}</div>`;
+}
+
+async function ejecutarBusquedaGlobal() {
+  const textQuery = normalizarTexto(searchInput.value.trim());
+  const architectQuery = normalizarTexto(architectInput.value.trim());
+
+  const obrasEncontradas = await obtenerObrasGlobales();
+
+  if (!obrasEncontradas.length) {
+    searchResults.innerHTML = '<div class="nearby-empty">No hay resultados en la base de datos.</div>';
     return;
   }
 
-  const text = searchInput.value.trim().toLowerCase();
-  const selectedArchitect = normalizarTexto(architectInput.value);
-  const results = state.OBRAS
-    .filter((obra) => !text || String(obra.nombre_obra || '').toLowerCase().includes(text))
-    .filter((obra) => !selectedArchitect || (obra.arquitectos || []).some((architect) => normalizarTexto(architect).includes(selectedArchitect)))
-    .map((obra) => ({ obra, distance: distanciaEnKm(state.userLocation, obra.coordenadas) }))
-    .sort((a, b) => a.distance - b.distance)
-    .slice(0, 10);
+  // CASO 1: NINGÚN FILTRO ACTIVO -> Mostrar los 10 edificios más cercanos
+  if (!textQuery && !architectQuery) {
+    const resultadosConDistancia = obrasEncontradas.map((obra) => {
+      const distance = state.userLocation ? distanciaEnKm(state.userLocation, obra.coordenadas) : 0;
+      return { obra, distance };
+    });
 
-  if (!results.length) {
-    searchResults.innerHTML = '<div class="nearby-empty">No hay resultados con esos filtros.</div>';
+    if (state.userLocation) {
+      resultadosConDistancia.sort((a, b) => a.distance - b.distance);
+    }
+
+    const topCercanos = resultadosConDistancia.slice(0, 10);
+
+    searchResults.innerHTML = topCercanos.map(({ obra, distance }) => {
+      const colorCat = obtenerColorCategoria(obra.categoria);
+      return `
+        <button type="button" class="nearby-item" data-feature-id="${obra.featureId}" data-lng="${obra.coordenadas[0]}" data-lat="${obra.coordenadas[1]}">
+          <span class="nearby-name">
+            <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color:${colorCat}; margin-right:8px; vertical-align:middle;"></span>
+            ${escapeHtml(obra.nombre_obra)}
+          </span>
+          <span class="nearby-meta">${state.userLocation ? formatearDistancia(distance) : escapeHtml(obra.arquitecto || '')}</span>
+        </button>
+      `;
+    }).join('');
     return;
   }
-  searchResults.innerHTML = results.map(({ obra, distance }) => `
-    <button type="button" class="nearby-item" data-feature-id="${obra.featureId}">
-      <span class="nearby-name">${obra.nombre_obra}</span>
-      <span class="nearby-meta">${formatearDistancia(distance)}</span>
+
+  // CASO 2: HAY TEXTO EN EL BUSCADOR DE EDIFICIOS -> Filtrar edificios por nombre
+  if (textQuery) {
+    const obrasFiltradas = obrasEncontradas.filter((obra) => 
+      normalizarTexto(obra.nombre_obra).includes(textQuery)
+    );
+
+    if (!obrasFiltradas.length) {
+      searchResults.innerHTML = '<div class="nearby-empty">No se encontraron edificios con ese nombre.</div>';
+      return;
+    }
+
+    searchResults.innerHTML = obrasFiltradas.slice(0, 15).map((obra) => {
+      const distance = state.userLocation ? distanciaEnKm(state.userLocation, obra.coordenadas) : 0;
+      const colorCat = obtenerColorCategoria(obra.categoria);
+      return `
+        <button type="button" class="nearby-item" data-feature-id="${obra.featureId}" data-lng="${obra.coordenadas[0]}" data-lat="${obra.coordenadas[1]}">
+          <span class="nearby-name">
+            <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color:${colorCat}; margin-right:8px; vertical-align:middle;"></span>
+            ${escapeHtml(obra.nombre_obra)}
+          </span>
+          <span class="nearby-meta">${state.userLocation ? formatearDistancia(distance) : escapeHtml(obra.arquitecto || '')}</span>
+        </button>
+      `;
+    }).join('');
+    return;
+  }
+
+  // CASO 3: HAY TEXTO EN EL BUSCADOR DE ARQUITECTOS -> Mostrar lista de arquitectos coincidentes
+  const mapaArquitectos = new Map();
+  obrasEncontradas.forEach((obra) => {
+    const arqs = obra.arquitectos?.length ? obra.arquitectos : separarArquitectos(obra.arquitecto);
+    arqs.forEach((arq) => {
+      if (!arq) return;
+      if (!mapaArquitectos.has(arq)) {
+        mapaArquitectos.set(arq, []);
+      }
+      mapaArquitectos.set(arq, [...mapaArquitectos.get(arq), obra]);
+    });
+  });
+
+  const arquitectosList = [...mapaArquitectos.entries()]
+    .map(([nombre, obras]) => ({ nombre, count: obras.length }))
+    .filter(({ nombre }) => normalizarTexto(nombre).includes(architectQuery))
+    .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'))
+    .slice(0, 20);
+
+  if (!arquitectosList.length) {
+    searchResults.innerHTML = '<div class="nearby-empty">No se encontraron arquitectos.</div>';
+    return;
+  }
+
+  searchResults.innerHTML = arquitectosList.map(({ nombre, count }) => `
+    <button type="button" class="nearby-item architect-result-item" data-architect-select="${escapeHtml(nombre)}">
+      <span class="nearby-name">${escapeHtml(nombre)}</span>
+      <span class="nearby-meta">${count} ${count === 1 ? 'obra' : 'obras'}</span>
     </button>
   `).join('');
 }
 
 function normalizarTexto(value) {
-  return String(value || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
 }
 
 function distanciaEnKm(origen, destino) {
@@ -162,14 +278,18 @@ function formatearDistancia(distanceKm) {
 }
 
 document.addEventListener('click', (event) => {
-  const suggestion = event.target.closest('[data-architect-suggestion]');
-  if (suggestion) {
-    architectInput.value = suggestion.dataset.architectSuggestion;
-    architectSuggestions.innerHTML = '';
-    architectSuggestions.hidden = true;
-    renderizarResultados();
+  const architectItem = event.target.closest('[data-architect-select]');
+  if (architectItem) {
+    const arqName = architectItem.dataset.architectSelect;
+    architectInput.value = arqName;
+    if (architectSuggestions) {
+      architectSuggestions.innerHTML = '';
+      architectSuggestions.hidden = true;
+    }
+    mostrarEdificiosDeArquitecto(arqName);
     return;
   }
+  
   const location = event.target.closest('.location-result');
   if (location && state.map) {
     const center = location.dataset.locationCenter.split(',').map(Number);
@@ -180,12 +300,73 @@ document.addEventListener('click', (event) => {
     btnSearch.classList.remove('active-state');
     return;
   }
+  
   const item = event.target.closest('.nearby-item');
   if (!item) return;
-  const obra = state.OBRAS.find((candidate) => String(candidate.featureId) === item.dataset.featureId);
+  
+  const featureId = item.dataset.featureId;
+  if (!featureId) return;
+
+  let obra = state.OBRAS.find((candidate) => String(candidate.featureId) === String(featureId));
+  
+  if (!obra && cacheObrasGlobales) {
+    obra = cacheObrasGlobales.find((candidate) => String(candidate.featureId) === String(featureId));
+    if (obra) {
+      state.OBRAS.push(obra);
+    }
+  }
+
+  if (!obra && item.dataset.lng && item.dataset.lat) {
+    obra = {
+      id: featureId,
+      featureId: featureId,
+      nombre_obra: item.querySelector('.nearby-name')?.textContent,
+      coordenadas: [parseFloat(item.dataset.lng), parseFloat(item.dataset.lat)]
+    };
+    state.OBRAS.push(obra);
+  }
+
   if (!obra || !state.map) return;
+  
   state.map.flyTo({ center: obra.coordenadas, zoom: Math.max(state.map.getZoom(), 15) });
   abrirFicha(obra, obra.coordenadas, obra.featureId);
   searchPanel.classList.remove('open');
   btnSearch.classList.remove('active-state');
 });
+
+async function mostrarEdificiosDeArquitecto(nombreArquitecto) {
+  const obrasEncontradas = await obtenerObrasGlobales();
+  const arqQuery = normalizarTexto(nombreArquitecto);
+
+  const obrasDelArquitecto = obrasEncontradas.filter((obra) => {
+    const arqs = obra.arquitectos?.length ? obra.arquitectos : separarArquitectos(obra.arquitecto);
+    return arqs.some((arq) => normalizarTexto(arq) === arqQuery);
+  });
+
+  if (!obrasDelArquitecto.length) {
+    searchResults.innerHTML = '<div class="nearby-empty">No hay obras para este arquitecto.</div>';
+    return;
+  }
+
+  const resultadosConDistancia = obrasDelArquitecto.map((obra) => {
+    const distance = state.userLocation ? distanciaEnKm(state.userLocation, obra.coordenadas) : 0;
+    return { obra, distance };
+  });
+
+  if (state.userLocation) {
+    resultadosConDistancia.sort((a, b) => a.distance - b.distance);
+  }
+
+  searchResults.innerHTML = resultadosConDistancia.map(({ obra, distance }) => {
+    const colorCat = obtenerColorCategoria(obra.categoria);
+    return `
+      <button type="button" class="nearby-item" data-feature-id="${obra.featureId}" data-lng="${obra.coordenadas[0]}" data-lat="${obra.coordenadas[1]}">
+        <span class="nearby-name">
+          <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color:${colorCat}; margin-right:8px; vertical-align:middle;"></span>
+          ${escapeHtml(obra.nombre_obra)}
+        </span>
+        <span class="nearby-meta">${state.userLocation ? formatearDistancia(distance) : escapeHtml(obra.arquitecto || '')}</span>
+      </button>
+    `;
+  }).join('');
+}

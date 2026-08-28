@@ -7,6 +7,17 @@ import { state, nombreCategoria, esRolAdmin } from './state.js';
 const filterPanel = document.getElementById('filter-panel');
 const btnFilters = document.getElementById('btn-filters');
 
+const COLORES_CATEGORIA = {
+  'residencial': '#E95C0C',
+  'dotacional_equipamiento': '#4388C6',
+  'religioso_funerario': '#F2ACCD',
+  'comercial_terciario': '#EFBC02',
+  'espacio_publico_paisaje': '#0d682f',
+  'infraestructura_urbanismo': '#D6201D',
+  'industrial_logistico': '#691B14',
+  'otro': '#064773'
+};
+
 const CATEGORIAS_CONFIG = [
   { key: 'residencial', label: 'Residencial' },
   { key: 'dotacional_equipamiento', label: 'Dotacional / Equipamiento' },
@@ -65,9 +76,13 @@ export function generarFiltrosUI() {
         <div class="filter-switches-list" id="switches-categories">
           ${CATEGORIAS_CONFIG.map(cat => {
             const checked = state.activeCategorias.has(cat.key) ? 'checked' : '';
+            const colorCat = COLORES_CATEGORIA[cat.key] || COLORES_CATEGORIA['otro'];
             return `
               <div class="switch-row">
-                <span>${cat.label}</span>
+                <span>
+                  <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color:${colorCat}; margin-right:8px; vertical-align:middle;"></span>
+                  ${cat.label}
+                </span>
                 <div class="tech-switch">
                   <input type="checkbox" ${checked} data-category-key="${cat.key}">
                   <div class="track"></div>
@@ -222,7 +237,6 @@ export function aplicarFiltrosMapa() {
   asegurarEstadoFiltros();
 
   const catsArray = [...state.activeCategorias];
-  // Sintaxis corregida de Mapbox: ['in', ['get', prop], ['literal', array]]
   const categoriasFilter = catsArray.length === CATEGORIAS_CONFIG.length
     ? null
     : catsArray.length > 0

@@ -18,46 +18,66 @@ function coordenadasVisuales(obra) {
   ];
 }
 
-export function actualizarFuenteMapa() {
-  const obrasVisibles = state.OBRAS.filter((obra) => esRolAdmin(state.userRole) && state.adminMode
-    ? obra.estado_revision !== 'rechazada'
-    : obra.estado_revision !== 'pendiente' && obra.estado_revision !== 'rechazada');
-  const ubicacionesCompartidas = new Map();
-  obrasVisibles.forEach((obra) => {
-    const key = obra.coordenadas.join(',');
-    ubicacionesCompartidas.set(key, (ubicacionesCompartidas.get(key) || 0) + 1);
-  });
-  const geojson = {
-    type: 'FeatureCollection',
-    features: obrasVisibles.map((obra) => {
-      return {
-      type: 'Feature',
-      id: obra.featureId,
-      geometry: { type: 'Point', coordinates: coordenadasVisuales(obra) },
-      properties: {
-        ...obra,
-        arquitectos: obra.arquitectos || [],
-        estado_acceso: obra.estado_acceso || 'privado',
-        estado_revision: obra.estado_revision || 'publicada',
-        shared_location_count: ubicacionesCompartidas.get(obra.coordenadas.join(',')) || 1,
-        favorite: state.buildingStatuses.get(String(obra.id))?.favorite ? 1 : 0,
-        visited: state.buildingStatuses.get(String(obra.id))?.visited ? 1 : 0,
-        selected: obra.selected ? 1 : 0,
-      },
-    };
-    }),
-  };
+let updateTimeout = null;
 
-  if (state.map) {
+export function actualizarFuenteMapa() {
+  if (updateTimeout) clearTimeout(updateTimeout);
+
+  updateTimeout = setTimeout(() => {
+    if (!state.map) return;
+
+    const obrasVisibles = state.OBRAS.filter((obra) => esRolAdmin(state.userRole) && state.adminMode
+      ? obra.estado_revision !== 'rechazada'
+      : obra.estado_revision !== 'pendiente' && obra.estado_revision !== 'rechazada');
+    
+    const ubicacionesCompartidas = new Map();
+    obrasVisibles.forEach((obra) => {
+      const key = obra.coordenadas.join(',');
+      ubicacionesCompartidas.set(key, (ubicacionesCompartidas.get(key) || 0) + 1);
+    });
+
+    const masterFeatures = [];
+    const standardFeatures = [];
+
+    obrasVisibles.forEach((obra) => {
+      const feature = {
+        type: 'Feature',
+        id: obra.featureId,
+        geometry: { type: 'Point', coordinates: coordenadasVisuales(obra) },
+        properties: {
+          ...obra,
+          arquitectos: obra.arquitectos || [],
+          estado_acceso: obra.estado_acceso || 'privado',
+          estado_revision: obra.estado_revision || 'publicada',
+          shared_location_count: ubicacionesCompartidas.get(obra.coordenadas.join(',')) || 1,
+          favorite: state.buildingStatuses.get(String(obra.id))?.favorite ? 1 : 0,
+          visited: state.buildingStatuses.get(String(obra.id))?.visited ? 1 : 0,
+          selected: obra.selected ? 1 : 0,
+        },
+      };
+
+      if (obra.importancia === 0) {
+        masterFeatures.push(feature);
+      } else {
+        standardFeatures.push(feature);
+      }
+    });
+
     const publicSource = state.map.getSource('obras');
     const masterpieceSource = state.map.getSource('obras-maestras');
-    publicSource?.setData({
-      ...geojson,
-      features: geojson.features.filter((feature) => feature.properties.importancia > 0),
-    });
-    masterpieceSource?.setData({
-      ...geojson,
-      features: geojson.features.filter((feature) => feature.properties.importancia === 0),
-    });
-  }
+
+    if (publicSource) {
+      publicSource.setData({
+        type: 'FeatureCollection',
+        features: standardFeatures,
+      });
+    }
+    
+    if (masterpieceSource) {
+      masterpieceSource.setData({
+        type: 'FeatureCollection',
+        features: masterFeatures,
+      });
+    }
+  }, 30);
 }
