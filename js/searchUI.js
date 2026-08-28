@@ -20,7 +20,6 @@ let searchDebounceTimer = null;
 
 let cacheObrasGlobales = null;
 
-// Mapa de colores por categoría de edificio
 const COLORES_CATEGORIA = {
   'residencial': '#E95C0C',
   'dotacional_equipamiento': '#4388C6',
@@ -39,10 +38,18 @@ function obtenerColorCategoria(categoria) {
 
 export function initSearchUI() {
   btnSearch.addEventListener('click', () => {
-    searchPanel.classList.toggle('open');
+    const isOpen = searchPanel.classList.toggle('open');
     btnSearch.classList.toggle('active-state');
-    if (searchPanel.classList.contains('open')) {
-      actualizarOpciones();
+    if (isOpen) {
+      // Reseteamos los inputs y resultados cada vez que se ABRE el panel
+      searchInput.value = '';
+      architectInput.value = '';
+      locationInput.value = '';
+      locationResults.innerHTML = '';
+      if (architectSuggestions) {
+        architectSuggestions.innerHTML = '';
+        architectSuggestions.hidden = true;
+      }
       solicitarUbicacion();
       ejecutarBusquedaGlobal();
     }
@@ -52,6 +59,11 @@ export function initSearchUI() {
     if (event.target.closest('#btn-search-close')) {
       searchPanel.classList.remove('open');
       btnSearch.classList.remove('active-state');
+      // Reseteamos también al cerrar explícitamente con la "X"
+      searchInput.value = '';
+      architectInput.value = '';
+      locationInput.value = '';
+      locationResults.innerHTML = '';
     }
   });
 
@@ -332,6 +344,11 @@ document.addEventListener('click', (event) => {
   abrirFicha(obra, obra.coordenadas, obra.featureId);
   searchPanel.classList.remove('open');
   btnSearch.classList.remove('active-state');
+  
+  // Limpiamos también al seleccionar un edificio y cerrar el panel
+  searchInput.value = '';
+  architectInput.value = '';
+  locationInput.value = '';
 });
 
 async function mostrarEdificiosDeArquitecto(nombreArquitecto) {
