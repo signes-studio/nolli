@@ -19,12 +19,14 @@ export function drawTargetIcon(ctx, color, importance, s) {
   if (importance === 0) {
     ctx.save();
     ctx.translate(c, c);
+    
 
     ctx.beginPath();
     ctx.moveTo(0, -s * 0.38);  // Vértice superior
     ctx.lineTo(s * 0.32, s * 0.28); // Vértice inferior derecho
     ctx.lineTo(-s * 0.32, s * 0.28); // Vértice inferior izquierdo
     ctx.closePath();
+    
 
     ctx.fillStyle = '#E95C0C';
     ctx.fill();

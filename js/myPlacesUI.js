@@ -7,12 +7,9 @@ import { abrirFicha } from './sheetUI.js';
 import {
   fetchUserCollections,
   fetchUserCollectionItems,
-  fetchUserPrivateLabels,
   createUserCollection,
   deleteUserCollection,
   deleteUserCollectionItem,
-  deleteUserPrivateLabel,
-  updateCurrentUserProfile,
 } from './api.js';
 
 const panel = document.getElementById('my-places-panel');
@@ -46,9 +43,21 @@ export function initMyPlacesUI() {
       return;
     }
 
-    const createCollectionButton = event.target.closest('[data-create-collection]');
-    if (createCollectionButton) {
-      crearListaDesdePanel();
+    const openCreateModalBtn = event.target.closest('[data-open-create-collection-modal]');
+    if (openCreateModalBtn) {
+      abrirModalCrearLista();
+      return;
+    }
+
+    const closeCreateModalBtn = event.target.closest('[data-close-modal]');
+    if (closeCreateModalBtn) {
+      cerrarModalFlotante();
+      return;
+    }
+
+    const confirmCreateButton = event.target.closest('[data-confirm-create-collection]');
+    if (confirmCreateButton) {
+      crearListaDesdeModal();
       return;
     }
 
@@ -58,21 +67,21 @@ export function initMyPlacesUI() {
       return;
     }
 
+    const editCollectionButton = event.target.closest('[data-edit-collection]');
+    if (editCollectionButton) {
+      abrirModalEditarLista(editCollectionButton.dataset.editCollection);
+      return;
+    }
+
+    const confirmEditButton = event.target.closest('[data-confirm-edit-collection]');
+    if (confirmEditButton) {
+      guardarEdicionListaModal(confirmEditButton.dataset.confirmEditCollection);
+      return;
+    }
+
     const removeItemButton = event.target.closest('[data-remove-from-collection]');
     if (removeItemButton) {
       quitarGuardado(removeItemButton.dataset.collectionId, removeItemButton.dataset.removeFromCollection);
-      return;
-    }
-
-    const deleteLabelButton = event.target.closest('[data-delete-private-label]');
-    if (deleteLabelButton) {
-      borrarEtiqueta(deleteLabelButton.dataset.deletePrivateLabel);
-      return;
-    }
-
-    const saveProfileButton = event.target.closest('[data-save-profile]');
-    if (saveProfileButton) {
-      guardarPerfil();
       return;
     }
 
@@ -91,13 +100,11 @@ export function initMyPlacesUI() {
   document.addEventListener('radar:user-status-changed', renderList);
   document.addEventListener('radar:user-session-ready', syncZonaPersonal);
   document.addEventListener('radar:user-collections-changed', renderList);
-  document.addEventListener('radar:user-private-labels-changed', renderList);
   document.addEventListener('radar:logout', () => {
     panel.classList.remove('open');
     button.classList.remove('active-state');
     state.userCollections = [];
     state.userCollectionItems = [];
-    state.userPrivateLabels = [];
     renderList();
   });
   renderList();
@@ -106,42 +113,143 @@ export function initMyPlacesUI() {
 async function syncZonaPersonal() {
   if (!state.userId || !state.sessionToken) return;
   try {
-    const [collections, collectionItems, labels] = await Promise.all([
+    const [collections, collectionItems] = await Promise.all([
       fetchUserCollections(state.userId, state.sessionToken),
       fetchUserCollectionItems(state.userId, state.sessionToken),
-      fetchUserPrivateLabels(state.userId, state.sessionToken),
     ]);
-    state.userCollections = collections;
-    state.userCollectionItems = collectionItems;
-    state.userPrivateLabels = labels;
+    state.userCollections = collections || [];
+    state.userCollectionItems = collectionItems || [];
     guardarZonaPersonalLocal(state.userId);
-  } catch {
+  } catch (error) {
+    console.warn('Error sincronizando zona personal con el servidor, cargando copia local...', error);
     cargarZonaPersonalLocal(state.userId);
   }
   renderList();
 }
 
-async function crearListaDesdePanel() {
-  if (!state.userId || !state.sessionToken) return;
-  const input = document.getElementById('collection-name-input');
-  const name = String(input?.value || '').trim();
+function abrirModalCrearLista() {
+  removerModalExistente();
+  const modalHTML = `
+    <div id="collection-modal-overlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; display:flex; align-items:center; justify-content:center; padding:16px;">
+      <div style="background:var(--bg-panel, #F8F1DF); border:1px solid var(--border-strong, #141411); padding:16px; width:100%; max-width:320px; display:grid; gap:10px; font-family:'JetBrains Mono', monospace; font-size:11px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-strong); padding-bottom:6px;">
+          <strong style="color:var(--accent);">NUEVA LISTA</strong>
+          <button type="button" class="filter-action" data-close-modal>✕</button>
+        </div>
+        <div style="display:grid; grid-template-columns: 50px 1fr; gap:6px;">
+          <input id="modal-emoji-input" class="tech-input" type="text" placeholder="🏛️" maxlength="4" style="text-align:center;" title="Pulsa para escribir o abrir el teclado de emojis">
+          <input id="modal-name-input" class="tech-input" type="text" placeholder="NOMBRE DE LISTA">
+        </div>
+        <textarea id="modal-desc-input" class="tech-input" placeholder="Descripción breve (opcional)..." style="resize:vertical; min-height:50px; font-family:inherit; font-size:inherit;"></textarea>
+        <div style="display:flex; gap:6px; justify-content:flex-end; margin-top:4px;">
+          <button type="button" class="filter-action" data-close-modal>CANCELAR</button>
+          <button type="button" class="btn" data-confirm-create-collection style="padding:6px 12px;">CREAR LISTA</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+async function crearListaDesdeModal() {
+  if (!state.userId || !state.sessionToken) {
+    alert('Inicia sesión para crear listas.');
+    return;
+  }
+
+  const nameInput = document.getElementById('modal-name-input');
+  const emojiInput = document.getElementById('modal-emoji-input');
+  const descInput = document.getElementById('modal-desc-input');
+
+  const name = String(nameInput?.value || '').trim();
+  const icon = String(emojiInput?.value || '').trim();
+  const description = String(descInput?.value || '').trim();
+
   if (!name) {
     alert('Escribe un nombre para la lista.');
     return;
   }
+
+  const newCollectionPayload = {
+    id: `COL-${Date.now()}`,
+    user_id: state.userId,
+    name,
+    icon,
+    description,
+    created_at: new Date().toISOString()
+  };
+
+  state.userCollections.push(newCollectionPayload);
+  guardarZonaPersonalLocal(state.userId);
+
   try {
-    const created = await createUserCollection({ id: `COL-${Date.now()}`, user_id: state.userId, name }, state.sessionToken);
-    const inserted = created[0];
-    if (inserted) state.userCollections.push(inserted);
-    if (input) input.value = '';
-    renderList();
-  } catch (error) {
-    const localId = `COL-${Date.now()}`;
-    state.userCollections.push({ id: localId, user_id: state.userId, name, created_at: new Date().toISOString() });
-    guardarZonaPersonalLocal(state.userId);
-    if (input) input.value = '';
-    renderList();
+    createUserCollection(newCollectionPayload, state.sessionToken).catch(() => {});
+  } catch (e) {}
+
+  cerrarModalFlotante();
+  renderList();
+}
+
+function abrirModalEditarLista(collectionId) {
+  const collection = state.userCollections.find((item) => String(item.id) === String(collectionId));
+  if (!collection) return;
+
+  removerModalExistente();
+  const modalHTML = `
+    <div id="collection-modal-overlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; display:flex; align-items:center; justify-content:center; padding:16px;">
+      <div style="background:var(--bg-panel, #F8F1DF); border:1px solid var(--border-strong, #141411); padding:16px; width:100%; max-width:320px; display:grid; gap:10px; font-family:'JetBrains Mono', monospace; font-size:11px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-strong); padding-bottom:6px;">
+          <strong style="color:var(--accent);">EDITAR LISTA</strong>
+          <button type="button" class="filter-action" data-close-modal>✕</button>
+        </div>
+        <div style="display:grid; grid-template-columns: 50px 1fr; gap:6px;">
+          <input id="modal-edit-emoji" class="tech-input" type="text" value="${collection.icon || ''}" placeholder="🏛️" maxlength="4" style="text-align:center;">
+          <input id="modal-edit-name" class="tech-input" type="text" value="${collection.name || ''}" placeholder="Nombre de lista">
+        </div>
+        <textarea id="modal-edit-desc" class="tech-input" placeholder="Descripción breve..." style="resize:vertical; min-height:50px; font-family:inherit; font-size:inherit;">${collection.description || ''}</textarea>
+        <div style="display:flex; gap:6px; justify-content:flex-end; margin-top:4px;">
+          <button type="button" class="filter-action" data-close-modal>CANCELAR</button>
+          <button type="button" class="btn" data-confirm-edit-collection="${collection.id}" style="padding:6px 12px;">GUARDAR</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function guardarEdicionListaModal(collectionId) {
+  const collection = state.userCollections.find((item) => String(item.id) === String(collectionId));
+  if (!collection) return;
+
+  const emojiInput = document.getElementById('modal-edit-emoji');
+  const nameInput = document.getElementById('modal-edit-name');
+  const descInput = document.getElementById('modal-edit-desc');
+
+  const newName = String(nameInput?.value || '').trim();
+  const newIcon = String(emojiInput?.value || '').trim();
+  const newDesc = String(descInput?.value || '').trim();
+
+  if (!newName) {
+    alert('El nombre no puede estar vacío.');
+    return;
   }
+
+  collection.name = newName;
+  collection.icon = newIcon;
+  collection.description = newDesc;
+
+  guardarZonaPersonalLocal(state.userId);
+  cerrarModalFlotante();
+  renderList();
+}
+
+function cerrarModalFlotante() {
+  removerModalExistente();
+}
+
+function removerModalExistente() {
+  const existing = document.getElementById('collection-modal-overlay');
+  if (existing) existing.remove();
 }
 
 async function borrarLista(collectionId) {
@@ -152,6 +260,7 @@ async function borrarLista(collectionId) {
     await deleteUserCollection(collectionId, state.userId, state.sessionToken);
     state.userCollections = state.userCollections.filter((item) => String(item.id) !== String(collectionId));
     state.userCollectionItems = state.userCollectionItems.filter((item) => String(item.collection_id) !== String(collectionId));
+    guardarZonaPersonalLocal(state.userId);
     renderList();
   } catch (error) {
     state.userCollections = state.userCollections.filter((item) => String(item.id) !== String(collectionId));
@@ -166,45 +275,13 @@ async function quitarGuardado(collectionId, buildingId) {
   try {
     await deleteUserCollectionItem(collectionId, state.userId, buildingId, state.sessionToken);
     state.userCollectionItems = state.userCollectionItems.filter((item) => !(String(item.collection_id) === String(collectionId) && String(item.building_id) === String(buildingId)));
+    guardarZonaPersonalLocal(state.userId);
     renderList();
   } catch (error) {
     state.userCollectionItems = state.userCollectionItems.filter((item) => !(String(item.collection_id) === String(collectionId) && String(item.building_id) === String(buildingId)));
     guardarZonaPersonalLocal(state.userId);
     renderList();
   }
-}
-
-async function borrarEtiqueta(labelId) {
-  if (!state.userId || !state.sessionToken || !labelId) return;
-  try {
-    await deleteUserPrivateLabel(labelId, state.userId, state.sessionToken);
-    state.userPrivateLabels = state.userPrivateLabels.filter((label) => String(label.id) !== String(labelId));
-    renderList();
-  } catch (error) {
-    state.userPrivateLabels = state.userPrivateLabels.filter((label) => String(label.id) !== String(labelId));
-    guardarZonaPersonalLocal(state.userId);
-    renderList();
-  }
-}
-
-async function guardarPerfil() {
-  if (!state.sessionToken) return;
-  const firstName = String(document.getElementById('profile-first-name')?.value || '').trim();
-  const lastName = String(document.getElementById('profile-last-name')?.value || '').trim();
-  const city = String(document.getElementById('profile-city')?.value || '').trim();
-  const country = String(document.getElementById('profile-country')?.value || '').trim();
-  if (!firstName || !lastName || !city || !country) {
-    alert('Completa nombre, apellido, ciudad y país.');
-    return;
-  }
-  try {
-    await updateCurrentUserProfile(state.sessionToken, { firstName, lastName, city, country });
-  } catch {
-    // Si falla backend, mantenemos datos locales en sesión igualmente.
-  }
-  state.userProfile = { firstName, lastName, city, country };
-  renderList();
-  alert('Perfil actualizado.');
 }
 
 function renderList() {
@@ -218,20 +295,8 @@ function renderList() {
     return;
   }
 
-  if (activeTab === 'profile') {
-    renderProfile();
-    return;
-  }
-
-  if (activeTab === 'labels') {
-    renderLabels();
-    return;
-  }
-
-  const savedIds = [...new Set(state.userCollectionItems.map((item) => String(item.building_id)))];
   const results = state.OBRAS.filter((obra) => {
     if (activeTab === 'notes') return Boolean(state.buildingStatuses.get(String(obra.id))?.notas?.trim());
-    if (activeTab === 'saved') return savedIds.includes(String(obra.id));
     return state.buildingStatuses.get(String(obra.id))?.[activeTab];
   });
 
@@ -240,9 +305,7 @@ function renderList() {
       ? 'edificios favoritos'
       : activeTab === 'visited'
         ? 'edificios visitados'
-        : activeTab === 'saved'
-          ? 'edificios guardados en listas'
-          : 'notas guardadas';
+        : 'notas guardadas';
     list.innerHTML = `<div class="nearby-empty">Todavía no tienes ${emptyMessage}.</div>`;
     return;
   }
@@ -256,8 +319,8 @@ function renderList() {
 }
 
 function renderCollections() {
-  const cards = state.userCollections.map((collection) => {
-    const collectionItems = state.userCollectionItems.filter((item) => String(item.collection_id) === String(collection.id));
+  const cards = (state.userCollections || []).map((collection) => {
+    const collectionItems = (state.userCollectionItems || []).filter((item) => String(item.collection_id) === String(collection.id));
     const rows = collectionItems.map((item) => {
       const obra = state.OBRAS.find((candidate) => String(candidate.id) === String(item.building_id));
       if (!obra) return '';
@@ -271,12 +334,20 @@ function renderCollections() {
         </div>
       `;
     }).join('') || '<div class="nearby-empty">Lista vacía.</div>';
+
+    const collectionEmoji = collection.icon ? `<span style="margin-right: 6px;">${collection.icon}</span>` : '';
+    const collectionDescription = collection.description ? `<div class="nearby-meta" style="margin-top: 2px; font-style: italic;">${collection.description}</div>` : '';
+
     return `
       <article class="my-collection-card">
         <div class="my-collection-head">
-          <strong>${collection.name}</strong>
+          <div>
+            <div>${collectionEmoji}<strong>${collection.name}</strong></div>
+            ${collectionDescription}
+          </div>
           <div class="my-collection-tools">
             <span class="nearby-meta">${collectionItems.length}</span>
+            <button type="button" class="filter-action" data-edit-collection="${collection.id}">EDITAR</button>
             <button type="button" class="filter-action" data-delete-collection="${collection.id}">BORRAR</button>
           </div>
         </div>
@@ -286,67 +357,10 @@ function renderCollections() {
   }).join('');
 
   list.innerHTML = `
-    <div class="my-collections-create">
-      <input id="collection-name-input" class="tech-input" type="text" placeholder="NOMBRE DE LISTA (EJ: VIAJE A JAPÓN)">
-      <button type="button" class="btn" data-create-collection>CREAR LISTA</button>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 4px;">
+      <span style="font-size: 10px; color: var(--fg-dim);">MIS LISTAS PERSONALIZADAS</span>
+      <button type="button" class="btn" data-open-create-collection-modal style="padding: 4px 10px; font-size: 11px;">+ NUEVA LISTA</button>
     </div>
     ${cards || '<div class="nearby-empty">Crea tu primera lista personalizada.</div>'}
-  `;
-}
-
-function renderProfile() {
-  const profile = state.userProfile || { firstName: '', lastName: '', city: '', country: '' };
-  const savedCount = new Set(state.userCollectionItems.map((item) => String(item.building_id))).size;
-  const favoriteCount = state.OBRAS.filter((obra) => state.buildingStatuses.get(String(obra.id))?.favorite).length;
-  const visitedCount = state.OBRAS.filter((obra) => state.buildingStatuses.get(String(obra.id))?.visited).length;
-  list.innerHTML = `
-    <div class="my-collection-card">
-      <div class="my-collection-head"><strong>MI PERFIL</strong></div>
-      <div class="nearby-empty" style="padding:8px 0 4px;">
-        CUENTA: ${state.userEmail || '-'} · ROL: ${(state.userRole || 'user').toUpperCase()}
-      </div>
-      <div class="my-collections-create" style="grid-template-columns:1fr; border-bottom:0; padding-top:0;">
-        <input id="profile-first-name" class="tech-input" type="text" placeholder="Nombre" value="${profile.firstName || ''}">
-        <input id="profile-last-name" class="tech-input" type="text" placeholder="Apellido" value="${profile.lastName || ''}">
-        <input id="profile-city" class="tech-input" type="text" placeholder="Ciudad" value="${profile.city || ''}">
-        <input id="profile-country" class="tech-input" type="text" placeholder="País" value="${profile.country || ''}">
-        <button type="button" class="btn" data-save-profile>GUARDAR PERFIL</button>
-      </div>
-      <div class="nearby-empty" style="padding-top:6px;">
-        FAVORITOS: ${favoriteCount} · VISITADOS: ${visitedCount} · GUARDADOS: ${savedCount} · ETIQUETAS: ${state.userPrivateLabels.length}
-      </div>
-    </div>
-  `;
-}
-
-function renderLabels() {
-  if (!state.userPrivateLabels.length) {
-    list.innerHTML = `
-      <div class="my-collection-card">
-        <div class="my-collection-head"><strong>ETIQUETAS PRIVADAS</strong></div>
-        <div class="nearby-empty">Son palabras o categorías que solo tú puedes ver para organizar tus obras. Añádelas desde el botón ETIQUETA PRIVADA de cualquier ficha.</div>
-      </div>
-    `;
-    return;
-  }
-  const rows = state.userPrivateLabels.map((label) => {
-    const obra = state.OBRAS.find((candidate) => String(candidate.id) === String(label.building_id));
-    if (!obra) return '';
-    return `
-      <div class="my-collection-item-row">
-        <button type="button" class="my-place-item" data-feature-id="${obra.featureId}">
-          <span><strong>${obra.nombre_obra}</strong><span class="my-place-note">#${label.label}</span></span>
-          <span class="nearby-meta">${obra.arquitecto || ''}</span>
-        </button>
-        <button type="button" class="filter-action" data-delete-private-label="${label.id}">QUITAR</button>
-      </div>
-    `;
-  }).join('');
-  list.innerHTML = `
-    <div class="my-collection-card">
-      <div class="my-collection-head"><strong>ETIQUETAS PRIVADAS</strong><span class="nearby-meta">${state.userPrivateLabels.length}</span></div>
-      <div class="nearby-empty" style="padding:0 0 10px;">Clasificaciones personales, visibles solo para ti. Pulsa QUITAR para eliminar una etiqueta.</div>
-      ${rows || '<div class="nearby-empty">Las obras etiquetadas ya no están disponibles.</div>'}
-    </div>
   `;
 }

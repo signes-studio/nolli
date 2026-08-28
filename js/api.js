@@ -148,7 +148,7 @@ export async function deletePrivateBuilding(id, userId, sessionToken) {
 }
 
 export async function fetchUserCollections(userId, sessionToken) {
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?user_id=eq.${encodeURIComponent(userId)}&select=id,name,created_at&order=created_at.asc`, {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?user_id=eq.${encodeURIComponent(userId)}&select=id,name,icon,description,created_at&order=created_at.asc`, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
   });
   if (!response.ok) throw new Error('No se pudieron cargar las listas personales.');

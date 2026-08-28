@@ -10,6 +10,33 @@ import { abrirFicha, cerrarFicha } from './sheetUI.js';
 
 mapboxgl.accessToken = MAPBOX_TOKEN;
 
+/** Registra o actualiza los emojis de las listas del usuario en Mapbox */
+function registrarIconosColecciones() {
+  if (!state.map) return;
+  if (state.userCollections && state.userCollections.length > 0) {
+    state.userCollections.forEach((col) => {
+      if (col.icon) {
+        const emojiImageName = `collection-emoji-${col.id}`;
+        if (!state.map.hasImage(emojiImageName)) {
+          const canvas = document.createElement('canvas');
+          canvas.width = 64;
+          canvas.height = 64;
+          const ctx = canvas.getContext('2d');
+          ctx.font = '36px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(col.icon, 32, 32);
+          
+          const imgData = ctx.getImageData(0, 0, 64, 64);
+          if (!state.map.hasImage(emojiImageName)) {
+            state.map.addImage(emojiImageName, imgData, { pixelRatio: 2 });
+          }
+        }
+      }
+    });
+  }
+}
+
 /** Crea el mapa, añade la capa de obras y arranca el HUD de coordenadas. */
 export function cargarMapaMapbox() {
   state.map = new mapboxgl.Map({
@@ -26,10 +53,6 @@ export function cargarMapaMapbox() {
     if (state.map.getSource('obras')) return;
     aplicarTratamientoSatelite();
 
-    // Paleta NEOBAUHAUS por categoría: planos de color, sin degradado ni tono
-    // neón. Solo dos primarios (azul/amarillo) participan de la taxonomía;
-    // rojo queda reservado para 'infraestructura' por ser la única categoría
-    // con connotación de riesgo/alerta explícita del propio dominio.
     const CATEGORY_COLORS = {
       'residencial': '#E95C0C',
       'dotacional_equipamiento': '#4388C6',
@@ -41,18 +64,20 @@ export function cargarMapaMapbox() {
       'otro': '#064773'
     };
 
-    // Registrar iconos cruzando importancia y categoría con prefijo 'icon-l{imp}-{cat}'
     [0, 1, 2, 3].forEach((importance) => {
       Object.entries(CATEGORY_COLORS).forEach(([cat, color]) => {
         const prefix = `icon-l${importance}-${cat}`;
 
-        state.map.addImage(prefix, buildIcon(drawTargetIcon, color, importance), { pixelRatio: 2 });
-        state.map.addImage(`${prefix}-visited`, buildIcon(drawTargetIcon, '#6B6B6B', importance), { pixelRatio: 2 });
-        state.map.addImage(`${prefix}-pending`, buildIcon(drawTargetIcon, '#FFCC00', importance), { pixelRatio: 2 });
-        state.map.addImage(`${prefix}-private`, buildIcon(drawTargetIcon, '#005AC1', importance), { pixelRatio: 2 });
-        state.map.addImage(`${prefix}-selected`, buildIcon(drawTargetIcon, '#FFCC00', importance), { pixelRatio: 2 });
+        if (!state.map.hasImage(prefix)) state.map.addImage(prefix, buildIcon(drawTargetIcon, color, importance), { pixelRatio: 2 });
+        if (!state.map.hasImage(`${prefix}-visited`)) state.map.addImage(`${prefix}-visited`, buildIcon(drawTargetIcon, '#82c812', importance), { pixelRatio: 2 });
+        if (!state.map.hasImage(`${prefix}-pending`)) state.map.addImage(`${prefix}-pending`, buildIcon(drawTargetIcon, '#FFCC00', importance), { pixelRatio: 2 });
+        if (!state.map.hasImage(`${prefix}-private`)) state.map.addImage(`${prefix}-private`, buildIcon(drawTargetIcon, '#0478f2', importance), { pixelRatio: 2 });
+        if (!state.map.hasImage(`${prefix}-selected`)) state.map.addImage(`${prefix}-selected`, buildIcon(drawTargetIcon, '#141411', importance), { pixelRatio: 2 });
       });
     });
+
+    // Registrar emojis actuales
+    registrarIconosColecciones();
 
     state.map.addSource('obras', {
       type: 'geojson',
@@ -74,7 +99,7 @@ export function cargarMapaMapbox() {
       filter: ['all', ['!', ['has', 'point_count']], ['==', ['get', 'favorite'], 1]],
       paint: {
         'circle-radius': 13,
-        'circle-color': '#FFFFFF',
+        'circle-color': '#E95C0C',
         'circle-opacity': 0.32,
         'circle-blur': 0.55,
       },
@@ -102,14 +127,11 @@ export function cargarMapaMapbox() {
       },
     });
 
-    // Capas de iconos añadidas en orden inverso (3, 2, 1, 0) para que 1 y 0 queden siempre arriba
     [3, 2, 1, 0].forEach((importance) => {
       const minzoom = importance === 0 ? 0 : importance === 1 ? 0 : importance === 2 ? 6.5 : 13.5;
       const baseFilter = ['==', ['get', 'importancia'], importance];
       const sourceId = importance === 0 ? 'obras-maestras' : 'obras';
       const iconSize = importance === 0 ? 0.92 : importance === 1 ? 0.70 : importance === 2 ? 0.56 : 0.52;
-
-      // Expresión para obtener la categoría de la feature de forma segura (fallback a 'otro')
       const catExpr = ['coalesce', ['get', 'categoria'], 'otro'];
 
       // Capa normal
@@ -120,8 +142,16 @@ export function cargarMapaMapbox() {
         minzoom,
         filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'publicada'], ['!=', ['get', 'selected'], 1], ['!=', ['get', 'visited'], 1]],
         layout: {
-          'icon-image': ['concat', `icon-l${importance}-`, catExpr],
-          'icon-size': iconSize,
+          'icon-image': [
+            'case',
+            ['has', 'collection_emoji'], ['concat', 'collection-emoji-', ['get', 'collection_id']],
+            ['concat', `icon-l${importance}-`, catExpr]
+          ],
+          'icon-size': [
+            'case',
+            ['has', 'collection_emoji'], 0.75,
+            iconSize
+          ],
           'icon-allow-overlap': true,
         },
       });
@@ -134,13 +164,21 @@ export function cargarMapaMapbox() {
         minzoom,
         filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'publicada'], ['!=', ['get', 'selected'], 1], ['==', ['get', 'visited'], 1]],
         layout: {
-          'icon-image': ['concat', `icon-l${importance}-`, catExpr, '-visited'],
-          'icon-size': iconSize,
+          'icon-image': [
+            'case',
+            ['has', 'collection_emoji'], ['concat', 'collection-emoji-', ['get', 'collection_id']],
+            ['concat', `icon-l${importance}-`, catExpr, '-visited']
+          ],
+          'icon-size': [
+            'case',
+            ['has', 'collection_emoji'], 0.75,
+            iconSize
+          ],
           'icon-allow-overlap': true,
         },
       });
 
-      // Capa seleccionada (pasa a blanco `#FFFFFF` al pulsar la obra o etiqueta)
+      // Capa seleccionada
       state.map.addLayer({
         id: `obras-l${importance}-selected`,
         type: 'symbol',
@@ -148,8 +186,16 @@ export function cargarMapaMapbox() {
         minzoom,
         filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'publicada'], ['==', ['get', 'selected'], 1]],
         layout: {
-          'icon-image': ['concat', `icon-l${importance}-`, catExpr, '-selected'],
-          'icon-size': iconSize,
+          'icon-image': [
+            'case',
+            ['has', 'collection_emoji'], ['concat', 'collection-emoji-', ['get', 'collection_id']],
+            ['concat', `icon-l${importance}-`, catExpr, '-selected']
+          ],
+          'icon-size': [
+            'case',
+            ['has', 'collection_emoji'], 0.75,
+            iconSize
+          ],
           'icon-allow-overlap': true,
         },
       });
@@ -162,8 +208,16 @@ export function cargarMapaMapbox() {
         minzoom,
         filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'pendiente']],
         layout: {
-          'icon-image': ['concat', `icon-l${importance}-`, catExpr, '-pending'],
-          'icon-size': iconSize,
+          'icon-image': [
+            'case',
+            ['has', 'collection_emoji'], ['concat', 'collection-emoji-', ['get', 'collection_id']],
+            ['concat', `icon-l${importance}-`, catExpr, '-pending']
+          ],
+          'icon-size': [
+            'case',
+            ['has', 'collection_emoji'], 0.75,
+            iconSize
+          ],
           'icon-allow-overlap': true,
         },
       });
@@ -176,8 +230,16 @@ export function cargarMapaMapbox() {
         minzoom,
         filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'privada']],
         layout: {
-          'icon-image': ['concat', `icon-l${importance}-`, catExpr, '-private'],
-          'icon-size': iconSize,
+          'icon-image': [
+            'case',
+            ['has', 'collection_emoji'], ['concat', 'collection-emoji-', ['get', 'collection_id']],
+            ['concat', `icon-l${importance}-`, catExpr, '-private']
+          ],
+          'icon-size': [
+            'case',
+            ['has', 'collection_emoji'], 0.75,
+            iconSize
+          ],
           'icon-allow-overlap': true,
         },
       });
@@ -188,7 +250,6 @@ export function cargarMapaMapbox() {
       });
     });
 
-    // Capas de etiquetas de texto también en orden inverso (3, 2, 1, 0)
     [3, 2, 1, 0].forEach((importance) => {
       const labelLayerId = `obras-labels-l${importance}`;
       const sourceId = importance === 0 ? 'obras-maestras' : 'obras';
@@ -221,12 +282,18 @@ export function cargarMapaMapbox() {
 
     iniciarInteraccionesMapa();
   };
+
   state.map.on('load', configurarCapas);
   state.map.on('style.load', configurarCapas);
 
+  // Escuchar cambios en las colecciones del usuario para registrar dinámicamente los emojis nuevos
+  document.addEventListener('radar:user-collections-changed', () => {
+    registrarIconosColecciones();
+    actualizarFuenteMapa();
+  });
+
   initHudReadout();
 
-  // Desplegable de la leyenda técnica
   const legend = document.getElementById('map-legend');
   const toggleBtn = document.getElementById('btn-legend-toggle');
   const chevron = document.getElementById('legend-chevron');
@@ -266,6 +333,7 @@ function activarModoAñadir() {
 function aplicarTratamientoSatelite() {
   if (state.mapStyle !== 'satellite') return;
   const style = state.map.getStyle();
+  if (!style || !style.layers) return;
   style.layers.forEach((layer) => {
     const layerName = `${layer.id} ${layer['source-layer'] || ''}`.toLowerCase();
     if (layer.type === 'symbol' && (layerName.includes('poi') || layerName.includes('housenum'))) {
@@ -286,18 +354,15 @@ function initMapStyleSelector() {
 
   if (!panel || !button) return;
 
-  // Abrir / Cerrar el panel flotante
   button.addEventListener('click', (event) => {
     event.stopPropagation();
     const isOpen = panel.classList.toggle('open');
     button.classList.toggle('active-state', isOpen);
   });
 
-  // Escuchar clics en las opciones de estilo
   document.addEventListener('click', (event) => {
     const option = event.target.closest('[data-map-style]');
     if (!option) {
-      // Si haces clic fuera del panel, lo cerramos
       if (!panel.contains(event.target) && !button.contains(event.target)) {
         panel.classList.remove('open');
         button.classList.remove('active-state');
@@ -305,27 +370,23 @@ function initMapStyleSelector() {
       return;
     }
 
-    const styleKey = option.dataset.mapStyle; // 'abstract', 'dark', o 'satellite'
+    const styleKey = option.dataset.mapStyle;
     if (!styleKey || !MAP_STYLES[styleKey]) return;
 
     state.mapStyle = styleKey;
 
-    // Actualizar clases 'active' visuales en el menú
     panel.querySelectorAll('[data-map-style]').forEach((item) => {
       item.classList.toggle('active', item === option);
     });
 
-    // 1. Cambiar el estilo real en Mapbox
     state.map.setStyle(MAP_STYLES[styleKey]);
 
-    // 2. Gestionar el diseño de la interfaz (Modo Oscuro / Claro para los menús)
     if (styleKey === 'dark') {
       document.body.classList.add('dark-mode');
     } else {
       document.body.classList.remove('dark-mode');
     }
 
-    // Cerrar el panel
     panel.classList.remove('open');
     button.classList.remove('active-state');
   });
