@@ -327,3 +327,24 @@ body.dark-mode .mapboxgl-ctrl-top-right * {
 .legend-color-grid i {
   border-radius: 50% !important;
 }
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  background-color: var(--bg, #141411);
+  color: var(--fg, #F8F1DF);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  transition: opacity 0.4s ease-in-out;
+}
+
+.splash-screen.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.splash-content {
+  text-align: center;
+  font-family: 'JetBrains Mono', monospace;
+}

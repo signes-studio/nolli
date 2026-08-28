@@ -47,6 +47,13 @@
 </head>
 <body>
 
+  <div id="app-splash-screen" class="splash-screen">
+  <div class="splash-content">
+    <h1 class="font-display">nolli</h1>
+    <p>CARGANDO MAPA...</p>
+  </div>
+</div>
+
 <main>
   <div id="map" role="application" aria-label="Mapa interactivo de obras arquitectónicas"></div>
 
@@ -64,7 +71,7 @@
     <div class="topbar-inner">
       <div style="flex: 1;">
         <h1 class="font-display text-2xl leading-none tracking-tight" style="color: var(--accent); margin: 0; text-transform: lowercase; font-weight: 800;">nolli<span style="color:var(--fg)">.</span></h1>
-        <p class="text-[10px] tracking-widest mt-1" style="color:var(--fg-dim); margin:0;">RADAR ARQUITECTÓNICO — V0.5</p>
+        <p class="text-[10px] tracking-widest mt-1" style="color:var(--fg-dim); margin:0;">radar arquitectónico</p>
         <button id="btn-login-trigger" type="button" class="mt-2 text-[10px] font-bold px-2 py-1 cursor-pointer transition-colors" style="border: 1px solid var(--accent); color: var(--accent); background: rgba(0, 90, 193, 0.08);">[ INICIAR SESIÓN ]</button>
         <a href="./perfil.html" class="profile-page-link mt-2" aria-label="Abrir perfil personal">[ PERFIL PERSONAL ]</a>
         <button id="btn-admin-panel" type="button" class="btn btn-admin hidden mt-2">PANEL ADMIN</button>
@@ -483,6 +490,29 @@
 <script type="module" src="js/main.js"></script>
 <script>
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+</script>
+<script>
+  window.addEventListener('load', () => {
+  // Comprobamos si está instalada como app (standalone)
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+  // Si NO está instalada como app, podemos borrar o ignorar el splash screen directamente
+  const splash = document.getElementById('app-splash-screen');
+  if (!splash) return;
+
+  if (isStandalone) {
+    // ESTO SE EJECUTA SOLO SI LA APP ESTÁ INSTALADA:
+    setTimeout(() => {
+      splash.classList.add('fade-out');
+      setTimeout(() => {
+        splash.remove();
+      }, 400);
+    }, 600);
+  } else {
+    // Si se abre desde una pestaña normal del navegador, la quitamos al instante
+    splash.remove();
+  }
+});
 </script>
 </body>
 </html>

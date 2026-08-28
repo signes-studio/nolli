@@ -1,13 +1,25 @@
 {
-  "name": "Nolli // Radar Arquitectónico",
-  "short_name": "Nolli",
+  "name": "nolli",
+  "short_name": "nolli",
   "description": "Explora obras de arquitectura sobre un mapa en vivo.",
   "lang": "es",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#F5F4F0",
-  "theme_color": "#F5F4F0",
+  "background_color": "#F8F1DF",
+  "theme_color": "#F8F1DF",
   "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
     {
       "src": "./icon.svg",
       "sizes": "any",

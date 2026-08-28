@@ -19,24 +19,20 @@ export function drawTargetIcon(ctx, color, importance, s) {
   if (importance === 0) {
     ctx.save();
     ctx.translate(c, c);
-    
-    // Dibujo del triángulo isósceles (apuntando hacia arriba)
+
     ctx.beginPath();
     ctx.moveTo(0, -s * 0.38);  // Vértice superior
     ctx.lineTo(s * 0.32, s * 0.28); // Vértice inferior derecho
     ctx.lineTo(-s * 0.32, s * 0.28); // Vértice inferior izquierdo
     ctx.closePath();
-    
-    // Relleno dorado fijo
+
     ctx.fillStyle = '#E95C0C';
     ctx.fill();
 
-    // Contorno exterior sutil en color #F8F1DF
     ctx.lineWidth = 2.5;
     ctx.strokeStyle = '#F8F1DF';
     ctx.stroke();
 
-    // Núcleo central negro
     ctx.fillStyle = '#E95C0C';
     ctx.beginPath();
     ctx.arc(0, s * 0.08, s * 0.08, 0, Math.PI * 2);
