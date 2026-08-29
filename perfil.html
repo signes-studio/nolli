@@ -3,110 +3,106 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="description" content="Perfil de usuario en Nolli, radar arquitectónico interactivo.">
-<meta name="color-scheme" content="dark">
+<meta name="description" content="Perfil personal de usuario en Nolli, radar de arquitectura.">
+<meta name="color-scheme" content="light dark">
 <title>nolli | perfil de usuario</title>
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="./icon.svg">
 
-<!-- Tailwind (CDN, utilidades de layout puntuales) -->
-<script src="https://cdn.tailwindcss.com"></script>
-
-<!-- Lucide Icons -->
-<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-
-<!-- Tipografías: Inter para textos y League Spartan para títulos -->
+<!-- Tipografías: Inter para textos, League Spartan para títulos, JetBrains Mono para metadatos técnicos -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=League+Spartan:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
 
-<!-- Estilos propios (orden idéntico al index.html y legal.html) -->
+<!-- Lucide Icons -->
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+<!-- Estilos base -->
 <link rel="stylesheet" href="css/base.css">
-<link rel="stylesheet" href="css/map-hud.css">
 <link rel="stylesheet" href="css/panels.css">
 <link rel="stylesheet" href="css/components.css">
 <link rel="stylesheet" href="css/profile.css">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#F5F4F0">
-
-<style>
-  html, body {
-    overflow-y: auto !important;
-    height: auto !important;
-    min-height: 100vh;
-  }
-  body, input, button, select, textarea {
-    font-family: 'Inter', sans-serif;
-  }
-  h1, h2, h3, h4, h5, h6, 
-  .font-display, 
-  .font-poppins,
-  .profile-title,
-  .legend-title, 
-  .legend-subtitle {
-    font-family: 'League Spartan', sans-serif !important;
-  }
-</style>
 </head>
-<body class="tech-body">
+<body class="profile-body">
 
-  <main class="profile-shell" style="max-width: 800px; margin: 40px auto; padding: 20px;">
-    
-    <!-- Barra superior integrada exactamente con el diseño actual de Nolli -->
-    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-strong, #141411); padding-bottom: 12px; margin-bottom: 30px;">
-      <div>
-        <h1 class="font-display text-2xl leading-none tracking-tight" style="color: var(--accent); margin: 0; text-transform: lowercase; font-weight: 800;">nolli<span style="color:var(--fg)">.</span></h1>
-        <p class="text-[10px] tracking-widest mt-1" style="color:var(--fg-dim); margin:0; font-family: 'JetBrains Mono', monospace;">perfil de usuario</p>
+  <div class="profile-wrapper">
+    <!-- Barra superior técnica -->
+    <header class="profile-topbar">
+      <div class="profile-brand-wrap">
+        <a href="./index.html" class="profile-brand">nolli<span>.</span></a>
+        <span class="profile-tagline">[ ESPACIO PERSONAL ]</span>
       </div>
-      <div style="display: flex; gap: 8px; font-family: 'JetBrains Mono', monospace;">
-        <a href="./legal.html" class="filter-action" style="text-decoration: none; padding: 6px 12px; border: 1px solid var(--border-strong, #141411); font-size: 11px;">[ LEGAL ]</a>
-        <a href="./index.html" class="filter-action" style="text-decoration: none; padding: 6px 12px; border: 1px solid var(--border-strong, #141411); font-size: 11px;">[ MAPA ]</a>
+      <div class="profile-topbar-actions">
+        <button type="button" id="btn-theme-toggle" class="profile-topbar-btn" title="Cambiar tema claro / oscuro" aria-label="Cambiar tema">
+          <i data-lucide="moon" width="14" height="14" id="theme-icon"></i>
+        </button>
+        <a href="./legal.html" class="profile-topbar-btn">[ LEGAL ]</a>
+        <a href="./index.html" class="profile-topbar-btn profile-btn-accent">[ 🗺️ MAPA ]</a>
+        <button type="button" id="btn-profile-logout" class="profile-topbar-btn profile-btn-danger hidden">[ CERRAR SESIÓN ]</button>
       </div>
-    </div>
-
-    <!-- Sección Hero -->
-    <section class="profile-hero" aria-labelledby="profile-title" style="margin-bottom: 30px; font-family: 'JetBrains Mono', monospace;">
-      <div class="profile-kicker" style="font-size: 10px; color: var(--fg-dim); letter-spacing: 0.06em; margin-bottom: 4px;">[ CUENTA // ESPACIO PERSONAL ]</div>
-      <h2 id="profile-title" class="font-display" style="font-size: 28px; margin: 0 0 10px 0; color: var(--fg);">MI ARCHIVO DE ARQUITECTURA</h2>
-      <p class="profile-lead" style="font-size: 12px; color: var(--fg-dim); line-height: 1.5; margin-bottom: 16px;">Consulta y gestiona tus listas, favoritos, edificios visitados y metadatos de cuenta sincronizados con el radar.</p>
-      <div id="profile-stats" class="profile-stats" aria-label="Resumen personal" style="display: flex; gap: 10px; flex-wrap: wrap;"></div>
-    </section>
+    </header>
 
     <!-- Estado de autenticación requerida -->
-    <section id="profile-auth-required" class="profile-card my-collection-card hidden" style="background: var(--bg-panel, #F8F1DF); border: 1px solid var(--border-strong, #141411); padding: 30px; text-align: center; font-family: 'JetBrains Mono', monospace; display: grid; gap: 14px;">
-      <h2 class="font-display" style="font-size: 18px; margin: 0; color: var(--accent);">INICIA SESIÓN PARA VER TU PERFIL</h2>
-      <p style="font-size: 11px; color: var(--fg-dim); margin: 0;">Tu archivo personal, favoritos y listas personalizadas están vinculados de forma segura a tu cuenta de usuario.</p>
-      <div>
-        <a class="filter-action" href="./index.html" style="text-decoration: none; padding: 8px 16px; border: 1px solid var(--border-strong, #141411); font-size: 11px; display: inline-block; background: var(--bg-panel, #F8F1DF);">IR AL MAPA E INICIAR SESIÓN</a>
+    <section id="profile-auth-required" class="profile-card profile-auth-card hidden">
+      <div class="profile-kicker">[ AUTENTICACIÓN REQUERIDA ]</div>
+      <h2 class="profile-title" style="font-size: 24px; margin: 12px 0;">INICIA SESIÓN PARA ACCEDER A TU ARCHIVO</h2>
+      <p class="profile-lead" style="margin-bottom: 20px;">Tu radar personal, listas con emojis personalizados, obras visitadas y notas privadas se encuentran sincronizados de forma segura con tu cuenta.</p>
+      <div class="profile-auth-actions">
+        <a class="btn btn-accent" href="./index.html" style="text-decoration: none; padding: 10px 20px; font-size: 11px;">IR AL MAPA E INICIAR SESIÓN</a>
       </div>
     </section>
 
     <!-- Aplicación de perfil autenticado -->
-    <section id="profile-app" class="profile-layout hidden" style="display: grid; gap: 20px; font-family: 'JetBrains Mono', monospace;">
-      <nav class="profile-nav places-tabs" aria-label="Secciones del perfil" style="display: flex; gap: 6px; flex-wrap: wrap;">
-        <button type="button" class="places-tab active" data-profile-tab="overview" style="font-family: inherit; font-size: 11px;">RESUMEN</button>
-        <button type="button" class="places-tab" data-profile-tab="favorite" style="font-family: inherit; font-size: 11px;">FAVORITOS</button>
-        <button type="button" class="places-tab" data-profile-tab="visited" style="font-family: inherit; font-size: 11px;">VISITADOS</button>
-        <button type="button" class="places-tab" data-profile-tab="saved" style="font-family: inherit; font-size: 11px;">GUARDADOS</button>
-        <button type="button" class="places-tab" data-profile-tab="notes" style="font-family: inherit; font-size: 11px;">NOTAS</button>
-        <button type="button" class="places-tab" data-profile-tab="labels" style="font-family: inherit; font-size: 11px;">ETIQUETAS</button>
-        <button type="button" class="places-tab" data-profile-tab="collections" style="font-family: inherit; font-size: 11px;">LISTAS</button>
-        <button type="button" class="places-tab" data-profile-tab="account" style="font-family: inherit; font-size: 11px;">DATOS PERSONALES</button>
-      </nav>
-      
-      <div id="profile-content" class="profile-content" aria-live="polite" style="background: var(--bg-panel, #F8F1DF); border: 1px solid var(--border-strong, #141411); padding: 20px;"></div>
-    </section>
+    <main id="profile-app" class="profile-main-layout hidden">
+      <!-- Hero / Cabecera de usuario -->
+      <section class="profile-hero-section">
+        <div class="profile-hero-user">
+          <div class="profile-avatar" id="profile-avatar-initials">N</div>
+          <div class="profile-user-info">
+            <div class="profile-kicker" id="profile-kicker-role">[ USUARIO // ARCHIVO PERSONAL ]</div>
+            <h1 id="profile-title" class="profile-hero-name">MI PERFIL</h1>
+            <div class="profile-user-meta" id="profile-user-meta">
+              <span id="profile-user-email">email@nolli.app</span>
+              <span id="profile-user-location">Ubicación no indicada</span>
+            </div>
+          </div>
+        </div>
 
-    <!-- Pie de página unificado -->
-    <footer class="profile-footer" style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-strong, #141411); margin-top: 40px; padding-top: 20px; padding-bottom: 30px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--fg-dim);">
-      <span>NOLLI // CUENTA PERSONAL</span>
-      <div style="display: flex; gap: 12px;">
-        <a href="./index.html" style="color: var(--accent); text-decoration: none;">[ MAPA ]</a>
-        <a href="./legal.html" style="color: var(--accent); text-decoration: none;" aria-label="Consultar información legal">[ LEGAL ]</a>
+        <!-- Tarjetas de estadísticas -->
+        <div id="profile-stats" class="profile-stats-grid" aria-label="Estadísticas personales"></div>
+      </section>
+
+      <!-- Barra de navegación por pestañas -->
+      <nav class="profile-nav-tabs places-tabs" aria-label="Pestañas del perfil">
+        <button type="button" class="places-tab active" data-profile-tab="overview">RESUMEN</button>
+        <button type="button" class="places-tab" data-profile-tab="visited">VISITADOS</button>
+        <button type="button" class="places-tab" data-profile-tab="favorite">FAVORITOS</button>
+        <button type="button" class="places-tab" data-profile-tab="collections">MIS LISTAS</button>
+        <button type="button" class="places-tab" data-profile-tab="notes">NOTAS</button>
+        <button type="button" class="places-tab" data-profile-tab="labels">ETIQUETAS</button>
+        <button type="button" class="places-tab" data-profile-tab="account">DATOS PERSONALES</button>
+      </nav>
+
+      <!-- Contenedor dinámico del perfil -->
+      <section id="profile-content" class="profile-content-body" aria-live="polite"></section>
+    </main>
+
+    <!-- Modal Flotante para Listas (Crear / Editar) -->
+    <div id="profile-modal-container"></div>
+
+    <!-- Pie de página -->
+    <footer class="profile-footer">
+      <span>NOLLI // RADAR ARQUITECTÓNICO INTERACTIVO</span>
+      <div class="profile-footer-links">
+        <a href="./index.html">[ MAPA ]</a>
+        <a href="./public-profile.html" id="public-profile-link" target="_blank">[ PERFIL PÚBLICO ]</a>
+        <a href="./legal.html">[ LEGAL ]</a>
       </div>
     </footer>
-  </main>
-  
+  </div>
+
   <script type="module" src="js/profile.js"></script>
 </body>
 </html>
