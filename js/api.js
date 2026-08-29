@@ -17,6 +17,23 @@ export async function searchPlaces(query) {
   return response.json();
 }
 
+/** Descarga obras específicas por su ID (para zona personal y colecciones). */
+export async function fetchBuildingsByIds(ids) {
+  if (!Array.isArray(ids) || ids.length === 0) return [];
+  const cleanIds = ids.map((id) => encodeURIComponent(String(id).trim())).filter(Boolean);
+  if (cleanIds.length === 0) return [];
+
+  const publicFields = 'id,nombre_obra,foto_url,enlace_url,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,añadido_por,estado_revision,longitud,latitud';
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?id=in.(${cleanIds.join(',')})&select=${publicFields}`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+    },
+  });
+  if (!response.ok) return [];
+  return response.json();
+}
+
 /** Descarga las obras públicas del encuadre y nivel de zoom actuales. */
 export async function fetchBuildings({ bounds, zoom, architect, includeAllImportance = false, signal } = {}) {
   const pageSize = 1000;
@@ -148,14 +165,30 @@ export async function deletePrivateBuilding(id, userId, sessionToken) {
 }
 
 export async function fetchUserCollections(userId, sessionToken) {
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?user_id=eq.${encodeURIComponent(userId)}&select=id,name,icon,description,created_at&order=created_at.asc`, {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?user_id=eq.${encodeURIComponent(userId)}&select=id,name,icon,description,show_on_map,created_at&order=created_at.asc`, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
   });
-  if (!response.ok) throw new Error('No se pudieron cargar las listas personales.');
+  if (!response.ok) {
+    // Si la columna show_on_map no existiera aún en el servidor, fallback a consulta estándar
+    const fallbackResponse = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?user_id=eq.${encodeURIComponent(userId)}&select=id,name,icon,description,created_at&order=created_at.asc`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
+    });
+    if (!fallbackResponse.ok) throw new Error('No se pudieron cargar las listas personales.');
+    return fallbackResponse.json();
+  }
   return response.json();
 }
 
 export async function createUserCollection(collection, sessionToken) {
+  const payload = {
+    user_id: collection.user_id,
+    name: collection.name,
+  };
+  if (collection.id) payload.id = collection.id;
+  if (collection.icon !== undefined) payload.icon = collection.icon;
+  if (collection.description !== undefined) payload.description = collection.description;
+  if (collection.show_on_map !== undefined) payload.show_on_map = collection.show_on_map;
+
   const response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections`, {
     method: 'POST',
     headers: {
@@ -164,13 +197,66 @@ export async function createUserCollection(collection, sessionToken) {
       'Content-Type': 'application/json',
       'Prefer': 'return=representation',
     },
-    body: JSON.stringify(collection),
+    body: JSON.stringify(payload),
   });
   if (!response.ok) {
+    // Si falla por columna desconocida (por ejemplo si aún no se ha ejecutado el SQL), reintentar sin show_on_map
+    if (payload.show_on_map !== undefined) {
+      delete payload.show_on_map;
+      const retryResponse = await fetch(`${SUPABASE_URL}/rest/v1/user_collections`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${sessionToken}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation',
+        },
+        body: JSON.stringify(payload),
+      });
+      if (retryResponse.ok) return retryResponse.json();
+    }
     const error = await response.json().catch(() => ({}));
     throw new Error(error.message || error.details || 'No se pudo crear la lista personal.');
   }
   return response.json();
+}
+
+export async function updateUserCollection(collectionId, updates, sessionToken) {
+  const payload = {};
+  if (updates.name !== undefined) payload.name = updates.name;
+  if (updates.icon !== undefined) payload.icon = updates.icon;
+  if (updates.description !== undefined) payload.description = updates.description;
+  if (updates.show_on_map !== undefined) payload.show_on_map = updates.show_on_map;
+
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?id=eq.${encodeURIComponent(collectionId)}`, {
+    method: 'PATCH',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation',
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    if (payload.show_on_map !== undefined) {
+      delete payload.show_on_map;
+      const retryResponse = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?id=eq.${encodeURIComponent(collectionId)}`, {
+        method: 'PATCH',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${sessionToken}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation',
+        },
+        body: JSON.stringify(payload),
+      });
+      if (retryResponse.ok) return retryResponse.json().catch(() => []);
+    }
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || error.details || 'No se pudo actualizar la lista personal.');
+  }
+  return response.json().catch(() => []);
 }
 
 export async function deleteUserCollection(collectionId, userId, sessionToken) {

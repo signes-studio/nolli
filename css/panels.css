@@ -243,30 +243,61 @@
   background: rgba(214, 32, 29, 0.1);
   border-color: var(--red);
 }
+.my-collection-card {
+  border: 1px solid var(--border-strong);
+  background: var(--bg-panel);
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.my-collection-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.my-collection-tools {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
 .collection-counter {
-  display: inline-block;
-  padding: 1px 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 22px;
+  padding: 0 5px;
   border: 1px solid var(--border);
   font-size: 9px;
   color: var(--fg-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
 }
-.collection-map-toggle {
+.collection-map-toggle,
+.collection-tool-btn {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  padding: 3px 6px;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
   border: 1px solid var(--border-strong);
   background: var(--bg-panel);
   color: var(--fg-dim);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
-  font-weight: 700;
   cursor: pointer;
-  letter-spacing: .03em;
   transition: all .12s;
-  white-space: nowrap;
+  flex-shrink: 0;
 }
-.collection-map-toggle:hover, .collection-map-toggle:focus-visible {
+.collection-map-toggle svg,
+.collection-tool-btn svg {
+  display: block;
+  pointer-events: none;
+}
+.collection-map-toggle:hover, .collection-map-toggle:focus-visible,
+.collection-tool-btn:hover, .collection-tool-btn:focus-visible {
   border-color: var(--accent);
   color: var(--accent);
   outline: none;
@@ -275,6 +306,12 @@
   background: var(--accent);
   color: #FFFFFF;
   border-color: var(--accent);
+}
+.collection-tool-btn.btn-delete:hover,
+.collection-tool-btn.btn-delete:focus-visible {
+  border-color: var(--red);
+  color: var(--red);
+  background: rgba(214, 32, 29, 0.1);
 }
 .admin-panel { position: absolute; left: 14px; top: 112px; z-index: 40; width: min(520px, calc(100vw - 28px)); max-height: calc(100vh - 140px); overflow-y: auto; background: var(--bg-panel); border: 1px solid var(--accent-2); transform: translateY(calc(-100% - 140px)); visibility: hidden; pointer-events: none; opacity: 0; transition: transform .22s cubic-bezier(.2,.8,.2,1), opacity .15s, visibility 0s linear .22s; }
 .admin-panel.open { transform: translateY(0); visibility: visible; pointer-events: auto; opacity: 1; transition-delay: 0s; }

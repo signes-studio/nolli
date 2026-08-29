@@ -36,8 +36,8 @@ export function actualizarFuenteMapa() {
       ubicacionesCompartidas.set(key, (ubicacionesCompartidas.get(key) || 0) + 1);
     });
 
-    // Mapeo de obras pertenecientes a listas con visualización en mapa activada
-    const coleccionesConIconoActivo = (state.userCollections || []).filter((col) => col.show_on_map && col.icon);
+    // Mapeo de obras pertenecientes a listas con visualización en mapa activada (por defecto activa)
+    const coleccionesConIconoActivo = (state.userCollections || []).filter((col) => col.show_on_map !== false && col.icon);
     const coleccionPorObra = new Map();
     if (coleccionesConIconoActivo.length > 0 && Array.isArray(state.userCollectionItems)) {
       coleccionesConIconoActivo.forEach((col) => {

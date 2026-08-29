@@ -96,6 +96,40 @@ export function getPersonalFallbackKey(userId) {
   return `nolli:personal-zone:${String(userId || 'guest')}`;
 }
 
+export function getCollectionMapPrefsKey(userId) {
+  return `nolli:collection-map-prefs:${String(userId || 'guest')}`;
+}
+
+export function cargarPreferenciasMapaColecciones(userId) {
+  try {
+    const raw = localStorage.getItem(getCollectionMapPrefsKey(userId));
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+export function guardarPreferenciasMapaColecciones(userId, prefs) {
+  try {
+    localStorage.setItem(getCollectionMapPrefsKey(userId), JSON.stringify(prefs));
+  } catch {}
+}
+
+export function aplicarPreferenciasMapaColecciones(collections, userId) {
+  if (!Array.isArray(collections)) return [];
+  const prefs = cargarPreferenciasMapaColecciones(userId);
+  return collections.map((col) => {
+    const colId = String(col.id);
+    const show_on_map = prefs[colId] !== undefined
+      ? prefs[colId]
+      : (col.show_on_map !== undefined ? col.show_on_map : true); // Por defecto TRUE
+    return {
+      ...col,
+      show_on_map: Boolean(show_on_map),
+    };
+  });
+}
+
 export function cargarZonaPersonalLocal(userId) {
   if (!userId) {
     state.userCollections = [];
@@ -106,9 +140,21 @@ export function cargarZonaPersonalLocal(userId) {
   try {
     const raw = localStorage.getItem(getPersonalFallbackKey(userId));
     const payload = raw ? JSON.parse(raw) : {};
-    state.userCollections = Array.isArray(payload.collections) ? payload.collections : [];
+    const rawCollections = Array.isArray(payload.collections) ? payload.collections : [];
+    state.userCollections = aplicarPreferenciasMapaColecciones(rawCollections, userId);
     state.userCollectionItems = Array.isArray(payload.items) ? payload.items : [];
     state.userPrivateLabels = Array.isArray(payload.labels) ? payload.labels : [];
+
+    // Restaurar estados de edificios si aún no se han cargado en memoria
+    if (state.buildingStatuses.size === 0) {
+      const cachedStatuses = localStorage.getItem(`nolli:building-status:${userId}`);
+      if (cachedStatuses) {
+        try {
+          const parsed = JSON.parse(cachedStatuses);
+          state.buildingStatuses = new Map(Array.isArray(parsed) ? parsed : []);
+        } catch {}
+      }
+    }
   } catch {
     state.userCollections = [];
     state.userCollectionItems = [];
@@ -118,6 +164,16 @@ export function cargarZonaPersonalLocal(userId) {
 
 export function guardarZonaPersonalLocal(userId) {
   if (!userId) return;
+
+  // Persistir preferencias específicas de visualización en mapa
+  const prefs = {};
+  (state.userCollections || []).forEach((col) => {
+    if (col && col.id) {
+      prefs[String(col.id)] = col.show_on_map !== false;
+    }
+  });
+  guardarPreferenciasMapaColecciones(userId, prefs);
+
   const payload = {
     collections: state.userCollections,
     items: state.userCollectionItems,

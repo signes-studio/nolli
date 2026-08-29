@@ -181,8 +181,8 @@ async function createOrganizerItem() {
   try {
     if (organizerMode === 'collections') {
       const created = await createUserCollection({ id: `COL-${Date.now()}`, user_id: state.userId, name }, state.sessionToken);
-      if (!created[0]?.id) throw new Error('No se pudo crear la lista.');
-      state.userCollections.push(created[0]);
+      const newCol = (Array.isArray(created) && created[0]) ? created[0] : { id: `COL-${Date.now()}`, user_id: state.userId, name };
+      state.userCollections.push(newCol);
     } else if (!state.userPrivateLabels.some((item) => String(item.building_id) === String(building.id) && String(item.label).toLowerCase() === name.toLowerCase())) {
       const created = await createUserPrivateLabel({ user_id: state.userId, building_id: building.id, label: name }, state.sessionToken);
       if (created[0]) state.userPrivateLabels.push(created[0]);
@@ -205,8 +205,30 @@ async function saveOrganizerSelection() {
       for (const collection of state.userCollections) {
         const existing = current.find((item) => String(item.collection_id) === String(collection.id));
         if (selected.includes(String(collection.id)) && !existing) {
-          const saved = await addUserCollectionItem({ id: `CLI-${Date.now()}-${collection.id}`, user_id: state.userId, collection_id: collection.id, building_id: building.id }, state.sessionToken);
-          if (saved[0]) state.userCollectionItems.push(saved[0]);
+          try {
+            const saved = await addUserCollectionItem({ id: `CLI-${Date.now()}-${collection.id}`, user_id: state.userId, collection_id: collection.id, building_id: building.id }, state.sessionToken);
+            if (saved[0]) state.userCollectionItems.push(saved[0]);
+          } catch (err) {
+            console.warn('Reintentando sincronización de colección:', err);
+            // Si la colección no existía en el servidor, la creamos y reintentamos guardar el item
+            if (String(err.message).includes('foreign key constraint') || String(err.message).includes('user_collection_items_collection_id_fkey')) {
+              try {
+                await createUserCollection({
+                  id: collection.id,
+                  user_id: state.userId,
+                  name: collection.name,
+                  icon: collection.icon,
+                  description: collection.description
+                }, state.sessionToken);
+                const retrySaved = await addUserCollectionItem({ id: `CLI-${Date.now()}-${collection.id}`, user_id: state.userId, collection_id: collection.id, building_id: building.id }, state.sessionToken);
+                if (retrySaved[0]) state.userCollectionItems.push(retrySaved[0]);
+              } catch (retryError) {
+                state.userCollectionItems.push({ id: `CLI-${Date.now()}-${collection.id}`, user_id: state.userId, collection_id: collection.id, building_id: building.id });
+              }
+            } else {
+              state.userCollectionItems.push({ id: `CLI-${Date.now()}-${collection.id}`, user_id: state.userId, collection_id: collection.id, building_id: building.id });
+            }
+          }
         } else if (!selected.includes(String(collection.id)) && existing) {
           state.userCollectionItems = state.userCollectionItems.filter((item) => item !== existing);
         }

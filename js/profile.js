@@ -14,7 +14,7 @@ import {
   deleteUserCollectionItem,
   deleteUserPrivateLabel,
 } from './api.js';
-import { state, cargarZonaPersonalLocal, guardarZonaPersonalLocal } from './state.js';
+import { state, cargarZonaPersonalLocal, guardarZonaPersonalLocal, aplicarPreferenciasMapaColecciones } from './state.js';
 
 const SESSION_KEY = 'nolli_admin_session_token';
 const content = document.getElementById('profile-content');
@@ -55,10 +55,10 @@ async function init() {
     ]);
     profileState.buildings = buildings;
     profileState.statuses = new Map(statuses.map((item) => [String(item.building_id), item]));
-    profileState.collections = collections;
+    profileState.collections = aplicarPreferenciasMapaColecciones(collections || [], user.id);
     profileState.items = items;
     profileState.labels = labels;
-    state.userCollections = collections;
+    state.userCollections = profileState.collections;
     state.userCollectionItems = items;
     state.userPrivateLabels = labels;
     guardarZonaPersonalLocal(user.id);
@@ -163,8 +163,21 @@ document.addEventListener('click', async (event) => {
     const buildingId = addItem.dataset.addItemBuilding;
     const existing = profileState.items.some((item) => String(item.collection_id) === String(addItem.value) && String(item.building_id) === buildingId);
     if (!existing) {
-      const saved = await addUserCollectionItem({ id: `CLI-${Date.now()}-${addItem.value}`, user_id: profileState.user.id, collection_id: addItem.value, building_id: buildingId }, getSessionToken()).catch(() => []);
-      profileState.items.push(saved[0] || { id: `CLI-${Date.now()}`, user_id: profileState.user.id, collection_id: addItem.value, building_id: buildingId });
+      const collectionId = addItem.value;
+      const collection = profileState.collections.find((col) => String(col.id) === String(collectionId));
+      let saved = [];
+      try {
+        saved = await addUserCollectionItem({ id: `CLI-${Date.now()}-${collectionId}`, user_id: profileState.user.id, collection_id: collectionId, building_id: buildingId }, getSessionToken());
+      } catch (err) {
+        if (collection && (String(err.message).includes('foreign key constraint') || String(err.message).includes('user_collection_items_collection_id_fkey'))) {
+          try {
+            await createUserCollection({ id: collection.id, user_id: profileState.user.id, name: collection.name, icon: collection.icon, description: collection.description }, getSessionToken());
+            saved = await addUserCollectionItem({ id: `CLI-${Date.now()}-${collectionId}`, user_id: profileState.user.id, collection_id: collectionId, building_id: buildingId }, getSessionToken());
+          } catch {}
+        }
+      }
+      profileState.items.push((Array.isArray(saved) && saved[0]) ? saved[0] : { id: `CLI-${Date.now()}`, user_id: profileState.user.id, collection_id: collectionId, building_id: buildingId });
+      state.userCollectionItems = profileState.items;
       guardarZonaPersonalLocal(profileState.user.id);
     }
     render();
