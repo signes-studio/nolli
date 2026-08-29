@@ -4,6 +4,8 @@
 
 import { state, cargarZonaPersonalLocal, guardarZonaPersonalLocal } from './state.js';
 import { abrirFicha } from './sheetUI.js';
+import { registrarIconosColecciones } from './mapController.js';
+import { actualizarFuenteMapa } from './mapData.js';
 import {
   fetchUserCollections,
   fetchUserCollectionItems,
@@ -15,7 +17,11 @@ import {
 const panel = document.getElementById('my-places-panel');
 const button = document.getElementById('btn-my-places');
 const list = document.getElementById('my-places-list');
-let activeTab = 'favorite';
+let activeTab = 'visited';
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character]));
+}
 
 export function initMyPlacesUI() {
   button.addEventListener('click', () => {
@@ -40,6 +46,20 @@ export function initMyPlacesUI() {
       activeTab = tab.dataset.placeTab;
       document.querySelectorAll('[data-place-tab]').forEach((item) => item.classList.toggle('active', item === tab));
       renderList();
+      return;
+    }
+
+    const toggleMapBtn = event.target.closest('[data-toggle-map-collection]');
+    if (toggleMapBtn) {
+      const colId = toggleMapBtn.dataset.toggleMapCollection;
+      const col = state.userCollections.find((item) => String(item.id) === String(colId));
+      if (col) {
+        col.show_on_map = !col.show_on_map;
+        guardarZonaPersonalLocal(state.userId);
+        registrarIconosColecciones();
+        actualizarFuenteMapa();
+        renderList();
+      }
       return;
     }
 
@@ -124,6 +144,8 @@ async function syncZonaPersonal() {
     console.warn('Error sincronizando zona personal con el servidor, cargando copia local...', error);
     cargarZonaPersonalLocal(state.userId);
   }
+  registrarIconosColecciones();
+  actualizarFuenteMapa();
   renderList();
 }
 
@@ -141,6 +163,10 @@ function abrirModalCrearLista() {
           <input id="modal-name-input" class="tech-input" type="text" placeholder="NOMBRE DE LISTA">
         </div>
         <textarea id="modal-desc-input" class="tech-input" placeholder="Descripción breve (opcional)..." style="resize:vertical; min-height:50px; font-family:inherit; font-size:inherit;"></textarea>
+        <label class="keep-session" style="font-size:10px; cursor:pointer;">
+          <input id="modal-map-toggle" type="checkbox" checked>
+          <span>Mostrar obras en el mapa con este icono</span>
+        </label>
         <div style="display:flex; gap:6px; justify-content:flex-end; margin-top:4px;">
           <button type="button" class="filter-action" data-close-modal>CANCELAR</button>
           <button type="button" class="btn" data-confirm-create-collection style="padding:6px 12px;">CREAR LISTA</button>
@@ -160,10 +186,12 @@ async function crearListaDesdeModal() {
   const nameInput = document.getElementById('modal-name-input');
   const emojiInput = document.getElementById('modal-emoji-input');
   const descInput = document.getElementById('modal-desc-input');
+  const mapToggle = document.getElementById('modal-map-toggle');
 
   const name = String(nameInput?.value || '').trim();
   const icon = String(emojiInput?.value || '').trim();
   const description = String(descInput?.value || '').trim();
+  const show_on_map = Boolean(mapToggle?.checked);
 
   if (!name) {
     alert('Escribe un nombre para la lista.');
@@ -176,11 +204,14 @@ async function crearListaDesdeModal() {
     name,
     icon,
     description,
+    show_on_map,
     created_at: new Date().toISOString()
   };
 
   state.userCollections.push(newCollectionPayload);
   guardarZonaPersonalLocal(state.userId);
+  registrarIconosColecciones();
+  actualizarFuenteMapa();
 
   try {
     createUserCollection(newCollectionPayload, state.sessionToken).catch(() => {});
@@ -207,6 +238,10 @@ function abrirModalEditarLista(collectionId) {
           <input id="modal-edit-name" class="tech-input" type="text" value="${collection.name || ''}" placeholder="Nombre de lista">
         </div>
         <textarea id="modal-edit-desc" class="tech-input" placeholder="Descripción breve..." style="resize:vertical; min-height:50px; font-family:inherit; font-size:inherit;">${collection.description || ''}</textarea>
+        <label class="keep-session" style="font-size:10px; cursor:pointer;">
+          <input id="modal-edit-map-toggle" type="checkbox" ${collection.show_on_map !== false ? 'checked' : ''}>
+          <span>Mostrar obras en el mapa con este icono</span>
+        </label>
         <div style="display:flex; gap:6px; justify-content:flex-end; margin-top:4px;">
           <button type="button" class="filter-action" data-close-modal>CANCELAR</button>
           <button type="button" class="btn" data-confirm-edit-collection="${collection.id}" style="padding:6px 12px;">GUARDAR</button>
@@ -224,10 +259,12 @@ function guardarEdicionListaModal(collectionId) {
   const emojiInput = document.getElementById('modal-edit-emoji');
   const nameInput = document.getElementById('modal-edit-name');
   const descInput = document.getElementById('modal-edit-desc');
+  const mapToggle = document.getElementById('modal-edit-map-toggle');
 
   const newName = String(nameInput?.value || '').trim();
   const newIcon = String(emojiInput?.value || '').trim();
   const newDesc = String(descInput?.value || '').trim();
+  const show_on_map = Boolean(mapToggle?.checked);
 
   if (!newName) {
     alert('El nombre no puede estar vacío.');
@@ -237,8 +274,11 @@ function guardarEdicionListaModal(collectionId) {
   collection.name = newName;
   collection.icon = newIcon;
   collection.description = newDesc;
+  collection.show_on_map = show_on_map;
 
   guardarZonaPersonalLocal(state.userId);
+  registrarIconosColecciones();
+  actualizarFuenteMapa();
   cerrarModalFlotante();
   renderList();
 }
@@ -261,11 +301,15 @@ async function borrarLista(collectionId) {
     state.userCollections = state.userCollections.filter((item) => String(item.id) !== String(collectionId));
     state.userCollectionItems = state.userCollectionItems.filter((item) => String(item.collection_id) !== String(collectionId));
     guardarZonaPersonalLocal(state.userId);
+    registrarIconosColecciones();
+    actualizarFuenteMapa();
     renderList();
   } catch (error) {
     state.userCollections = state.userCollections.filter((item) => String(item.id) !== String(collectionId));
     state.userCollectionItems = state.userCollectionItems.filter((item) => String(item.collection_id) !== String(collectionId));
     guardarZonaPersonalLocal(state.userId);
+    registrarIconosColecciones();
+    actualizarFuenteMapa();
     renderList();
   }
 }
@@ -276,10 +320,12 @@ async function quitarGuardado(collectionId, buildingId) {
     await deleteUserCollectionItem(collectionId, state.userId, buildingId, state.sessionToken);
     state.userCollectionItems = state.userCollectionItems.filter((item) => !(String(item.collection_id) === String(collectionId) && String(item.building_id) === String(buildingId)));
     guardarZonaPersonalLocal(state.userId);
+    actualizarFuenteMapa();
     renderList();
   } catch (error) {
     state.userCollectionItems = state.userCollectionItems.filter((item) => !(String(item.collection_id) === String(collectionId) && String(item.building_id) === String(buildingId)));
     guardarZonaPersonalLocal(state.userId);
+    actualizarFuenteMapa();
     renderList();
   }
 }
@@ -312,8 +358,12 @@ function renderList() {
 
   list.innerHTML = results.map((obra) => `
     <button type="button" class="my-place-item" data-feature-id="${obra.featureId}">
-      <span><strong>${obra.nombre_obra}</strong>${activeTab === 'notes' ? `<span class="my-place-note">${state.buildingStatuses.get(String(obra.id))?.notas || ''}</span>` : ''}</span>
-      <span class="nearby-meta">${obra.arquitecto || ''}</span>
+      <div class="my-place-item-main">
+        <strong class="my-place-item-title">${escapeHtml(obra.nombre_obra)}</strong>
+        <span class="my-place-meta">${escapeHtml(obra.arquitecto || 'Arquitecto no especificado')}</span>
+        ${activeTab === 'notes' && state.buildingStatuses.get(String(obra.id))?.notas ? `<span class="my-place-note" style="color:var(--accent); margin-top:2px;">"${escapeHtml(state.buildingStatuses.get(String(obra.id)).notas)}"</span>` : ''}
+      </div>
+      <span class="my-place-arrow">→</span>
     </button>
   `).join('');
 }
@@ -326,41 +376,49 @@ function renderCollections() {
       if (!obra) return '';
       return `
         <div class="my-collection-item-row">
-          <button type="button" class="my-place-item" data-feature-id="${obra.featureId}">
-            <span><strong>${obra.nombre_obra}</strong></span>
-            <span class="nearby-meta">${obra.arquitecto || ''}</span>
+          <button type="button" class="my-place-item in-collection" data-feature-id="${obra.featureId}">
+            <div class="my-place-item-main">
+              <strong class="my-place-item-title">${escapeHtml(obra.nombre_obra)}</strong>
+              <span class="my-place-meta">${escapeHtml(obra.arquitecto || '')}</span>
+            </div>
+            <span class="my-place-arrow">→</span>
           </button>
-          <button type="button" class="filter-action" data-collection-id="${collection.id}" data-remove-from-collection="${obra.id}">QUITAR</button>
+          <button type="button" class="btn-remove-collection" data-collection-id="${collection.id}" data-remove-from-collection="${obra.id}" title="Quitar de la lista" aria-label="Quitar de la lista">✕</button>
         </div>
       `;
-    }).join('') || '<div class="nearby-empty">Lista vacía.</div>';
+    }).join('') || '<div class="nearby-empty">Lista sin obras añadidas.</div>';
 
-    const collectionEmoji = collection.icon ? `<span style="margin-right: 6px;">${collection.icon}</span>` : '';
-    const collectionDescription = collection.description ? `<div class="nearby-meta" style="margin-top: 2px; font-style: italic;">${collection.description}</div>` : '';
+    const collectionEmoji = collection.icon ? `<span style="margin-right: 6px;">${escapeHtml(collection.icon)}</span>` : '';
+    const collectionDescription = collection.description ? `<div class="my-place-meta" style="margin-top: 2px; font-style: italic;">${escapeHtml(collection.description)}</div>` : '';
 
     return `
       <article class="my-collection-card">
         <div class="my-collection-head">
-          <div>
-            <div>${collectionEmoji}<strong>${collection.name}</strong></div>
+          <div style="min-width:0; flex:1;">
+            <div style="font-weight:700; color:var(--fg); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${collectionEmoji}${escapeHtml(collection.name)}</div>
             ${collectionDescription}
           </div>
           <div class="my-collection-tools">
-            <span class="nearby-meta">${collectionItems.length}</span>
-            <button type="button" class="filter-action" data-edit-collection="${collection.id}">EDITAR</button>
-            <button type="button" class="filter-action" data-delete-collection="${collection.id}">BORRAR</button>
+            <button type="button" class="collection-map-toggle ${collection.show_on_map ? 'active' : ''}" data-toggle-map-collection="${collection.id}" title="${collection.show_on_map ? 'Ocultar iconos personalizados en el mapa' : 'Mostrar iconos de esta lista en el mapa con su emoji'}">
+              ${collection.show_on_map ? '📍 EN MAPA' : '🗺️ VER EN MAPA'}
+            </button>
+            <span class="collection-counter">${collectionItems.length}</span>
+            <button type="button" class="filter-action" data-edit-collection="${collection.id}" title="Editar lista">EDITAR</button>
+            <button type="button" class="filter-action" data-delete-collection="${collection.id}" title="Borrar lista" style="color:var(--red);">BORRAR</button>
           </div>
         </div>
-        ${rows}
+        <div class="my-collection-items-list">
+          ${rows}
+        </div>
       </article>
     `;
   }).join('');
 
   list.innerHTML = `
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 4px;">
-      <span style="font-size: 10px; color: var(--fg-dim);">MIS LISTAS PERSONALIZADAS</span>
-      <button type="button" class="btn" data-open-create-collection-modal style="padding: 4px 10px; font-size: 11px;">+ NUEVA LISTA</button>
+    <div class="my-collections-header">
+      <span style="font-size: 10px; color: var(--fg-dim); font-weight: 700;">MIS LISTAS (${(state.userCollections || []).length})</span>
+      <button type="button" class="btn btn-accent" data-open-create-collection-modal style="padding: 4px 10px; font-size: 10px;">+ NUEVA LISTA</button>
     </div>
-    ${cards || '<div class="nearby-empty">Crea tu primera lista personalizada.</div>'}
+    ${cards || '<div class="nearby-empty">Crea tu primera lista para organizar obras.</div>'}
   `;
 }

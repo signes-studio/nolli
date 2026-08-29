@@ -14,9 +14,12 @@ import { initSearchUI } from './searchUI.js';
 import { initMyPlacesUI } from './myPlacesUI.js';
 import { initAdminUI } from './adminUI.js';
 
+import { abrirFicha } from './sheetUI.js';
+
 let publicLoadRequest = 0;
 let publicLoadTimer = null;
 let publicLoadController = null;
+let urlObraChecked = false;
 
 function transformarEdificio(fila, index) {
   return {
@@ -89,10 +92,41 @@ function programarCargaEdificiosVisibles() {
   publicLoadTimer = setTimeout(cargarEdificiosVisibles, 120);
 }
 
+async function verificarParametroObraURL() {
+  if (urlObraChecked) return;
+  urlObraChecked = true;
+  const params = new URLSearchParams(window.location.search);
+  const obraId = params.get('obra');
+  if (!obraId) return;
+
+  let obra = state.OBRAS.find((item) => String(item.id) === String(obraId) || String(item.featureId) === String(obraId));
+  if (!obra) {
+    try {
+      const dbRows = await fetchBuildings({ includeAllImportance: true });
+      const found = dbRows.find((item) => String(item.id) === String(obraId));
+      if (found) {
+        obra = transformarEdificio(found, state.OBRAS.length);
+        state.OBRAS.push(obra);
+        actualizarFuenteMapa();
+      }
+    } catch (e) {
+      console.warn('No se pudo cargar la obra desde la URL:', e);
+    }
+  }
+
+  if (obra && state.map) {
+    state.map.flyTo({ center: obra.coordenadas, zoom: Math.max(state.map.getZoom(), 15) });
+    abrirFicha(obra, obra.coordenadas, obra.featureId);
+  }
+}
+
 async function inicializarRadar() {
   try {
     cargarMapaMapbox();
-    state.map.once('load', cargarEdificiosVisibles);
+    state.map.once('load', async () => {
+      await cargarEdificiosVisibles();
+      verificarParametroObraURL();
+    });
     state.map.on('moveend', programarCargaEdificiosVisibles);
     document.addEventListener('radar:filters-changed', programarCargaEdificiosVisibles);
   } catch (error) {

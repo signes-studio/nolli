@@ -13,13 +13,13 @@ body.profile-page main { position: static; inset: auto; min-height: 100vh; overf
 .hidden { display: none !important; }
 .profile-shell { width: min(1120px, calc(100% - 48px)); margin: 0 auto; padding: 24px 0 64px; }
 .profile-topbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding-bottom: 22px; border-bottom: 1px solid var(--border); }
-.profile-brand { color: var(--fg); font-family: 'Archivo Expanded', 'Archivo Black', sans-serif; font-weight: 800; font-size: 26px; letter-spacing: -.02em; text-decoration: none; }
+.profile-brand { color: var(--fg); font-family: 'League Spartan', -apple-system, sans-serif; font-weight: 800; font-size: 26px; letter-spacing: -.02em; text-decoration: none; }
 .profile-brand span { color: var(--accent); }
 .profile-back { color: var(--fg-dim); font: inherit; font-size: 10px; text-decoration: none; }
 .profile-back:hover, .profile-back:focus-visible { color: var(--accent); outline: none; }
 .profile-hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 28px; padding: 42px 0 30px; }
 .profile-kicker { color: var(--accent); font-size: 10px; letter-spacing: .12em; }
-.profile-title { margin: 8px 0 10px; font-family: 'Archivo Expanded', 'Archivo Black', sans-serif; font-weight: 800; font-size: clamp(30px, 4vw, 48px); line-height: .98; letter-spacing: 0; }
+.profile-title { margin: 8px 0 10px; font-family: 'League Spartan', -apple-system, sans-serif; font-weight: 800; font-size: clamp(30px, 4vw, 48px); line-height: .98; letter-spacing: 0; }
 .profile-lead { max-width: 600px; margin: 0; color: var(--fg-dim); font-size: 12px; line-height: 1.7; }
 .profile-stats { display: grid; grid-template-columns: repeat(4, minmax(78px, 1fr)); gap: 1px; border: 1px solid var(--border); background: var(--border); }
 .profile-stat { min-width: 86px; padding: 14px 12px; background: var(--bg-panel); }
@@ -32,7 +32,7 @@ body.profile-page main { position: static; inset: auto; min-height: 100vh; overf
 .profile-content { min-width: 0; }
 .identity-card { padding: 22px 24px; }
 .profile-overview-note { min-height: 96px; display: grid; align-content: center; gap: 8px; }
-.profile-identity-name { margin: 9px 0 12px; color: var(--fg); font-family: 'Archivo Expanded', 'Archivo Black', sans-serif; font-weight: 800; font-size: clamp(22px, 3vw, 34px); line-height: 1.05; }
+.profile-identity-name { margin: 9px 0 12px; color: var(--fg); font-family: 'League Spartan', -apple-system, sans-serif; font-weight: 800; font-size: clamp(22px, 3vw, 34px); line-height: 1.05; }
 .profile-identity-meta { display: flex; flex-wrap: wrap; gap: 8px 24px; color: var(--fg-dim); font-size: 11px; line-height: 1.5; }
 .profile-identity-meta span + span { color: var(--accent-2); }
 .profile-section-title { margin: 0 0 14px; color: var(--fg); font-size: 14px; letter-spacing: .06em; }
@@ -74,95 +74,4 @@ body.profile-page main { position: static; inset: auto; min-height: 100vh; overf
   .profile-create-row, .profile-create-row:has(select) { grid-template-columns: 1fr; }
   .profile-item-actions { align-items: flex-end; flex-direction: column; }
   .profile-field.full { grid-column: auto; }
-  .profile-footer { align-items: flex-start; flex-direction: column; gap: 10px; }
-}
-/* =========================================================================
-   CORRECCIÓN DEFINITIVA DE PANELES, FICHAS Y TEXTOS EN MODO OSCURO
-   ========================================================================= */
-
-/* 1. La Ficha de Obra completa y su cabecera */
-body.dark-mode #sheet,
-body.dark-mode .sheet-header,
-body.dark-mode .sheet-container {
-    background-color: #1a1a1a !important;
-    color: #e0e0e0 !important;
-    border-color: #333333 !important;
-}
-
-/* 2. Forzar que los textos y valores dentro de la ficha de obra sean claros */
-body.dark-mode #sheet .value,
-body.dark-mode #sheet .label,
-body.dark-mode #sheet h2, 
-body.dark-mode #sheet h3,
-body.dark-mode #sheet strong,
-body.dark-mode .sheet-title {
-    color: #f0f0f0 !important;
-}
-
-/* 3. Las filas de datos y separadores dentro de la ficha */
-body.dark-mode #sheet .data-row {
-    border-color: #333333 !important;
-}
-
-/* 4. Botones de acción dentro de la ficha (compartir, favorito, etc.) */
-body.dark-mode #sheet-header-actions .sheet-icon-action,
-body.dark-mode .sheet-icon-action {
-    background-color: #242424 !important;
-    color: #e0e0e0 !important;
-    border-color: #383838 !important;
-}
-
-body.dark-mode #sheet-header-actions .sheet-icon-action:hover {
-    background-color: #333333 !important;
-}
-
-/* 5. Botones generales de tipo .btn que sigan viéndose en crema */
-body.dark-mode .btn,
-body.dark-mode button.btn {
-    background-color: #242424 !important;
-    color: #f0f0f0 !important;
-    border-color: #383838 !important;
-}
-
-body.dark-mode .btn:hover {
-    background-color: #333333 !important;
-}
-/* =========================================================================
-   FORZAR ICONOS LATERALES Y TEXTOS SUPERIORES EN MODO OSCURO
-   ========================================================================= */
-
-/* 1. Forzar los iconos de la barra lateral derecha (incluso si usan SVG o Lucide) */
-body.dark-mode #map-tools button,
-body.dark-mode #map-tools svg,
-body.dark-mode .map-tool-btn,
-body.dark-mode .map-tool-btn svg,
-body.dark-mode .mapboxgl-ctrl-group button svg {
-    color: #f0f0f0 !important;
-    fill: #f0f0f0 !important;
-}
-
-body.dark-mode #map-tools button {
-    background-color: #242424 !important;
-    border-color: #383838 !important;
-}
-
-body.dark-mode #map-tools button:hover {
-    background-color: #333333 !important;
-}
-
-/* 2. Forzar el texto de coordenadas y zoom de la esquina superior derecha */
-body.dark-mode .mapboxgl-ctrl-top-right,
-body.dark-mode [class*="lng"],
-body.dark-mode [class*="lat"],
-body.dark-mode [class*="zoom"],
-body.dark-mode .hud-readout,
-body.dark-mode div[style*="position: absolute"] {
-    color: #f0f0f0 !important;
-}
-
-/* Selector general específico para los textos informativos de la esquina superior derecha */
-body.dark-mode div:has(> #hud-lng),
-body.dark-mode .mapboxgl-ctrl-bottom-right *,
-body.dark-mode .mapboxgl-ctrl-top-right * {
-    color: #f0f0f0 !important;
 }

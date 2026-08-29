@@ -69,9 +69,8 @@ export function initSearchUI() {
 
   searchInput.addEventListener('input', () => {
     clearTimeout(searchDebounceTimer);
-    searchDebounceTimer = setTimeout(ejecutarBusquedaGlobal, 150);
+    searchDebounceTimer = setTimeout(ejecutarBusquedaGlobal, 120);
   });
-  searchInput.addEventListener('change', ejecutarBusquedaGlobal);
 
   architectInput.addEventListener('input', () => {
     if (architectSuggestions) {
@@ -79,9 +78,18 @@ export function initSearchUI() {
       architectSuggestions.hidden = true;
     }
     clearTimeout(searchDebounceTimer);
-    searchDebounceTimer = setTimeout(ejecutarBusquedaGlobal, 150);
+    searchDebounceTimer = setTimeout(ejecutarBusquedaGlobal, 120);
   });
-  architectInput.addEventListener('change', ejecutarBusquedaGlobal);
+
+  locationInput.addEventListener('input', () => {
+    clearTimeout(locationSearchTimer);
+    const query = locationInput.value.trim();
+    if (query.length >= 2) {
+      locationSearchTimer = setTimeout(() => buscarUbicaciones(query), 250);
+    } else {
+      locationResults.innerHTML = '';
+    }
+  });
 
   locationInput.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
@@ -136,9 +144,15 @@ function solicitarUbicacion() {
   navigator.geolocation.getCurrentPosition(
     (position) => {
       state.userLocation = { lng: position.coords.longitude, lat: position.coords.latitude };
-      ejecutarBusquedaGlobal();
+      if (!searchInput.value.trim() && !architectInput.value.trim() && !locationInput.value.trim()) {
+        ejecutarBusquedaGlobal();
+      }
     },
-    () => ejecutarBusquedaGlobal(),
+    () => {
+      if (!searchInput.value.trim() && !architectInput.value.trim() && !locationInput.value.trim()) {
+        ejecutarBusquedaGlobal();
+      }
+    },
     { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 },
   );
 }

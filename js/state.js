@@ -40,6 +40,7 @@ export const state = {
     'no_construido',
     'desaparecido',
   ]),
+  activeArquitectos: new Set(),
   map: null,
   mapStyle: 'abstract',
   addingBuilding: false,

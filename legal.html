@@ -2,127 +2,220 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="description" content="Información legal de NOLLI: aviso legal, privacidad, cookies y términos de uso.">
 <meta name="color-scheme" content="dark">
-<title>NOLLI // INFORMACIÓN LEGAL</title>
+<title>nolli | información legal</title>
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="css/base.css">
-<link rel="stylesheet" href="css/components.css">
-<link rel="stylesheet" href="css/legal.css">
+<link rel="apple-touch-icon" href="./icon.svg">
+
+<!-- Tailwind (CDN, utilidades de layout puntuales) -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Lucide Icons -->
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+<!-- Tipografías: Inter para textos y League Spartan para títulos -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
-</head>
-<body class="legal-page">
-  <main class="legal-shell">
-    <header class="legal-topbar">
-      <a class="profile-brand" href="./index.html">NOLLI<span>.</span></a>
-      <a class="profile-back" href="./index.html">[ VOLVER AL MAPA ]</a>
-    </header>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=League+Spartan:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
 
-    <section class="legal-hero" aria-labelledby="legal-title">
-      <div class="legal-kicker">[ INFORMACIÓN // LEGAL ]</div>
-      <h1 id="legal-title" class="legal-title">NOLLI</h1>
-      <p class="legal-lead">Información sobre el uso del radar arquitectónico, el tratamiento de datos y las condiciones de acceso al servicio.</p>
-      <div class="legal-warning" role="note">
-        <strong>ANTES DE PUBLICAR</strong>
-        <span>Completa los campos que aún aparecen como [PENDIENTE], especialmente NIF, domicilio y dominio definitivo. Este contenido es un borrador informativo y debe revisarlo una persona profesional del derecho según tu actividad y jurisdicción.</span>
+<!-- Estilos propios (orden idéntico al index.html y perfil) -->
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/map-hud.css">
+<link rel="stylesheet" href="css/panels.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/legal.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#F5F4F0">
+
+<style>
+  /* Asegurar scroll fluido y habilitado en toda la página y cuerpo técnico */
+  html, body {
+    overflow-y: auto !important;
+    height: auto !important;
+    min-height: 100vh;
+  }
+  body, input, button, select, textarea {
+    font-family: 'Inter', sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6, 
+  .font-display, 
+  .font-poppins,
+  .legal-title,
+  .legend-title, 
+  .legend-subtitle {
+    font-family: 'League Spartan', sans-serif !important;
+  }
+</style>
+</head>
+<body class="tech-body">
+
+  <main class="legal-shell" style="max-width: 800px; margin: 40px auto; padding: 20px;">
+    
+    <!-- Barra superior integrada exactamente con el diseño actual de Nolli -->
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-strong, #141411); padding-bottom: 12px; margin-bottom: 30px;">
+      <div>
+        <h1 class="font-display text-2xl leading-none tracking-tight" style="color: var(--accent); margin: 0; text-transform: lowercase; font-weight: 800;">nolli<span style="color:var(--fg)">.</span></h1>
+        <p class="text-[10px] tracking-widest mt-1" style="color:var(--fg-dim); margin:0; font-family: 'JetBrains Mono', monospace;">información legal</p>
+      </div>
+      <div style="display: flex; gap: 8px; font-family: 'JetBrains Mono', monospace;">
+        <a href="./perfil.html" class="filter-action" style="text-decoration: none; padding: 6px 12px; border: 1px solid var(--border-strong, #141411); font-size: 11px;">[ PERFIL ]</a>
+        <a href="./index.html" class="filter-action" style="text-decoration: none; padding: 6px 12px; border: 1px solid var(--border-strong, #141411); font-size: 11px;">[ MAPA ]</a>
+      </div>
+    </div>
+
+    <!-- Sección Hero -->
+    <section class="legal-hero" aria-labelledby="legal-title" style="margin-bottom: 30px; font-family: 'JetBrains Mono', monospace;">
+      <div class="legal-kicker" style="font-size: 10px; color: var(--fg-dim); letter-spacing: 0.06em; margin-bottom: 4px;">[ INFORMACIÓN // LEGAL Y NORMATIVA ]</div>
+      <h2 id="legal-title" class="font-display" style="font-size: 28px; margin: 0 0 10px 0; color: var(--fg);">MARCO JURÍDICO Y CONDICIONES DE SERVICIO</h2>
+      <p class="legal-lead" style="font-size: 12px; color: var(--fg-dim); line-height: 1.5; margin-bottom: 16px;">Cumplimiento con la Ley 34/2002 (LSSI-CE), el Reglamento General de Protección de Datos (RGPD UE 2016/679) y la Ley Orgánica 3/2018 (LOPDGDD).</p>
+      
+      <div class="legal-warning" role="note" style="background: var(--bg-panel, #F8F1DF); border: 1px solid var(--border-strong, #141411); padding: 14px; font-size: 11px; display: grid; gap: 4px;">
+        <strong style="color: var(--accent);">[ NOTA DE VALIDACIÓN JURÍDICA ]</strong>
+        <span>Los campos marcados como [PENDIENTE] (NIF y domicilio fiscal definitivo) deben ser completados formalmente antes de la explotación comercial o pública definitiva del servicio en producción.</span>
       </div>
     </section>
 
-    <nav class="legal-index" aria-label="Índice legal">
-      <a href="#aviso-legal">01 / AVISO LEGAL</a>
-      <a href="#privacidad">02 / PRIVACIDAD</a>
-      <a href="#cookies">03 / COOKIES</a>
-      <a href="#terminos">04 / TÉRMINOS DE USO</a>
+    <!-- Índice de navegación rápida -->
+    <nav class="legal-index" aria-label="Índice legal" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; margin-bottom: 30px; font-family: 'JetBrains Mono', monospace;">
+      <a href="#aviso-legal" class="filter-action" style="text-decoration: none; padding: 10px; text-align: center; border: 1px solid var(--border-strong, #141411); font-size: 11px; background: var(--bg-panel, #F8F1DF);">01 / AVISO LEGAL</a>
+      <a href="#privacidad" class="filter-action" style="text-decoration: none; padding: 10px; text-align: center; border: 1px solid var(--border-strong, #141411); font-size: 11px; background: var(--bg-panel, #F8F1DF);">02 / PRIVACIDAD</a>
+      <a href="#cookies" class="filter-action" style="text-decoration: none; padding: 10px; text-align: center; border: 1px solid var(--border-strong, #141411); font-size: 11px; background: var(--bg-panel, #F8F1DF);">03 / COOKIES</a>
+      <a href="#terminos" class="filter-action" style="text-decoration: none; padding: 10px; text-align: center; border: 1px solid var(--border-strong, #141411); font-size: 11px; background: var(--bg-panel, #F8F1DF);">04 / TÉRMINOS</a>
     </nav>
 
-    <div class="legal-content">
-      <section id="aviso-legal" class="legal-section">
-        <div class="legal-section-number">01</div>
-        <div>
-          <h2>AVISO LEGAL</h2>
-          <p><strong>Responsable:</strong> LUIS ALBERTO SIGNES SACRISTÁN.</p>
-          <p><strong>NIF:</strong> [PENDIENTE].</p>
-          <p><strong>Domicilio:</strong> [PENDIENTE].</p>
-          <p><strong>Correo de contacto:</strong> <a href="mailto:nolli@signes.studio">nolli@signes.studio</a>.</p>
-          <p><strong>Dominio:</strong> [PENDIENTE: dominio definitivo de NOLLI].</p>
-          <p>NOLLI es un radar digital para explorar obras de arquitectura, consultar información asociada a edificios y, cuando se dispone de una cuenta, organizar contenido personal y proponer nuevos registros.</p>
-          <p>La persona responsable responderá de los contenidos propios publicados en el sitio dentro de los límites establecidos por la normativa aplicable. Los mapas, servicios de autenticación y otros recursos de terceros se rigen también por sus propias condiciones.</p>
+    <!-- Contenido legal estructurado en tarjetas de panel -->
+    <div class="legal-content" style="display: grid; gap: 20px; font-family: 'JetBrains Mono', monospace; padding-bottom: 40px;">
+      
+      <section id="aviso-legal" class="legal-section my-collection-card" style="background: var(--bg-panel, #F8F1DF); border: 1px solid var(--border-strong, #141411); padding: 20px; display: grid; grid-template-columns: 40px 1fr; gap: 14px;">
+        <div class="legal-section-number" style="font-size: 14px; color: var(--accent); font-weight: bold;">01</div>
+        <div style="display: grid; gap: 10px; font-size: 11px; color: var(--fg);">
+          <h3 class="font-display" style="font-size: 16px; margin: 0; color: var(--fg);">AVISO LEGAL Y DATOS IDENTIFICATIVOS</h3>
+          <p style="margin: 0;">En cumplimiento del artículo 10 de la Ley 34/2002, de 11 de julio, de Servicios de la Sociedad de la Información y del Comercio Electrónico (LSSI-CE), se exponen los datos identificativos del titular:</p>
+          <p style="margin: 0;"><strong>Titular del servicio:</strong> LUIS ALBERTO SIGNES SACRISTÁN.</p>
+          <p style="margin: 0;"><strong>NIF:</strong> [PENDIENTE].</p>
+          <p style="margin: 0;"><strong>Domicilio profesional:</strong> [PENDIENTE] (València, España).</p>
+          <p style="margin: 0;"><strong>Correo electrónico de contacto:</strong> <a href="mailto:nolli@signes.studio" style="color: var(--accent); text-decoration: underline;">nolli@signes.studio</a>.</p>
+          <p style="margin: 0;"><strong>Dominio web oficial:</strong> [PENDIENTE: URL definitiva].</p>
+          <p style="margin: 0; line-height: 1.4;">NOLLI opera como una plataforma digital interactiva orientada a la divulgación, cartografía y catalogación de obras arquitectónicas, permitiendo a los usuarios registrados la gestión de listas personales, perfiles públicos y propuestas colaborativas de contenido.</p>
+          <p style="margin: 0; line-height: 1.4;">El acceso, navegación y utilización de la web atribuye la condición de usuario, el cual acepta desde dicho acceso los términos aquí expuestos, sin perjuicio de la aplicación de la normativa de obligado cumplimiento legal según corresponda.</p>
         </div>
       </section>
 
-      <section id="privacidad" class="legal-section">
-        <div class="legal-section-number">02</div>
-        <div>
-          <h2>POLÍTICA DE PRIVACIDAD</h2>
-          <h3>Quién trata los datos</h3>
-          <p>El responsable es la persona o entidad identificada en el Aviso Legal. Para ejercer derechos o plantear consultas, utiliza el correo <a href="mailto:nolli@signes.studio">nolli@signes.studio</a>.</p>
-          <h3>Qué datos se tratan</h3>
-          <ul>
-            <li>Datos de cuenta: correo electrónico y, si los facilitas, nombre, apellidos, ciudad y país.</li>
-            <li>Contenido personal: favoritos, visitas, valoraciones, notas, etiquetas y listas que guardes.</li>
-            <li>Contenido aportado: datos de obras, coordenadas, enlaces y fotografías que envíes para publicar o guardar.</li>
-            <li>Datos técnicos necesarios para prestar el servicio, como solicitudes de red, navegador y dirección IP gestionados por los proveedores técnicos.</li>
-            <li>Ubicación del dispositivo únicamente cuando activas la función de localización. NOLLI la usa para ordenar obras por cercanía y no la guarda en su base de datos.</li>
-          </ul>
-          <h3>Finalidades y bases jurídicas</h3>
-          <ul>
-            <li>Crear y mantener tu cuenta y prestar las funciones solicitadas: ejecución de la relación contractual o de medidas precontractuales.</li>
-            <li>Guardar y sincronizar tu zona personal: ejecución del servicio solicitado.</li>
-            <li>Gestionar propuestas, errores y moderación de contenidos: interés legítimo y, cuando corresponda, ejecución del servicio.</li>
-            <li>Usar la ubicación del dispositivo: consentimiento mediante la autorización del navegador, que puedes retirar desactivando el permiso.</li>
-            <li>Cumplir obligaciones legales y atender reclamaciones: obligación legal o interés legítimo.</li>
-          </ul>
-          <h3>Proveedores y transferencias</h3>
-          <p>La aplicación utiliza Supabase para autenticación y almacenamiento de datos, Mapbox para mostrar la cartografía, Google Fonts para tipografías, servicios CDN para recursos de interfaz y Nominatim/OpenStreetMap para resolver una ciudad aproximada cuando se consulta una función administrativa. Estos proveedores pueden tratar datos técnicos desde sus propios sistemas y países. [PENDIENTE: confirmar proveedores, contratos, ubicaciones y garantías de transferencia aplicables].</p>
-          <h3>Conservación y derechos</h3>
-          <p>Los datos se conservarán mientras exista la cuenta o mientras sean necesarios para la finalidad indicada, y posteriormente durante los plazos legales de prescripción. Puedes solicitar acceso, rectificación, supresión, oposición, limitación y portabilidad, así como retirar consentimientos, escribiendo a <a href="mailto:nolli@signes.studio">nolli@signes.studio</a>. También puedes reclamar ante la Agencia Española de Protección de Datos u otra autoridad competente.</p>
-          <h3>Seguridad</h3>
-          <p>Se aplican controles técnicos y políticas de acceso para proteger la información. Ningún sistema conectado a Internet garantiza seguridad absoluta. No introduzcas en notas o propuestas datos personales de terceras personas que no sean necesarios.</p>
+      <section id="privacidad" class="legal-section my-collection-card" style="background: var(--bg-panel, #F8F1DF); border: 1px solid var(--border-strong, #141411); padding: 20px; display: grid; grid-template-columns: 40px 1fr; gap: 14px;">
+        <div class="legal-section-number" style="font-size: 14px; color: var(--accent); font-weight: bold;">02</div>
+        <div style="display: grid; gap: 12px; font-size: 11px; color: var(--fg);">
+          <h3 class="font-display" style="font-size: 16px; margin: 0; color: var(--fg);">POLÍTICA DE PRIVACIDAD Y PROTECCIÓN DE DATOS (RGPD)</h3>
+          
+          <div style="display: grid; gap: 4px;">
+            <strong style="color: var(--accent);">1. Responsable del tratamiento</strong>
+            <p style="margin: 0; line-height: 1.4;">De conformidad con el Reglamento General de Protección de Datos (UE) 2016/679 (RGPD) y la Ley Orgánica 3/2018 (LOPDGDD), se informa que los datos personales recabados a través de los formularios de registro y autenticación de NOLLI son tratados bajo la responsabilidad exclusiva del titular indicado en el Aviso Legal. Contacto de privacidad: <a href="mailto:nolli@signes.studio" style="color: var(--accent); text-decoration: underline;">nolli@signes.studio</a>.</p>
+          </div>
+
+          <div style="display: grid; gap: 4px;">
+            <strong style="color: var(--accent);">2. Categorías de datos tratados e información recabada</strong>
+            <ul style="margin: 0; padding-left: 16px; line-height: 1.4; display: grid; gap: 4px;">
+              <li><strong>Datos identificativos y de cuenta:</strong> Correo electrónico, contraseña cifrada, nombre de usuario (nick), nombre, apellidos, ciudad y país facilitados voluntariamente en el perfil.</li>
+              <li><strong>Datos de actividad y contenido generado:</strong> Listas de edificios personalizadas, marcas de favoritos, estados de visita, notas privadas, valoraciones y etiquetas asociadas.</li>
+              <li><strong>Aportaciones colaborativas:</strong> Propuestas de nuevas obras arquitectónicas, coordenadas geográficas, descripciones, enlaces y archivos fotográficos enviados para revisión.</li>
+              <li><strong>Datos técnicos y de sesión:</strong> Direcciones IP, registros de conexión y metadatos técnicos estrictamente necesarios para el funcionamiento y seguridad de la infraestructura backend.</li>
+              <li><strong>Geolocalización por GPS:</strong> Datos de posición geográfica del dispositivo tratados de forma efímera en el navegador del usuario únicamente cuando este activa de forma voluntaria la función de localización para calcular proximidad de obras, sin almacenarse permanentemente en los servidores de la base de datos.</li>
+            </ul>
+          </div>
+
+          <div style="display: grid; gap: 4px;">
+            <strong style="color: var(--accent);">3. Finalidades y legitimación legal del tratamiento</strong>
+            <ul style="margin: 0; padding-left: 16px; line-height: 1.4; display: grid; gap: 4px;">
+              <li><strong>Gestión de usuarios y autenticación:</strong> Creación de cuenta, mantenimiento de sesión y prestación de servicios asociados en base a la ejecución de un contrato o medidas precontractuales (Art. 6.1.b RGPD).</li>
+              <li><strong>Sincronización de la zona personal y perfiles públicos:</strong> Almacenamiento seguro en base de datos de listas, colecciones y estados de visita solicitados expresamente por el usuario.</li>
+              <li><strong>Moderación y validación de contenidos:</strong> Revisión de propuestas de obras arquitectónicas y gestión de reportes de errores en base al interés legítimo en mantener la calidad de la plataforma (Art. 6.1.f RGPD).</li>
+              <li><strong>Geolocalización en tiempo real:</strong> Tratamiento basado en el consentimiento inequívoco otorgado mediante la habilitación de permisos del navegador (Art. 6.1.a RGPD).</li>
+            </ul>
+          </div>
+
+          <div style="display: grid; gap: 4px;">
+            <strong style="color: var(--accent);">4. Destinatarios y encargados de tratamiento (Proveedores)</strong>
+            <p style="margin: 0; line-height: 1.4;">Para prestar los servicios digitales, NOLLI utiliza infraestructura de terceros rigurosamente seleccionada que actúa como encargada de tratamiento:</p>
+            <ul style="margin: 0; padding-left: 16px; line-height: 1.4; display: grid; gap: 4px; margin-top: 4px;">
+              <li><strong>Supabase Inc.:</strong> Servicios de autenticación y alojamiento seguro de bases de datos relacionales.</li>
+              <li><strong>Mapbox Inc.:</strong> Proveedor de servicios cartográficos y renderizado de teselas vectoriales.</li>
+              <li><strong>Google Fonts / CDNs externos:</strong> Suministro optimizado de tipografías y recursos gráficos estáticos de interfaz.</li>
+            </ul>
+            <p style="margin: 0; line-height: 1.4; margin-top: 4px;">[PENDIENTE: auditar y formalizar formalmente las cláusulas de tratamiento de datos y salvaguardas de transferencia internacional con dichos proveedores tecnológicos].</p>
+          </div>
+
+          <div style="display: grid; gap: 4px;">
+            <strong style="color: var(--accent);">5. Plazos de conservación y derechos de los usuarios</strong>
+            <p style="margin: 0; line-height: 1.4;">Los datos personales se conservarán durante el tiempo necesario para cumplir con la finalidad para la mientras se mantenga activa la cuenta de usuario, y posteriormente durante los plazos legalmente exigibles de prescripción de responsabilidades.</p>
+            <p style="margin: 0; line-height: 1.4; margin-top: 4px;">Cualquier persona tiene derecho a obtener confirmación sobre si en NOLLI se tratan sus datos personales, pudiendo ejercer en cualquier momento los derechos de <strong>acceso, rectificación, supresión, limitación, portabilidad y oposición</strong> mediante solicitud escrita acompañada de copia de documento identificativo dirigida al correo electrónico: <a href="mailto:nolli@signes.studio" style="color: var(--accent); text-decoration: underline;">nolli@signes.studio</a>. Asimismo, le asiste el derecho a presentar una reclamación ante la Agencia Española de Protección de Datos (AEPD) si considera que sus derechos han sido vulnerados.</p>
+          </div>
         </div>
       </section>
 
-      <section id="cookies" class="legal-section">
-        <div class="legal-section-number">03</div>
-        <div>
-          <h2>POLÍTICA DE COOKIES</h2>
-          <p>En la versión actual, NOLLI no instala cookies propias de analítica, publicidad o seguimiento. La aplicación utiliza <code>localStorage</code> y <code>sessionStorage</code> para conservar sesiones, estados personales y el modo de uso elegido; estas tecnologías no son cookies, pero se describen aquí por transparencia.</p>
-          <p>La carga de Mapbox, Google Fonts, Tailwind CSS, Lucide y otros recursos externos puede implicar solicitudes a sus respectivos proveedores y sus propias tecnologías de almacenamiento. [PENDIENTE: revisar periódicamente sus cookies, configurar consentimiento previo cuando sea necesario y añadir aquí el detalle actualizado].</p>
-          <h3>Cómo gestionar el almacenamiento</h3>
-          <p>Puedes borrar el almacenamiento de NOLLI desde la configuración del navegador. Esto puede cerrar tu sesión y eliminar datos guardados únicamente en el dispositivo. También puedes bloquear recursos de terceros, aunque algunas funciones visuales o cartográficas podrían dejar de funcionar.</p>
-          <p>Si se incorporan analítica, publicidad, mapas personalizados con seguimiento u otras cookies no necesarias, será necesario actualizar esta política e implementar un mecanismo de consentimiento antes de activarlas.</p>
+      <section id="cookies" class="legal-section my-collection-card" style="background: var(--bg-panel, #F8F1DF); border: 1px solid var(--border-strong, #141411); padding: 20px; display: grid; grid-template-columns: 40px 1fr; gap: 14px;">
+        <div class="legal-section-number" style="font-size: 14px; color: var(--accent); font-weight: bold;">03</div>
+        <div style="display: grid; gap: 10px; font-size: 11px; color: var(--fg);">
+          <h3 class="font-display" style="font-size: 16px; margin: 0; color: var(--fg);">POLÍTICA DE COOKIES Y ALMACENAMIENTO LOCAL</h3>
+          <p style="margin: 0; line-height: 1.4;">En cumplimiento del artículo 22.2 de la LSSI-CE, se informa que la aplicación web NOLLI <strong>no utiliza cookies propias de carácter publicitario, analítico ni de elaboración de perfiles de seguimiento comercial</strong>.</p>
+          <p style="margin: 0; line-height: 1.4;">No obstante, para garantizar el correcto funcionamiento técnico de la interfaz de usuario, la persistencia de las sesiones de acceso y la conservación de preferencias de visualización del mapa, la plataforma emplea tecnologías de almacenamiento local del navegador (<code>localStorage</code> y <code>sessionStorage</code>) estrictamente técnicas y necesarias.</p>
+          <p style="margin: 0; line-height: 1.4;">Los servicios externos integrados (tales como Mapbox para la cartografía vectorial, Google Fonts o proveedores de CDN) pueden realizar llamadas técnicas a sus propios servidores, los cuales se rigen por sus respectivas políticas de privacidad y cookies.</p>
+          <div style="display: grid; gap: 4px; margin-top: 4px;">
+            <strong style="color: var(--accent);">Gestión y desactivación del almacenamiento local</strong>
+            <p style="margin: 0; line-height: 1.4;">El usuario puede configurar su navegador web en cualquier momento para bloquear, limpiar o eliminar el almacenamiento local y los datos de sesión de NOLLI. Tenga en cuenta que la eliminación de dichos datos comportará el cierre automático de la sesión activa y la pérdida temporal de las preferencias locales configuradas en el dispositivo.</p>
+          </div>
         </div>
       </section>
 
-      <section id="terminos" class="legal-section">
-        <div class="legal-section-number">04</div>
-        <div>
-          <h2>TÉRMINOS Y CONDICIONES DE USO</h2>
-          <h3>Objeto y aceptación</h3>
-          <p>El acceso y uso de NOLLI implica aceptar estos términos. Algunas funciones requieren una cuenta y pueden estar sujetas a límites técnicos o a disponibilidad de terceros.</p>
-          <h3>Uso permitido</h3>
-          <p>Usa el servicio de forma lícita, diligente y respetuosa. No intentes acceder a cuentas o datos ajenos, eludir controles, automatizar descargas masivas, interferir con el servicio ni utilizar la información para causar daños o infringir derechos.</p>
-          <h3>Contenido aportado</h3>
-          <p>Al enviar una obra, fotografía, enlace, texto o coordenadas, declaras que tienes autorización para hacerlo y que la información es razonablemente veraz. Concedes a NOLLI una licencia no exclusiva, mundial y gratuita para alojar, reproducir, adaptar técnicamente y mostrar ese contenido dentro del servicio. Conservas los derechos que te correspondan.</p>
-          <p>No envíes datos personales, imágenes de personas identificables o material protegido si no tienes una base legal o autorización suficiente. NOLLI podrá ocultar, corregir o retirar contenido que infrinja la ley, estos términos o derechos de terceras personas.</p>
-          <h3>Información del mapa</h3>
-          <p>La información arquitectónica y las coordenadas se ofrecen con finalidad informativa. No garantizan que un edificio sea visitable, accesible o que su estado actual coincida con el registrado. Comprueba horarios, permisos, restricciones y condiciones directamente con la propiedad o fuente oficial antes de desplazarte.</p>
-          <h3>Disponibilidad y responsabilidad</h3>
-          <p>El servicio puede cambiar, interrumpirse o contener errores. En la medida permitida por la ley, NOLLI no será responsable de daños derivados de decisiones tomadas únicamente con la información del mapa, de servicios externos o de usos contrarios a estos términos. Esta limitación no afecta a derechos irrenunciables ni a responsabilidades que legalmente no puedan excluirse.</p>
-          <h3>Cuenta, suspensión y cambios</h3>
-          <p>Eres responsable de mantener seguras tus credenciales y de la actividad realizada con tu cuenta. Podemos suspender o cerrar cuentas ante abuso, fraude, incumplimiento o riesgos de seguridad, respetando la normativa aplicable. Estos términos y la información legal podrán actualizarse; la versión publicada será la vigente desde su fecha de actualización.</p>
-          <p><strong>Última actualización:</strong> [PENDIENTE: fecha].</p>
+      <section id="terminos" class="legal-section my-collection-card" style="background: var(--bg-panel, #F8F1DF); border: 1px solid var(--border-strong, #141411); padding: 20px; display: grid; grid-template-columns: 40px 1fr; gap: 14px;">
+        <div class="legal-section-number" style="font-size: 14px; color: var(--accent); font-weight: bold;">04</div>
+        <div style="display: grid; gap: 12px; font-size: 11px; color: var(--fg);">
+          <h3 class="font-display" style="font-size: 16px; margin: 0; color: var(--fg);">TÉRMINOS Y CONDICIONES GENERALES DE USO</h3>
+          
+          <div style="display: grid; gap: 4px;">
+            <strong style="color: var(--accent);">1. Objeto y ámbito de aplicación</strong>
+            <p style="margin: 0; line-height: 1.4;">Las presentes condiciones regulan el acceso, navegación y utilización del sitio web NOLLI y sus servicios asociados. La utilización de la plataforma otorga la condición de usuario e expresa la aceptación plena y sin reservas de todas las estipulaciones publicadas en el momento del acceso.</p>
+          </div>
+
+          <div style="display: grid; gap: 4px;">
+            <strong style="color: var(--accent);">2. Obligaciones y uso correcto del servicio</strong>
+            <p style="margin: 0; line-height: 1.4;">El usuario se compromete formalmente a utilizar los contenidos, el mapa interactivo y las herramientas de usuario de conformidad con la ley, la buena fe, el orden público y los presentes términos. Queda expresamente prohibido:</p>
+            <ul style="margin: 0; padding-left: 16px; line-height: 1.4; display: grid; gap: 4px; margin-top: 4px;">
+              <li>Intentar eludir medidas de seguridad, acceder sin autorización a cuentas de otros usuarios o vulnerar las políticas de control de acceso de la base de datos de Supabase.</li>
+              <li>Realizar operaciones de extracción masiva automatizada de datos (web scraping intensivo) o ataques de denegación de servicio que saturen la infraestructura técnica.</li>
+              <li>Introducir o proponer contenidos injuriosos, ilícitos, falsos, que vulneren derechos de propiedad intelectual de terceros o que contengan código malicioso.</li>
+            </ul>
+          </div>
+
+          <div style="display: grid; gap: 4px;">
+            <strong style="color: var(--accent);">3. Propiedad intelectual y contenidos aportados por usuarios</strong>
+            <p style="margin: 0; line-height: 1.4;">Todos los elementos de diseño, código fuente, logotipos, estructura cartográfica y bases de datos son propiedad del titular de NOLLI o cuentan con las licencias o autorizaciones pertinentes. Respecto a las fichas, textos, enlaces o fotografías aportadas voluntariamente por los usuarios colaboradores mediante el sistema de propuestas, el usuario declara ser legítimo autor o titular de los derechos correspondientes y otorga a NOLLI una licencia de uso no exclusiva, gratuita y mundial para su alojamiento, reproducción técnica y exhibición pública en el mapa interactivo. La administración se reserva el derecho de revisión, corrección o supresión de cualquier contenido que contravenga estos criterios.</p>
+          </div>
+
+          <div style="display: grid; gap: 4px;">
+            <strong style="color: var(--accent);">4. Exclusión de garantías y limitación de responsabilidad</strong>
+            <p style="margin: 0; line-height: 1.4;">La información arquitectónica, histórica, las coordenadas geográficas y los estados de acceso publicados en NOLLI tienen un carácter exclusivamente divulgativo e informativo. El titular no garantiza la exactitud absoluta, actualización o idoneidad de los datos cartográficos, ni asume responsabilidad alguna por los perjuicios derivados de decisiones tomadas por los usuarios basándose de forma exclusiva en la información contenida en el radar, recomendando verificar presencialmente los accesos, horarios y normativas de visita de los edificios directamente con las fuentes oficiales o propiedades competentes.</p>
+          </div>
+
+          <div style="display: grid; gap: 4px;">
+            <strong style="color: var(--accent);">5. Modificaciones y legislación aplicable</strong>
+            <p style="margin: 0; line-height: 1.4;">El titular se reserva el derecho de efectuar sin previo aviso las modificaciones que considere oportunas en la web, pudiendo suspender, modificar o cancelar el acceso a los servicios en cualquier.</p>
+            <p style="margin: 0; line-height: 1.4; margin-top: 4px;"><strong>Última actualización jurídica:</strong> [PENDIENTE: Fecha de entrada en vigor].</p>
+          </div>
         </div>
       </section>
+
     </div>
 
-    <footer class="legal-footer">
-      <span>NOLLI // INFORMACIÓN LEGAL</span>
-      <a href="./index.html">[ MAPA ]</a>
-      <a href="./perfil.html">[ PERFIL ]</a>
+    <!-- Pie de página unificado -->
+    <footer class="legal-footer" style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-strong, #141411); margin-top: 40px; padding-top: 20px; padding-bottom: 30px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--fg-dim);">
+      <span>NOLLI // INFORMACIÓN LEGAL Y NORMATIVA</span>
+      <div style="display: flex; gap: 12px;">
+        <a href="./index.html" style="color: var(--accent); text-decoration: none;">[ MAPA ]</a>
+        <a href="./perfil.html" style="color: var(--accent); text-decoration: none;">[ PERFIL ]</a>
+      </div>
     </footer>
   </main>
+
 </body>
 </html>

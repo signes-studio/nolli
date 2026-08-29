@@ -4,34 +4,25 @@
 
 import { state } from './state.js';
 import { MAPBOX_TOKEN, MAP_STYLES, DEFAULT_CENTER, DEFAULT_ZOOM } from './config.js';
-import { buildIcon, drawTargetIcon } from './icons.js';
+import { buildIcon, drawTargetIcon, buildEmojiIcon } from './icons.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { abrirFicha, cerrarFicha } from './sheetUI.js';
 
 mapboxgl.accessToken = MAPBOX_TOKEN;
 
 /** Registra o actualiza los emojis de las listas del usuario en Mapbox */
-function registrarIconosColecciones() {
+export function registrarIconosColecciones() {
   if (!state.map) return;
+  const isDark = state.mapStyle === 'dark' || document.body.classList.contains('dark-mode');
   if (state.userCollections && state.userCollections.length > 0) {
     state.userCollections.forEach((col) => {
       if (col.icon) {
         const emojiImageName = `collection-emoji-${col.id}`;
-        if (!state.map.hasImage(emojiImageName)) {
-          const canvas = document.createElement('canvas');
-          canvas.width = 64;
-          canvas.height = 64;
-          const ctx = canvas.getContext('2d');
-          ctx.font = '36px sans-serif';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(col.icon, 32, 32);
-          
-          const imgData = ctx.getImageData(0, 0, 64, 64);
-          if (!state.map.hasImage(emojiImageName)) {
-            state.map.addImage(emojiImageName, imgData, { pixelRatio: 2 });
-          }
+        const imgData = buildEmojiIcon(col.icon, isDark, 64);
+        if (state.map.hasImage(emojiImageName)) {
+          state.map.removeImage(emojiImageName);
         }
+        state.map.addImage(emojiImageName, imgData, { pixelRatio: 2 });
       }
     });
   }
@@ -39,9 +30,19 @@ function registrarIconosColecciones() {
 
 /** Crea el mapa, añade la capa de obras y arranca el HUD de coordenadas. */
 export function cargarMapaMapbox() {
+  const savedStyle = localStorage.getItem('nolli_map_style');
+  if (savedStyle && MAP_STYLES[savedStyle]) {
+    state.mapStyle = savedStyle;
+  }
+  if (state.mapStyle === 'dark') {
+    document.body.classList.add('dark-mode');
+  } else {
+    document.body.classList.remove('dark-mode');
+  }
+
   state.map = new mapboxgl.Map({
     container: 'map',
-    style: MAP_STYLES.abstract,
+    style: MAP_STYLES[state.mapStyle] || MAP_STYLES.abstract,
     center: DEFAULT_CENTER,
     zoom: DEFAULT_ZOOM,
     attributionControl: true,
@@ -64,6 +65,9 @@ export function cargarMapaMapbox() {
       'otro': '#064773'
     };
 
+    const isDark = state.mapStyle === 'dark' || document.body.classList.contains('dark-mode');
+    const selectedColor = isDark ? '#FFFFFF' : '#141411';
+
     [0, 1, 2, 3].forEach((importance) => {
       Object.entries(CATEGORY_COLORS).forEach(([cat, color]) => {
         const prefix = `icon-l${importance}-${cat}`;
@@ -72,7 +76,7 @@ export function cargarMapaMapbox() {
         if (!state.map.hasImage(`${prefix}-visited`)) state.map.addImage(`${prefix}-visited`, buildIcon(drawTargetIcon, '#82c812', importance), { pixelRatio: 2 });
         if (!state.map.hasImage(`${prefix}-pending`)) state.map.addImage(`${prefix}-pending`, buildIcon(drawTargetIcon, '#FFCC00', importance), { pixelRatio: 2 });
         if (!state.map.hasImage(`${prefix}-private`)) state.map.addImage(`${prefix}-private`, buildIcon(drawTargetIcon, '#0478f2', importance), { pixelRatio: 2 });
-        if (!state.map.hasImage(`${prefix}-selected`)) state.map.addImage(`${prefix}-selected`, buildIcon(drawTargetIcon, '#141411', importance), { pixelRatio: 2 });
+        if (!state.map.hasImage(`${prefix}-selected`)) state.map.addImage(`${prefix}-selected`, buildIcon(drawTargetIcon, selectedColor, importance), { pixelRatio: 2 });
       });
     });
 
@@ -250,26 +254,62 @@ export function cargarMapaMapbox() {
       });
     });
 
+    const IMPORTANCE_LABEL_CONFIG = {
+      0: {
+        font: ['Inter Bold', 'Open Sans Bold', 'Arial Unicode MS Bold'],
+        size: 12.5,
+        minzoom: 11.5,
+        sortKey: 0,
+      },
+      1: {
+        font: ['Inter Medium', 'Open Sans Semibold', 'Arial Unicode MS Bold'],
+        size: 11.5,
+        minzoom: 13.0,
+        sortKey: 1,
+      },
+      2: {
+        font: ['Inter Regular', 'Open Sans Regular', 'Arial Unicode MS Regular'],
+        size: 11,
+        minzoom: 14.5,
+        sortKey: 2,
+      },
+      3: {
+        font: ['Inter Light', 'Open Sans Light', 'Arial Unicode MS Regular'],
+        size: 10,
+        minzoom: 16.0,
+        sortKey: 3,
+      },
+    };
+
     [3, 2, 1, 0].forEach((importance) => {
+      const cfg = IMPORTANCE_LABEL_CONFIG[importance];
       const labelLayerId = `obras-labels-l${importance}`;
       const sourceId = importance === 0 ? 'obras-maestras' : 'obras';
       state.map.addLayer({
         id: labelLayerId,
         type: 'symbol',
         source: sourceId,
-        minzoom: importance === 0 ? 11 : importance === 1 ? 12 : importance === 2 ? 15 : 20,
-        filter: ['all', ['==', ['get', 'importancia'], importance], ['==', ['get', 'estado_revision'], 'publicada']],
+        minzoom: cfg.minzoom,
+        filter: ['all', ['==', ['get', 'importancia'], importance], ['!=', ['get', 'estado_revision'], 'rechazada']],
         layout: {
           'text-field': ['get', 'nombre_obra'],
-          'text-font': ['Inter Regular', 'Open Sans Regular', 'Arial Unicode MS Regular'],
-          'text-size': 12,
-          'text-offset': [1.15, 0],
+          'text-font': cfg.font,
+          'text-size': cfg.size,
+          'text-offset': [1.05, 0],
           'text-anchor': 'left',
-          'text-allow-overlap': true,
-          'text-ignore-placement': true,
+          'text-justify': 'left',
+          'text-max-width': 11,
+          'text-padding': 4,
+          'text-allow-overlap': false,
+          'text-ignore-placement': false,
+          'text-optional': true,
+          'symbol-sort-key': cfg.sortKey,
         },
         paint: {
-          'text-color': '#04070B',
+          'text-color': isDark ? '#FFFFFF' : '#04070B',
+          'text-halo-color': isDark ? 'rgba(18, 18, 18, 0.95)' : 'rgba(248, 241, 223, 0.95)',
+          'text-halo-width': 1.5,
+          'text-halo-blur': 0.5,
         },
       });
       state.map.on('mouseenter', labelLayerId, () => { state.map.getCanvas().style.cursor = 'pointer'; });
@@ -288,6 +328,14 @@ export function cargarMapaMapbox() {
 
   // Escuchar cambios en las colecciones del usuario para registrar dinámicamente los emojis nuevos
   document.addEventListener('radar:user-collections-changed', () => {
+    registrarIconosColecciones();
+    actualizarFuenteMapa();
+  });
+  document.addEventListener('radar:user-session-ready', () => {
+    registrarIconosColecciones();
+    actualizarFuenteMapa();
+  });
+  document.addEventListener('radar:user-status-ready', () => {
     registrarIconosColecciones();
     actualizarFuenteMapa();
   });
@@ -354,6 +402,10 @@ function initMapStyleSelector() {
 
   if (!panel || !button) return;
 
+  panel.querySelectorAll('[data-map-style]').forEach((item) => {
+    item.classList.toggle('active', item.dataset.mapStyle === state.mapStyle);
+  });
+
   button.addEventListener('click', (event) => {
     event.stopPropagation();
     const isOpen = panel.classList.toggle('open');
@@ -374,6 +426,7 @@ function initMapStyleSelector() {
     if (!styleKey || !MAP_STYLES[styleKey]) return;
 
     state.mapStyle = styleKey;
+    localStorage.setItem('nolli_map_style', styleKey);
 
     panel.querySelectorAll('[data-map-style]').forEach((item) => {
       item.classList.toggle('active', item === option);
@@ -409,6 +462,7 @@ function localizarDispositivo() {
 
       const markerElement = document.createElement('div');
       markerElement.className = 'location-marker';
+      markerElement.innerHTML = '<span class="location-pulse"></span><span class="location-core"></span>';
       markerElement.setAttribute('aria-label', 'Tu ubicación actual');
       state.locationMarker = new mapboxgl.Marker({ element: markerElement })
         .setLngLat(coordinates)

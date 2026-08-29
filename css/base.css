@@ -7,20 +7,20 @@
   /* Neutros — base y estructura, >90% de la superficie visual */
   --bg:            #F8F1DF; /* papel — fondo de documento/UI */
   --bg-panel:      #F8F1DF; /* superficie — tarjetas, paneles, fichas */
-  --bg-raised:     #F8F1DF; /* superficie ligeramente elevada (cabeceras de panel) */
+  --bg-raised:     #F0E9D2; /* superficie ligeramente elevada (cabeceras de panel) */
   --fg:            #141411; /* tinta — texto principal */
   --fg-dim:        #6B6B6B; /* texto secundario / metadatos */
   --border:        #D8D6CE; /* subdivisión interna de módulo, NO estructural */
   --border-strong: #141411; /* línea de retícula — SIEMPRE negra */
 
-  /* Primarios Bauhaus — SOLO función, nunca decoración (ver matriz de uso) */
-  --accent:        #E95C0C; /* azul — interacción / enlace / estado activo */
-  --accent-2:      #EFBC02; /* amarillo — CTA primaria / foco cartográfico */
-  --accent-select: #EFBC02; /* selección activa en mapa/listas */
-  --red:           #064773; /* alerta / eliminar / obra en riesgo */
+  /* Primarios Bauhaus */
+  --accent:        #E95C0C; /* Bermellón / Naranja Bauhaus */
+  --accent-2:      #EFBC02; /* Amarillo Mostaza Constructivista */
+  --accent-select: #EFBC02; /* Selección activa en mapa/listas */
+  --blue:          #064773; /* Azul Profundo */
+  --red:           #D6201D; /* Rojo Alerta / Eliminar */
 
-  /* Elementos dibujados directamente sobre el lienzo oscuro del mapa
-     (el mapa conserva alto contraste; el chrome de interfaz es claro) */
+  /* Elementos de alto contraste sobre mapa */
   --on-map:        #F0F1F3;
   --on-map-dim:    #9A9A9A;
 }
@@ -42,17 +42,32 @@ html, body {
 
 main { position: fixed; inset: 0; overflow: hidden; }
 
-body {
+body, input, button, select, textarea {
   background: var(--bg);
   color: var(--fg);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-tap-highlight-color: transparent;
 }
 
-.font-display {
-  font-family: 'Archivo Expanded', 'Archivo Black', sans-serif;
+h1, h2, h3, h4, h5, h6,
+.font-display,
+.font-poppins,
+.profile-title,
+.legend-title,
+.legend-subtitle {
+  font-family: 'League Spartan', -apple-system, sans-serif !important;
   font-weight: 800;
   letter-spacing: -0.02em;
+}
+
+.font-mono,
+.hud-readout,
+.col-axis,
+.data-row .label,
+.legend-item,
+.btn,
+.tech-input {
+  font-family: 'JetBrains Mono', monospace;
 }
 
 ::selection {
@@ -223,102 +238,134 @@ body {
   border: 1px solid var(--border-strong);
 }
 
-.font-poppins {
-  font-family: 'Archivo Expanded', 'Archivo Black', sans-serif;
-  font-weight: 800;
+
+
+body.dark-mode {
+  --bg:            #141411;
+  --bg-panel:      #1c1c1a;
+  --bg-raised:     #252522;
+  --fg:            #F8F1DF;
+  --fg-dim:        #9A9A92;
+  --border:        #32322E;
+  --border-strong: #4E4E48;
+  --on-map:        #F8F1DF;
+  --on-map-dim:    #9A9A92;
+  background: var(--bg);
+  color: var(--fg);
 }
 
-/* =========================================================================
-   CORRECCIÓN DEFINITIVA DE PANELES, FICHAS Y TEXTOS EN MODO OSCURO
-   ========================================================================= */
-
-/* 1. La Ficha de Obra completa y su cabecera */
-body.dark-mode #sheet,
-body.dark-mode .sheet-header,
-body.dark-mode .sheet-container {
-    background-color: #1a1a1a !important;
-    color: #e0e0e0 !important;
-    border-color: #333333 !important;
+body.dark-mode .data-row .label {
+  background: rgba(255, 255, 255, 0.03);
 }
 
-/* 2. Forzar que los textos y valores dentro de la ficha de obra sean claros */
-body.dark-mode #sheet .value,
-body.dark-mode #sheet .label,
-body.dark-mode #sheet h2, 
-body.dark-mode #sheet h3,
-body.dark-mode #sheet strong,
-body.dark-mode .sheet-title {
-    color: #f0f0f0 !important;
+body.dark-mode .legend-header-btn {
+  background: var(--bg-raised);
+  color: var(--fg);
 }
 
-/* 3. Las filas de datos y separadores dentro de la ficha */
-body.dark-mode #sheet .data-row {
-    border-color: #333333 !important;
+body.dark-mode .radar-legend {
+  background: var(--bg-panel);
+  border-color: var(--border-strong);
+  color: var(--fg);
 }
 
-/* 4. Botones de acción dentro de la ficha (compartir, favorito, etc.) */
-body.dark-mode #sheet-header-actions .sheet-icon-action,
+body.dark-mode .sheet-header {
+  background: var(--bg-raised);
+  border-color: var(--border);
+}
+
+body.dark-mode #sheet {
+  background: var(--bg-panel);
+  color: var(--fg);
+  border-top-color: var(--accent);
+}
+
 body.dark-mode .sheet-icon-action {
-    background-color: #242424 !important;
-    color: #e0e0e0 !important;
-    border-color: #383838 !important;
+  background: var(--bg-raised);
+  color: var(--fg);
+  border-color: var(--border-strong);
 }
 
-body.dark-mode #sheet-header-actions .sheet-icon-action:hover {
-    background-color: #333333 !important;
+body.dark-mode .sheet-icon-action:hover {
+  background: var(--bg-panel);
+  color: var(--accent);
+  border-color: var(--accent);
 }
 
-/* 5. Botones generales de tipo .btn que sigan viéndose en crema */
-body.dark-mode .btn,
-body.dark-mode button.btn {
-    background-color: #242424 !important;
-    color: #f0f0f0 !important;
-    border-color: #383838 !important;
+body.dark-mode .btn {
+  background: var(--bg-panel);
+  color: var(--fg);
+  border-color: var(--border-strong);
 }
 
 body.dark-mode .btn:hover {
-    background-color: #333333 !important;
+  background: var(--fg);
+  color: var(--bg);
 }
 
-/* =========================================================================
-   FORZAR ICONOS LATERALES Y TEXTOS SUPERIORES EN MODO OSCURO
-   ========================================================================= */
-
-/* 1. Forzar los iconos de la barra lateral derecha (incluso si usan SVG o Lucide) */
-body.dark-mode #map-tools button,
-body.dark-mode #map-tools svg,
-body.dark-mode .map-tool-btn,
-body.dark-mode .map-tool-btn svg,
-body.dark-mode .mapboxgl-ctrl-group button svg {
-    color: #f0f0f0 !important;
-    fill: #f0f0f0 !important;
+body.dark-mode .btn-accent {
+  background: var(--accent-2);
+  color: #141411;
+  border-color: var(--accent-2);
 }
 
-body.dark-mode #map-tools button {
-    background-color: #242424 !important;
-    border-color: #383838 !important;
+body.dark-mode .btn-accent:hover {
+  background: var(--fg);
+  color: var(--accent-2);
 }
 
-body.dark-mode #map-tools button:hover {
-    background-color: #333333 !important;
+body.dark-mode .btn-accent2 {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
 }
 
-/* 2. Forzar el texto de coordenadas y zoom de la esquina superior derecha */
-body.dark-mode .mapboxgl-ctrl-top-right,
-body.dark-mode [class*="lng"],
-body.dark-mode [class*="lat"],
-body.dark-mode [class*="zoom"],
-body.dark-mode .hud-readout,
-body.dark-mode div[style*="position: absolute"] {
-    color: #f0f0f0 !important;
+body.dark-mode .btn-accent2:hover {
+  background: var(--fg);
+  color: var(--accent);
 }
 
-/* Selector general específico para los textos informativos de la esquina superior derecha */
-body.dark-mode div:has(> #hud-lng),
-body.dark-mode .mapboxgl-ctrl-bottom-right *,
-body.dark-mode .mapboxgl-ctrl-top-right * {
-    color: #f0f0f0 !important;
+body.dark-mode .fab {
+  background: var(--bg-panel);
+  color: var(--fg);
+  border-color: var(--border-strong);
 }
+
+body.dark-mode .fab:hover {
+  background: var(--bg-raised);
+  color: var(--accent);
+}
+
+body.dark-mode .fab.active-state {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+body.dark-mode .tech-input {
+  background: var(--bg-panel);
+  color: var(--fg);
+  border-color: var(--border-strong);
+}
+
+body.dark-mode .places-tab,
+body.dark-mode .admin-tab {
+  background: var(--bg-raised);
+  color: var(--fg-dim);
+}
+
+body.dark-mode .places-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  background: var(--bg-panel);
+}
+
+body.dark-mode .admin-tab.active {
+  color: var(--accent-2);
+  border-bottom-color: var(--accent-2);
+  background: var(--bg-panel);
+}
+
 /* Forzar que los iconos de la leyenda ignoren el reset de bordes redondeados */
 .radar-legend .node-icon,
 .radar-legend .node-icon.high,
@@ -327,6 +374,7 @@ body.dark-mode .mapboxgl-ctrl-top-right * {
 .legend-color-grid i {
   border-radius: 50% !important;
 }
+
 .splash-screen {
   position: fixed;
   inset: 0;

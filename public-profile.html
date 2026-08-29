@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="Perfil de usuario en Nolli, radar arquitectónico interactivo.">
+  <meta name="color-scheme" content="dark">
+  <title>nolli | perfil de usuario</title>
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icon.svg">
+
+  <!-- Tailwind (CDN, utilidades de layout puntuales) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+  <!-- Tipografías: Inter para textos y League Spartan para títulos -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=League+Spartan:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+
+  <!-- Estilos propios (orden idéntico al index.html) -->
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/map-hud.css">
+  <link rel="stylesheet" href="css/panels.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#F5F4F0">
+
+  <style>
+    body, input, button, select, textarea {
+      font-family: 'Inter', sans-serif;
+    }
+    h1, h2, h3, h4, h5, h6, 
+    .font-display, 
+    .font-poppins,
+    .legend-title, 
+    .legend-subtitle {
+      font-family: 'League Spartan', sans-serif !important;
+    }
+  </style>
+</head>
+<body class="tech-body">
+
+  <main style="max-width: 700px; margin: 40px auto; padding: 20px;">
+    
+    <!-- Barra superior idéntica al diseño estético del index -->
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-strong, #141411); padding-bottom: 12px; margin-bottom: 20px;">
+      <div>
+        <h1 id="profile-header-title" class="font-display text-2xl leading-none tracking-tight" style="color: var(--accent); margin: 0; text-transform: lowercase; font-weight: 800;">nolli<span style="color:var(--fg)">.</span></h1>
+        <p class="text-[10px] tracking-widest mt-1" style="color:var(--fg-dim); margin:0;">perfil público</p>
+      </div>
+      <a href="index.html" class="filter-action" style="text-decoration: none; padding: 6px 12px; border: 1px solid var(--border-strong, #141411); font-family: 'JetBrains Mono', monospace; font-size: 11px;">[ VOLVER AL MAPA ]</a>
+    </div>
+
+    <!-- Tarjeta de cabecera del usuario (Avatar, Nick, Nombre y Bio) -->
+    <section class="my-collection-card" style="background: var(--bg-panel, #F8F1DF); border: 1px solid var(--border-strong, #141411); padding: 20px; display: grid; gap: 14px; margin-bottom: 20px; font-family: 'JetBrains Mono', monospace;">
+      <div style="display: flex; gap: 16px; align-items: center;">
+        <div id="user-avatar" style="width: 64px; height: 64px; border-radius: 50%; background: var(--accent, #E95C0C); color: #FFF; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; border: 1px solid var(--border-strong, #141411);">
+          ?
+        </div>
+        <div style="display: grid; gap: 4px;">
+          <h2 id="user-display-name" class="font-display" style="font-size: 18px; margin: 0; color: var(--fg, #141411);">Cargando...</h2>
+          <span id="user-nick-handle" style="font-size: 11px; color: var(--fg-dim, #666);">@...</span>
+          <span id="user-location" style="font-size: 10px; color: var(--fg-dim, #666);">--</span>
+        </div>
+      </div>
+      <div id="user-bio" style="font-size: 11px; color: var(--fg, #141411); line-height: 1.4; border-top: 1px dashed var(--border, #D8D6CE); padding-top: 10px;">
+        Sin biografía disponible.
+      </div>
+    </section>
+
+    <!-- Pestañas de datos públicos adaptadas a las clases del index -->
+    <div class="places-tabs" style="font-family: 'JetBrains Mono', monospace; margin-bottom: 12px;">
+      <button type="button" class="places-tab active" data-profile-tab="collections">LISTAS PÚBLICAS</button>
+      <button type="button" class="places-tab" data-profile-tab="visited">VISITADOS</button>
+    </div>
+
+    <!-- Contenedor dinámico de listas o visitados -->
+    <div id="profile-content-list" style="display: grid; gap: 10px; font-family: 'JetBrains Mono', monospace;">
+      <div class="nearby-empty" style="padding: 20px; text-align: center; border: 1px solid var(--border, #D8D6CE); background: var(--bg-panel, #F8F1DF); font-size: 11px;">
+        Cargando contenido...
+      </div>
+    </div>
+
+  </main>
+
+  <script type="module">
+    import { state } from './state.js';
+    import { searchUserByNick, fetchPublicUserCollections, fetchPublicUserBuildingStatuses, fetchBuildings } from './api.js';
+
+    let profileUser = null;
+    let publicCollections = [];
+    let publicStatuses = [];
+    let allBuildings = [];
+    let activeTab = 'collections';
+
+    async function initProfileView() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const nickQuery = urlParams.get('nick');
+
+      if (!nickQuery) {
+        document.getElementById('profile-content-list').innerHTML = `
+          <div class="nearby-empty" style="padding: 20px; text-align: center; border: 1px solid var(--border-strong, #141411); background: var(--bg-panel, #F8F1DF); font-size: 11px;">
+            Especifica un usuario en la URL (ej: perfil.html?nick=nombre_usuario).
+          </div>`;
+        return;
+      }
+
+      try {
+        allBuildings = await fetchBuildings({ includeAllImportance: true });
+
+        profileUser = await searchUserByNick(nickQuery);
+        if (!profileUser) {
+          document.getElementById('profile-content-list').innerHTML = `
+            <div class="nearby-empty" style="padding: 20px; text-align: center; border: 1px solid var(--border-strong, #141411); background: var(--bg-panel, #F8F1DF); font-size: 11px;">
+              No se ha encontrado ningún usuario con el nick "@${nickQuery}".
+            </div>`;
+          return;
+        }
+
+        renderUserInfo(profileUser);
+
+        [publicCollections, publicStatuses] = await Promise.all([
+          fetchPublicUserCollections(profileUser.id),
+          fetchPublicUserBuildingStatuses(profileUser.id)
+        ]);
+
+        renderTabContent();
+
+      } catch (err) {
+        console.error(err);
+        document.getElementById('profile-content-list').innerHTML = `
+          <div class="nearby-empty" style="padding: 20px; text-align: center; border: 1px solid var(--border-strong, #141411); background: var(--bg-panel, #F8F1DF); font-size: 11px;">
+            Error al cargar la información del perfil público.
+          </div>`;
+      }
+    }
+
+    function renderUserInfo(user) {
+      const firstName = user.first_name || '';
+      const lastName = user.last_name || '';
+      const fullName = (firstName + ' ' + lastName).trim() || 'Usuario de Nolli';
+      const nick = user.nick ? `@${user.nick}` : '@anónimo';
+      const city = user.city || '';
+      const country = user.country || '';
+      const location = [city, country].filter(Boolean).join(', ') || 'Ubicación no especificada';
+
+      document.getElementById('user-display-name').textContent = fullName;
+      document.getElementById('user-nick-handle').textContent = nick;
+      document.getElementById('user-location').textContent = location;
+      document.getElementById('user-bio').textContent = user.bio || 'Sin biografía especificada.';
+      
+      const initial = (firstName || user.nick || 'U')[0].toUpperCase();
+      document.getElementById('user-avatar').textContent = initial;
+      document.getElementById('profile-header-title').textContent = `nolli. (${nick})`;
+    }
+
+    document.addEventListener('click', (e) => {
+      const tabBtn = e.target.closest('[data-profile-tab]');
+      if (!tabBtn) return;
+
+      activeTab = tabBtn.dataset.profileTab;
+      document.querySelectorAll('[data-profile-tab]').forEach(btn => {
+        btn.classList.toggle('active', btn === tabBtn);
+      });
+
+      renderTabContent();
+    });
+
+    function renderTabContent() {
+      const container = document.getElementById('profile-content-list');
+
+      if (activeTab === 'collections') {
+        if (!publicCollections.length) {
+          container.innerHTML = `<div class="nearby-empty" style="padding: 16px; text-align: center; border: 1px solid var(--border, #D8D6CE); background: var(--bg-panel, #F8F1DF); font-size: 11px;">Este usuario no tiene listas públicas visibles.</div>`;
+          return;
+        }
+
+        container.innerHTML = publicCollections.map(col => `
+          <article class="my-collection-card" style="background: var(--bg-panel, #F8F1DF); border: 1px solid var(--border-strong, #141411); padding: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <span style="margin-right: 6px;">${col.icon || '🏛️'}</span>
+                <strong style="font-size: 12px;">${col.name}</strong>
+                ${col.description ? `<div style="font-size: 10px; color: var(--fg-dim, #666); margin-top: 4px; font-style: italic;">${col.description}</div>` : ''}
+              </div>
+            </div>
+          </article>
+        `).join('');
+      } else if (activeTab === 'visited') {
+        const visitedIds = publicStatuses.filter(s => s.visited).map(s => String(s.building_id));
+        const visitedBuildings = allBuildings.filter(b => visitedIds.includes(String(b.id)));
+
+        if (!visitedBuildings.length) {
+          container.innerHTML = `<div class="nearby-empty" style="padding: 16px; text-align: center; border: 1px solid var(--border, #D8D6CE); background: var(--bg-panel, #F8F1DF); font-size: 11px;">Este usuario aún no ha marcado edificios como visitados.</div>`;
+          return;
+        }
+
+        container.innerHTML = visitedBuildings.map(obra => `
+          <div class="my-collection-item-row" style="background: var(--bg-panel, #F8F1DF); border: 1px solid var(--border-strong, #141411); padding: 10px 14px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <strong style="font-size: 11px; display: block;">${obra.nombre_obra}</strong>
+              <span style="font-size: 10px; color: var(--fg-dim, #666);">${obra.arquitecto || ''}</span>
+            </div>
+            <a href="index.html?obra=${obra.id}" class="filter-action" style="text-decoration: none; padding: 4px 8px; font-size: 9px; border: 1px solid var(--border-strong, #141411);">VER EN MAPA</a>
+          </div>
+        `).join('');
+      }
+    }
+
+    initProfileView();
+  </script>
+
+</body>
+</html>

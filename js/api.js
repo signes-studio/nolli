@@ -570,3 +570,29 @@ export async function reviewBuilding(id, estadoRevision, sessionToken) {
   }
   return response.json();
 }
+
+export async function searchUserByNick(nick) {
+  const cleanNick = String(nick || '').trim().replace(/^@/, '');
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/profiles?nick=eq.${encodeURIComponent(cleanNick)}&select=*`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
+  });
+  if (!response.ok) return null;
+  const rows = await response.json().catch(() => []);
+  return rows[0] || null;
+}
+
+export async function fetchPublicUserCollections(userId) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?user_id=eq.${encodeURIComponent(userId)}&select=*&order=created_at.asc`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
+  });
+  if (!response.ok) return [];
+  return response.json().catch(() => []);
+}
+
+export async function fetchPublicUserBuildingStatuses(userId) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_building_status?user_id=eq.${encodeURIComponent(userId)}&select=building_id,favorite,visited`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
+  });
+  if (!response.ok) return [];
+  return response.json().catch(() => []);
+}

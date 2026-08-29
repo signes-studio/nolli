@@ -36,10 +36,24 @@ export function actualizarFuenteMapa() {
       ubicacionesCompartidas.set(key, (ubicacionesCompartidas.get(key) || 0) + 1);
     });
 
+    // Mapeo de obras pertenecientes a listas con visualización en mapa activada
+    const coleccionesConIconoActivo = (state.userCollections || []).filter((col) => col.show_on_map && col.icon);
+    const coleccionPorObra = new Map();
+    if (coleccionesConIconoActivo.length > 0 && Array.isArray(state.userCollectionItems)) {
+      coleccionesConIconoActivo.forEach((col) => {
+        state.userCollectionItems.forEach((item) => {
+          if (String(item.collection_id) === String(col.id)) {
+            coleccionPorObra.set(String(item.building_id), col);
+          }
+        });
+      });
+    }
+
     const masterFeatures = [];
     const standardFeatures = [];
 
     obrasVisibles.forEach((obra) => {
+      const activeCollection = coleccionPorObra.get(String(obra.id));
       const feature = {
         type: 'Feature',
         id: obra.featureId,
@@ -53,6 +67,10 @@ export function actualizarFuenteMapa() {
           favorite: state.buildingStatuses.get(String(obra.id))?.favorite ? 1 : 0,
           visited: state.buildingStatuses.get(String(obra.id))?.visited ? 1 : 0,
           selected: obra.selected ? 1 : 0,
+          ...(activeCollection ? {
+            collection_emoji: activeCollection.icon,
+            collection_id: activeCollection.id,
+          } : {}),
         },
       };
 

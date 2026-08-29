@@ -22,7 +22,7 @@
 <!-- Tipografías: Inter para textos y League Spartan para títulos -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=League+Spartan:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=League+Spartan:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
 
 <!-- Estilos propios (orden: variables/base → layout → paneles → componentes) -->
 <link rel="stylesheet" href="css/base.css">
@@ -72,7 +72,7 @@
       <div style="flex: 1;">
         <h1 class="font-display text-2xl leading-none tracking-tight" style="color: var(--accent); margin: 0; text-transform: lowercase; font-weight: 800;">nolli<span style="color:var(--fg)">.</span></h1>
         <p class="text-[10px] tracking-widest mt-1" style="color:var(--fg-dim); margin:0;">radar arquitectónico</p>
-        <button id="btn-login-trigger" type="button" class="mt-2 text-[10px] font-bold px-2 py-1 cursor-pointer transition-colors" style="border: 1px solid var(--accent); color: var(--accent); background: rgba(0, 90, 193, 0.08);">[ INICIAR SESIÓN ]</button>
+        <button id="btn-login-trigger" type="button" class="mt-2 text-[10px] font-bold px-2 py-1 cursor-pointer transition-colors" style="border: 1px solid var(--accent); color: var(--accent); background: rgba(233, 92, 12, 0.1);">[ INICIAR SESIÓN ]</button>
         <a href="./perfil.html" class="profile-page-link mt-2" aria-label="Abrir perfil personal">[ PERFIL PERSONAL ]</a>
         <button id="btn-admin-panel" type="button" class="btn btn-admin hidden mt-2">PANEL ADMIN</button>
       </div>
@@ -176,14 +176,10 @@
   <section id="my-places-panel" class="my-places-panel" aria-label="Mis edificios">
     <div class="filter-head">
       <div>
-        <span style="color:var(--fg-dim)">[ MI RADAR ]</span>
-        <small class="personal-panel-subtitle">TU ESPACIO PERSONAL</small>
+        <span style="color:var(--accent)">[ MI RADAR ]</span>
+        <small class="personal-panel-subtitle">ESPACIO PERSONAL</small>
       </div>
       <i data-lucide="x" id="btn-my-places-close" width="14" height="14" style="cursor:pointer; color:var(--fg-dim)" role="button" aria-label="Cerrar mis edificios"></i>
-    </div>
-    <div class="personal-panel-intro">
-      <strong>TODO TU RADAR, EN UN SOLO LUGAR</strong>
-      <span>Organiza tus visitas, guarda recorridos, escribe notas para clasificar tus edificios.</span>
     </div>
     <div class="places-tabs">
       <button type="button" class="places-tab active" data-place-tab="visited">VISITADOS</button>

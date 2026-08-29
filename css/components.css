@@ -11,10 +11,75 @@
 }
 .fab:active { background: var(--fg); color: var(--bg-panel); border-color: var(--fg); }
 .fab.active-state { background: var(--accent); color: #fff; border-color: var(--accent); }
-.location-active { color: var(--accent); border-color: var(--accent); background: rgba(0, 90, 193, 0.08); }
+.location-active {
+  color: #0066FF !important;
+  border-color: #0066FF !important;
+  background: rgba(0, 102, 255, 0.08) !important;
+}
+
+body.dark-mode .location-active {
+  color: #00E5FF !important;
+  border-color: #00E5FF !important;
+  background: rgba(0, 229, 255, 0.12) !important;
+}
+
+/* ---------- Marcador de ubicación en vivo (GPS / Radar Pulse) ---------- */
 .location-marker {
-  width: 10px; height: 10px; border: 1px solid var(--bg-panel); border-radius: 50% !important;
-  background: var(--accent); outline: 3px solid rgba(0, 90, 193, 0.18);
+  position: relative;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  border-radius: 50% !important;
+}
+
+.location-core {
+  width: 12px;
+  height: 12px;
+  background: #0066FF;
+  border: 2.5px solid #FFFFFF;
+  border-radius: 50% !important;
+  box-shadow: 0 0 0 1px rgba(0, 102, 255, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+  z-index: 2;
+  position: relative;
+}
+
+.location-pulse {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50% !important;
+  background: rgba(0, 102, 255, 0.22);
+  border: 1.5px solid rgba(0, 102, 255, 0.65);
+  animation: radarLocationPulse 2.2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+  z-index: 1;
+}
+
+@keyframes radarLocationPulse {
+  0% {
+    transform: scale(0.55);
+    opacity: 1;
+  }
+  65% {
+    transform: scale(1.75);
+    opacity: 0.2;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+body.dark-mode .location-core {
+  background: #00E5FF;
+  border: 2px solid #141411;
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.9) !important;
+}
+
+body.dark-mode .location-pulse {
+  background: rgba(0, 229, 255, 0.2);
+  border-color: rgba(0, 229, 255, 0.75);
 }
 .fab.active-state#btn-add-project { background: var(--accent-2); color: var(--fg); border-color: var(--accent-2); }
 .map-tools-toggle { display: none; }
@@ -44,7 +109,7 @@
 .architect-profile-box { max-width: 520px; max-height: min(76vh, 680px); display: flex; flex-direction: column; }
 .architect-profile-body { min-height: 0; overflow: auto; padding: 18px 14px 12px; }
 .architect-profile-kicker { margin: 0 0 5px; color: var(--accent); font-size: 9px; letter-spacing: .08em; }
-.architect-profile-name { margin: 0; color: var(--fg); font-family: 'Archivo Expanded', 'Archivo Black', sans-serif; font-weight: 800; font-size: 22px; line-height: 1.05; overflow-wrap: anywhere; }
+.architect-profile-name { margin: 0; color: var(--fg); font-family: 'League Spartan', -apple-system, sans-serif; font-weight: 800; font-size: 24px; line-height: 1.05; overflow-wrap: anywhere; }
 .architect-profile-count { margin: 8px 0 13px; color: var(--fg-dim); font-size: 10px; }
 .architect-profile-works { border-top: 1px solid var(--border); }
 .architect-work-item { width: 100%; display: grid; grid-template-columns: 54px minmax(0, 1fr); gap: 10px; padding: 11px 0; border: 0; border-bottom: 1px solid var(--border); background: transparent; color: var(--fg); font: inherit; text-align: left; cursor: pointer; }
@@ -85,100 +150,9 @@
 }
 .modal-body { padding: 14px; }
 
-/* Inputs estéticos */
 .tech-input {
   width: 100%; background: var(--bg-panel); border: 1px solid var(--border-strong);
   color: var(--fg); font-family: 'JetBrains Mono', monospace; font-size: 12px;
   padding: 10px;
 }
 .tech-input:focus { outline: 2px solid var(--accent-2); outline-offset: 1px; }
-/* =========================================================================
-   CORRECCIÓN DEFINITIVA DE PANELES, FICHAS Y TEXTOS EN MODO OSCURO
-   ========================================================================= */
-
-/* 1. La Ficha de Obra completa y su cabecera */
-body.dark-mode #sheet,
-body.dark-mode .sheet-header,
-body.dark-mode .sheet-container {
-    background-color: #1a1a1a !important;
-    color: #e0e0e0 !important;
-    border-color: #333333 !important;
-}
-
-/* 2. Forzar que los textos y valores dentro de la ficha de obra sean claros */
-body.dark-mode #sheet .value,
-body.dark-mode #sheet .label,
-body.dark-mode #sheet h2, 
-body.dark-mode #sheet h3,
-body.dark-mode #sheet strong,
-body.dark-mode .sheet-title {
-    color: #f0f0f0 !important;
-}
-
-/* 3. Las filas de datos y separadores dentro de la ficha */
-body.dark-mode #sheet .data-row {
-    border-color: #333333 !important;
-}
-
-/* 4. Botones de acción dentro de la ficha (compartir, favorito, etc.) */
-body.dark-mode #sheet-header-actions .sheet-icon-action,
-body.dark-mode .sheet-icon-action {
-    background-color: #242424 !important;
-    color: #e0e0e0 !important;
-    border-color: #383838 !important;
-}
-
-body.dark-mode #sheet-header-actions .sheet-icon-action:hover {
-    background-color: #333333 !important;
-}
-
-/* 5. Botones generales de tipo .btn que sigan viéndose en crema */
-body.dark-mode .btn,
-body.dark-mode button.btn {
-    background-color: #242424 !important;
-    color: #f0f0f0 !important;
-    border-color: #383838 !important;
-}
-
-body.dark-mode .btn:hover {
-    background-color: #333333 !important;
-}
-/* =========================================================================
-   FORZAR ICONOS LATERALES Y TEXTOS SUPERIORES EN MODO OSCURO
-   ========================================================================= */
-
-/* 1. Forzar los iconos de la barra lateral derecha (incluso si usan SVG o Lucide) */
-body.dark-mode #map-tools button,
-body.dark-mode #map-tools svg,
-body.dark-mode .map-tool-btn,
-body.dark-mode .map-tool-btn svg,
-body.dark-mode .mapboxgl-ctrl-group button svg {
-    color: #f0f0f0 !important;
-    fill: #f0f0f0 !important;
-}
-
-body.dark-mode #map-tools button {
-    background-color: #242424 !important;
-    border-color: #383838 !important;
-}
-
-body.dark-mode #map-tools button:hover {
-    background-color: #333333 !important;
-}
-
-/* 2. Forzar el texto de coordenadas y zoom de la esquina superior derecha */
-body.dark-mode .mapboxgl-ctrl-top-right,
-body.dark-mode [class*="lng"],
-body.dark-mode [class*="lat"],
-body.dark-mode [class*="zoom"],
-body.dark-mode .hud-readout,
-body.dark-mode div[style*="position: absolute"] {
-    color: #f0f0f0 !important;
-}
-
-/* Selector general específico para los textos informativos de la esquina superior derecha */
-body.dark-mode div:has(> #hud-lng),
-body.dark-mode .mapboxgl-ctrl-bottom-right *,
-body.dark-mode .mapboxgl-ctrl-top-right * {
-    color: #f0f0f0 !important;
-}

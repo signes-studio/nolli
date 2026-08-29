@@ -11,7 +11,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=League+Spartan:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="css/base.css">
 <meta name="theme-color" content="#F5F4F0">
@@ -31,8 +31,8 @@
   .l-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 24px; }
 
   .l-header { grid-column: 1 / 13; display: flex; justify-content: space-between; align-items: flex-end; padding: 16px 0; border-bottom: 1px solid var(--border-strong); }
-  .l-logo { font-family: 'Archivo Expanded', 'Archivo Black', sans-serif; font-weight: 800; font-size: 22px; text-transform: lowercase; color: var(--fg); text-decoration: none; }
-  .l-logo em { font-style: normal; color: var(--fg-dim); }
+  .l-logo { font-family: 'League Spartan', -apple-system, sans-serif; font-weight: 800; font-size: 24px; text-transform: lowercase; color: var(--fg); text-decoration: none; }
+  .l-logo em { font-style: normal; color: var(--accent); }
   .l-nav { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; display: flex; gap: 20px; align-items: center; }
   .l-nav a { color: var(--fg); text-decoration: none; border-bottom: 1px solid transparent; }
   .l-nav a:hover { border-color: var(--fg); }
@@ -42,7 +42,7 @@
 
   .l-hero { grid-column: 1 / 10; padding: 56px 0 40px; }
   @media (max-width: 900px) { .l-hero { grid-column: 1 / 13; } }
-  .l-hero h1 { font-family: 'Archivo Expanded', 'Archivo Black', sans-serif; font-weight: 800; font-size: clamp(34px, 6vw, 56px); line-height: 1.0; margin: 0 0 22px; letter-spacing: -.01em; }
+  .l-hero h1 { font-family: 'League Spartan', -apple-system, sans-serif; font-weight: 800; font-size: clamp(38px, 7vw, 68px); line-height: 0.95; margin: 0 0 22px; letter-spacing: -0.02em; }
   .l-hero p { font-size: 15px; line-height: 1.65; color: var(--fg-dim); max-width: 460px; margin: 0 0 30px; }
   .l-cta { display: inline-flex; align-items: center; gap: 10px; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 13px; letter-spacing: .04em; background: var(--accent-2); color: var(--fg); border: 2px solid var(--fg); padding: 15px 24px; text-transform: uppercase; text-decoration: none; cursor: pointer; }
   .l-cta:hover { background: var(--fg); color: var(--accent-2); }
@@ -63,7 +63,7 @@
   .l-stats .lbl { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: .1em; color: var(--fg-dim); text-transform: uppercase; }
 
   .l-method { grid-column: 1 / 13; display: grid; grid-template-columns: repeat(12, 1fr); gap: 24px; padding: 48px 0; border-top: 1px solid var(--border-strong); }
-  .l-method h2 { grid-column: 1 / 5; font-family: 'Archivo Expanded', 'Archivo Black', sans-serif; font-weight: 800; font-size: 24px; margin: 0; }
+  .l-method h2 { grid-column: 1 / 5; font-family: 'League Spartan', -apple-system, sans-serif; font-weight: 800; font-size: 28px; margin: 0; }
   @media (max-width: 900px) { .l-method h2 { grid-column: 1 / 13; } }
   .l-method-items { grid-column: 5 / 13; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
   @media (max-width: 900px) { .l-method-items { grid-column: 1 / 13; grid-template-columns: 1fr; } }

@@ -106,10 +106,10 @@
 .architect-suggestions[hidden] { display: none; }
 .architect-suggestion { display: block; width: 100%; padding: 8px 10px; border: 0; border-bottom: 1px solid var(--border); background: transparent; color: var(--fg-dim); font: inherit; font-size: 10px; text-align: left; cursor: pointer; }
 .architect-suggestion:last-child { border-bottom: 0; }
-.architect-suggestion:hover, .architect-suggestion:focus-visible { background: rgba(0, 90, 193, .08); color: var(--accent); outline: none; }
+.architect-suggestion:hover, .architect-suggestion:focus-visible { background: var(--bg-raised); color: var(--accent); outline: none; }
 .my-places-panel {
-  position: absolute; right: 14px; bottom: 14px; z-index: 40;
-  width: min(360px, calc(100vw - 28px)); max-height: min(70vh, 560px);
+  position: absolute; right: 14px; bottom: 84px; z-index: 40;
+  width: min(380px, calc(100vw - 28px)); max-height: min(72vh, 600px);
   overflow-y: auto; background: var(--bg-panel); border: 1px solid var(--border-strong);
   transform: translateY(calc(100% + 150px)); visibility: hidden; pointer-events: none; opacity: 0;
   transition: transform .22s cubic-bezier(.2,.8,.2,1), opacity .15s, visibility 0s linear .22s;
@@ -126,17 +126,156 @@
 .forgot-password { align-self: flex-start; padding: 0; border: 0; background: transparent; color: var(--fg-dim); font: inherit; font-size: 9px; text-decoration: underline; cursor: pointer; }
 .forgot-password:hover, .forgot-password:focus-visible { color: var(--accent); outline: none; }
 .forgot-password:disabled { cursor: wait; opacity: .6; }
-.personal-panel-subtitle { display: block; margin-top: 3px; color: var(--accent); font-size: 8px; letter-spacing: .08em; }
-.personal-panel-intro { display: grid; gap: 4px; padding: 10px 12px 8px; border-bottom: 1px solid var(--border); }
-.personal-panel-intro strong { color: var(--fg); font-size: 11px; letter-spacing: .04em; }
-.personal-panel-intro span { color: var(--fg-dim); font-size: 9px; line-height: 1.45; }
-.places-tabs { display: flex; flex-wrap: wrap; border-bottom: 1px solid var(--border); }
-.places-tab { flex: 1 1 90px; padding: 9px 5px; border: 0; background: var(--bg-raised); color: var(--fg-dim); font: inherit; font-size: 9px; cursor: pointer; }
-.places-tab.active { color: var(--accent); border-bottom: 1px solid var(--accent); }
-.my-places-list { padding: 0 12px 8px; }
-.my-places-list .my-collection-card { background: transparent; border: 0; padding: 8px 0; }
-.my-places-list .my-place-item { padding: 10px 0; }
-.my-place-item { width: 100%; display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border: 0; border-bottom: 1px solid var(--border); background: transparent; color: var(--fg); font: inherit; font-size: 11px; text-align: left; cursor: pointer; }
+.personal-panel-subtitle { display: block; margin-top: 2px; color: var(--accent); font-size: 9px; letter-spacing: .08em; font-weight: 700; }
+.places-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-bottom: 1px solid var(--border-strong);
+  background: var(--bg-raised);
+}
+.places-tab {
+  padding: 10px 4px;
+  border: 0;
+  border-right: 1px solid var(--border);
+  background: transparent;
+  color: var(--fg-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  letter-spacing: .04em;
+  transition: background .12s, color .12s;
+}
+.places-tab:last-child { border-right: 0; }
+.places-tab.active {
+  background: var(--bg-panel);
+  color: var(--accent);
+  border-bottom: 2px solid var(--accent);
+}
+.places-tab:hover { color: var(--fg); }
+.my-places-list {
+  padding: 10px 12px 14px;
+  display: grid;
+  gap: 6px;
+  overflow-x: hidden;
+}
+.my-places-list .my-collection-card {
+  border: 1px solid var(--border);
+  background: var(--bg-raised);
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+.my-place-item {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  background: var(--bg-raised);
+  color: var(--fg);
+  font: inherit;
+  font-size: 11px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .12s, background .12s;
+}
+.my-place-item:hover, .my-place-item:focus-visible {
+  border-color: var(--accent);
+  background: var(--bg-panel);
+  outline: none;
+}
+.my-place-item.in-collection {
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+.my-place-item-main {
+  min-width: 0;
+  flex: 1;
+  display: grid;
+  gap: 2px;
+}
+.my-place-item-title {
+  color: var(--fg);
+  font-weight: 600;
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.my-place-meta {
+  color: var(--fg-dim);
+  font-size: 9.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.my-place-arrow {
+  flex-shrink: 0;
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 11px;
+}
+.my-collections-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 4px;
+}
+.my-collection-items-list {
+  display: grid;
+  gap: 4px;
+}
+.btn-remove-collection {
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+  color: var(--red);
+  font-size: 11px;
+  cursor: pointer;
+  line-height: 1;
+}
+.btn-remove-collection:hover {
+  background: rgba(214, 32, 29, 0.1);
+  border-color: var(--red);
+}
+.collection-counter {
+  display: inline-block;
+  padding: 1px 5px;
+  border: 1px solid var(--border);
+  font-size: 9px;
+  color: var(--fg-dim);
+}
+.collection-map-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 6px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-panel);
+  color: var(--fg-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: .03em;
+  transition: all .12s;
+  white-space: nowrap;
+}
+.collection-map-toggle:hover, .collection-map-toggle:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+  outline: none;
+}
+.collection-map-toggle.active {
+  background: var(--accent);
+  color: #FFFFFF;
+  border-color: var(--accent);
+}
 .admin-panel { position: absolute; left: 14px; top: 112px; z-index: 40; width: min(520px, calc(100vw - 28px)); max-height: calc(100vh - 140px); overflow-y: auto; background: var(--bg-panel); border: 1px solid var(--accent-2); transform: translateY(calc(-100% - 140px)); visibility: hidden; pointer-events: none; opacity: 0; transition: transform .22s cubic-bezier(.2,.8,.2,1), opacity .15s, visibility 0s linear .22s; }
 .admin-panel.open { transform: translateY(0); visibility: visible; pointer-events: auto; opacity: 1; transition-delay: 0s; }
 .map-style-panel { position: absolute; right: 14px; bottom: 14px; z-index: 40; width: min(220px, calc(100vw - 28px)); background: var(--bg-panel); border: 1px solid var(--border-strong); transform: translateY(calc(100% + 150px)); visibility: hidden; pointer-events: none; opacity: 0; transition: transform .22s cubic-bezier(.2,.8,.2,1), opacity .15s, visibility 0s linear .22s; }
@@ -183,23 +322,20 @@
 .admin-action-review { color: var(--accent-2); border-color: var(--accent-2); }
 .admin-action-reject { color: var(--red); border-color: var(--red); }
 .admin-action-open { color: var(--accent); border-color: var(--accent); }
-@media (max-width: 560px) { .admin-panel { top: 106px; } .admin-project { align-items: flex-start; flex-direction: column; } }
 @media (max-width: 600px) {
-  /* Restauramos una cabecera limpia y compacta */
+  .admin-panel { top: 106px; }
+  .admin-project { align-items: flex-start; flex-direction: column; }
   .sheet-header {
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
     padding: 8px 12px;
   }
-
   .sheet-header > div:first-child {
     display: flex;
     align-items: center;
     gap: 6px;
   }
-
-  /* Convertimos los botones de acción en una barra horizontal compacta o de una sola línea desplazable/dividida */
   .sheet-header-actions {
     display: flex;
     flex-wrap: nowrap;
@@ -208,8 +344,6 @@
     max-width: 60vw;
     padding-bottom: 2px;
   }
-
-  /* Ocultamos texto largo secundario si es necesario o compactamos los botones */
   .sheet-action-button {
     flex: 0 0 auto;
     padding: 4px 8px;
@@ -217,13 +351,9 @@
     letter-spacing: 0.02em;
     min-height: 28px;
   }
-}
-  .sheet-header { padding: 9px 10px; }
-  .sheet-header .btn { font-size: 9px; padding: 6px 7px; }
   .data-row { font-size: 13px; }
   .data-row .label { width: 112px; padding: 11px 9px; font-size: 10px; }
   .data-row .value { padding: 11px 9px; }
-  .sheet-action-button { min-height: 42px; padding: 7px 5px; font-size: 10px; }
   .personal-notes { padding: 12px 9px 14px; }
   .rating-star { font-size: 24px; }
   .note-toggle, .save-personal-status { min-height: 42px; font-size: 11px; }
@@ -331,7 +461,7 @@
 .sheet-icon-action.active.visited {
   color: var(--accent-2);
   border-color: var(--accent-2);
-  background: rgba(0, 90, 193, 0.08);
+  background: rgba(239, 188, 2, 0.12);
 }
 
 /* Acciones especiales de borrado o edición */
@@ -349,113 +479,4 @@
 .sheet-icon-action.admin-delete-action:hover,
 .sheet-icon-action.private-delete-action:hover {
   background: rgba(214, 32, 29, 0.08);
-}
-
-/* Alineación limpia en la cabecera móvil sin ocupar espacio de más */
-@media (max-width: 600px) {
-  .sheet-header-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    justify-content: flex-end;
-    max-width: 65vw;
-  }
-}
-/* =========================================================================
-   CORRECCIÓN DEFINITIVA DE PANELES, FICHAS Y TEXTOS EN MODO OSCURO
-   ========================================================================= */
-
-/* 1. La Ficha de Obra completa y su cabecera */
-body.dark-mode #sheet,
-body.dark-mode .sheet-header,
-body.dark-mode .sheet-container {
-    background-color: #1a1a1a !important;
-    color: #e0e0e0 !important;
-    border-color: #333333 !important;
-}
-
-/* 2. Forzar que los textos y valores dentro de la ficha de obra sean claros */
-body.dark-mode #sheet .value,
-body.dark-mode #sheet .label,
-body.dark-mode #sheet h2, 
-body.dark-mode #sheet h3,
-body.dark-mode #sheet strong,
-body.dark-mode .sheet-title {
-    color: #f0f0f0 !important;
-}
-
-/* 3. Las filas de datos y separadores dentro de la ficha */
-body.dark-mode #sheet .data-row {
-    border-color: #333333 !important;
-}
-
-/* 4. Botones de acción dentro de la ficha (compartir, favorito, etc.) */
-body.dark-mode #sheet-header-actions .sheet-icon-action,
-body.dark-mode .sheet-icon-action {
-    background-color: #242424 !important;
-    color: #e0e0e0 !important;
-    border-color: #383838 !important;
-}
-
-body.dark-mode #sheet-header-actions .sheet-icon-action:hover {
-    background-color: #333333 !important;
-}
-
-/* 5. Botones generales de tipo .btn que sigan viéndose en crema */
-body.dark-mode .btn,
-body.dark-mode button.btn {
-    background-color: #242424 !important;
-    color: #f0f0f0 !important;
-    border-color: #383838 !important;
-}
-
-body.dark-mode .btn:hover {
-    background-color: #333333 !important;
-}
-/* Inputs de texto dentro de los paneles en modo oscuro */
-body.dark-mode .tech-input,
-body.dark-mode select,
-body.dark-mode textarea {
-    background-color: #242424;
-    color: #ffffff;
-    border: 1px solid #383838;
-}
-/* =========================================================================
-   FORZAR ICONOS LATERALES Y TEXTOS SUPERIORES EN MODO OSCURO
-   ========================================================================= */
-
-/* 1. Forzar los iconos de la barra lateral derecha (incluso si usan SVG o Lucide) */
-body.dark-mode #map-tools button,
-body.dark-mode #map-tools svg,
-body.dark-mode .map-tool-btn,
-body.dark-mode .map-tool-btn svg,
-body.dark-mode .mapboxgl-ctrl-group button svg {
-    color: #f0f0f0 !important;
-    fill: #f0f0f0 !important;
-}
-
-body.dark-mode #map-tools button {
-    background-color: #242424 !important;
-    border-color: #383838 !important;
-}
-
-body.dark-mode #map-tools button:hover {
-    background-color: #333333 !important;
-}
-
-/* 2. Forzar el texto de coordenadas y zoom de la esquina superior derecha */
-body.dark-mode .mapboxgl-ctrl-top-right,
-body.dark-mode [class*="lng"],
-body.dark-mode [class*="lat"],
-body.dark-mode [class*="zoom"],
-body.dark-mode .hud-readout,
-body.dark-mode div[style*="position: absolute"] {
-    color: #f0f0f0 !important;
-}
-
-/* Selector general específico para los textos informativos de la esquina superior derecha */
-body.dark-mode div:has(> #hud-lng),
-body.dark-mode .mapboxgl-ctrl-bottom-right *,
-body.dark-mode .mapboxgl-ctrl-top-right * {
-    color: #f0f0f0 !important;
 }

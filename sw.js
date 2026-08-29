@@ -1,10 +1,14 @@
-const CACHE_NAME = 'nolli-shell-v12';
+const CACHE_NAME = 'nolli-shell-v13';
 const APP_SHELL = [
   './',
   './index.html',
   './perfil.html',
+  './public-profile.html',
+  './landing.html',
+  './legal.html',
   './css/base.css',
   './css/components.css',
+  './css/legal.css',
   './css/map-hud.css',
   './css/panels.css',
   './css/profile.css',

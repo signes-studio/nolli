@@ -38,7 +38,7 @@ async function initLoginModal() {
     bLoginT.textContent = canUseAdminTools ? '[ ADMIN DESBLOQUEADO ]' : '[ SESIÓN INICIADA ]';
     bLoginT.style.color = 'var(--accent-2)';
     bLoginT.style.borderColor = 'var(--accent-2)';
-    bLoginT.style.background = 'rgba(57, 255, 20, 0.1)';
+    bLoginT.style.background = 'rgba(239, 188, 2, 0.12)';
     logoutButton.classList.remove('hidden');
     loginEntryFields.forEach((field) => field.classList.add('hidden'));
     if (canUseAdminTools) document.dispatchEvent(new CustomEvent('radar:admin-login'));
@@ -226,7 +226,7 @@ async function initLoginModal() {
     bLoginT.textContent = '[ INICIAR SESIÓN ]';
     bLoginT.style.color = 'var(--accent)';
     bLoginT.style.borderColor = 'var(--accent)';
-    bLoginT.style.background = 'rgba(0, 90, 193, 0.08)';
+    bLoginT.style.background = 'rgba(233, 92, 12, 0.1)';
     mLogin.classList.remove('open');
     document.dispatchEvent(new CustomEvent('radar:logout'));
   });
