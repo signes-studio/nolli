@@ -359,54 +359,140 @@
 .admin-action-review { color: var(--accent-2); border-color: var(--accent-2); }
 .admin-action-reject { color: var(--red); border-color: var(--red); }
 .admin-action-open { color: var(--accent); border-color: var(--accent); }
-@media (max-width: 600px) {
-  .admin-panel { top: 106px; }
-  .admin-project { align-items: flex-start; flex-direction: column; }
-  .sheet-header {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 12px;
+@media (max-width: 768px) {
+  /* =========================================================================
+     BOTTOM SHEETS MÓVILES (Bauhaus: fondo #F4F1EA, aristas rectas, 50-70% alto)
+     ========================================================================= */
+  .sheet,
+  .filter-panel,
+  .search-panel,
+  .my-places-panel,
+  .map-style-panel,
+  .admin-panel {
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    top: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: min(65vh, calc(100dvh - 90px)) !important;
+    max-height: 70vh !important;
+    min-height: 50vh !important;
+    border-radius: 0 !important;
+    border: 0 !important;
+    border-top: 2px solid var(--border-strong, #141411) !important;
+    background: #F4F1EA !important;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.28) !important;
+    z-index: 50 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    transform: translateY(100%) translate3d(0, 0, 0) !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    will-change: transform, opacity !important;
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease, visibility 0s linear 0.22s !important;
+    padding-bottom: max(16px, env(safe-area-inset-bottom)) !important;
   }
-  .sheet-header > div:first-child {
-    display: flex;
-    align-items: center;
-    gap: 6px;
+
+  body.dark-mode .sheet,
+  body.dark-mode .filter-panel,
+  body.dark-mode .search-panel,
+  body.dark-mode .my-places-panel,
+  body.dark-mode .map-style-panel,
+  body.dark-mode .admin-panel {
+    background: #171715 !important;
   }
-  .sheet-header-actions {
-    display: flex;
-    flex-wrap: nowrap;
-    gap: 4px;
-    overflow-x: auto;
-    max-width: 60vw;
-    padding-bottom: 2px;
+
+  .sheet.open,
+  .filter-panel.open,
+  .search-panel.open,
+  .my-places-panel.open,
+  .map-style-panel.open,
+  .admin-panel.open {
+    transform: translateY(0) translate3d(0, 0, 0) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease !important;
   }
+
+  /* Contenedores de scroll con inercia nativa y prevención de rebote */
+  #sheet-body,
+  .my-places-list,
+  .nearby-buildings,
+  .admin-project-list,
+  .filter-group-body,
+  .admin-reports-view,
+  .admin-users-view {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior-y: contain !important;
+    flex: 1 !important;
+  }
+
+  /* Cabeceras de panel estandarizadas */
+  .sheet-header,
+  .filter-head {
+    min-height: 48px !important;
+    padding: 10px 14px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    background: #ECE6D8 !important;
+    border-bottom: 1px solid var(--border-strong, #141411) !important;
+  }
+
+  body.dark-mode .sheet-header,
+  body.dark-mode .filter-head {
+    background: #20201D !important;
+  }
+
+  .sheet-close-button,
+  .filter-head-actions i {
+    min-width: 48px !important;
+    min-height: 48px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    touch-action: manipulation !important;
+  }
+
   .sheet-action-button {
-    flex: 0 0 auto;
-    padding: 4px 8px;
-    font-size: 8px;
-    letter-spacing: 0.02em;
-    min-height: 28px;
+    min-height: 38px !important;
+    padding: 8px 12px !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.04em !important;
+    touch-action: manipulation !important;
   }
+
+  #sheet-title {
+    font-size: 20px !important;
+    line-height: 1.15 !important;
+    padding: 12px 14px 6px !important;
+  }
+
   .data-row { font-size: 13px; }
-  .data-row .label { width: 112px; padding: 11px 9px; font-size: 10px; }
-  .data-row .value { padding: 11px 9px; }
-  .personal-notes { padding: 12px 9px 14px; }
-  .rating-star { font-size: 24px; }
-  .note-toggle, .save-personal-status { min-height: 42px; font-size: 11px; }
-  .filter-panel, .search-panel, .my-places-panel, .map-style-panel { right: 8px; left: 8px; bottom: 76px; width: auto; max-height: 64vh; }
-  .filter-panel, .search-panel, .my-places-panel { transform: translateY(calc(100% + 130px)); }
-  .my-places-panel.open { transform: translateY(0); }
-  .admin-panel { left: 8px; right: 8px; top: 100px; width: auto; max-height: calc(100vh - 116px); }
-  .admin-toolbar { padding: 8px; }
-  .topbar { padding: 10px 10px 24px; }
-  .topbar-inner { padding-bottom: 8px; }
-  .hud-readout { font-size: 10px; }
-  .hud-crosshair { display: none; }
-  #map-tools { right: 8px !important; bottom: max(8px, env(safe-area-inset-bottom)) !important; gap: 6px !important; }
-  #map-tools .map-tools-toggle { display: flex; order: -1; }
-  #map-tools:not(.tools-open) > button:not(.map-tools-toggle) { display: none; }
-  #map-tools.tools-open > button:not(.map-tools-toggle) { display: flex; }
+  .data-row .label { width: 110px; padding: 10px; font-size: 10px; }
+  .data-row .value { padding: 10px; }
+  .personal-notes { padding: 12px 10px 14px; }
+  .rating-star { font-size: 26px; }
+  .note-toggle, .save-personal-status { min-height: 48px; font-size: 11px; touch-action: manipulation; }
+
+  /* Herramientas de mapa (FABs) flotando sobre la barra inferior */
+  #map-tools {
+    right: 12px !important;
+    bottom: calc(62px + max(8px, env(safe-area-inset-bottom))) !important;
+    gap: 8px !important;
+    z-index: 40 !important;
+  }
+  #map-tools .fab {
+    width: 48px !important;
+    height: 48px !important;
+    touch-action: manipulation !important;
+  }
 }
 .search-controls { display: grid; gap: 7px; padding: 10px 12px; border-bottom: 1px solid var(--border); }
 .nearby-buildings { padding: 0 12px 8px; }

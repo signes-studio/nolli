@@ -13,6 +13,7 @@ import { initModalsUI } from './modalsUI.js';
 import { initSearchUI } from './searchUI.js';
 import { initMyPlacesUI } from './myPlacesUI.js';
 import { initAdminUI } from './adminUI.js';
+import { initMobileBottomNav } from './mobileBottomNav.js';
 
 import { abrirFicha } from './sheetUI.js';
 
@@ -188,6 +189,7 @@ initModalsUI();
 initSearchUI();
 initMyPlacesUI();
 initAdminUI();
+initMobileBottomNav();
 lucide.createIcons();
 inicializarRadar();
 

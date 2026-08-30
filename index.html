@@ -288,6 +288,33 @@
     <h2 id="sheet-title" class="font-display px-3.5 pt-3 pb-2 text-xl leading-tight" style="margin:0;"></h2>
     <div id="sheet-body"></div>
   </section>
+
+  <!-- Barra de navegación inferior fija para móviles (Neo-Bauhaus) -->
+  <nav id="mobile-bottom-bar" class="mobile-bottom-bar" aria-label="Navegación móvil">
+    <button type="button" class="mobile-nav-btn" id="mobile-nav-search" data-target-panel="search-panel" aria-label="Buscar edificios">
+      <i data-lucide="search" width="19" height="19"></i>
+      <span>BUSCAR</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" id="mobile-nav-filters" data-target-panel="filter-panel" aria-label="Filtrar catálogo">
+      <i data-lucide="sliders-horizontal" width="19" height="19"></i>
+      <span>FILTROS</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" id="mobile-nav-places" data-target-panel="my-places-panel" aria-label="Mi radar y guardados">
+      <i data-lucide="bookmark" width="19" height="19"></i>
+      <span>MI RADAR</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" id="mobile-nav-layers" data-target-panel="map-style-panel" aria-label="Capas del mapa">
+      <i data-lucide="layers-2" width="19" height="19"></i>
+      <span>CAPAS</span>
+    </button>
+    <a href="./perfil.html" class="mobile-nav-btn" id="mobile-nav-profile" aria-label="Perfil personal">
+      <i data-lucide="user" width="19" height="19"></i>
+      <span>PERFIL</span>
+    </a>
+  </nav>
+
+  <!-- Fondo atenuador para cerrar paneles en móvil al tocar fuera -->
+  <div id="panel-backdrop" class="panel-backdrop" aria-hidden="true"></div>
 </main>
 
 <div id="modal-report" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-report-title">

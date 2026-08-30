@@ -136,6 +136,21 @@ export function abrirFicha(building, coordinates, featureId = building.id) {
   });
   sheet.classList.add('open');
   cerrarFiltros();
+
+  // En móvil, centrar el mapa en la mitad superior para no tapar el marcador
+  if (window.innerWidth <= 768 && state.map && coordinates) {
+    state.map.easeTo({
+      center: coordinates,
+      padding: { top: 60, bottom: Math.round(window.innerHeight * 0.45), left: 0, right: 0 },
+      duration: 350,
+    });
+    // Cerrar paneles flotantes si estuvieran abiertos
+    ['filter-panel', 'search-panel', 'my-places-panel', 'map-style-panel', 'admin-panel'].forEach((id) => {
+      document.getElementById(id)?.classList.remove('open');
+    });
+    document.getElementById('panel-backdrop')?.classList.add('active');
+  }
+
   const notes = document.getElementById('building-notes');
   if (notes) {
     notes.value = state.buildingStatuses.get(String(selected?.id || building.id))?.notas || '';
