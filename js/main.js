@@ -14,6 +14,8 @@ import { initSearchUI } from './searchUI.js';
 import { initMyPlacesUI } from './myPlacesUI.js';
 import { initAdminUI } from './adminUI.js';
 import { initMobileBottomNav } from './mobileBottomNav.js';
+import { initExploreUI } from './exploreUI.js';
+import { initRadarUI } from './radarUI.js';
 
 import { abrirFicha } from './sheetUI.js';
 
@@ -191,6 +193,8 @@ initSearchUI();
 initMyPlacesUI();
 initAdminUI();
 initMobileBottomNav();
+initExploreUI();
+initRadarUI();
 lucide.createIcons();
 inicializarRadar();
 

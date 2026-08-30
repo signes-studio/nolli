@@ -10,6 +10,8 @@
 import { state, esRolAdmin, separarArquitectos, normalizarCategoria, normalizarImportancia } from './state.js';
 import { fetchBuildings } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
+import { renderExploreList } from './exploreUI.js';
+import { renderRadarUI } from './radarUI.js';
 
 export function initMobileBottomNav() {
   const bottomBar = document.getElementById('mobile-bottom-bar');
@@ -27,6 +29,8 @@ export function initMobileBottomNav() {
   const btnFloatFilters = document.getElementById('btn-float-filters');
   const btnFloatLocate = document.getElementById('btn-float-locate');
 
+  const explorePanel = document.getElementById('explore-panel');
+  const radarPanel = document.getElementById('radar-panel');
   const searchPanel = document.getElementById('search-panel');
   const filterPanel = document.getElementById('filter-panel');
   const myPlacesPanel = document.getElementById('my-places-panel');
@@ -34,7 +38,7 @@ export function initMobileBottomNav() {
   const adminPanel = document.getElementById('admin-panel');
   const sheet = document.getElementById('sheet');
 
-  const allPanels = [searchPanel, filterPanel, myPlacesPanel, mapStylePanel, adminPanel, sheet].filter(Boolean);
+  const allPanels = [explorePanel, radarPanel, searchPanel, filterPanel, myPlacesPanel, mapStylePanel, adminPanel, sheet].filter(Boolean);
 
   function isMobile() {
     return window.innerWidth <= 768;
@@ -43,16 +47,18 @@ export function initMobileBottomNav() {
   function syncNavButtons() {
     if (!isMobile()) return;
 
+    const isExploreOpen = Boolean(explorePanel?.classList.contains('open'));
+    const isRadarOpen = Boolean(radarPanel?.classList.contains('open'));
+    const isPlacesOpen = Boolean(myPlacesPanel?.classList.contains('open'));
     const isSearchOpen = Boolean(searchPanel?.classList.contains('open'));
     const isFilterOpen = Boolean(filterPanel?.classList.contains('open'));
-    const isPlacesOpen = Boolean(myPlacesPanel?.classList.contains('open'));
     const isLayersOpen = Boolean(mapStylePanel?.classList.contains('open'));
     const isSheetOpen = Boolean(sheet?.classList.contains('open'));
-    const isAnyPanelOpen = isSearchOpen || isFilterOpen || isPlacesOpen || isLayersOpen || isSheetOpen;
+    const isAnyPanelOpen = isExploreOpen || isRadarOpen || isPlacesOpen || isSearchOpen || isFilterOpen || isLayersOpen || isSheetOpen;
 
     btnMap?.classList.toggle('active', !isAnyPanelOpen);
-    btnExplore?.classList.toggle('active', isSearchOpen);
-    btnRadar?.classList.toggle('active', isPlacesOpen);
+    btnExplore?.classList.toggle('active', isExploreOpen);
+    btnRadar?.classList.toggle('active', isRadarOpen);
     btnPlaces?.classList.toggle('active', isPlacesOpen);
 
     // Controles Flotantes
@@ -107,25 +113,31 @@ export function initMobileBottomNav() {
     });
   }
 
-  // 2. [ EXPLORA ] - Feed vertical / buscador de edificios cercanos
+  // 2. [ EXPLORA ] - Feed vertical / proximidad de obras cercanas
   if (btnExplore) {
     btnExplore.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      toggleMobilePanel(searchPanel, document.getElementById('building-search'));
+      toggleMobilePanel(explorePanel);
+      if (explorePanel?.classList.contains('open')) {
+        renderExploreList();
+      }
     });
   }
 
-  // 3. [ MI RADAR ] - Botón central destacado para radar y rutas
+  // 3. [ MI RADAR ] - Botón central destacado para radar en vivo y rutas
   if (btnRadar) {
     btnRadar.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      toggleMobilePanel(myPlacesPanel);
+      toggleMobilePanel(radarPanel);
+      if (radarPanel?.classList.contains('open')) {
+        renderRadarUI();
+      }
     });
   }
 
-  // 4. [ LISTAS ] - Colecciones personales y favoritos
+  // 4. [ LISTAS ] - Colecciones personales, favoritos y notas
   if (btnPlaces) {
     btnPlaces.addEventListener('click', (e) => {
       e.preventDefault();

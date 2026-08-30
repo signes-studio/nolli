@@ -859,14 +859,15 @@ body.dark-mode {
 
   .mobile-nav-btn {
     flex: 1;
-    min-height: 50px;
+    min-height: 52px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 3px;
     border: 0;
-    background: transparent;
+    border-right: 1px solid var(--border, #141411);
+    background: transparent !important;
     color: var(--fg, #141411);
     font-family: 'League Spartan', sans-serif !important;
     font-weight: 800;
@@ -877,15 +878,69 @@ body.dark-mode {
     touch-action: manipulation;
     text-decoration: none;
     -webkit-tap-highlight-color: transparent;
-    transition: transform 0.08s ease, background 0.15s ease, color 0.15s ease;
+    transition: transform 0.08s ease, color 0.12s ease;
+  }
+
+  .mobile-nav-btn:last-child {
+    border-right: 0;
   }
 
   .mobile-nav-btn:active {
-    transform: scale(0.93);
+    transform: scale(0.92);
   }
 
   .mobile-nav-btn.active {
-    background: var(--fg, #141411);
-    color: var(--bg-panel, #F4F1EA) !important;
+    background: transparent !important;
+    color: var(--accent, #E84E1B) !important;
   }
+
+  .mobile-nav-btn.active i,
+  .mobile-nav-btn.active svg {
+    color: var(--accent, #E84E1B) !important;
+    stroke: var(--accent, #E84E1B) !important;
+  }
+
+  .mobile-nav-btn.active span {
+    color: var(--accent, #E84E1B) !important;
+    font-weight: 900 !important;
+  }
+
+  /* Botón Central Destacado Neo-Bauhaus (MI RADAR) */
+  .mobile-nav-radar-btn {
+    position: relative;
+    font-weight: 900 !important;
+  }
+
+  .radar-btn-inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 24px;
+    background: var(--bg-raised, #ECE6D8);
+    border: 1px solid var(--border-strong, #141411);
+    box-shadow: 1px 1px 0px var(--border-strong, #141411);
+    color: var(--fg, #141411);
+    margin-bottom: 2px;
+    transition: all 0.12s ease;
+  }
+
+  body.dark-mode .radar-btn-inner {
+    background: #252522;
+  }
+
+  .mobile-nav-radar-btn.active .radar-btn-inner,
+  .mobile-nav-radar-btn:active .radar-btn-inner {
+    background: var(--bg-panel, #F4F1EA) !important;
+    color: var(--accent, #E84E1B) !important;
+    border-color: var(--accent, #E84E1B) !important;
+    box-shadow: 1px 1px 0px var(--accent, #E84E1B) !important;
+  }
+
+  .mobile-nav-radar-btn.active .radar-btn-inner svg,
+  .mobile-nav-radar-btn:active .radar-btn-inner svg {
+    color: var(--accent, #E84E1B) !important;
+    stroke: var(--accent, #E84E1B) !important;
+  }
+}
 }

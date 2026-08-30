@@ -259,18 +259,18 @@
     </div>
   </section>
 
-  <section id="my-places-panel" class="my-places-panel" aria-label="Mis edificios">
+  <section id="my-places-panel" class="my-places-panel" aria-label="Mis colecciones y listas">
     <div class="filter-head">
       <div>
-        <span style="color:var(--accent)">[ MI RADAR ]</span>
+        <span style="color:var(--accent, #E84E1B)">[ LISTAS // COLECCIONES ]</span>
         <small class="personal-panel-subtitle">ESPACIO PERSONAL</small>
       </div>
-      <i data-lucide="x" id="btn-my-places-close" width="14" height="14" style="cursor:pointer; color:var(--fg-dim)" role="button" aria-label="Cerrar mis edificios"></i>
+      <i data-lucide="x" id="btn-my-places-close" width="14" height="14" style="cursor:pointer; color:var(--fg-dim)" role="button" aria-label="Cerrar mis listas"></i>
     </div>
     <div class="places-tabs">
-      <button type="button" class="places-tab active" data-place-tab="visited">VISITADOS</button>
-      <button type="button" class="places-tab" data-place-tab="collections">LISTAS</button>
+      <button type="button" class="places-tab active" data-place-tab="collections">LISTAS</button>
       <button type="button" class="places-tab" data-place-tab="favorite">FAVORITOS</button>
+      <button type="button" class="places-tab" data-place-tab="visited">VISITADOS</button>
       <button type="button" class="places-tab" data-place-tab="notes">NOTAS</button>
     </div>
     <div id="my-places-list" class="my-places-list"></div>
@@ -378,6 +378,116 @@
     <div id="sheet-body"></div>
   </section>
 
+  <!-- Sheet de Exploración Vertical (Directorio Archivo) -->
+  <section id="explore-panel" class="sheet explore-panel" aria-label="Explorar obras cercanas">
+    <div class="sheet-drag-handle" id="explore-drag-handle" aria-label="Arrastrar para cerrar">
+      <span class="sheet-drag-bar"></span>
+    </div>
+    
+    <!-- Sticky Filter Bar -->
+    <div class="explore-sticky-header">
+      <div class="sheet-header">
+        <div class="flex items-center gap-2">
+          <i data-lucide="compass" width="15" height="15" style="color:var(--accent, #E84E1B)"></i>
+          <span style="letter-spacing:.06em; font-size:11px; color:var(--fg-dim); font-weight:800;">EXPLORA // DIRECTORIO</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span id="explore-count-badge" class="badge-count">[ 0 OBRAS ]</span>
+          <button type="button" id="btn-explore-close" class="sheet-close-button" aria-label="Cerrar exploración"><i data-lucide="x" width="16" height="16"></i></button>
+        </div>
+      </div>
+      
+      <div class="explore-toolbar">
+        <input id="explore-search-input" class="tech-input" type="search" placeholder="BUSCAR POR OBRA, CIUDAD O AUTOR..." aria-label="Filtrar obras del catálogo" autocomplete="off">
+      </div>
+
+      <!-- Contenedor Horizontal con Chips de Filtrado Rápido -->
+      <div id="explore-chips-bar" class="explore-chips-bar" aria-label="Filtros rápidos">
+        <button type="button" class="explore-chip active" data-chip-type="all" data-chip-value="">[ TODAS ]</button>
+        <button type="button" class="explore-chip" data-chip-type="decade" data-chip-value="1920">1920s</button>
+        <button type="button" class="explore-chip" data-chip-type="decade" data-chip-value="1930">1930s</button>
+        <button type="button" class="explore-chip" data-chip-type="decade" data-chip-value="1950">1950s</button>
+        <button type="button" class="explore-chip" data-chip-type="decade" data-chip-value="1960">1960s</button>
+        <button type="button" class="explore-chip" data-chip-type="decade" data-chip-value="1970">1970s</button>
+        <button type="button" class="explore-chip" data-chip-type="decade" data-chip-value="1980">1980s</button>
+        <button type="button" class="explore-chip" data-chip-type="decade" data-chip-value="1990">1990s</button>
+        <button type="button" class="explore-chip" data-chip-type="decade" data-chip-value="2000">2000s</button>
+        <button type="button" class="explore-chip" data-chip-type="decade" data-chip-value="2010">2010s</button>
+        <button type="button" class="explore-chip" data-chip-type="decade" data-chip-value="2020">2020s</button>
+        <button type="button" class="explore-chip" data-chip-type="category" data-chip-value="residencial">RESIDENCIAL</button>
+        <button type="button" class="explore-chip" data-chip-type="category" data-chip-value="cultural">CULTURAL</button>
+        <button type="button" class="explore-chip" data-chip-type="category" data-chip-value="religioso">RELIGIOSO</button>
+        <button type="button" class="explore-chip" data-chip-type="category" data-chip-value="industrial">INDUSTRIAL</button>
+        <button type="button" class="explore-chip" data-chip-type="category" data-chip-value="educativo">EDUCATIVO</button>
+        <button type="button" class="explore-chip" data-chip-type="category" data-chip-value="dotacional">DOTACIONAL</button>
+      </div>
+
+      <!-- Selector Compacto Dual de Ordenación -->
+      <div class="explore-sort-bar">
+        <span class="explore-sort-label">[ ORDEN ]</span>
+        <div class="explore-sort-toggle">
+          <button type="button" id="explore-sort-proximity" class="explore-sort-btn active" data-sort="proximity">PROXIMIDAD</button>
+          <button type="button" id="explore-sort-chrono" class="explore-sort-btn" data-sort="chronological">CRONOLÓGICO</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feed Vertical de Tarjetas Editoriales -->
+    <div id="explore-list-container" class="explore-list-container">
+      <div class="explore-loading">[ CONSULTANDO CATÁLOGO Y PROXIMIDAD... ]</div>
+    </div>
+  </section>
+
+  <!-- Sheet de Mi Radar Arquitectónico (Contexto en Tiempo Real) -->
+  <section id="radar-panel" class="sheet radar-panel" aria-label="Mi Radar Arquitectónico">
+    <div class="sheet-drag-handle" id="radar-drag-handle" aria-label="Arrastrar para cerrar">
+      <span class="sheet-drag-bar"></span>
+    </div>
+    
+    <div class="radar-sticky-header">
+      <div class="sheet-header">
+        <div class="flex items-center gap-2">
+          <i data-lucide="crosshair" width="15" height="15" style="color:var(--accent, #E84E1B)"></i>
+          <span style="letter-spacing:.06em; font-size:11px; color:var(--fg-dim); font-weight:800;">MI RADAR // EN VIVO</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span id="radar-status-badge" class="badge-count">[ GPS ACTIVO ]</span>
+          <button type="button" id="btn-radar-close" class="sheet-close-button" aria-label="Cerrar radar"><i data-lucide="x" width="16" height="16"></i></button>
+        </div>
+      </div>
+      
+      <!-- Selector de Proximidad GPS -->
+      <div class="radar-radius-selector">
+        <span class="radar-section-label">[ RADIO DE DETECCIÓN GPS ]</span>
+        <div class="radar-radius-pills">
+          <button type="button" class="radar-radius-pill" data-radius="250">250m</button>
+          <button type="button" class="radar-radius-pill" data-radius="500">500m</button>
+          <button type="button" class="radar-radius-pill active" data-radius="1000">1km</button>
+          <button type="button" class="radar-radius-pill" data-radius="3000">3km</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="radar-content-container" class="radar-content-container">
+      <!-- Rutas Curatoriales (Módulo Destacado con Scroll-Snap Horizontal) -->
+      <div class="radar-curated-section">
+        <div class="radar-section-head">
+          <span class="radar-section-label">[ RUTAS Y SELECCIÓN CURATORIAL ]</span>
+        </div>
+        <div id="radar-curated-carousel" class="radar-curated-carousel"></div>
+      </div>
+
+      <!-- Feed de Distancia Dinámica -->
+      <div class="radar-detected-section">
+        <div class="radar-section-head">
+          <span class="radar-section-label">[ OBRAS EN TU RADIO ]</span>
+          <span id="radar-detected-count" class="radar-detected-count"></span>
+        </div>
+        <div id="radar-detected-list" class="radar-detected-list"></div>
+      </div>
+    </div>
+  </section>
+
   <!-- Controles Flotantes Derechos Ergonomía Strava (Móvil) -->
   <aside id="mobile-map-controls" class="mobile-map-controls" aria-label="Controles rápidos del mapa">
     <button type="button" class="mobile-float-btn" id="btn-float-layers" data-target-panel="map-style-panel" aria-label="Capas y estilos de mapa" title="Capas del mapa">
@@ -397,17 +507,17 @@
       <i data-lucide="map" width="19" height="19"></i>
       <span>MAPA</span>
     </button>
-    <button type="button" class="mobile-nav-btn" id="mobile-nav-explore" data-target-panel="search-panel" aria-label="Explorar obras cercanas">
+    <button type="button" class="mobile-nav-btn" id="mobile-nav-explore" data-target-panel="explore-panel" aria-label="Explorar obras cercanas">
       <i data-lucide="compass" width="19" height="19"></i>
       <span>EXPLORA</span>
     </button>
-    <button type="button" class="mobile-nav-btn mobile-nav-radar-btn" id="mobile-nav-radar" data-target-panel="my-places-panel" aria-label="Mi radar arquitectónico">
+    <button type="button" class="mobile-nav-btn mobile-nav-radar-btn" id="mobile-nav-radar" data-target-panel="radar-panel" aria-label="Mi radar arquitectónico">
       <div class="radar-btn-inner">
         <i data-lucide="crosshair" width="19" height="19"></i>
       </div>
       <span>MI RADAR</span>
     </button>
-    <button type="button" class="mobile-nav-btn" id="mobile-nav-places" data-target-panel="my-places-panel" aria-label="Mis listas y guardados">
+    <button type="button" class="mobile-nav-btn" id="mobile-nav-places" data-target-panel="my-places-panel" aria-label="Mis listas y colecciones">
       <i data-lucide="bookmark" width="19" height="19"></i>
       <span>LISTAS</span>
     </button>
