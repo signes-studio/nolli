@@ -134,7 +134,7 @@ async function initLoginModal() {
     if (e.target.closest('#btn-login-close')) mLogin.classList.remove('open');
   });
 
-  document.getElementById('btn-do-login').addEventListener('click', async () => {
+  document.getElementById('btn-do-login')?.addEventListener('click', async () => {
     const err = document.getElementById('login-error');
     err.classList.add('hidden');
 
@@ -248,7 +248,7 @@ function initAddBuildingModal() {
   document.addEventListener('click', (e) => {
     if (e.target.closest('#btn-add-close')) closeAdd();
   });
-  document.getElementById('btn-add-cancel').addEventListener('click', closeAdd);
+  document.getElementById('btn-add-cancel')?.addEventListener('click', closeAdd);
 
   document.addEventListener('radar:edit-building', (e) => {
     const obra = e.detail.obra;
@@ -270,7 +270,7 @@ function initAddBuildingModal() {
     mAdd.classList.add('open');
   });
 
-  document.getElementById('btn-add-save').addEventListener('click', async () => {
+  document.getElementById('btn-add-save')?.addEventListener('click', async () => {
     const err = document.getElementById('add-error');
     err.classList.add('hidden');
 
@@ -420,7 +420,7 @@ function initReportModal() {
   document.addEventListener('click', (event) => {
     if (event.target.closest('#btn-report-close') || event.target === modal) close();
   });
-  document.getElementById('btn-report-submit').addEventListener('click', async () => {
+  document.getElementById('btn-report-submit')?.addEventListener('click', async () => {
     const description = document.getElementById('report-description').value.trim();
     const errorElement = document.getElementById('report-error');
     const obra = state.OBRAS.find((item) => String(item.featureId) === String(state.selectedFeatureId));

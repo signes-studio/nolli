@@ -87,6 +87,38 @@ export function nombreCategoria(valor) {
   }[normalizarCategoria(valor)] || 'OTRO';
 }
 
+export const CATEGORY_COLORS = {
+  residencial: '#E84E1B',
+  dotacional_equipamiento: '#EFBC02',
+  industrial_logistico: '#0d682f',
+  religioso_funerario: '#7c3aed',
+  comercial_terciario: '#0284c7',
+  espacio_publico_paisaje: '#10b981',
+  infraestructura_urbanismo: '#64748b',
+  otro: '#555550'
+};
+
+export const CATEGORY_NAMES = {
+  residencial: 'RESIDENCIAL',
+  dotacional_equipamiento: 'DOTACIONAL / EQUIPAMIENTO',
+  industrial_logistico: 'INDUSTRIAL / LOGÍSTICO',
+  religioso_funerario: 'RELIGIOSO / FUNERARIO',
+  comercial_terciario: 'COMERCIAL / TERCIARIO',
+  espacio_publico_paisaje: 'ESPACIO PÚBLICO / PAISAJE',
+  infraestructura_urbanismo: 'INFRAESTRUCTURA / URBANISMO',
+  otro: 'OTRO'
+};
+
+export function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 export function normalizarImportancia(valor) {
   const importancia = Number(valor);
   return Number.isFinite(importancia) && importancia >= 0 && importancia <= 3 ? importancia : 1;

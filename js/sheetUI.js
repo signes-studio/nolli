@@ -94,7 +94,7 @@ function cerrarFichaArquitecto() {
   document.getElementById('modal-architect').classList.remove('open');
 }
 
-document.getElementById('btn-sheet-close').addEventListener('click', (event) => {
+document.getElementById('btn-sheet-close')?.addEventListener('click', (event) => {
   event.stopPropagation();
   cerrarFicha();
 });

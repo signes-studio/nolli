@@ -35,9 +35,9 @@ export function cargarMapaMapbox() {
     state.mapStyle = savedStyle;
   }
   if (state.mapStyle === 'dark') {
-    document.body.classList.add('dark-mode');
+    document.body?.classList.add('dark-mode');
   } else {
-    document.body.classList.remove('dark-mode');
+    document.body?.classList.remove('dark-mode');
   }
 
   const isMobile = window.innerWidth <= 768;
@@ -376,11 +376,11 @@ export function cargarMapaMapbox() {
     });
   }
 
-  document.getElementById('btn-recenter').addEventListener('click', () => {
+  document.getElementById('btn-recenter')?.addEventListener('click', () => {
     state.map.flyTo({ center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM });
   });
-  document.getElementById('btn-location').addEventListener('click', localizarDispositivo);
-  document.getElementById('btn-add-project').addEventListener('click', activarModoAñadir);
+  document.getElementById('btn-location')?.addEventListener('click', localizarDispositivo);
+  document.getElementById('btn-add-project')?.addEventListener('click', activarModoAñadir);
   initMapStyleSelector();
   document.addEventListener('radar:admin-login', actualizarFuenteMapa);
   document.addEventListener('radar:user-login', actualizarFuenteMapa);

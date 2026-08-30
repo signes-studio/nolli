@@ -200,8 +200,10 @@ inicializarRadar();
 
 const mapTools = document.getElementById('map-tools');
 const mapToolsToggle = document.getElementById('btn-map-tools');
-mapToolsToggle.addEventListener('click', () => {
-  const open = mapTools.classList.toggle('tools-open');
-  mapToolsToggle.setAttribute('aria-expanded', String(open));
-  mapToolsToggle.classList.toggle('active-state', open);
-});
+if (mapToolsToggle && mapTools) {
+  mapToolsToggle.addEventListener('click', () => {
+    const open = mapTools.classList.toggle('tools-open');
+    mapToolsToggle.setAttribute('aria-expanded', String(open));
+    mapToolsToggle.classList.toggle('active-state', open);
+  });
+}
