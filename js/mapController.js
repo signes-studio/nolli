@@ -153,6 +153,19 @@ export function cargarMapaMapbox() {
       },
     });
 
+    state.map.addLayer({
+      id: 'obras-selected-halo',
+      type: 'circle',
+      source: 'obras',
+      filter: ['==', ['get', 'selected'], 1],
+      paint: {
+        'circle-radius': 14,
+        'circle-color': 'rgba(232, 78, 27, 0.22)',
+        'circle-stroke-color': '#E84E1B',
+        'circle-stroke-width': 2.5,
+      },
+    });
+
     [3, 2, 1, 0].forEach((importance) => {
       const minzoom = importance === 0 ? 0 : importance === 1 ? 0 : importance === 2 ? 6.5 : 13.5;
       const baseFilter = ['==', ['get', 'importancia'], importance];
@@ -204,7 +217,7 @@ export function cargarMapaMapbox() {
         },
       });
 
-      // Capa seleccionada
+      // Capa seleccionada (Escalada 1.25x y con prioridad z-index 100)
       state.map.addLayer({
         id: `obras-l${importance}-selected`,
         type: 'symbol',
@@ -219,10 +232,12 @@ export function cargarMapaMapbox() {
           ],
           'icon-size': [
             'case',
-            ['has', 'collection_emoji'], 0.75,
-            iconSize
+            ['has', 'collection_emoji'], 0.95,
+            iconSize * 1.25
           ],
+          'symbol-sort-key': 100,
           'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
         },
       });
 

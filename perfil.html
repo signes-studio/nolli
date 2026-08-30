@@ -87,6 +87,32 @@
         <div id="profile-stats" class="profile-stats-grid" aria-label="Estadísticas personales"></div>
       </section>
 
+      <!-- Bloque de Mecenazgo y Donativos Neo-Bauhaus -->
+      <section class="profile-donation-card">
+        <div class="profile-donation-info">
+          <span class="profile-kicker" style="color:var(--accent, #E84E1B)">[ MECENAZGO // ATLAS LIBRE ]</span>
+          <h3 class="profile-donation-title font-display text-lg font-bold">APOYAR PROYECTO NOLLI</h3>
+          <p class="profile-donation-desc text-xs text-dim">Nolli es un proyecto independiente y libre de publicidad. Tu aportación permite sostener la infraestructura de servidores y catalogar nuevas obras de arquitectura.</p>
+        </div>
+        <a href="https://buymeacoffee.com/signesstudio" target="_blank" rel="noopener noreferrer" class="btn-support-project" aria-label="Apoyar proyecto Nolli">
+          <i data-lucide="heart" width="16" height="16"></i>
+          <span>[ APOYAR PROYECTO ]</span>
+        </a>
+      </section>
+
+      <!-- Módulo Experimental para Rol Tester (Renderizado Condicional) -->
+      <section id="tester-experimental-section" class="profile-card tester-only hidden" style="border: 1.5px solid #7c3aed; background: var(--bg-raised, #ECE6D8); margin-bottom: 20px;">
+        <div class="flex items-center justify-between mb-2">
+          <span class="badge-count" style="color:#7c3aed; border-color:#7c3aed;">[ MODO TESTER ACTIVO ]</span>
+          <span class="text-[10px] font-mono text-dim">VISTA EXPERIMENTAL</span>
+        </div>
+        <p class="text-xs mb-3">Tienes acceso a funciones preliminares de prueba, flags de depuración geodésica y previsualización de nuevas capas.</p>
+        <div class="flex gap-2">
+          <button type="button" class="btn text-[11px] py-1.5" style="border-color:#7c3aed; color:#7c3aed;">[ REGISTRO DE EVENTOS GPS ]</button>
+          <button type="button" class="btn text-[11px] py-1.5" style="border-color:#7c3aed; color:#7c3aed;">[ PREVIEW MIGRACIONES ]</button>
+        </div>
+      </section>
+
       <!-- Barra de navegación por pestañas -->
       <nav class="profile-nav-tabs places-tabs" aria-label="Pestañas del perfil">
         <button type="button" class="places-tab active" data-profile-tab="overview">RESUMEN</button>

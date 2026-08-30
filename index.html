@@ -397,6 +397,12 @@
         </div>
       </div>
       
+      <!-- Sub-navegación Catálogo vs Listas Públicas -->
+      <div class="explore-subnav flex border-b border-black">
+        <button type="button" id="explore-tab-works" class="explore-subnav-tab active flex-1 py-2 text-[11px] font-display font-extrabold uppercase text-center border-r border-black" style="background:var(--bg-panel, #F4F1EA); cursor:pointer;">[ OBRAS ]</button>
+        <button type="button" id="explore-tab-collections" class="explore-subnav-tab flex-1 py-2 text-[11px] font-display font-extrabold uppercase text-center" style="background:var(--bg-raised, #ECE6D8); cursor:pointer;">[ LISTAS PÚBLICAS ]</button>
+      </div>
+
       <div class="explore-toolbar">
         <input id="explore-search-input" class="tech-input" type="search" placeholder="BUSCAR POR OBRA, CIUDAD O AUTOR..." aria-label="Filtrar obras del catálogo" autocomplete="off">
       </div>
@@ -534,15 +540,23 @@
 <div id="modal-report" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-report-title">
   <div class="modal-box report-box">
     <div class="modal-head">
-      <span id="modal-report-title" style="letter-spacing:.06em; font-size:11px;">REPORTAR ERROR</span>
+      <span id="modal-report-title" style="letter-spacing:.06em; font-size:11px; font-family:'League Spartan', sans-serif; font-weight:800;">[ REPORTAR INCIDENCIA // OBRA ]</span>
       <i data-lucide="x" id="btn-report-close" width="16" height="16" style="cursor:pointer" role="button" aria-label="Cerrar reporte"></i>
     </div>
     <div class="modal-body report-body">
-      <p id="report-project-name" class="report-project-name"></p>
-      <label for="report-description" class="text-[10px]" style="color:var(--fg-dim)">DESCRIPCIÓN DEL ERROR</label>
-      <textarea id="report-description" class="tech-input" rows="5" placeholder="¿Qué dato debería corregirse?"></textarea>
-      <div id="report-error" class="text-[10px] text-red-500 hidden" role="alert"></div>
-      <button type="button" id="btn-report-submit" class="btn btn-accent">ENVIAR REPORTE</button>
+      <p id="report-project-name" class="report-project-name font-display text-sm font-bold uppercase mb-2"></p>
+      
+      <label class="text-[10px] font-mono font-bold block mb-1" style="color:var(--fg-dim)">[ TIPO DE INCIDENCIA ]</label>
+      <div class="report-type-selector flex gap-2 mb-3">
+        <button type="button" class="report-type-pill active" data-report-type="error_datos">ERROR EN DATOS</button>
+        <button type="button" class="report-type-pill" data-report-type="duplicado">DUPLICADO</button>
+        <button type="button" class="report-type-pill" data-report-type="ubicacion_erronea">UBICACIÓN</button>
+      </div>
+
+      <label for="report-description" class="text-[10px] font-mono font-bold block mb-1" style="color:var(--fg-dim)">[ DETALLES O CORRECCIÓN PROPUESTA ]</label>
+      <textarea id="report-description" class="tech-input" rows="4" placeholder="Indica el dato erróneo o el enlace a la obra duplicada..."></textarea>
+      <div id="report-error" class="text-[10px] text-red-500 hidden mt-1" role="alert"></div>
+      <button type="button" id="btn-report-submit" class="btn btn-accent mt-3 w-full">[ ENVIAR REPORTE A SUPABASE ]</button>
     </div>
   </div>
 </div>

@@ -416,33 +416,100 @@ export function initModalsUI() {
 
 function initReportModal() {
   const modal = document.getElementById('modal-report');
-  const close = () => modal.classList.remove('open');
+  const errorElement = document.getElementById('report-error');
+  const descriptionInput = document.getElementById('report-description');
+  const projectNameEl = document.getElementById('report-project-name');
+  const pills = modal?.querySelectorAll('.report-type-pill');
+
+  let activeReportType = 'error_datos';
+  let targetObra = null;
+
+  const close = () => {
+    modal?.classList.remove('open');
+    if (descriptionInput) descriptionInput.value = '';
+    if (errorElement) errorElement.classList.add('hidden');
+  };
+
   document.addEventListener('click', (event) => {
     if (event.target.closest('#btn-report-close') || event.target === modal) close();
   });
+
+  // Selector de píldoras de tipo de incidencia
+  pills?.forEach((pill) => {
+    pill.addEventListener('click', () => {
+      pills.forEach((p) => p.classList.remove('active'));
+      pill.classList.add('active');
+      activeReportType = pill.dataset.reportType || 'error_datos';
+    });
+  });
+
+  // Evento disparado desde la ficha de obra
+  document.addEventListener('radar:open-report', (e) => {
+    targetObra = e.detail?.obra || state.OBRAS.find((item) => String(item.featureId) === String(state.selectedFeatureId));
+    activeReportType = e.detail?.reportType || 'error_datos';
+
+    if (projectNameEl) {
+      projectNameEl.textContent = targetObra ? `OBRA: ${targetObra.nombre_obra}` : '';
+    }
+
+    pills?.forEach((pill) => {
+      pill.classList.toggle('active', pill.dataset.reportType === activeReportType);
+    });
+
+    if (errorElement) errorElement.classList.add('hidden');
+    if (descriptionInput) descriptionInput.value = '';
+    modal?.classList.add('open');
+  });
+
   document.getElementById('btn-report-submit')?.addEventListener('click', async () => {
-    const description = document.getElementById('report-description').value.trim();
-    const errorElement = document.getElementById('report-error');
-    const obra = state.OBRAS.find((item) => String(item.featureId) === String(state.selectedFeatureId));
-    if (!obra || !state.userId || !state.sessionToken) return;
-    if (!description) {
-      errorElement.textContent = 'Describe el error antes de enviarlo.';
-      errorElement.classList.remove('hidden');
+    const description = descriptionInput ? descriptionInput.value.trim() : '';
+    const obra = targetObra || state.OBRAS.find((item) => String(item.featureId) === String(state.selectedFeatureId));
+
+    if (!obra) {
+      if (errorElement) {
+        errorElement.textContent = 'No se ha seleccionado ninguna obra válida.';
+        errorElement.classList.remove('hidden');
+      }
       return;
     }
+
+    if (!description && activeReportType === 'error_datos') {
+      if (errorElement) {
+        errorElement.textContent = 'Describe la corrección propuesta.';
+        errorElement.classList.remove('hidden');
+      }
+      return;
+    }
+
     const button = document.getElementById('btn-report-submit');
-    button.textContent = 'ENVIANDO...';
-    button.disabled = true;
+    if (button) {
+      button.textContent = '[ ENVIANDO A SUPABASE... ]';
+      button.disabled = true;
+    }
+
     try {
-      await createBuildingReport({ user_id: state.userId, building_id: obra.id, descripcion: description }, state.sessionToken);
-      button.textContent = 'ENVIADO';
-      setTimeout(close, 700);
+      await createBuildingReport({
+        building_id: obra.id,
+        user_id: state.userId || null,
+        user_email: state.userEmail || null,
+        report_type: activeReportType,
+        description: description || `Reporte de ${activeReportType} enviado desde la ficha técnica.`
+      }, state.sessionToken);
+
+      if (button) button.textContent = '[ REPORTE REGISTRADO CON ÉXITO ]';
+      setTimeout(close, 800);
     } catch (error) {
-      errorElement.textContent = error.message;
-      errorElement.classList.remove('hidden');
+      if (errorElement) {
+        errorElement.textContent = error.message || 'Error al enviar reporte.';
+        errorElement.classList.remove('hidden');
+      }
     } finally {
-      button.disabled = false;
-      if (!modal.classList.contains('open')) button.textContent = 'ENVIAR REPORTE';
+      if (button) {
+        button.disabled = false;
+        setTimeout(() => {
+          if (!modal?.classList.contains('open')) button.textContent = '[ ENVIAR REPORTE A SUPABASE ]';
+        }, 1000);
+      }
     }
   });
 }

@@ -216,6 +216,27 @@ function renderHero() {
   const locEl = document.getElementById('profile-user-location');
   if (locEl) locEl.textContent = location;
 
+  const roleKicker = document.getElementById('profile-kicker-role');
+  const testerSection = document.getElementById('tester-experimental-section');
+  const userRole = profileState.role || 'user';
+
+  if (roleKicker) {
+    if (userRole === 'tester') {
+      roleKicker.innerHTML = `<span style="color:#7c3aed">[ TESTER // ACCESO EXPERIMENTAL ]</span>`;
+    } else if (userRole === 'admin') {
+      roleKicker.innerHTML = `<span style="color:#E84E1B">[ ADMINISTRADOR // GESTIÓN ACTIVA ]</span>`;
+    } else if (userRole === 'superadmin') {
+      roleKicker.innerHTML = `<span style="color:#E84E1B">[ SUPERADMIN // CONTROL TOTAL ]</span>`;
+    } else {
+      roleKicker.textContent = '[ USUARIO // ARCHIVO PERSONAL ]';
+    }
+  }
+
+  if (testerSection) {
+    const isTesterOrAdmin = userRole === 'tester' || userRole === 'admin' || userRole === 'superadmin';
+    testerSection.classList.toggle('hidden', !isTesterOrAdmin);
+  }
+
   const publicLink = document.getElementById('public-profile-link');
   if (publicLink) {
     publicLink.href = `./public-profile.html?user=${encodeURIComponent(user.id)}`;

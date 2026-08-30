@@ -224,6 +224,73 @@ body.dark-mode {
 }
 
 /* =========================================================================
+   BLOQUE CONTUNDENTE DE DONATIVOS Y MECENAZGO NEO-BAUHAUS
+   ========================================================================= */
+.profile-donation-card {
+  border: 2px solid var(--border-strong, #141411);
+  box-shadow: 3px 3px 0px var(--border-strong, #141411);
+  background: var(--bg-panel, #F4F1EA);
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .profile-donation-card {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.profile-donation-title {
+  font-family: 'League Spartan', sans-serif;
+  font-weight: 900;
+  font-size: 17px;
+  color: var(--fg, #141411);
+  text-transform: uppercase;
+  margin: 4px 0;
+}
+
+.profile-donation-desc {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  color: var(--fg-dim, #555550);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.btn-support-project {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 0 20px;
+  background: var(--accent, #E84E1B) !important;
+  color: #FFFFFF !important;
+  border: 1.5px solid var(--border-strong, #141411);
+  box-shadow: 2px 2px 0px var(--border-strong, #141411);
+  font-family: 'League Spartan', sans-serif;
+  font-weight: 900;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  border-radius: 0 !important;
+  flex-shrink: 0;
+  transition: transform 0.08s ease, background 0.12s ease;
+}
+
+.btn-support-project:active {
+  transform: scale(0.95);
+  background: #141411 !important;
+}
+
+/* =========================================================================
    NAVEGACIÓN POR PESTAÑAS (PLACES-TABS)
    ========================================================================= */
 .profile-nav-tabs {

@@ -267,11 +267,29 @@ export function abrirFicha(building, coordinates, featureId = building.id) {
       </div>
     ` : ''}
 
-    <!-- Enlace de reporte de error -->
-    ${state.sessionToken && !adminActive ? '<button type="button" class="report-link" data-open-report>¿Ves un error en esta ficha? Reportar corrección</button>' : ''}
+    <!-- Botones de Reporte de Incidencias Neo-Bauhaus -->
+    <div class="sheet-reports-actions">
+      <button type="button" class="sheet-report-btn" data-open-report="error_datos">
+        <i data-lucide="alert-circle" width="13" height="13"></i>
+        <span>[ REPORTAR ERROR ]</span>
+      </button>
+      <button type="button" class="sheet-report-btn" data-open-report="duplicado">
+        <i data-lucide="copy" width="13" height="13"></i>
+        <span>[ REPORTAR DUPLICADO ]</span>
+      </button>
+    </div>
   `;
 
   if (window.lucide) window.lucide.createIcons();
+
+  // Listeners para botones de reporte
+  document.querySelectorAll('[data-open-report]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const reportType = btn.dataset.openReport || 'error_datos';
+      document.dispatchEvent(new CustomEvent('radar:open-report', { detail: { obra: selected, reportType } }));
+    });
+  });
 
   const editButton = document.querySelector('[data-edit-building]');
   if (editButton) editButton.addEventListener('click', (event) => {

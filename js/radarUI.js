@@ -151,7 +151,10 @@ export function renderRadarUI() {
           ` : ''}
           <div class="radar-proximity-info">
             <h4 class="radar-proximity-title">${escapeHtml(obra.nombre_obra)}</h4>
-            <div class="radar-proximity-meta">${escapeHtml(architects)}${year}</div>
+            <div class="radar-proximity-meta">
+              <span class="architect-pill-badge">${escapeHtml(architects)}</span>
+              ${year}
+            </div>
             ${city ? `<div class="radar-proximity-city">${escapeHtml(city).toUpperCase()}</div>` : ''}
           </div>
         </div>

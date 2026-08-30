@@ -526,34 +526,44 @@ export async function saveBuildingStatus(userId, buildingId, status, sessionToke
   return response.json();
 }
 
-export async function createBuildingReport(report, sessionToken) {
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/building_reports`, {
+export async function createBuildingReport(report, sessionToken = null) {
+  const payload = {
+    building_id: report.building_id,
+    user_id: report.user_id || null,
+    user_email: report.user_email || null,
+    report_type: report.report_type || 'error_datos',
+    description: report.description || report.descripcion || '',
+    status: 'pending',
+  };
+
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/reports`, {
     method: 'POST',
     headers: {
       'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${sessionToken}`,
+      'Authorization': `Bearer ${sessionToken || SUPABASE_KEY}`,
       'Content-Type': 'application/json',
       'Prefer': 'return=representation',
     },
-    body: JSON.stringify({ ...report, estado: 'pendiente' }),
+    body: JSON.stringify(payload),
   });
+
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
     throw new Error(error.message || error.details || 'No se pudo enviar el reporte.');
   }
-  return response.json();
+  return response.json().catch(() => ({}));
 }
 
 export async function fetchBuildingReports(sessionToken) {
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/building_reports?estado=eq.pendiente&select=id,user_id,building_id,descripcion,estado,created_at&order=created_at.desc`, {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/reports?status=eq.pending&select=id,user_id,user_email,building_id,report_type,description,status,created_at,Buildings(nombre_obra,arquitecto)&order=created_at.desc`, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
   });
   if (!response.ok) return [];
-  return response.json();
+  return response.json().catch(() => []);
 }
 
 export async function updateBuildingReport(id, estado, sessionToken) {
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/building_reports?id=eq.${encodeURIComponent(id)}`, {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/reports?id=eq.${encodeURIComponent(id)}`, {
     method: 'PATCH',
     headers: {
       'apikey': SUPABASE_KEY,
@@ -561,13 +571,13 @@ export async function updateBuildingReport(id, estado, sessionToken) {
       'Content-Type': 'application/json',
       'Prefer': 'return=representation',
     },
-    body: JSON.stringify({ estado }),
+    body: JSON.stringify({ status: estado }),
   });
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
     throw new Error(error.message || error.details || 'No se pudo actualizar el reporte.');
   }
-  return response.json();
+  return response.json().catch(() => ({}));
 }
 
 export async function fetchRatingAverages(sessionToken) {
@@ -694,6 +704,19 @@ export async function fetchPublicUserBuildingStatuses(userId) {
   const response = await fetch(`${SUPABASE_URL}/rest/v1/user_building_status?user_id=eq.${encodeURIComponent(userId)}&select=building_id,favorite,visited`, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
   });
+  if (!response.ok) return [];
+  return response.json().catch(() => []);
+}
+
+/** Descarga todas las colecciones marcadas como públicas por cualquier usuario. */
+export async function fetchAllPublicCollections() {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?is_public=eq.true&select=*,profiles:user_id(nick,first_name,last_name)&order=created_at.desc`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+    },
+  });
+
   if (!response.ok) return [];
   return response.json().catch(() => []);
 }

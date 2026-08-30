@@ -54,6 +54,14 @@ export function esRolAdmin(role = state.userRole) {
   return role === 'admin' || role === 'superadmin';
 }
 
+export function esRolTester(role = state.userRole) {
+  return role === 'tester' || role === 'admin' || role === 'superadmin';
+}
+
+export function esRolSuperadmin(role = state.userRole) {
+  return role === 'superadmin';
+}
+
 export function separarArquitectos(valor) {
   return String(valor || '')
     .split(/[,/;+&]|\s+y\s+|\s+and\s+/i)
