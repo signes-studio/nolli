@@ -18,49 +18,76 @@ async function abrirFichaArquitecto(nombreArquitecto) {
   const modal = document.getElementById('modal-architect');
   const works = document.getElementById('architect-profile-works');
   document.getElementById('architect-profile-name').textContent = nombreArquitecto;
-  document.getElementById('architect-profile-count').textContent = 'CARGANDO OBRAS...';
-  works.innerHTML = '<p class="architect-profile-empty">Consultando todas las obras...</p>';
+  document.getElementById('architect-profile-count').textContent = '[ CARGANDO CATÁLOGO... ]';
+  works.innerHTML = '<p class="architect-profile-empty">[ CONSULTANDO TODAS LAS OBRAS EN LA BASE DE DATOS... ]</p>';
   modal.classList.add('open');
 
   let obras;
   try {
     const filas = await fetchBuildings({ architect: nombreArquitecto, includeAllImportance: true });
-    obras = filas.map((fila, index) => ({
+    obras = (filas || []).map((fila, index) => ({
       id: fila.id,
       featureId: String(fila.id ?? `obra-${index}`),
       nombre_obra: fila.nombre_obra,
       foto_url: fila.foto_url || null,
       enlace_url: fila.enlace_url || null,
       arquitecto: fila.arquitecto,
-      arquitectos: separarArquitectos(fila.arquitecto),
+      arquitectos: Array.isArray(fila.arquitectos) ? fila.arquitectos : separarArquitectos(fila.arquitecto),
       año_construccion: fila.año_construccion,
       importancia: normalizarImportancia(fila.importancia),
       categoria: normalizarCategoria(fila.categoria),
+      ciudad: fila.place || fila.ciudad || null,
       estado_acceso: fila.estado_acceso || (fila.visitable ? 'publico' : 'privado'),
       estado_revision: fila.estado_revision || 'publicada',
       coordenadas: [fila.longitud, fila.latitud],
       selected: false,
     }));
+
     const obrasPorId = new Map(state.OBRAS.map((obra) => [String(obra.id), obra]));
     obras.forEach((obra) => obrasPorId.set(String(obra.id), { ...obrasPorId.get(String(obra.id)), ...obra }));
     state.OBRAS = [...obrasPorId.values()];
   } catch (error) {
     console.error('Error cargando obras del arquitecto:', error);
-    document.getElementById('architect-profile-count').textContent = 'ERROR DE CARGA';
-    works.innerHTML = '<p class="architect-profile-empty">No se pudieron cargar las obras.</p>';
+    document.getElementById('architect-profile-count').textContent = '[ ERROR DE CARGA ]';
+    works.innerHTML = '<p class="architect-profile-empty">[ NO SE PUDIERON CARGAR LAS OBRAS ]</p>';
     return;
   }
 
   obras = obras
     .sort((first, second) => Number(second.año_construccion || 0) - Number(first.año_construccion || 0)
       || String(first.nombre_obra || '').localeCompare(String(second.nombre_obra || ''), 'es'));
-  document.getElementById('architect-profile-count').textContent = `${obras.length} ${obras.length === 1 ? 'OBRA REGISTRADA' : 'OBRAS REGISTRADAS'}`;
-  works.innerHTML = obras.length ? obras.map((obra) => `
-    <button type="button" class="architect-work-item" data-architect-work-id="${escapeHtml(obra.featureId)}">
-      <span class="architect-work-year">${escapeHtml(obra.año_construccion || '----')}</span>
-      <span class="architect-work-info"><strong>${escapeHtml(obra.nombre_obra)}</strong><small>${escapeHtml(obra.categoria || 'otro').toUpperCase()}</small></span>
-    </button>
-  `).join('') : '<p class="architect-profile-empty">No hay obras registradas para este arquitecto.</p>';
+
+  document.getElementById('architect-profile-count').textContent = `[ ${obras.length} ${obras.length === 1 ? 'OBRA REGISTRADA' : 'OBRAS REGISTRADAS'} ]`;
+
+  works.innerHTML = obras.length ? obras.map((obra) => {
+    const catKey = obra.categoria || 'otro';
+    const catColor = CATEGORY_COLORS[catKey] || '#E95C0C';
+    const yearText = obra.año_construccion || '----';
+    const cityName = obra.ciudad || '';
+    return `
+      <button type="button" class="architect-work-card" data-architect-work-id="${escapeHtml(obra.featureId)}" aria-label="Ver ficha de ${escapeHtml(obra.nombre_obra)}">
+        <div class="architect-work-year-box">
+          <span class="architect-work-year-val">${escapeHtml(yearText)}</span>
+        </div>
+        <div class="architect-work-info">
+          <div class="architect-work-title">${escapeHtml(obra.nombre_obra)}</div>
+          <div class="architect-work-meta-row">
+            <span class="architect-cat-pill" style="border-left: 3px solid ${catColor};">
+              ${escapeHtml(nombreCategoria(obra.categoria))}
+            </span>
+            ${cityName ? `<span class="architect-city-tag">· ${escapeHtml(cityName)}</span>` : ''}
+          </div>
+        </div>
+        ${obra.foto_url ? `
+          <div class="architect-work-thumb-wrap">
+            <img src="${escapeHtml(obra.foto_url)}" alt="${escapeHtml(obra.nombre_obra)}" class="architect-work-thumb" loading="lazy">
+          </div>
+        ` : ''}
+      </button>
+    `;
+  }).join('') : '<p class="architect-profile-empty">[ NO HAY OBRAS REGISTRADAS PARA ESTE ARQUITECTO ]</p>';
+
+  if (window.lucide) window.lucide.createIcons();
 }
 
 function cerrarFichaArquitecto() {

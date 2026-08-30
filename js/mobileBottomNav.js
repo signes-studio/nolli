@@ -493,4 +493,53 @@ function initSheetTouchGestures() {
     el.addEventListener('touchmove', onTouchMove, { passive: true });
     el.addEventListener('touchend', onTouchEnd, { passive: true });
   });
+
+  // Gesto táctil para ficha de arquitecto
+  const architectModal = document.getElementById('modal-architect');
+  const architectDragHandle = document.getElementById('architect-drag-handle');
+  const architectHeader = architectModal?.querySelector('.modal-head');
+  const architectBox = architectModal?.querySelector('.architect-profile-box');
+
+  if (architectModal && architectBox) {
+    let archStartY = 0;
+    let archCurrentY = 0;
+    let archDragging = false;
+
+    function onArchTouchStart(e) {
+      if (window.innerWidth > 768) return;
+      const touch = e.touches ? e.touches[0] : e;
+      archStartY = touch.clientY;
+      archCurrentY = archStartY;
+      archDragging = true;
+      architectBox.style.transition = 'none';
+    }
+
+    function onArchTouchMove(e) {
+      if (!archDragging || window.innerWidth > 768) return;
+      const touch = e.touches ? e.touches[0] : e;
+      archCurrentY = touch.clientY;
+      const deltaY = archCurrentY - archStartY;
+      if (deltaY > 0) {
+        architectBox.style.transform = `translateY(${deltaY}px) translate3d(0, 0, 0)`;
+      }
+    }
+
+    function onArchTouchEnd() {
+      if (!archDragging || window.innerWidth > 768) return;
+      archDragging = false;
+      architectBox.style.transition = '';
+      const deltaY = archCurrentY - archStartY;
+      architectBox.style.transform = '';
+
+      if (deltaY > 75) {
+        architectModal.classList.remove('open');
+      }
+    }
+
+    [architectDragHandle, architectHeader].filter(Boolean).forEach((el) => {
+      el.addEventListener('touchstart', onArchTouchStart, { passive: true });
+      el.addEventListener('touchmove', onArchTouchMove, { passive: true });
+      el.addEventListener('touchend', onArchTouchEnd, { passive: true });
+    });
+  }
 }

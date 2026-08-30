@@ -106,31 +106,261 @@ body.dark-mode .location-pulse {
   padding: 0; border: 0; background: transparent; color: var(--accent);
   font: inherit; text-align: left; cursor: pointer; text-decoration: underline;
 }
-.architect-profile-box { max-width: 520px; max-height: min(76vh, 680px); display: flex; flex-direction: column; }
-.architect-profile-body { min-height: 0; overflow: auto; padding: 18px 14px 12px; }
-.architect-profile-kicker { margin: 0 0 5px; color: var(--accent); font-size: 9px; letter-spacing: .08em; }
-.architect-profile-name { margin: 0; color: var(--fg); font-family: 'League Spartan', -apple-system, sans-serif; font-weight: 800; font-size: 24px; line-height: 1.05; overflow-wrap: anywhere; }
-.architect-profile-count { margin: 8px 0 13px; color: var(--fg-dim); font-size: 10px; }
-.architect-profile-works { border-top: 1px solid var(--border); }
-.architect-work-item { width: 100%; display: grid; grid-template-columns: 54px minmax(0, 1fr); gap: 10px; padding: 11px 0; border: 0; border-bottom: 1px solid var(--border); background: transparent; color: var(--fg); font: inherit; text-align: left; cursor: pointer; }
-.architect-work-item:hover, .architect-work-item:focus-visible { background: var(--bg-raised); outline: none; }
-.architect-work-year { color: var(--accent); font-size: 10px; padding-top: 2px; }
-.architect-work-info { display: grid; gap: 3px; min-width: 0; }
-.architect-work-info strong { font-size: 11px; line-height: 1.35; overflow-wrap: anywhere; }
-.architect-work-info small { color: var(--fg-dim); font-size: 9px; }
-.architect-profile-empty { margin: 0; padding: 14px 0; color: var(--fg-dim); font-size: 10px; }
+.architect-profile-box {
+  max-width: 540px;
+  max-height: min(80vh, 720px);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-panel, #F4F1EA);
+  border: 1px solid var(--border-strong, #141411);
+  box-shadow: 4px 4px 0px var(--border-strong, #141411);
+  border-radius: 0 !important;
+}
+
+.architect-profile-body {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px 16px 14px;
+}
+
+.architect-profile-kicker {
+  margin: 0 0 4px;
+  color: var(--accent, #E95C0C);
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 800;
+  font-size: 9px;
+  letter-spacing: .08em;
+}
+
+.architect-profile-name {
+  margin: 0;
+  color: var(--fg, #141411);
+  font-family: 'League Spartan', -apple-system, sans-serif;
+  font-weight: 900;
+  font-size: 26px;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.architect-profile-count {
+  margin: 6px 0 14px;
+  color: var(--accent, #E84E1B);
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+}
+
+.architect-profile-works {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+/* Tarjetas Modulares de Obra (Neo-Bauhaus) */
+.architect-work-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border-strong, #141411);
+  box-shadow: 2px 2px 0px var(--border-strong, #141411);
+  border-radius: 0 !important;
+  background: var(--bg-panel, #F4F1EA);
+  color: var(--fg, #141411);
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.08s ease, background 0.12s ease;
+}
+
+.architect-work-card:hover,
+.architect-work-card:focus-visible {
+  background: var(--bg-raised, #ECE6D8);
+  outline: none;
+}
+
+.architect-work-card:active {
+  transform: scale(0.98);
+}
+
+.architect-work-year-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 52px;
+  padding: 6px 8px;
+  background: var(--bg-raised, #ECE6D8);
+  border: 1px solid var(--border-strong, #141411);
+  flex-shrink: 0;
+}
+
+.architect-work-year-val {
+  font-family: 'League Spartan', sans-serif;
+  font-weight: 900;
+  font-size: 13px;
+  color: var(--accent, #E84E1B);
+  letter-spacing: 0.02em;
+}
+
+.architect-work-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.architect-work-title {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 1.25;
+  color: var(--fg, #141411);
+  overflow-wrap: anywhere;
+}
+
+.architect-work-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.architect-cat-pill {
+  display: inline-block;
+  padding: 1px 6px;
+  font-family: 'League Spartan', sans-serif;
+  font-weight: 800;
+  font-size: 9px;
+  text-transform: uppercase;
+  background: var(--bg-raised, #ECE6D8);
+  color: var(--fg, #141411);
+  letter-spacing: 0.04em;
+  border: 1px solid var(--border);
+}
+
+.architect-city-tag {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--fg-dim);
+}
+
+.architect-work-thumb-wrap {
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--border-strong, #141411);
+  flex-shrink: 0;
+  overflow: hidden;
+  background: var(--bg-raised);
+}
+
+.architect-work-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.architect-profile-empty {
+  margin: 0;
+  padding: 16px 0;
+  color: var(--fg-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  text-align: center;
+}
+
 .share-box { max-width: 360px; }
 .share-options { display: grid; gap: 8px; padding: 14px; }
 .share-option { width: 100%; text-align: left; }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
+  #modal-architect.modal-overlay {
+    padding: 0 !important;
+    align-items: flex-end !important;
+    background: rgba(20, 20, 17, 0.45) !important;
+  }
+
+  #modal-architect .architect-profile-box {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: min(78vh, calc(100dvh - 55px)) !important;
+    max-height: 82vh !important;
+    min-height: 55vh !important;
+    border-radius: 0 !important;
+    border: 0 !important;
+    border-top: 2px solid var(--border-strong, #141411) !important;
+    background: #F4F1EA !important;
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.32) !important;
+    margin: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    animation: modalSlideUp 0.24s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+
+  @keyframes modalSlideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  body.dark-mode #modal-architect .architect-profile-box {
+    background: #171715 !important;
+  }
+
+  #modal-architect .modal-head {
+    min-height: 48px !important;
+    padding: 8px 14px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    background: #ECE6D8 !important;
+    border-bottom: 1px solid var(--border-strong, #141411) !important;
+    border-radius: 0 !important;
+  }
+
+  body.dark-mode #modal-architect .modal-head {
+    background: #20201D !important;
+  }
+
+  #modal-architect .architect-profile-body {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior-y: contain !important;
+    padding: 16px 14px calc(85px + env(safe-area-inset-bottom)) !important;
+  }
+
+  #modal-architect .architect-profile-name {
+    font-family: 'League Spartan', sans-serif !important;
+    font-weight: 900 !important;
+    font-size: 24px !important;
+    line-height: 1.1 !important;
+    text-transform: uppercase !important;
+    color: var(--fg, #141411) !important;
+    letter-spacing: -0.01em !important;
+    margin-bottom: 4px !important;
+  }
+
+  #modal-architect .architect-profile-count {
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    color: var(--accent, #E84E1B) !important;
+    letter-spacing: 0.05em !important;
+    margin-bottom: 14px !important;
+  }
+
   .fab { width: 48px; height: 48px; }
   .btn { font-size: 12px; padding: 11px 12px; }
   .tech-input { min-height: 44px; font-size: 14px; padding: 10px 11px; }
-  .modal-overlay { padding: 10px; }
-  .modal-head { padding: 13px 12px; }
-  .modal-body { padding: 12px; }
-  .architect-profile-name { font-size: 19px; }
 }
 
 /* ---------- Modal (genérico) ---------- */
