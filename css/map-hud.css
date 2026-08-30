@@ -46,7 +46,8 @@
 .mobile-bottom-bar,
 .mobile-identity-widget,
 .mobile-admin-quickmenu,
-.mobile-search-widget {
+.mobile-search-widget,
+.mobile-splash {
   display: none !important;
 }
 .panel-backdrop {
@@ -54,6 +55,132 @@
 }
 
 @media (max-width: 768px) {
+  /* Pantalla de Carga Móvil / Splash Screen (Neo-Bauhaus) */
+  .mobile-splash {
+    display: flex !important;
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    z-index: 9999 !important;
+    background: var(--bg-panel, #F4F1EA) !important;
+    align-items: center !important;
+    justify-content: center !important;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out;
+    will-change: opacity;
+  }
+
+  body.dark-mode .mobile-splash {
+    background: #141411 !important;
+  }
+
+  .mobile-splash.splash-hidden {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+  }
+
+  .mobile-splash-card {
+    border: 2px solid var(--border-strong, #141411);
+    box-shadow: 4px 4px 0px var(--border-strong, #141411);
+    background: var(--bg-panel, #F4F1EA);
+    padding: 24px 28px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    max-width: 86vw;
+    animation: splashPop 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes splashPop {
+    from { transform: scale(0.94); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  body.dark-mode .mobile-splash-card {
+    background: #1C1C1A;
+  }
+
+  .mobile-splash-kicker {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--accent, #E84E1B);
+    letter-spacing: 0.08em;
+  }
+
+  .mobile-splash-brand {
+    font-family: 'League Spartan', sans-serif !important;
+    font-weight: 900;
+    font-size: 40px;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: var(--fg, #141411);
+    text-transform: lowercase;
+  }
+
+  .mobile-splash-dot {
+    color: var(--accent, #E84E1B);
+  }
+
+  .mobile-splash-bar-wrap {
+    width: 140px;
+    height: 10px;
+    border: 1px solid var(--border-strong, #141411);
+    background: var(--bg-raised, #ECE6D8);
+    padding: 1px;
+    display: flex;
+    margin: 4px 0 2px;
+    overflow: hidden;
+  }
+
+  body.dark-mode .mobile-splash-bar-wrap {
+    background: #282825;
+  }
+
+  .mobile-splash-bar {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    gap: 2px;
+  }
+
+  .mobile-splash-block {
+    flex: 1;
+    background: var(--border-strong, #141411);
+    opacity: 0.15;
+    animation: splashBlockPulse 1.2s infinite ease-in-out;
+  }
+
+  .mobile-splash-block.block-1 { animation-delay: 0s; }
+  .mobile-splash-block.block-2 { animation-delay: 0.2s; }
+  .mobile-splash-block.block-3 { animation-delay: 0.4s; }
+  .mobile-splash-block.block-4 { animation-delay: 0.6s; }
+
+  @keyframes splashBlockPulse {
+    0%, 100% {
+      opacity: 0.15;
+      background: var(--border-strong, #141411);
+    }
+    50% {
+      opacity: 1;
+      background: var(--accent, #E84E1B);
+    }
+  }
+
+  .mobile-splash-status {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--fg-dim, #666);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
   /* Lienzo del mapa a pantalla completa sin capas bloqueantes */
   #map {
     position: fixed !important;

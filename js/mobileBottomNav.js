@@ -146,8 +146,42 @@ export function initMobileBottomNav() {
   initMobileIdentityWidget();
   initMobileSearchWidget();
   initSheetTouchGestures();
+  initMobileSplashScreen();
 
   if (window.lucide) window.lucide.createIcons();
+}
+
+/* =========================================================================
+   PANTALLA DE CARGA MÓVIL / SPLASH SCREEN (NEO-BAUHAUS)
+   ========================================================================= */
+function initMobileSplashScreen() {
+  const splash = document.getElementById('mobile-splash-screen');
+  const status = document.getElementById('mobile-splash-status');
+  if (!splash) return;
+
+  let dismissed = false;
+
+  const dismissSplash = () => {
+    if (dismissed) return;
+    dismissed = true;
+    if (status) status.textContent = '[ DATOS SINCRONIZADOS ]';
+
+    setTimeout(() => {
+      splash.classList.add('splash-hidden');
+      setTimeout(() => {
+        splash.style.display = 'none';
+      }, 450);
+    }, 280);
+  };
+
+  // Desvanecimiento suave tan pronto como los primeros datos del mapa estén listos
+  document.addEventListener('radar:data-ready', dismissSplash, { once: true });
+
+  // Timeout de seguridad máximo (2.5s)
+  setTimeout(dismissSplash, 2500);
+
+  // Permitir cierre al toque si el usuario pulsa
+  splash.addEventListener('click', dismissSplash, { once: true });
 }
 
 /* =========================================================================

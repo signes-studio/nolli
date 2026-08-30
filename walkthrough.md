@@ -1,22 +1,25 @@
-# Walkthrough: Resolución Definitiva de Conexión y Carga de la Base de Datos
+# Walkthrough: Pantalla de Carga Móvil / Splash Screen (Neo-Bauhaus)
 
-Se ha diagnosticado y reparado el fallo que impedía la conexión y carga de las obras en la aplicación.
-
----
-
-## 1. 🔍 Diagnósticos Identificados
-1. **Error de Sintaxis en `js/api.js`**:
-   - En una edición previa, se había omitido la línea de llamada `const response = await fetch(...)` dentro de `fetchBuildingsByIds`, provocando un fallo de parseo de sintaxis JavaScript en el navegador (`Unexpected token ':'`) que impedía la inicialización del módulo de datos.
-2. **Esquema de Columnas en Supabase**:
-   - La tabla `Buildings` utiliza el nombre de campo **`place`** (y no `ciudad`).
+Se ha diseñado e implementado la nueva pantalla de carga móvil (*Splash Screen / Loading State*) para **Nolli**, ofreciendo una primera impresión inmersiva y acorde con los principios de diseño constructivista y Neo-Bauhaus.
 
 ---
 
-## 2. 🛠️ Soluciones y Verificaciones Aplicadas
-1. **Corrección de Sintaxis y Módulos**:
-   - Se ha restaurado la invocación de `fetch` en `fetchBuildingsByIds` y verificado la sintaxis ES Modules al 100% en todos los archivos de la aplicación.
-2. **Batería de Pruebas de Integración con Supabase**:
-   - `fetchBuildingFacets()`: **14.931 facetas descargadas**.
-   - `fetchBuildings({ includeAllImportance: true })`: **14.930 obras descargadas con éxito** con sus ubicaciones (`place`).
-   - `fetchBuildingsByIds()`: **Verificado y operativo**.
-   - `fetchBuildings({ architect: 'Álvaro Siza' })`: **71 obras recuperadas**.
+## 1. 🎨 Estética Editorial e Identidad de Marca
+- **Lienzo Editorial Absoluto**: Ocupa el 100% del viewport (`100dvh`, `z-index: 9999`) con fondo crema `#F4F1EA` (adaptable a `#141411` en tema oscuro).
+- **Recuadro Central Bauhaus**: Tarjeta ortogonal con marco negro y sombra rígida (`border: 2px solid #141411; box-shadow: 4px 4px 0px #141411;`).
+- **Jerarquía Tipográfica**:
+  - Kicker técnico: `[ GUÍA DE ARQUITECTURA ]` en `JetBrains Mono` en color vermillón `#E84E1B`.
+  - Logotipo central: `nolli.` en `League Spartan` (bold 900, 40px) con el característico punto vermillón.
+  - Estado de carga: `[ CARGANDO MAPA Y DATOS ]` en tipografía `Inter` (bold, mayúsculas).
+
+---
+
+## 2. ⬛ Indicador Constructivista (Cero Spinners Circulares)
+- **Barra de Bloques Segmentados**: Recuadro modular de 4 bloques que pulsan secuencialmente en tonos vermillón y negro, evocando la estética constructivista y prescindiendo de spinners circulares genéricos.
+
+---
+
+## 3. ⚡ Transición Fluida a 60 FPS y Sincronización
+- **Aceleración por Hardware**: `transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out; will-change: opacity;`.
+- **Desvanecimiento Inmediato**: En cuanto el mapa y la primera carga de datos disparan `radar:data-ready`, el estado se actualiza a `[ DATOS SINCRONIZADOS ]` y se desvanece de manera suave revelando el mapa.
+- **Protección Máxima de Escritorio**: En resoluciones superiores a 768px, el elemento permanece con `display: none !important;`.
