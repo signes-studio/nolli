@@ -7,7 +7,9 @@
    - Aceleración por hardware a 60 FPS estables
    ========================================================================= */
 
-import { state, esRolAdmin } from './state.js';
+import { state, esRolAdmin, separarArquitectos, normalizarCategoria, normalizarImportancia } from './state.js';
+import { fetchBuildings } from './api.js';
+import { actualizarFuenteMapa } from './mapData.js';
 
 export function initMobileBottomNav() {
   const bottomBar = document.getElementById('mobile-bottom-bar');
@@ -265,8 +267,47 @@ function initMobileIdentityWidget() {
   updateIdentityUI();
 }
 
+let cacheObrasMobileSearch = null;
+let mobileSearchPromise = null;
+
+async function cargarTodasObrasMobile() {
+  if (cacheObrasMobileSearch && cacheObrasMobileSearch.length > 0) {
+    return cacheObrasMobileSearch;
+  }
+  if (mobileSearchPromise) return mobileSearchPromise;
+
+  mobileSearchPromise = (async () => {
+    try {
+      const filas = await fetchBuildings({ includeAllImportance: true });
+      cacheObrasMobileSearch = (filas || []).map((fila, index) => ({
+        id: fila.id,
+        featureId: String(fila.id ?? `obra-${index}`),
+        nombre_obra: fila.nombre_obra,
+        foto_url: fila.foto_url || null,
+        enlace_url: fila.enlace_url || null,
+        arquitecto: fila.arquitecto,
+        arquitectos: separarArquitectos(fila.arquitecto),
+        año_construccion: fila.año_construccion,
+        importancia: normalizarImportancia(fila.importancia),
+        categoria: normalizarCategoria(fila.categoria),
+        ciudad: fila.ciudad || null,
+        estado_acceso: fila.estado_acceso || (fila.visitable ? 'publico' : 'privado'),
+        coordenadas: [fila.longitud, fila.latitud],
+      }));
+      return cacheObrasMobileSearch;
+    } catch (err) {
+      console.warn('Error al precargar obras completas para buscador móvil:', err);
+      return state.OBRAS || [];
+    } finally {
+      mobileSearchPromise = null;
+    }
+  })();
+
+  return mobileSearchPromise;
+}
+
 /* =========================================================================
-   BUSCADOR FLOTANTE Y EXPANSIVO (SUPERIOR DERECHO)
+   BUSCADOR FLOTANTE Y EXPANSIVO (SUPERIOR DERECHO - BASE DE DATOS COMPLETA)
    ========================================================================= */
 function initMobileSearchWidget() {
   const widget = document.getElementById('mobile-search-widget');
@@ -282,6 +323,7 @@ function initMobileSearchWidget() {
     widget.classList.remove('collapsed');
     widget.classList.add('expanded');
     setTimeout(() => input.focus(), 100);
+    cargarTodasObrasMobile();
   }
 
   function closeSearch() {
@@ -311,56 +353,81 @@ function initMobileSearchWidget() {
       .toLowerCase();
   }
 
+  let searchDebounce = null;
+
   input.addEventListener('input', () => {
-    const q = normalize(input.value.trim());
-    if (!q || q.length < 2) {
-      if (dropdown) dropdown.hidden = true;
-      if (resultsContainer) resultsContainer.innerHTML = '';
-      return;
-    }
+    clearTimeout(searchDebounce);
+    searchDebounce = setTimeout(async () => {
+      const q = normalize(input.value.trim());
+      if (!q || q.length < 2) {
+        if (dropdown) dropdown.hidden = true;
+        if (resultsContainer) resultsContainer.innerHTML = '';
+        return;
+      }
 
-    const matches = (state.OBRAS || [])
-      .filter((obra) => {
-        const name = normalize(obra.nombre_obra);
-        const arq = normalize(Array.isArray(obra.arquitectos) ? obra.arquitectos.join(' ') : obra.arquitecto);
-        const city = normalize(obra.ciudad);
-        return name.includes(q) || arq.includes(q) || city.includes(q);
-      })
-      .slice(0, 8);
+      // Obtener todas las obras (base de datos completa + estado local)
+      const todasLasObras = await cargarTodasObrasMobile();
+      const catalogo = todasLasObras && todasLasObras.length ? todasLasObras : (state.OBRAS || []);
 
-    if (!matches.length) {
-      resultsContainer.innerHTML = `
-        <div style="padding: 14px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--fg-dim); text-align: center;">
-          [ SIN RESULTADOS PARA ESTA BÚSQUEDA ]
-        </div>
-      `;
+      const matches = catalogo
+        .filter((obra) => {
+          const name = normalize(obra.nombre_obra);
+          const arq = normalize(Array.isArray(obra.arquitectos) ? obra.arquitectos.join(' ') : obra.arquitecto);
+          const city = normalize(obra.ciudad);
+          return name.includes(q) || arq.includes(q) || city.includes(q);
+        })
+        .slice(0, 15);
+
+      if (!matches.length) {
+        resultsContainer.innerHTML = `
+          <div style="padding: 14px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--fg-dim); text-align: center;">
+            [ SIN RESULTADOS EN LA BASE DE DATOS ]
+          </div>
+        `;
+        dropdown.hidden = false;
+        return;
+      }
+
+      resultsContainer.innerHTML = matches.map((obra) => `
+        <button type="button" class="mobile-search-item" data-obra-id="${obra.id || obra.featureId}">
+          <div style="min-width: 0; flex: 1;">
+            <div class="mobile-search-item-title">${obra.nombre_obra}</div>
+            <div class="mobile-search-item-sub">${obra.arquitecto || 'Arquitecto no indicado'}${obra.año_construccion ? ` · ${obra.año_construccion}` : ''}</div>
+          </div>
+          <div class="mobile-search-item-meta">${obra.ciudad ? `[ ${obra.ciudad.toUpperCase()} ]` : '[ S/C ]'}</div>
+        </button>
+      `).join('');
+
       dropdown.hidden = false;
-      return;
-    }
-
-    resultsContainer.innerHTML = matches.map((obra) => `
-      <button type="button" class="mobile-search-item" data-obra-id="${obra.id || obra.featureId}">
-        <div>
-          <div class="mobile-search-item-title">${obra.nombre_obra}</div>
-          <div class="mobile-search-item-sub">${obra.arquitecto || 'Arquitecto no indicado'}${obra.año_construccion ? ` · ${obra.año_construccion}` : ''}</div>
-        </div>
-        <div class="mobile-search-item-meta">${obra.ciudad || ''}</div>
-      </button>
-    `).join('');
-
-    dropdown.hidden = false;
+    }, 120);
   });
 
-  resultsContainer?.addEventListener('click', (e) => {
+  resultsContainer?.addEventListener('click', async (e) => {
     const item = e.target.closest('.mobile-search-item');
     if (!item) return;
     const obraId = item.dataset.obraId;
-    const obra = (state.OBRAS || []).find((o) => String(o.id) === String(obraId) || String(o.featureId) === String(obraId));
+
+    const todas = await cargarTodasObrasMobile();
+    const catalogo = todas && todas.length ? todas : (state.OBRAS || []);
+    const obra = catalogo.find((o) => String(o.id) === String(obraId) || String(o.featureId) === String(obraId));
+
     if (obra) {
       closeSearch();
-      if (state.map) {
-        state.map.flyTo({ center: obra.coordenadas, zoom: 16 });
+
+      // Si la obra no estaba cargada en el mapa actual, la incorporamos
+      if (!state.OBRAS.some((o) => String(o.id) === String(obra.id))) {
+        state.OBRAS.push(obra);
+        actualizarFuenteMapa();
       }
+
+      if (state.map && obra.coordenadas) {
+        state.map.flyTo({
+          center: obra.coordenadas,
+          zoom: 16,
+          padding: { top: 20, bottom: 64, left: 0, right: 0 },
+        });
+      }
+
       import('./sheetUI.js').then(({ abrirFicha }) => {
         abrirFicha(obra, obra.coordenadas, obra.featureId);
       });

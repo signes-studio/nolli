@@ -1,59 +1,29 @@
-# Walkthrough: Rediseño Integral de Fichas de Obra (Bottom Sheet) Neo-Bauhaus
+# Walkthrough: Rescate de Visibilidad de Marcadores, Controles Flotantes y Búsqueda Global en Móvil
 
-Se ha completado el rediseño integral de las **Fichas de Obra (Bottom Sheets)** en móvil para **Nolli**, aplicando la ergonomía de una aplicación cartográfica moderna con la pureza formal y tipográfica de nuestra identidad **Neo-Bauhaus**.
-
----
-
-## 1. 🔲 Estructura y Dimensiones del Bottom Sheet
-- **Altura Ergonométrica**: Ocupa aprox. el 75% del viewport (`height: min(75vh, calc(100dvh - 60px)); max-height: 80vh; min-height: 55vh;`).
-- **Geometría Bauhaus**: Borde superior 100% recto (`border-radius: 0 !important; border-top: 2px solid #141411;`) y fondo crema editorial `#F4F1EA`.
-- **Tirador Táctil (Drag Handle)**: Barra sobria en la parte superior para cierre suave mediante gesto *swipe-down* acelerado por hardware a 60 FPS.
+Se han aplicado de forma precisa y modular todas las correcciones para garantizar la visibilidad total de los puntos del mapa, la accesibilidad de los controles flotantes y la búsqueda completa en la base de datos con visualización de ciudades en **Nolli**.
 
 ---
 
-## 2. 🔤 Cabecera Limpia y Jerarquía Visual
-- **Desaparición del Exceso de Iconos**: Eliminada la barra saturada de 7 botones amontonados.
-- **Acciones Rápidas en Cabecera**: Botón directo de Favorito (`[ ♥ ]` con corazón en rojo vermillón al activarse) y botón geométrico de cierre ("X") con área táctil $\ge 44\times 44\text{px}$.
-- **Nombre de la Obra**: Título rotundo en **`League Spartan`** (mayúsculas, bold 900).
-- **Subtítulo de Metadatos**: Arquitecto enlazado en color vermillon (`#E84E1B`), año de construcción y ciudad en tipografía `Inter`.
+## 1. 🗺️ Jerarquía de Z-Index y Visibilidad de Marcadores
+- **Lienzo Activo**: `#map`, `.mapboxgl-canvas-container` y los marcadores interactivos se fijan en `z-index: 1` con `position: fixed` a `100dvh`, eliminando cualquier solapamiento o pérdida de visibilidad en navegadores móviles.
+- **Inactivación Segura del Backdrop**: `#panel-backdrop` inactivo cuenta con `display: none !important; opacity: 0; pointer-events: none; z-index: -1; visibility: hidden;`, impidiendo que cree un velo invisible que capture toques o bloquee marcadores del mapa.
 
 ---
 
-## 3. 🎯 Botones de Acción Hero ($\ge 48\text{px}$)
-Fila horizontal con desplazamiento táctil suave (`overflow-x: auto`) ubicada directamente bajo el título:
-- **Botón Primario Destacado**: `[ ↗ CÓMO LLEGAR ]` en bloque sólido negro (`#141411`), que abre la ruta GPS directa en Google Maps con las coordenadas del edificio.
-- **Botones Secundarios Táctiles**:
-  - `[ ✓ VISITADO ]`: Toggle de visita con estado activo en verde oscuro (`#0d682f`).
-  - `[ 🔖 GUARDAR ]`: Abre el modal organizador de listas y colecciones.
-  - `[ ↗ COMPARTIR ]`: Despliega el panel de enlace y redes.
-  - `[ 🏷️ ETIQUETA ]`: Gestión de etiquetas privadas.
+## 2. 📍 Elevación de Controles Flotantes de la Derecha (`#map-tools`)
+- **Posición Ergonómica**: Elevado a `bottom: calc(80px + env(safe-area-inset-bottom)); right: 14px; z-index: 41;` para despejar completamente la barra inferior de navegación (56px).
+- **Transparencia Táctil**: Contenedor `#map-tools` con `pointer-events: none;` y botones hijos con `pointer-events: auto;`, permitiendo interactuar con los marcadores situados alrededor del bloque sin obstáculos invisibles.
 
 ---
 
-## 4. 🖼️ Galería de Imágenes Inmersiva
-- **Banner Panorámico**: Marco negro ortogonal con sombra dura Bauhaus (`box-shadow: 2px 2px 0px #141411`).
-- **Badge Táctil de Zoom**: Indicador interactivo `[ ⤢ AMPLIAR ]` que despliega el visor a pantalla completa en alta definición.
+## 3. 📐 Margen de Seguridad Inferior del Viewport (Padding de Cámara)
+- **Padding Dinámico de Cámara**: En dispositivos móviles (`<= 768px`), el mapa aplica un padding compensatorio de `{ top: 10, bottom: 64, left: 0, right: 0 }`.
+- **Encuadre Centrado**: Al volar a cualquier obra, ubicación GPS o búsqueda, la chincheta o marcador queda holgadamente visible sobre la barra inferior y nunca atrapado detrás de ella.
+- **Redimensionamiento Reactivo**: Controladores de `resize` y `orientationchange` que disparan `map.resize()` automáticamente.
 
 ---
 
-## 5. 📐 Ficha Técnica Modular (Matriz Tipográfica Limpia)
-Sustituidas las antiguas tablas rígidas por una matriz ortogonal de líneas negras Bauhaus:
-- **`[ ARQUITECTO ]`**: Nombre enlazado en color vermillon con apertura inmediata del catálogo completo de obras del autor.
-- **`[ AÑO / CATEGORÍA ]`**: Bloque modular de 2 columnas con badge cromático según la tipología arquitectónica.
-- **`[ ACCESO ]`**: Indicador técnico claro del régimen de visita (`PÚBLICO`, `EXTERIOR VISIBLE`, `CON RESERVA`, `PRIVADO`).
-- **`[ COORDENADAS ]`**: Lectura GPS en `JetBrains Mono`.
-- **`[ ENLACE OFICIAL ]`**: Botón web oficial del proyecto.
-
----
-
-## 6. 📝 Cuaderno Privado y Herramientas de Gestión
-- **Valoración por 5 Estrellas y Notas Privadas**: Módulo dedicado para anotaciones personales y estado de conservación.
-- **Módulo de Moderación / Admin**: Botones para editar o eliminar obra visibles únicamente para administradores o creadores de la ficha.
-- **Reporte de Errores**: Enlace discreto para reportar incidencias técnicas.
-
----
-
-## 7. ⚡ Scroll y Rendimiento
-- `overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; padding-bottom: calc(75px + env(safe-area-inset-bottom));` garantizando que todo el contenido se lea por encima de la barra inferior fija.
-- Aceleración por GPU a 60 FPS estables.
-- Versión de escritorio (`> 768px`) 100% blindada e intacta.
+## 4. 🔍 Búsqueda Global en Toda la Base de Datos con Ciudades Visibles
+- **Catálogo Completo**: El buscador móvil ahora precarga y consulta todas las obras públicas de la base de datos en Supabase (`fetchBuildings({ includeAllImportance: true })`).
+- **Ciudades Destacadas**: Cada resultado incorpora su chip de ciudad en tipografía técnica `JetBrains Mono` (ej. `[ VALENCIA ]`, `[ MADRID ]`, `[ BARCELONA ]`).
+- **Navegación Fluida**: Al pulsar una obra de otra región, se añade a la fuente del mapa, se vuela a sus coordenadas exactas y se abre su Ficha Técnica (*Bottom Sheet*) de inmediato.

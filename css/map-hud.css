@@ -54,6 +54,45 @@
 }
 
 @media (max-width: 768px) {
+  /* Lienzo del mapa a pantalla completa sin capas bloqueantes */
+  #map {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    z-index: 1 !important;
+  }
+
+  .mapboxgl-canvas-container,
+  .maplibregl-canvas-container,
+  .mapboxgl-canvas,
+  .maplibregl-canvas {
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 1 !important;
+  }
+
+  .hud-frame,
+  .hud-crosshair {
+    display: none !important;
+    pointer-events: none !important;
+  }
+
+  .mapboxgl-ctrl-bottom-right,
+  .maplibregl-ctrl-bottom-right,
+  .mapboxgl-ctrl-bottom-left,
+  .maplibregl-ctrl-bottom-left {
+    bottom: calc(62px + env(safe-area-inset-bottom)) !important;
+    z-index: 20 !important;
+    pointer-events: none !important;
+  }
+
+  .mapboxgl-ctrl-attrib,
+  .maplibregl-ctrl-attrib {
+    pointer-events: auto !important;
+  }
+
   /* Ocultar barra superior en móviles para maximizar mapa a pantalla completa */
   .topbar {
     display: none !important;
@@ -358,12 +397,25 @@
   }
 
   .mobile-search-item-meta {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
-    font-weight: 700;
-    color: var(--accent, #E95C0C);
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    color: var(--accent, #E95C0C) !important;
+    background: var(--bg-raised, #ECE6D8);
+    padding: 3px 6px;
+    border: 1px solid var(--border-strong, #141411);
+    border-radius: 0 !important;
     flex-shrink: 0;
     margin-left: 8px;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    text-transform: uppercase;
+  }
+
+  body.dark-mode .mobile-search-item-meta {
+    background: #252522 !important;
+    color: #FF7A33 !important;
+    border-color: #444 !important;
   }
 
   .mobile-bottom-bar {
@@ -413,19 +465,24 @@
   }
 
   .panel-backdrop {
-    display: block;
+    display: none !important;
     position: fixed;
     inset: 0;
     background: rgba(20, 20, 17, 0.45);
-    z-index: 48;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease;
+    z-index: -1 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+    transition: opacity 0.2s ease, visibility 0s linear 0.2s;
     will-change: opacity;
   }
 
   .panel-backdrop.active {
-    opacity: 1;
-    pointer-events: auto;
+    display: block !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    z-index: 48 !important;
+    visibility: visible !important;
+    transition: opacity 0.2s ease;
   }
 }

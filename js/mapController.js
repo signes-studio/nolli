@@ -40,6 +40,7 @@ export function cargarMapaMapbox() {
     document.body.classList.remove('dark-mode');
   }
 
+  const isMobile = window.innerWidth <= 768;
   state.map = new mapboxgl.Map({
     container: 'map',
     style: MAP_STYLES[state.mapStyle] || MAP_STYLES.abstract,
@@ -47,8 +48,29 @@ export function cargarMapaMapbox() {
     zoom: DEFAULT_ZOOM,
     attributionControl: true,
   });
+
+  if (isMobile) {
+    state.map.setPadding({ top: 10, bottom: 64, left: 0, right: 0 });
+  }
+
   state.map.dragRotate.disable();
   state.map.touchZoomRotate.disableRotation();
+
+  // Redimensionamiento y ajuste dinámico de padding en dispositivos táctiles
+  window.addEventListener('resize', () => {
+    state.map?.resize();
+    if (window.innerWidth <= 768) {
+      state.map?.setPadding({ top: 10, bottom: 64, left: 0, right: 0 });
+    } else {
+      state.map?.setPadding({ top: 0, bottom: 0, left: 0, right: 0 });
+    }
+  }, { passive: true });
+
+  window.addEventListener('orientationchange', () => {
+    setTimeout(() => {
+      state.map?.resize();
+    }, 150);
+  }, { passive: true });
 
   const configurarCapas = () => {
     if (state.map.getSource('obras')) return;
