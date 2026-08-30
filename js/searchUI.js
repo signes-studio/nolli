@@ -173,6 +173,8 @@ async function obtenerObrasGlobales() {
       año_construccion: fila.año_construccion,
       importancia: fila.importancia,
       categoria: fila.categoria,
+      ciudad: fila.place || fila.ciudad || null,
+      place: fila.place || null,
       coordenadas: [fila.longitud, fila.latitud],
     }));
     return cacheObrasGlobales;
