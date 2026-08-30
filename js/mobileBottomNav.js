@@ -15,10 +15,17 @@ export function initMobileBottomNav() {
   const bottomBar = document.getElementById('mobile-bottom-bar');
   const panelBackdrop = document.getElementById('panel-backdrop');
 
-  const btnSearch = document.getElementById('mobile-nav-search');
-  const btnFilters = document.getElementById('mobile-nav-filters');
+  // 5 Pestañas Inferiores
+  const btnMap = document.getElementById('mobile-nav-map');
+  const btnExplore = document.getElementById('mobile-nav-explore');
+  const btnRadar = document.getElementById('mobile-nav-radar');
   const btnPlaces = document.getElementById('mobile-nav-places');
-  const btnLayers = document.getElementById('mobile-nav-layers');
+  const btnProfile = document.getElementById('mobile-nav-profile');
+
+  // Controles Flotantes Derechos
+  const btnFloatLayers = document.getElementById('btn-float-layers');
+  const btnFloatFilters = document.getElementById('btn-float-filters');
+  const btnFloatLocate = document.getElementById('btn-float-locate');
 
   const searchPanel = document.getElementById('search-panel');
   const filterPanel = document.getElementById('filter-panel');
@@ -28,7 +35,6 @@ export function initMobileBottomNav() {
   const sheet = document.getElementById('sheet');
 
   const allPanels = [searchPanel, filterPanel, myPlacesPanel, mapStylePanel, adminPanel, sheet].filter(Boolean);
-  const allNavButtons = [btnSearch, btnFilters, btnPlaces, btnLayers].filter(Boolean);
 
   function isMobile() {
     return window.innerWidth <= 768;
@@ -37,14 +43,24 @@ export function initMobileBottomNav() {
   function syncNavButtons() {
     if (!isMobile()) return;
 
-    btnSearch?.classList.toggle('active', Boolean(searchPanel?.classList.contains('open')));
-    btnFilters?.classList.toggle('active', Boolean(filterPanel?.classList.contains('open')));
-    btnPlaces?.classList.toggle('active', Boolean(myPlacesPanel?.classList.contains('open')));
-    btnLayers?.classList.toggle('active', Boolean(mapStylePanel?.classList.contains('open')));
+    const isSearchOpen = Boolean(searchPanel?.classList.contains('open'));
+    const isFilterOpen = Boolean(filterPanel?.classList.contains('open'));
+    const isPlacesOpen = Boolean(myPlacesPanel?.classList.contains('open'));
+    const isLayersOpen = Boolean(mapStylePanel?.classList.contains('open'));
+    const isSheetOpen = Boolean(sheet?.classList.contains('open'));
+    const isAnyPanelOpen = isSearchOpen || isFilterOpen || isPlacesOpen || isLayersOpen || isSheetOpen;
 
-    const hasAnyOpen = allPanels.some((panel) => panel.classList.contains('open'));
+    btnMap?.classList.toggle('active', !isAnyPanelOpen);
+    btnExplore?.classList.toggle('active', isSearchOpen);
+    btnRadar?.classList.toggle('active', isPlacesOpen);
+    btnPlaces?.classList.toggle('active', isPlacesOpen);
+
+    // Controles Flotantes
+    btnFloatLayers?.classList.toggle('active-state', isLayersOpen);
+    btnFloatFilters?.classList.toggle('active-state', isFilterOpen);
+
     if (panelBackdrop) {
-      panelBackdrop.classList.toggle('active', hasAnyOpen);
+      panelBackdrop.classList.toggle('active', isAnyPanelOpen);
     }
   }
 
@@ -80,36 +96,84 @@ export function initMobileBottomNav() {
     syncNavButtons();
   }
 
-  // Eventos de botones táctiles inferiores
-  if (btnSearch) {
-    btnSearch.addEventListener('click', (e) => {
+  // 1. [ MAPA ] - Vista principal: Cierra paneles y vuelve al mapa
+  if (btnMap) {
+    btnMap.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      closeAllPanels();
+      if (panelBackdrop) panelBackdrop.classList.remove('active');
+      syncNavButtons();
+    });
+  }
+
+  // 2. [ EXPLORA ] - Feed vertical / buscador de edificios cercanos
+  if (btnExplore) {
+    btnExplore.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
       toggleMobilePanel(searchPanel, document.getElementById('building-search'));
     });
   }
 
-  if (btnFilters) {
-    btnFilters.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      toggleMobilePanel(filterPanel);
-    });
-  }
-
-  if (btnPlaces) {
-    btnPlaces.addEventListener('click', (e) => {
+  // 3. [ MI RADAR ] - Botón central destacado para radar y rutas
+  if (btnRadar) {
+    btnRadar.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
       toggleMobilePanel(myPlacesPanel);
     });
   }
 
-  if (btnLayers) {
-    btnLayers.addEventListener('click', (e) => {
+  // 4. [ LISTAS ] - Colecciones personales y favoritos
+  if (btnPlaces) {
+    btnPlaces.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleMobilePanel(myPlacesPanel);
+      const colTab = myPlacesPanel?.querySelector('[data-place-tab="collections"]');
+      if (colTab) colTab.click();
+    });
+  }
+
+  // 5. Controles Flotantes Derechos (Capas, Filtros, Ubicación)
+  if (btnFloatLayers) {
+    btnFloatLayers.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
       toggleMobilePanel(mapStylePanel);
+    });
+  }
+
+  if (btnFloatFilters) {
+    btnFloatFilters.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleMobilePanel(filterPanel);
+    });
+  }
+
+  if (btnFloatLocate) {
+    btnFloatLocate.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (state.userLocation && state.map) {
+        state.map.flyTo({ center: state.userLocation, zoom: 16 });
+      } else if (navigator.geolocation) {
+        btnFloatLocate.classList.add('active-state');
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            btnFloatLocate.classList.remove('active-state');
+            const coords = [pos.coords.longitude, pos.coords.latitude];
+            state.userLocation = coords;
+            if (state.map) state.map.flyTo({ center: coords, zoom: 16 });
+          },
+          () => {
+            btnFloatLocate.classList.remove('active-state');
+          },
+          { enableHighAccuracy: true, timeout: 6000 }
+        );
+      }
     });
   }
 

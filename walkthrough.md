@@ -1,20 +1,26 @@
-# Walkthrough: Reactividad Optimista Instantánea ($0\text{ms}$) en Ficha de Obra
+# Walkthrough: Rediseño Móvil Inspirado en Strava (Estética Neo-Bauhaus)
 
-Se ha implementado el patrón de **Optimistic UI / Reactividad Local Instantánea** para todas las acciones de la ficha de obra en **Nolli** (❤️ Favorito, 🚩 Visitar, 📑 Guardar en Listas, 🏷️ Etiquetas y ⭐ Valoración).
-
----
-
-## 1. ⚡ Interacción Instantánea a $0\text{ms}$ (Sin Esperas ni Recargas)
-- **Función Reactiva `renderSheetStatusUI(building)`**:
-  - **Favorito (Corazón)**: Conmuta inmediatamente a bloque sólido vermillón `#E84E1B`, texto en blanco e icono de corazón relleno con `fill="currentColor"`.
-  - **Visitar**: Inversión cromática instantánea a bloque verde bosque `#0d682f` con texto `VISITADO`.
-  - **Guardar / Listas**: Conmuta inmediatamente a bloque sólido negro `#141411` (o `#EFBC02` en modo oscuro) con texto `GUARDADO` e icono relleno.
-  - **Etiquetas**: Refleja el estado `.active.tagged` en tiempo real.
-  - **Estrellas de Valoración**: Rellenado reactivo e interactivo inmediato.
+Se ha completado el rediseño integral de la experiencia de navegación móvil y controles cartográficos para **Nolli**, combinando la ergonomía de exploración de **Strava** con la estética constructivista **Neo-Bauhaus** (`League Spartan`, marcos negros `1.5px`, fondo crema `#F4F1EA`, acentos vermillón `#E84E1B` y `border-radius: 0`).
 
 ---
 
-## 2. 🛡️ Sincronización en Segundo Plano y Persistencia Resiliente
-- **Actualización Local**: Estado indexado por `buildingId` en `state.buildingStatuses` y respaldado en `localStorage`.
-- **Actualización de Halos en el Mapa**: Se dispara `actualizarFuenteMapa()` al milisegundo para que los halos de favoritos y visitados en el mapa se enciendan o apaguen en vivo sin cerrar la Bottom Sheet.
-- **Sincronización Silenciosa con Supabase**: Se envía la mutación a la base de datos en segundo plano; en caso de corte o lentitud de red, los datos permanecen seguros localmente sin revertir bruscamente ni bloquear al usuario.
+## 1. 🧭 Nueva Barra de Navegación Inferior (5 Pestañas)
+1. **`[ MAPA ]`** (`i: map`): Cierra cualquier panel activo y devuelve el foco cartográfico a pantalla completa.
+2. **`[ EXPLORA ]`** (`i: compass`): Despliega el buscador y feed vertical de obras por proximidad a 60 FPS.
+3. **`[ MI RADAR ]`** (`.mobile-nav-radar-btn` con `i: crosshair`): Botón central protagonista con contenedor interior contrastado para rutas de autor, radar arquitectónico y actividad.
+4. **`[ LISTAS ]`** (`i: bookmark`): Acceso directo a colecciones personales, listas temáticas con emojis, favoritos y notas.
+5. **`[ TÚ ]`** (`i: user`): Perfil personal de usuario (`perfil.html`) con estadísticas de exploración, progreso y panel de ajustes.
+
+---
+
+## 2. 🎛️ Controles Flotantes Derechos Ergonomía Strava (`#mobile-map-controls`)
+Apilados verticalmente en el lateral derecho por encima de la barra de navegación (`bottom: calc(76px + safe-area); right: 12px;`):
+- **Botón de Capas (`#btn-float-layers`)**: Despliega la cuadrícula compacta de 2 columnas con previsualizaciones de mapa (Claro, Oscuro, Híbrido).
+- **Botón de Filtros (`#btn-float-filters`)**: Despliega el panel de filtros avanzados (categorías, estado de acceso, décadas, arquitectos).
+- **Botón de Geolocalización (`#btn-float-locate`)**: Centra la cámara instantáneamente en las coordenadas GPS del dispositivo con feedback visual activo.
+
+---
+
+## 3. 🛡️ Inviolabilidad de Escritorio y Calidad QA
+- Los nuevos controles móviles quedan estrictamente ocultos en pantallas grandes (`@media (min-width: 769px)` con `display: none !important;`).
+- Auditoría E2E superada al 100% (13/13 pruebas PASS).

@@ -378,27 +378,42 @@
     <div id="sheet-body"></div>
   </section>
 
-  <!-- Barra de navegación inferior fija para móviles (Neo-Bauhaus) -->
-  <nav id="mobile-bottom-bar" class="mobile-bottom-bar" aria-label="Navegación móvil">
-    <button type="button" class="mobile-nav-btn" id="mobile-nav-search" data-target-panel="search-panel" aria-label="Buscar edificios">
-      <i data-lucide="search" width="19" height="19"></i>
-      <span>BUSCAR</span>
+  <!-- Controles Flotantes Derechos Ergonomía Strava (Móvil) -->
+  <aside id="mobile-map-controls" class="mobile-map-controls" aria-label="Controles rápidos del mapa">
+    <button type="button" class="mobile-float-btn" id="btn-float-layers" data-target-panel="map-style-panel" aria-label="Capas y estilos de mapa" title="Capas del mapa">
+      <i data-lucide="layers-2" width="19" height="19"></i>
     </button>
-    <button type="button" class="mobile-nav-btn" id="mobile-nav-filters" data-target-panel="filter-panel" aria-label="Filtrar catálogo">
+    <button type="button" class="mobile-float-btn" id="btn-float-filters" data-target-panel="filter-panel" aria-label="Filtros avanzados" title="Filtros">
       <i data-lucide="sliders-horizontal" width="19" height="19"></i>
-      <span>FILTROS</span>
     </button>
-    <button type="button" class="mobile-nav-btn" id="mobile-nav-places" data-target-panel="my-places-panel" aria-label="Mi radar y guardados">
-      <i data-lucide="bookmark" width="19" height="19"></i>
+    <button type="button" class="mobile-float-btn" id="btn-float-locate" aria-label="Centrar en mi ubicación" title="Mi ubicación">
+      <i data-lucide="crosshair" width="19" height="19"></i>
+    </button>
+  </aside>
+
+  <!-- Barra de navegación inferior fija para móviles (Neo-Bauhaus estilo Strava) -->
+  <nav id="mobile-bottom-bar" class="mobile-bottom-bar" aria-label="Navegación móvil">
+    <button type="button" class="mobile-nav-btn active" id="mobile-nav-map" aria-label="Mapa cartográfico principal">
+      <i data-lucide="map" width="19" height="19"></i>
+      <span>MAPA</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" id="mobile-nav-explore" data-target-panel="search-panel" aria-label="Explorar obras cercanas">
+      <i data-lucide="compass" width="19" height="19"></i>
+      <span>EXPLORA</span>
+    </button>
+    <button type="button" class="mobile-nav-btn mobile-nav-radar-btn" id="mobile-nav-radar" data-target-panel="my-places-panel" aria-label="Mi radar arquitectónico">
+      <div class="radar-btn-inner">
+        <i data-lucide="crosshair" width="19" height="19"></i>
+      </div>
       <span>MI RADAR</span>
     </button>
-    <button type="button" class="mobile-nav-btn" id="mobile-nav-layers" data-target-panel="map-style-panel" aria-label="Capas del mapa">
-      <i data-lucide="layers-2" width="19" height="19"></i>
-      <span>CAPAS</span>
+    <button type="button" class="mobile-nav-btn" id="mobile-nav-places" data-target-panel="my-places-panel" aria-label="Mis listas y guardados">
+      <i data-lucide="bookmark" width="19" height="19"></i>
+      <span>LISTAS</span>
     </button>
-    <a href="./perfil.html" class="mobile-nav-btn" id="mobile-nav-profile" aria-label="Perfil personal">
+    <a href="./perfil.html" class="mobile-nav-btn" id="mobile-nav-profile" aria-label="Tú y tu archivo personal">
       <i data-lucide="user" width="19" height="19"></i>
-      <span>PERFIL</span>
+      <span>TÚ</span>
     </a>
   </nav>
 

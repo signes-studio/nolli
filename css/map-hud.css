@@ -47,7 +47,8 @@
 .mobile-identity-widget,
 .mobile-admin-quickmenu,
 .mobile-search-widget,
-.mobile-splash {
+.mobile-splash,
+.mobile-map-controls {
   display: none !important;
 }
 .panel-backdrop {
@@ -545,6 +546,50 @@
     border-color: #444 !important;
   }
 
+  /* Controles Flotantes Derechos Ergonomía Strava (Móvil) */
+  .mobile-map-controls {
+    display: flex !important;
+    flex-direction: column;
+    position: fixed;
+    bottom: calc(76px + env(safe-area-inset-bottom));
+    right: 12px;
+    z-index: 42;
+    gap: 8px;
+    pointer-events: auto;
+  }
+
+  .mobile-float-btn {
+    width: 42px;
+    height: 42px;
+    background: var(--bg-panel, #F4F1EA);
+    border: 1.5px solid var(--border-strong, #141411);
+    box-shadow: 2px 2px 0px var(--border-strong, #141411);
+    border-radius: 0 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--fg, #141411);
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: transform 0.08s ease, background 0.12s ease, color 0.12s ease;
+  }
+
+  body.dark-mode .mobile-float-btn {
+    background: #1C1C1A;
+  }
+
+  .mobile-float-btn:active {
+    transform: scale(0.92);
+    background: var(--fg, #141411);
+    color: var(--bg-panel, #F4F1EA);
+  }
+
+  .mobile-float-btn.active-state {
+    background: var(--fg, #141411);
+    color: var(--bg-panel, #F4F1EA);
+    border-color: var(--accent, #E84E1B);
+  }
+
   .mobile-bottom-bar {
     display: flex !important;
     position: fixed;
@@ -589,6 +634,37 @@
   .mobile-nav-btn.active {
     background: var(--fg, #141411);
     color: var(--bg-panel, #F4F1EA) !important;
+  }
+
+  /* Botón Central Destacado Neo-Bauhaus (MI RADAR) */
+  .mobile-nav-radar-btn {
+    position: relative;
+    font-weight: 900 !important;
+  }
+
+  .radar-btn-inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 24px;
+    background: var(--bg-raised, #ECE6D8);
+    border: 1px solid var(--border-strong, #141411);
+    box-shadow: 1px 1px 0px var(--border-strong, #141411);
+    color: var(--accent, #E84E1B);
+    margin-bottom: 2px;
+    transition: all 0.12s ease;
+  }
+
+  body.dark-mode .radar-btn-inner {
+    background: #252522;
+  }
+
+  .mobile-nav-radar-btn.active .radar-btn-inner,
+  .mobile-nav-radar-btn:active .radar-btn-inner {
+    background: var(--accent, #E84E1B);
+    color: #FFFFFF;
+    border-color: var(--border-strong, #141411);
   }
 
   .panel-backdrop {
