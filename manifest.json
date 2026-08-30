@@ -1,7 +1,7 @@
 {
   "name": "nolli",
   "short_name": "nolli",
-  "description": "Explora obras de arquitectura sobre un mapa en vivo.",
+  "description": "Radar arquitectónico interactivo: explora obras de arquitectura sobre un mapa en vivo.",
   "lang": "es",
   "start_url": "./",
   "display": "standalone",
@@ -28,3 +28,4 @@
     }
   ]
 }
+

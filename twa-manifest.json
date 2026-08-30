@@ -1,0 +1,43 @@
+{
+  "packageId": "studio.signes.nolli",
+  "host": "nolli.app",
+  "name": "nolli",
+  "launcherName": "nolli",
+  "display": "standalone",
+  "themeColor": "#F4F1EA",
+  "navigationColor": "#F4F1EA",
+  "navigationColorDark": "#141411",
+  "navigationDividerColor": "#141411",
+  "navigationDividerColorDark": "#141411",
+  "backgroundColor": "#F4F1EA",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "https://nolli.app/icons/icon-512.png",
+  "maskableIconUrl": "https://nolli.app/icons/icon-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "android"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://nolli.app/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {
+    "locationDelegation": {
+      "enabled": true
+    },
+    "playBilling": {
+      "enabled": false
+    }
+  },
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false
+}
+

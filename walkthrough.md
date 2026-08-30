@@ -1,25 +1,32 @@
-# Walkthrough: Pantalla de Carga Móvil / Splash Screen (Neo-Bauhaus)
+# Walkthrough: Sincronización Integral de Splash Screen Nativa TWA / Android y Web
 
-Se ha diseñado e implementado la nueva pantalla de carga móvil (*Splash Screen / Loading State*) para **Nolli**, ofreciendo una primera impresión inmersiva y acorde con los principios de diseño constructivista y Neo-Bauhaus.
-
----
-
-## 1. 🎨 Estética Editorial e Identidad de Marca
-- **Lienzo Editorial Absoluto**: Ocupa el 100% del viewport (`100dvh`, `z-index: 9999`) con fondo crema `#F4F1EA` (adaptable a `#141411` en tema oscuro).
-- **Recuadro Central Bauhaus**: Tarjeta ortogonal con marco negro y sombra rígida (`border: 2px solid #141411; box-shadow: 4px 4px 0px #141411;`).
-- **Jerarquía Tipográfica**:
-  - Kicker técnico: `[ GUÍA DE ARQUITECTURA ]` en `JetBrains Mono` en color vermillón `#E84E1B`.
-  - Logotipo central: `nolli.` en `League Spartan` (bold 900, 40px) con el característico punto vermillón.
-  - Estado de carga: `[ CARGANDO MAPA Y DATOS ]` en tipografía `Inter` (bold, mayúsculas).
+Se ha eliminado la duplicidad y el salto visual entre la Splash Screen del sistema operativo Android (generada por Bubblewrap / Android Studio / TWA) y la pantalla de carga web de **Nolli**, logrando una transición unificada, limpia e imperceptible a 60 FPS.
 
 ---
 
-## 2. ⬛ Indicador Constructivista (Cero Spinners Circulares)
-- **Barra de Bloques Segmentados**: Recuadro modular de 4 bloques que pulsan secuencialmente en tonos vermillón y negro, evocando la estética constructivista y prescindiendo de spinners circulares genéricos.
+## 1. 🎯 Unificación Cromática y Cero FOUC
+- **Color Base Sincronizado**: Tanto la ventana nativa de Android como el DOM web utilizan de forma estricta `#F4F1EA` (crema editorial) como color de fondo y de tema.
+- **CSS Crítico en `<head>`**: Inyección inline inmediata de `html, body { background-color: #F4F1EA !important; }` para que el primer milisegundo de pintado (*First Contentful Paint*) en la WebView sea 100% indistinguible del lienzo nativo de Android.
+- **Metaetiquetas Específicas**: `<meta name="theme-color" content="#F4F1EA">` y `<meta name="background-color" content="#F4F1EA">`.
 
 ---
 
-## 3. ⚡ Transición Fluida a 60 FPS y Sincronización
-- **Aceleración por Hardware**: `transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out; will-change: opacity;`.
-- **Desvanecimiento Inmediato**: En cuanto el mapa y la primera carga de datos disparan `radar:data-ready`, el estado se actualiza a `[ DATOS SINCRONIZADOS ]` y se desvanece de manera suave revelando el mapa.
-- **Protección Máxima de Escritorio**: En resoluciones superiores a 768px, el elemento permanece con `display: none !important;`.
+## 2. 📱 Configuración de Empaquetado TWA (`twa-manifest.json` / `manifest.json`)
+- **`manifest.webmanifest` & `manifest.json`**:
+  - `"background_color": "#F4F1EA"`
+  - `"theme_color": "#F4F1EA"`
+  - `"display": "standalone"`
+- **`twa-manifest.json` (Bubblewrap / PWABuilder)**:
+  - `"backgroundColor": "#F4F1EA"`
+  - `"themeColor": "#F4F1EA"`
+  - `"navigationColor": "#F4F1EA"`
+  - `"splashScreenFadeOutDuration": 300` (transición suave de salida al cargar la WebView).
+
+---
+
+## 3. ⚡ Flujo de Entrada Continuo
+Al abrir la app instalada en Android:
+1. Android muestra la ventana con fondo crema editorial `#F4F1EA` y el icono de Nolli.
+2. La WebView se inicializa sobre el mismo fondo exacto sin ningún parpadeo en blanco ni en negro.
+3. Se presenta el recuadro central Neo-Bauhaus con la barra constructivista y el estado de carga (`[ CARGANDO MAPA Y DATOS ]`).
+4. Al cargarse los datos de Supabase, se desvanece suavemente a 60 FPS revelando el mapa.
