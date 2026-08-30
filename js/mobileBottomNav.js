@@ -265,8 +265,8 @@ function initMobileIdentityWidget() {
       const adminPanel = document.getElementById('admin-panel');
       if (adminPanel) {
         adminPanel.classList.add('open');
-        document.getElementById('admin-view-projects')?.classList.remove('admin-view-hidden');
-        document.getElementById('admin-view-reports')?.classList.add('admin-view-hidden');
+        document.getElementById('admin-project-list')?.classList.remove('admin-view-hidden');
+        document.getElementById('admin-reports-view')?.classList.add('admin-view-hidden');
         document.getElementById('admin-users-view')?.classList.add('admin-view-hidden');
         document.getElementById('panel-backdrop')?.classList.add('active');
       }
@@ -280,8 +280,8 @@ function initMobileIdentityWidget() {
       const adminPanel = document.getElementById('admin-panel');
       if (adminPanel) {
         adminPanel.classList.add('open');
-        document.getElementById('admin-view-projects')?.classList.add('admin-view-hidden');
-        document.getElementById('admin-view-reports')?.classList.remove('admin-view-hidden');
+        document.getElementById('admin-project-list')?.classList.add('admin-view-hidden');
+        document.getElementById('admin-reports-view')?.classList.remove('admin-view-hidden');
         document.getElementById('admin-users-view')?.classList.add('admin-view-hidden');
         document.getElementById('panel-backdrop')?.classList.add('active');
       }

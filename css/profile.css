@@ -620,8 +620,7 @@ body.dark-mode {
 
   .profile-wrapper {
     min-height: 100%;
-    padding: 14px 14px calc(95px + env(safe-area-inset-bottom)) !important;
-    gap: 18px !important;
+    padding: 14px 14px 20px !important;
     max-width: 100% !important;
     display: flex !important;
     flex-direction: column !important;

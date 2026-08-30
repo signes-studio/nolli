@@ -56,7 +56,7 @@ export function esRolAdmin(role = state.userRole) {
 
 export function separarArquitectos(valor) {
   return String(valor || '')
-    .split(/[,/]/)
+    .split(/[,/;+&]|\s+y\s+|\s+and\s+/i)
     .map((nombre) => nombre.trim())
     .filter(Boolean);
 }
