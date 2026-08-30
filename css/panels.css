@@ -481,14 +481,21 @@
   .rating-star { font-size: 26px; }
   .note-toggle, .save-personal-status { min-height: 48px; font-size: 11px; touch-action: manipulation; }
 
-  /* Herramientas de mapa (FABs) flotando sobre la barra inferior */
+  /* En móvil, solo mantener visibles los FABs flotantes de ubicación y añadir obra */
   #map-tools {
-    right: 12px !important;
-    bottom: calc(62px + max(8px, env(safe-area-inset-bottom))) !important;
-    gap: 8px !important;
+    right: 14px !important;
+    bottom: calc(66px + max(8px, env(safe-area-inset-bottom))) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
     z-index: 40 !important;
   }
-  #map-tools .fab {
+  #map-tools > button:not(#btn-location):not(#btn-add-project) {
+    display: none !important;
+  }
+  #map-tools #btn-location,
+  #map-tools #btn-add-project {
+    display: flex !important;
     width: 48px !important;
     height: 48px !important;
     touch-action: manipulation !important;

@@ -412,10 +412,25 @@ function initMapStyleSelector() {
     button.classList.toggle('active-state', isOpen);
   });
 
+  const closeBtn = document.getElementById('btn-map-style-close');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      panel.classList.remove('open');
+      button.classList.remove('active-state');
+      document.getElementById('panel-backdrop')?.classList.remove('active');
+    });
+  }
+
   document.addEventListener('click', (event) => {
     const option = event.target.closest('[data-map-style]');
     if (!option) {
-      if (!panel.contains(event.target) && !button.contains(event.target)) {
+      if (
+        !panel.contains(event.target) &&
+        !button.contains(event.target) &&
+        !event.target.closest('#mobile-nav-layers') &&
+        !event.target.closest('.mobile-nav-btn')
+      ) {
         panel.classList.remove('open');
         button.classList.remove('active-state');
       }
@@ -442,6 +457,7 @@ function initMapStyleSelector() {
 
     panel.classList.remove('open');
     button.classList.remove('active-state');
+    document.getElementById('panel-backdrop')?.classList.remove('active');
   });
 }
 

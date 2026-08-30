@@ -78,6 +78,7 @@ export function initMobileBottomNav() {
   if (btnSearch) {
     btnSearch.addEventListener('click', (e) => {
       e.preventDefault();
+      e.stopPropagation();
       toggleMobilePanel(searchPanel, document.getElementById('building-search'));
     });
   }
@@ -85,6 +86,7 @@ export function initMobileBottomNav() {
   if (btnFilters) {
     btnFilters.addEventListener('click', (e) => {
       e.preventDefault();
+      e.stopPropagation();
       toggleMobilePanel(filterPanel);
     });
   }
@@ -92,6 +94,7 @@ export function initMobileBottomNav() {
   if (btnPlaces) {
     btnPlaces.addEventListener('click', (e) => {
       e.preventDefault();
+      e.stopPropagation();
       toggleMobilePanel(myPlacesPanel);
     });
   }
@@ -99,6 +102,7 @@ export function initMobileBottomNav() {
   if (btnLayers) {
     btnLayers.addEventListener('click', (e) => {
       e.preventDefault();
+      e.stopPropagation();
       toggleMobilePanel(mapStylePanel);
     });
   }
