@@ -135,6 +135,8 @@ export function abrirFicha(building, coordinates, featureId = building.id) {
   const adminActive = esRolAdmin(state.userRole) && state.adminMode;
   const isFav = getStatus('favorite');
   const isVis = getStatus('visited');
+  const isSaved = state.userCollectionItems.some((item) => String(item.building_id) === String(building.id));
+  const hasTags = state.userPrivateLabels.some((item) => String(item.building_id) === String(building.id));
   const catKey = building.categoria || 'otro';
   const catColor = CATEGORY_COLORS[catKey] || '#E95C0C';
   const canDeletePrivate = Boolean(selected?.private && state.userId && String(selected.user_id) === String(state.userId));
@@ -143,8 +145,8 @@ export function abrirFicha(building, coordinates, featureId = building.id) {
 
   document.getElementById('sheet-header-actions').innerHTML = `
     ${state.sessionToken ? `
-      <button type="button" class="sheet-fav-btn ${isFav ? 'active favorite' : ''}" data-status="favorite" title="${isFav ? 'Quitar de favoritos' : 'Añadir a favoritos'}" aria-label="Favorito">
-        <i data-lucide="heart" width="16" height="16"></i>
+      <button type="button" class="sheet-fav-btn ${isFav ? 'active favorite' : ''}" data-status="favorite" title="${isFav ? 'Quitar de favoritos' : 'Añadir a favoritos'}" aria-label="${isFav ? 'Quitar de favoritos' : 'Añadir a favoritos'}">
+        <i data-lucide="heart" width="16" height="16" ${isFav ? 'fill="currentColor"' : ''}></i>
       </button>
     ` : ''}
   `;
@@ -168,11 +170,11 @@ export function abrirFicha(building, coordinates, featureId = building.id) {
           <i data-lucide="check-circle-2" width="15" height="15"></i>
           <span>${isVis ? 'VISITADO' : 'VISITAR'}</span>
         </button>
-        <button type="button" class="sheet-hero-btn" data-save-collection>
-          <i data-lucide="bookmark" width="15" height="15"></i>
-          <span>GUARDAR</span>
+        <button type="button" class="sheet-hero-btn ${isSaved ? 'active saved' : ''}" data-save-collection>
+          <i data-lucide="bookmark" width="15" height="15" ${isSaved ? 'fill="currentColor"' : ''}></i>
+          <span>${isSaved ? 'GUARDADO' : 'GUARDAR'}</span>
         </button>
-        <button type="button" class="sheet-hero-btn" data-add-private-tag>
+        <button type="button" class="sheet-hero-btn ${hasTags ? 'active tagged' : ''}" data-add-private-tag>
           <i data-lucide="tag" width="15" height="15"></i>
           <span>ETIQUETAS</span>
         </button>
@@ -406,22 +408,101 @@ async function saveOrganizerSelection() {
     }
     guardarZonaPersonalLocal(state.userId);
     closeOrganizer();
+    renderSheetStatusUI(building);
     document.dispatchEvent(new CustomEvent(organizerMode === 'collections' ? 'radar:user-collections-changed' : 'radar:user-private-labels-changed'));
   } catch (error) {
     const errorElement = document.getElementById('personal-organizer-error'); errorElement.textContent = error.message; errorElement.classList.remove('hidden');
   }
 }
 
+export function renderSheetStatusUI(building = getSelectedBuilding()) {
+  if (!building) return;
+  const bId = String(building.id);
+  const status = state.buildingStatuses.get(bId) || {};
+  const isFav = Boolean(status.favorite);
+  const isVis = Boolean(status.visited);
+  const isSaved = state.userCollectionItems.some((item) => String(item.building_id) === bId);
+  const hasTags = state.userPrivateLabels.some((item) => String(item.building_id) === bId);
+
+  // 1. Botón de Favorito en Cabecera
+  const favBtn = document.querySelector('.sheet-fav-btn[data-status="favorite"]');
+  if (favBtn) {
+    favBtn.classList.toggle('active', isFav);
+    favBtn.classList.toggle('favorite', isFav);
+    favBtn.title = isFav ? 'Quitar de favoritos' : 'Añadir a favoritos';
+    favBtn.setAttribute('aria-label', isFav ? 'Quitar de favoritos' : 'Añadir a favoritos');
+    const heartSvg = favBtn.querySelector('svg');
+    if (heartSvg) {
+      heartSvg.style.fill = isFav ? 'currentColor' : 'none';
+    }
+  }
+
+  // 2. Botón de Visitar en Hero Actions
+  const visBtn = document.querySelector('.sheet-hero-btn[data-status="visited"]');
+  if (visBtn) {
+    visBtn.classList.toggle('active', isVis);
+    visBtn.classList.toggle('visited', isVis);
+    const span = visBtn.querySelector('span');
+    if (span) span.textContent = isVis ? 'VISITADO' : 'VISITAR';
+  }
+
+  // 3. Botón de Guardar en Colecciones
+  const saveBtn = document.querySelector('.sheet-hero-btn[data-save-collection]');
+  if (saveBtn) {
+    saveBtn.classList.toggle('active', isSaved);
+    saveBtn.classList.toggle('saved', isSaved);
+    const span = saveBtn.querySelector('span');
+    if (span) span.textContent = isSaved ? 'GUARDADO' : 'GUARDAR';
+    const bookmarkSvg = saveBtn.querySelector('svg');
+    if (bookmarkSvg) {
+      bookmarkSvg.style.fill = isSaved ? 'currentColor' : 'none';
+    }
+  }
+
+  // 4. Botón de Etiquetas
+  const tagBtn = document.querySelector('.sheet-hero-btn[data-add-private-tag]');
+  if (tagBtn) {
+    tagBtn.classList.toggle('active', hasTags);
+    tagBtn.classList.toggle('tagged', hasTags);
+  }
+
+  // 5. Estrellas de Valoración
+  const starsContainer = document.querySelector('.rating-stars');
+  if (starsContainer) {
+    const val = Number(status.valoracion || 0);
+    starsContainer.querySelectorAll('[data-rating]').forEach((star) => {
+      star.classList.toggle('active', Number(star.dataset.rating) <= val);
+    });
+  }
+}
+
 async function saveStatus(status, value) {
   const building = getSelectedBuilding();
-  if (!building || !state.userId || !state.sessionToken) return;
+  if (!building) return;
+
+  if (!state.userId || !state.sessionToken) {
+    alert('Inicia sesión para guardar favoritos y visitas.');
+    return;
+  }
+
   const key = String(building.id);
   const previous = state.buildingStatuses.get(key) || { favorite: false, visited: false };
   const next = { ...previous, [status]: value };
+
+  // 1. Actualización Optimista Visual Inmediata (0ms)
   state.buildingStatuses.set(key, next);
+  renderSheetStatusUI(building);
+  guardarEstadoPersonalLocal();
   actualizarFuenteMapa();
-  try { await saveBuildingStatus(state.userId, building.id, next, state.sessionToken); document.dispatchEvent(new CustomEvent('radar:user-status-changed')); }
-  catch (error) { guardarEstadoPersonalLocal(); document.dispatchEvent(new CustomEvent('radar:user-status-changed')); }
+  document.dispatchEvent(new CustomEvent('radar:user-status-changed'));
+
+  // 2. Sincronización en segundo plano con Supabase
+  try {
+    await saveBuildingStatus(state.userId, building.id, next, state.sessionToken);
+  } catch (error) {
+    console.warn('Sincronización en segundo plano completada con almacenamiento local:', error);
+    guardarEstadoPersonalLocal();
+  }
 }
 
 async function saveNote(button) {
@@ -431,11 +512,20 @@ async function saveNote(button) {
   const previous = state.buildingStatuses.get(key) || { favorite: false, visited: false };
   const next = { ...previous, notas: document.getElementById('building-notes').value, valoracion: previous.valoracion || null };
   state.buildingStatuses.set(key, next);
+  renderSheetStatusUI(building);
+  guardarEstadoPersonalLocal();
   button.disabled = true;
   button.textContent = 'GUARDANDO...';
-  try { await saveBuildingStatus(state.userId, building.id, next, state.sessionToken); button.textContent = 'GUARDADO'; document.dispatchEvent(new CustomEvent('radar:user-status-changed')); }
-  catch (error) { guardarEstadoPersonalLocal(); button.textContent = 'GUARDADO LOCALMENTE'; document.dispatchEvent(new CustomEvent('radar:user-status-changed')); }
-  finally { button.disabled = false; }
+  try {
+    await saveBuildingStatus(state.userId, building.id, next, state.sessionToken);
+    button.textContent = 'GUARDADO';
+    document.dispatchEvent(new CustomEvent('radar:user-status-changed'));
+  } catch (error) {
+    button.textContent = 'GUARDADO LOCALMENTE';
+    document.dispatchEvent(new CustomEvent('radar:user-status-changed'));
+  } finally {
+    button.disabled = false;
+  }
 }
 
 async function deletePrivate() {
@@ -495,5 +585,8 @@ document.addEventListener('radar:admin-login', actualizarFichaAbierta);
 document.addEventListener('radar:admin-mode-change', actualizarFichaAbierta);
 document.addEventListener('radar:logout', actualizarFichaAbierta);
 document.addEventListener('radar:user-status-ready', actualizarFichaAbierta);
+document.addEventListener('radar:user-collections-changed', () => renderSheetStatusUI());
+document.addEventListener('radar:user-private-labels-changed', () => renderSheetStatusUI());
+document.addEventListener('radar:user-status-changed', () => renderSheetStatusUI());
 document.addEventListener('radar:open-building', (event) => { if (event.detail?.obra) abrirFicha(event.detail.obra, event.detail.obra.coordenadas, event.detail.obra.featureId); });
 function actualizarFichaAbierta() { const building = getSelectedBuilding(); if (building) abrirFicha(building, building.coordenadas, building.featureId); }

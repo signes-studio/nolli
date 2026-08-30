@@ -73,8 +73,27 @@
   color: var(--bg-panel);
 }
 .sheet-hero-btn.active.visited {
-  background: #0d682f;
-  color: #FFFFFF;
+  background: #0d682f !important;
+  color: #FFFFFF !important;
+  border-color: #0d682f !important;
+}
+.sheet-hero-btn.active.saved {
+  background: var(--fg, #141411) !important;
+  color: var(--bg-panel, #F4F1EA) !important;
+  border-color: var(--fg, #141411) !important;
+}
+.sheet-hero-btn.active.saved svg {
+  fill: currentColor;
+}
+body.dark-mode .sheet-hero-btn.active.saved {
+  background: #EFBC02 !important;
+  color: #141411 !important;
+  border-color: #EFBC02 !important;
+}
+.sheet-hero-btn.active.tagged {
+  background: var(--bg-raised, #ECE6D8) !important;
+  color: var(--accent, #E84E1B) !important;
+  border-color: var(--accent, #E84E1B) !important;
 }
 .sheet-fav-btn {
   display: inline-flex;
@@ -87,10 +106,15 @@
   background: transparent;
   color: var(--fg-dim);
   cursor: pointer;
+  transition: all 0.12s ease;
 }
 .sheet-fav-btn.active.favorite {
-  color: var(--accent);
-  border-color: var(--accent);
+  background: var(--accent, #E84E1B) !important;
+  color: #FFFFFF !important;
+  border-color: var(--accent, #E84E1B) !important;
+}
+.sheet-fav-btn.active.favorite svg {
+  fill: currentColor;
 }
 .sheet-gallery-wrap {
   padding: 10px 14px;
@@ -775,9 +799,13 @@
   }
 
   .sheet-fav-btn.active.favorite {
-    background: #D6201D !important;
+    background: #E84E1B !important;
     color: #FFFFFF !important;
     border-color: #141411 !important;
+  }
+
+  .sheet-fav-btn.active.favorite svg {
+    fill: currentColor;
   }
 
   #sheet-title {
@@ -864,6 +892,32 @@
     background: #0d682f !important;
     color: #FFFFFF !important;
     border-color: #141411 !important;
+  }
+
+  .sheet-hero-btn.active.saved {
+    background: #141411 !important;
+    color: #F4F1EA !important;
+    border-color: #141411 !important;
+  }
+
+  .sheet-hero-btn.active.saved svg {
+    fill: currentColor;
+  }
+
+  body.dark-mode .sheet-hero-btn.active.saved {
+    background: #EFBC02 !important;
+    color: #141411 !important;
+    border-color: #EFBC02 !important;
+  }
+
+  .sheet-hero-btn.active.tagged {
+    background: #ECE6D8 !important;
+    color: var(--accent, #E84E1B) !important;
+    border-color: var(--accent, #E84E1B) !important;
+  }
+
+  body.dark-mode .sheet-hero-btn.active.tagged {
+    background: #252522 !important;
   }
 
   /* Fotografía Principal Panorámica */
