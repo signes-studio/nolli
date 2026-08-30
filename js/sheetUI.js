@@ -81,6 +81,17 @@ export function cerrarFicha() {
   actualizarFuenteMapa();
 }
 
+const CATEGORY_COLORS = {
+  'residencial': '#E95C0C',
+  'dotacional_equipamiento': '#4388C6',
+  'religioso_funerario': '#F2ACCD',
+  'comercial_terciario': '#EFBC02',
+  'espacio_publico_paisaje': '#0d682f',
+  'infraestructura_urbanismo': '#D6201D',
+  'industrial_logistico': '#691B14',
+  'otro': '#064773',
+};
+
 export function abrirFicha(building, coordinates, featureId = building.id) {
   if (state.selectedFeatureId !== null) {
     const previous = getSelectedBuilding();
@@ -91,45 +102,149 @@ export function abrirFicha(building, coordinates, featureId = building.id) {
   if (selected) selected.selected = true;
   actualizarFuenteMapa();
 
-  const architects = (Array.isArray(building.arquitectos) ? building.arquitectos : separarArquitectos(building.arquitecto))
-    .map((architect) => `<button type="button" class="architect-filter" data-arq="${architect}">${architect}</button>`).join(', ');
+  const architectsList = Array.isArray(building.arquitectos) ? building.arquitectos : separarArquitectos(building.arquitecto);
+  const architects = architectsList
+    .map((architect) => `<button type="button" class="architect-filter" data-arq="${escapeHtml(architect)}">${escapeHtml(architect)}</button>`).join(', ');
   const adminActive = esRolAdmin(state.userRole) && state.adminMode;
-  document.getElementById('sheet-title').textContent = building.nombre_obra;
-  document.getElementById('sheet-body').innerHTML = `
-    ${building.foto_url ? `<button type="button" class="photo-thumb" data-photo-url="${building.foto_url}" aria-label="Ampliar fotografia"><img class="sheet-photo" src="${building.foto_url}" alt="Fotografia de ${building.nombre_obra}" loading="lazy"></button>` : ''}
-    ${building.enlace_url ? `<div class="sheet-link"><a href="${building.enlace_url}" target="_blank" rel="noopener noreferrer">ABRIR ENLACE DEL PROYECTO</a></div>` : ''}
-    <div class="data-row"><div class="label">[ARQUITECTO]</div><div class="value accent">${architects}</div></div>
-    <div class="data-row"><div class="label">[AÑO]</div><div class="value">${building.año_construccion || '-'}</div></div>
-    <div class="data-row"><div class="label">[CATEGORÍA]</div><div class="value">${nombreCategoria(building.categoria)}</div></div>
-    <div class="data-row"><div class="label">[ACCESO]</div><div class="value">${formatAccess(building.estado_acceso || (building.visitable ? 'publico' : 'privado'))}</div></div>
-    <div class="data-row"><div class="label">[COORD]</div><div class="value">${coordinates[0].toFixed(5)}, ${coordinates[1].toFixed(5)}</div></div>
-    ${state.sessionToken ? `<div class="personal-notes"><div class="rating-stars">${[1, 2, 3, 4, 5].map((value) => `<button type="button" class="rating-star ${getStatus('valoracion') >= value ? 'active' : ''}" data-rating="${value}" aria-label="Valorar ${value} de 5">&#9733;</button>`).join('')}</div><button type="button" class="btn note-toggle" data-note-toggle>AÑADIR NOTA</button><div class="personal-note-editor" data-note-editor><label for="building-notes">NOTA PRIVADA</label><textarea id="building-notes" class="tech-input" rows="3" placeholder="Escribe una nota privada..."></textarea><button type="button" class="btn save-personal-status" data-save-personal>GUARDAR NOTA</button></div></div>` : ''}
-    ${state.sessionToken && !adminActive ? '<button type="button" class="report-link" data-open-report>¿Ves un error en esta ficha?</button>' : ''}
-  `;
+  const isFav = getStatus('favorite');
+  const isVis = getStatus('visited');
+  const catKey = building.categoria || 'otro';
+  const catColor = CATEGORY_COLORS[catKey] || '#E95C0C';
   const canDeletePrivate = Boolean(selected?.private && state.userId && String(selected.user_id) === String(state.userId));
-  
+
+  document.getElementById('sheet-title').textContent = building.nombre_obra;
+
   document.getElementById('sheet-header-actions').innerHTML = `
-    <button type="button" class="sheet-icon-action" data-share-action="open" title="Compartir"><i data-lucide="share-2" width="14" height="14"></i></button>
     ${state.sessionToken ? `
-      <button type="button" class="sheet-icon-action" data-save-collection title="Guardar en lista"><i data-lucide="bookmark" width="14" height="14"></i></button>
-      <button type="button" class="sheet-icon-action" data-add-private-tag title="Etiqueta privada"><i data-lucide="tag" width="14" height="14"></i></button>
+      <button type="button" class="sheet-fav-btn ${isFav ? 'active favorite' : ''}" data-status="favorite" title="${isFav ? 'Quitar de favoritos' : 'Añadir a favoritos'}" aria-label="Favorito">
+        <i data-lucide="heart" width="16" height="16"></i>
+      </button>
     ` : ''}
-    ${adminActive ? `
-      <button type="button" class="sheet-icon-action admin-only-action" data-edit-building title="Editar"><i data-lucide="pencil" width="14" height="14"></i></button>
-      <button type="button" class="sheet-icon-action admin-delete-action" data-delete-building title="Eliminar"><i data-lucide="trash-2" width="14" height="14"></i></button>
+  `;
+
+  document.getElementById('sheet-body').innerHTML = `
+    <!-- Subtítulo de autor y año -->
+    <div class="sheet-meta-subtitle">
+      <span class="sheet-meta-architects">${architects}</span>
+      ${building.año_construccion ? `<span class="sheet-meta-year">· ${escapeHtml(building.año_construccion)}</span>` : ''}
+      ${building.ciudad ? `<span class="sheet-meta-city">· ${escapeHtml(building.ciudad)}</span>` : ''}
+    </div>
+
+    <!-- Botonera de Acción Rápida (Hero Actions) -->
+    <div class="sheet-hero-actions">
+      <a href="https://www.google.com/maps/dir/?api=1&destination=${coordinates[1]},${coordinates[0]}" target="_blank" rel="noopener noreferrer" class="sheet-hero-btn btn-primary" title="Trazar ruta en Google Maps">
+        <i data-lucide="navigation" width="15" height="15"></i>
+        <span>CÓMO LLEGAR</span>
+      </a>
+      ${state.sessionToken ? `
+        <button type="button" class="sheet-hero-btn ${isVis ? 'active visited' : ''}" data-status="visited">
+          <i data-lucide="check-circle-2" width="15" height="15"></i>
+          <span>${isVis ? 'VISITADO' : 'VISITAR'}</span>
+        </button>
+        <button type="button" class="sheet-hero-btn" data-save-collection>
+          <i data-lucide="bookmark" width="15" height="15"></i>
+          <span>GUARDAR</span>
+        </button>
+        <button type="button" class="sheet-hero-btn" data-add-private-tag>
+          <i data-lucide="tag" width="15" height="15"></i>
+          <span>ETIQUETAS</span>
+        </button>
+      ` : ''}
+      <button type="button" class="sheet-hero-btn" data-share-action="open">
+        <i data-lucide="share-2" width="15" height="15"></i>
+        <span>COMPARTIR</span>
+      </button>
+    </div>
+
+    <!-- Fotografía Principal en Banner Panorámico -->
+    ${building.foto_url ? `
+      <div class="sheet-gallery-wrap">
+        <button type="button" class="photo-thumb sheet-photo-banner" data-photo-url="${building.foto_url}" aria-label="Ampliar fotografía de la obra">
+          <img class="sheet-photo" src="${building.foto_url}" alt="Fotografía de ${escapeHtml(building.nombre_obra)}" loading="lazy">
+          <span class="photo-zoom-badge"><i data-lucide="maximize-2" width="12" height="12"></i> AMPLIAR</span>
+        </button>
+      </div>
     ` : ''}
-    ${canDeletePrivate ? `
-      <button type="button" class="sheet-icon-action private-delete-action" data-delete-private title="Eliminar"><i data-lucide="trash-2" width="14" height="14"></i></button>
-    ` : ''}
+
+    <!-- Ficha Técnica Modular Limpia (Matriz Tipográfica) -->
+    <div class="sheet-tech-section">
+      <div class="tech-row">
+        <span class="tech-label">[ ARQUITECTO ]</span>
+        <span class="tech-value tech-value-accent">${architects}</span>
+      </div>
+
+      <div class="tech-grid-2col">
+        <div class="tech-col">
+          <span class="tech-label">[ AÑO ]</span>
+          <span class="tech-value">${building.año_construccion || '-'}</span>
+        </div>
+        <div class="tech-col">
+          <span class="tech-label">[ CATEGORÍA ]</span>
+          <span class="tech-value">
+            <span class="sheet-cat-badge" style="border-left: 3px solid ${catColor};">${nombreCategoria(building.categoria)}</span>
+          </span>
+        </div>
+      </div>
+
+      <div class="tech-row">
+        <span class="tech-label">[ ACCESO ]</span>
+        <span class="tech-value">
+          <span class="sheet-access-badge">${formatAccess(building.estado_acceso || (building.visitable ? 'publico' : 'privado'))}</span>
+        </span>
+      </div>
+
+      <div class="tech-row">
+        <span class="tech-label">[ COORDENADAS ]</span>
+        <span class="tech-value tech-value-mono">${coordinates[1].toFixed(5)}° N, ${coordinates[0].toFixed(5)}° E</span>
+      </div>
+
+      ${building.enlace_url ? `
+        <div class="tech-row tech-row-link">
+          <span class="tech-label">[ ENLACE ]</span>
+          <span class="tech-value">
+            <a href="${building.enlace_url}" target="_blank" rel="noopener noreferrer" class="sheet-web-link">PÁGINA OFICIAL DEL PROYECTO ↗</a>
+          </span>
+        </div>
+      ` : ''}
+    </div>
+
+    <!-- Cuaderno Privado (Valoración y Notas) -->
     ${state.sessionToken ? `
-      <button type="button" class="sheet-icon-action ${getStatus('favorite') ? 'active favorite' : ''}" data-status="favorite" title="Favorito"><i data-lucide="heart" width="14" height="14"></i></button>
-      <button type="button" class="sheet-icon-action ${getStatus('visited') ? 'active visited' : ''}" data-status="visited" title="Visitado"><i data-lucide="check-circle-2" width="14" height="14"></i></button>
+      <div class="personal-notes">
+        <div class="personal-notes-head">[ MI VALORACIÓN Y NOTAS ]</div>
+        <div class="rating-stars">${[1, 2, 3, 4, 5].map((value) => `<button type="button" class="rating-star ${getStatus('valoracion') >= value ? 'active' : ''}" data-rating="${value}" aria-label="Valorar ${value} de 5">&#9733;</button>`).join('')}</div>
+        <button type="button" class="btn note-toggle" data-note-toggle>AÑADIR NOTA PRIVADA</button>
+        <div class="personal-note-editor" data-note-editor>
+          <label for="building-notes">NOTA PRIVADA</label>
+          <textarea id="building-notes" class="tech-input" rows="3" placeholder="Escribe tus notas privadas o estado de conservación..."></textarea>
+          <button type="button" class="btn save-personal-status" data-save-personal>GUARDAR NOTA</button>
+        </div>
+      </div>
     ` : ''}
+
+    <!-- Panel de Administración / Moderación -->
+    ${adminActive || canDeletePrivate ? `
+      <div class="sheet-admin-block">
+        <div class="sheet-admin-head">[ GESTIÓN DE OBRA ]</div>
+        <div class="sheet-admin-actions">
+          ${adminActive ? `
+            <button type="button" class="btn btn-admin-action" data-edit-building><i data-lucide="pencil" width="14" height="14"></i> EDITAR OBRA</button>
+            <button type="button" class="btn btn-admin-delete" data-delete-building><i data-lucide="trash-2" width="14" height="14"></i> ELIMINAR DE BASE DE DATOS</button>
+          ` : ''}
+          ${canDeletePrivate ? `
+            <button type="button" class="btn btn-admin-delete" data-delete-private><i data-lucide="trash-2" width="14" height="14"></i> ELIMINAR OBRA PRIVADA</button>
+          ` : ''}
+        </div>
+      </div>
+    ` : ''}
+
+    <!-- Enlace de reporte de error -->
+    ${state.sessionToken && !adminActive ? '<button type="button" class="report-link" data-open-report>¿Ves un error en esta ficha? Reportar corrección</button>' : ''}
   `;
 
   if (window.lucide) window.lucide.createIcons();
 
-  const editButton = document.querySelector('#sheet-header-actions [data-edit-building]');
+  const editButton = document.querySelector('[data-edit-building]');
   if (editButton) editButton.addEventListener('click', (event) => {
     event.stopPropagation();
     document.dispatchEvent(new CustomEvent('radar:edit-building', { detail: { obra: selected } }));

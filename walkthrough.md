@@ -1,46 +1,59 @@
-# Walkthrough: Correcciones Críticas de Usabilidad, Espacio y Navegación Móvil
+# Walkthrough: Rediseño Integral de Fichas de Obra (Bottom Sheet) Neo-Bauhaus
 
-Se han implementado con éxito todas las correcciones de usabilidad, espacio y navegación para la versión móvil de **Nolli**, consolidando la estética **Neo-Bauhaus** y blindando por completo la experiencia de escritorio.
-
----
-
-## 1. 🔲 Cabecera y Botón de Usuario (Esquina Superior Izquierda)
-- **Bloque Rectangular Bauhaus**: Integra de forma compacta el logotipo `nolli.` y el botón de estado de usuario con marco negro sólido de 1px (`#141411`), bordes 100% rectos y sombra dura (`box-shadow: 2px 2px 0px #141411`).
-- **Estados Dinámicos**:
-  - **Sin sesión**: Muestra `[ ACCEDER ]` (tap despliega `#modal-login`).
-  - **Sesión activa**: Muestra las iniciales del usuario (ej. `[ JD ]`). Al pulsar, navega directamente a `perfil.html`.
-  - **Administrador**: Resalta con fondo Vermillon (`#E84E1B`), marco rígido y etiqueta `[ ADMIN ]`, desplegando el menú rápido flotante (`#mobile-admin-quickmenu`) para moderación y proyectos.
+Se ha completado el rediseño integral de las **Fichas de Obra (Bottom Sheets)** en móvil para **Nolli**, aplicando la ergonomía de una aplicación cartográfica moderna con la pureza formal y tipográfica de nuestra identidad **Neo-Bauhaus**.
 
 ---
 
-## 2. 🔍 Buscador Flotante y Expansivo (Esquina Superior Derecha)
-- **Botón Simétrico**: Ubicado en `top: max(10px, env(safe-area-inset-top)); right: 10px;` como un bloque rectangular compacto con icono de lupa.
-- **Expansión Fluida a la Izquierda**: Al pulsar, se expande horizontalmente a 60 FPS sobre el mapa revelando una barra de búsqueda de línea única con auto-foco y botón geométrico de cierre ("X").
-- **Dropdown Resistente al Teclado de Android/iOS**:
-  - Contenedor de resultados desplegable fijado a la barra con `max-height: 45vh; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain;`.
-  - Evita que el teclado virtual tape los resultados o rompa el viewport.
-  - Al pulsar sobre un resultado, la cámara del mapa vuela al edificio y abre el Bottom Sheet *in-situ*.
+## 1. 🔲 Estructura y Dimensiones del Bottom Sheet
+- **Altura Ergonométrica**: Ocupa aprox. el 75% del viewport (`height: min(75vh, calc(100dvh - 60px)); max-height: 80vh; min-height: 55vh;`).
+- **Geometría Bauhaus**: Borde superior 100% recto (`border-radius: 0 !important; border-top: 2px solid #141411;`) y fondo crema editorial `#F4F1EA`.
+- **Tirador Táctil (Drag Handle)**: Barra sobria en la parte superior para cierre suave mediante gesto *swipe-down* acelerado por hardware a 60 FPS.
 
 ---
 
-## 3. 🗺️ Rediseño del Panel de Capas (Cuadrícula 2 Columnas con Previews)
-- **Cuadrícula Compacta**: Transforma el panel vertical anterior en una cuadrícula compacta de 2 columnas (`grid-template-columns: repeat(2, 1fr)`).
-- **Tarjetas de Previsualización Visual**:
-  - Cada estilo (**CLARO, OSCURO, HÍBRIDO**) cuenta con una miniatura gráfica del estilo cartográfico.
-  - Marco negro Bauhaus y etiqueta en mayúsculas `League Spartan`.
-  - Estado activo señalado con borde Vermillon `#E84E1B` y relieve acentuado.
-  - Altura vertical drásticamente reducida (`max-height: 48vh; height: auto;`).
+## 2. 🔤 Cabecera Limpia y Jerarquía Visual
+- **Desaparición del Exceso de Iconos**: Eliminada la barra saturada de 7 botones amontonados.
+- **Acciones Rápidas en Cabecera**: Botón directo de Favorito (`[ ♥ ]` con corazón en rojo vermillón al activarse) y botón geométrico de cierre ("X") con área táctil $\ge 44\times 44\text{px}$.
+- **Nombre de la Obra**: Título rotundo en **`League Spartan`** (mayúsculas, bold 900).
+- **Subtítulo de Metadatos**: Arquitecto enlazado en color vermillon (`#E84E1B`), año de construcción y ciudad en tipografía `Inter`.
 
 ---
 
-## 4. 👤 Corrección de Scroll y Funcionalidad en Perfil (`perfil.html` + `profile.css`)
-- **Scroll Vertical Completo**:
-  - `overflow-y: auto !important; -webkit-overflow-scrolling: touch !important; min-height: 100dvh; overscroll-behavior-y: contain;`
-  - Padding inferior de `calc(95px + env(safe-area-inset-bottom))` asegurando que la barra inferior nunca tape botones de guardado, cierre de sesión o tarjetas.
-- **Estadísticas Modulares 2x2**: Tarjetas de métricas (Visitados, Favoritos, Listas, Notas) en cuadrícula flexible con números rotundos en `League Spartan` y etiquetas en `JetBrains Mono`.
+## 3. 🎯 Botones de Acción Hero ($\ge 48\text{px}$)
+Fila horizontal con desplazamiento táctil suave (`overflow-x: auto`) ubicada directamente bajo el título:
+- **Botón Primario Destacado**: `[ ↗ CÓMO LLEGAR ]` en bloque sólido negro (`#141411`), que abre la ruta GPS directa en Google Maps con las coordenadas del edificio.
+- **Botones Secundarios Táctiles**:
+  - `[ ✓ VISITADO ]`: Toggle de visita con estado activo en verde oscuro (`#0d682f`).
+  - `[ 🔖 GUARDAR ]`: Abre el modal organizador de listas y colecciones.
+  - `[ ↗ COMPARTIR ]`: Despliega el panel de enlace y redes.
+  - `[ 🏷️ ETIQUETA ]`: Gestión de etiquetas privadas.
 
 ---
 
-## 5. ⚡ Rendimiento y Aislamiento de Escritorio
-- **Aceleración por GPU (60 FPS)**: `transform: translateY(...) translate3d(0, 0, 0)` y `opacity` con `transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1)`.
-- **Desktop 100% Intacto**: Todas las nuevas interfaces móviles están encapsuladas bajo `@media (max-width: 768px)` con `display: none !important;` en pantallas `> 768px`.
+## 4. 🖼️ Galería de Imágenes Inmersiva
+- **Banner Panorámico**: Marco negro ortogonal con sombra dura Bauhaus (`box-shadow: 2px 2px 0px #141411`).
+- **Badge Táctil de Zoom**: Indicador interactivo `[ ⤢ AMPLIAR ]` que despliega el visor a pantalla completa en alta definición.
+
+---
+
+## 5. 📐 Ficha Técnica Modular (Matriz Tipográfica Limpia)
+Sustituidas las antiguas tablas rígidas por una matriz ortogonal de líneas negras Bauhaus:
+- **`[ ARQUITECTO ]`**: Nombre enlazado en color vermillon con apertura inmediata del catálogo completo de obras del autor.
+- **`[ AÑO / CATEGORÍA ]`**: Bloque modular de 2 columnas con badge cromático según la tipología arquitectónica.
+- **`[ ACCESO ]`**: Indicador técnico claro del régimen de visita (`PÚBLICO`, `EXTERIOR VISIBLE`, `CON RESERVA`, `PRIVADO`).
+- **`[ COORDENADAS ]`**: Lectura GPS en `JetBrains Mono`.
+- **`[ ENLACE OFICIAL ]`**: Botón web oficial del proyecto.
+
+---
+
+## 6. 📝 Cuaderno Privado y Herramientas de Gestión
+- **Valoración por 5 Estrellas y Notas Privadas**: Módulo dedicado para anotaciones personales y estado de conservación.
+- **Módulo de Moderación / Admin**: Botones para editar o eliminar obra visibles únicamente para administradores o creadores de la ficha.
+- **Reporte de Errores**: Enlace discreto para reportar incidencias técnicas.
+
+---
+
+## 7. ⚡ Scroll y Rendimiento
+- `overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; padding-bottom: calc(75px + env(safe-area-inset-bottom));` garantizando que todo el contenido se lea por encima de la barra inferior fija.
+- Aceleración por GPU a 60 FPS estables.
+- Versión de escritorio (`> 768px`) 100% blindada e intacta.
