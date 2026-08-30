@@ -81,10 +81,11 @@ async function cargarEdificiosVisibles() {
     generarFiltrosUI();
     actualizarFuenteMapa();
   } catch (error) {
-    if (error.name === 'AbortError') return;
+    if (error.name === 'AbortError' || error.name === 'CanceledError' || String(error.message || '').toLowerCase().includes('abort') || publicLoadController?.signal?.aborted) {
+      return;
+    }
     if (requestId !== publicLoadRequest) return;
-    console.error('Error:', error);
-    alert('Error de conexión con la base de datos.');
+    console.warn('Aviso de sincronización de edificios en segundo plano:', error);
   }
 }
 
@@ -131,8 +132,7 @@ async function inicializarRadar() {
     state.map.on('moveend', programarCargaEdificiosVisibles);
     document.addEventListener('radar:filters-changed', programarCargaEdificiosVisibles);
   } catch (error) {
-    console.error('Error:', error);
-    alert('Error de conexión con la base de datos.');
+    console.warn('Aviso de inicialización del mapa:', error);
   }
 }
 

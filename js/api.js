@@ -54,19 +54,29 @@ export async function fetchBuildings({ bounds, zoom, architect, includeAllImport
   params.set('importancia', `lte.${maxImportance}`);
 
   while (true) {
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?${params.toString()}`, {
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`,
-        Range: `${start}-${start + pageSize - 1}`,
-      },
-      signal,
-    });
-    if (!response.ok) throw new Error(`Error ${response.status}`);
-    const page = await response.json();
-    buildings.push(...page);
-    if (page.length < pageSize) return buildings;
-    start += pageSize;
+    try {
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?${params.toString()}`, {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          Range: `${start}-${start + pageSize - 1}`,
+        },
+        signal,
+      });
+      if (!response.ok) {
+        if (response.status === 416) return buildings; // Rango excedido -> final de datos
+        throw new Error(`Error ${response.status}`);
+      }
+      const page = await response.json();
+      if (!Array.isArray(page)) return buildings;
+      buildings.push(...page);
+      if (page.length < pageSize) return buildings;
+      start += pageSize;
+    } catch (err) {
+      if (err.name === 'AbortError' || signal?.aborted) throw err;
+      console.warn('Aviso en consulta de obras:', err);
+      return buildings; // Devolver lo obtenido hasta el momento para evitar caídas
+    }
   }
 }
 
@@ -80,20 +90,26 @@ export async function fetchBuildingFacets() {
     order: 'id.asc',
   });
 
-  while (true) {
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?${params.toString()}`, {
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`,
-        Range: `${start}-${start + pageSize - 1}`,
-      },
-    });
-    if (!response.ok) throw new Error(`Error ${response.status}`);
-    const page = await response.json();
-    facets.push(...page);
-    if (page.length < pageSize) return facets;
-    start += pageSize;
+  try {
+    while (true) {
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?${params.toString()}`, {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          Range: `${start}-${start + pageSize - 1}`,
+        },
+      });
+      if (!response.ok) break;
+      const page = await response.json();
+      if (!Array.isArray(page)) break;
+      facets.push(...page);
+      if (page.length < pageSize) return facets;
+      start += pageSize;
+    }
+  } catch (err) {
+    console.warn('Aviso al consultar catálogo global (se continuará con catálogo local):', err);
   }
+  return facets;
 }
 
 export async function fetchUserPendingBuildings(userId, sessionToken) {

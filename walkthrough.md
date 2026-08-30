@@ -1,31 +1,19 @@
-# Walkthrough: Rediseño Integral de la Ficha de Arquitecto (Neo-Bauhaus)
+# Walkthrough: Resolución de Avisos de Error de Conexión con la Base de Datos
 
-Se ha implementado el rediseño completo de la **Ficha de Arquitecto** en formato *Bottom Sheet* para dispositivos móviles, transformando la lista de obras en un catálogo monográfico interactivo y modular con la estética estricta **Neo-Bauhaus**.
-
----
-
-## 1. 📐 Estructura Bottom Sheet y Cabecera Bauhaus
-- **Panel Deslizante Móvil**: Configurado para ocupar aprox. el 75-80% del viewport (`height: min(78vh, calc(100dvh - 55px))`) con bordes superiores rectos (`border-radius: 0 !important; border-top: 2px solid #141411;`) y fondo crema editorial `#F4F1EA`.
-- **Tirador Táctil (*Drag Handle*)**: Barra superior para cierre por arrastre vertical (*swipe-down*).
-- **Cabecera Tipográfica**:
-  - Título de sección `[ FICHA DE AUTOR // ARQUITECTURA ]` en `League Spartan` (800).
-  - Nombre del arquitecto en `League Spartan` mayúsculas (900) de 24-26px.
-  - Contador de catálogo en formato técnico: `[ N OBRAS REGISTRADAS ]` en `JetBrains Mono` con acento vermillón `#E84E1B`.
-  - Botón de cierre ("X") geométrico de $\ge 44\times 44\text{px}$.
+Se ha eliminado la aparición de los avisos modales intrusivos (`alert`) y se ha blindado la capa de red y sincronización con Supabase para garantizar una experiencia de navegación fluida sin interrupciones.
 
 ---
 
-## 2. 🗂️ Tarjetas Modulares de Obras (`.architect-work-card`)
-Cada proyecto del autor se presenta en una tarjeta rectangular táctil e interactiva:
-- **Bloque de Año**: Situado en el lateral izquierdo con recuadro Bauhaus y año en tipografía `League Spartan` (bold 900) en color vermillón `#E84E1B`.
-- **Título de la Obra**: En tipografía `Inter` (bold 700) con excelente jerarquía y legibilidad.
-- **Insignia de Categoría Cromática**: Píldora rectangular técnica con el color exacto de la categoría (`CATEGORY_COLORS`: residencial `#E95C0C`, dotacional `#4388C6`, etc.).
-- **Contexto Geográfico / Ciudad (`place`)**: Extraído de la columna `place` (o `ciudad`) de Supabase (ej: `· Valencia`).
-- **Miniatura Fotográfica**: En caso de disponer de imagen, miniatura cuadrada con marco negro a la derecha.
+## 1. 🔍 Causa Raíz Identificada
+- Al desplazar o hacer zoom rápidamente en el mapa, el sistema cancela intencionadamente las peticiones de red en curso mediante `AbortController` para lanzar la consulta del nuevo encuadre.
+- En ciertas condiciones de red o navegadores móviles, estas cancelaciones normales o fluctuaciones de milisegundos eran capturadas por el bloque `catch` de `main.js`, disparando una alerta nativa bloqueante (`alert('Error de conexión con la base de datos.')`).
 
 ---
 
-## 3. ⚡ Scroll Táctil a 60 FPS y Navegación
-- **Desplazamiento Suave**: Contenedor con `overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain;`.
-- **Margen de Seguridad Inferior**: `padding-bottom: calc(85px + env(safe-area-inset-bottom))` para que ninguna tarjeta quede oculta detrás de la barra de navegación inferior fija.
-- **Interacción Directa**: Al pulsar cualquier tarjeta, se cierra la ficha de autor, la cámara vuela al edificio con padding de seguridad y se abre de inmediato su Ficha Técnica (*Bottom Sheet*).
+## 2. 🛡️ Correcciones Aplicadas
+1. **Eliminación de `alert()` Intrusivos**:
+   - Eliminados los popups bloqueantes de `cargarEdificiosVisibles` e `inicializarRadar` en `js/main.js`.
+   - Las cancelaciones normales de encuadre (`AbortError`, `CanceledError`, `signal.aborted`) se gestionan silenciosamente.
+2. **Resiliencia en `fetchBuildings` y `fetchBuildingFacets` (`js/api.js`)**:
+   - Manejo de excepciones integrado con retorno de datos en caché/obtenidos en lugar de propagar un fallo crítico que detenga la UI.
+   - En caso de micro-cortes, el mapa continúa mostrando todas las obras ya renderizadas y reintenta la sincronización en segundo plano de manera transparente.
