@@ -89,6 +89,34 @@
     </div>
   </header>
 
+  <!-- Widget flotante de Identidad y Sesión (Móvil sup-izq) -->
+  <aside id="mobile-identity-widget" class="mobile-identity-widget" aria-label="Identidad y sesión de usuario">
+    <a href="./index.html" class="mobile-identity-brand">nolli<span>.</span></a>
+    <button type="button" id="btn-mobile-identity-action" class="mobile-identity-btn" aria-label="Acceder o ver cuenta">
+      <span id="mobile-identity-badge" class="mobile-identity-badge">[ ACCEDER ]</span>
+    </button>
+  </aside>
+
+  <!-- Menú flotante rápido para administrador en móvil -->
+  <div id="mobile-admin-quickmenu" class="mobile-admin-quickmenu" hidden aria-label="Menú rápido de administración">
+    <div class="mobile-admin-quickmenu-head">
+      <span>[ MODO ADMIN ACTIVO ]</span>
+      <i data-lucide="x" id="btn-close-quick-admin" width="14" height="14" style="cursor:pointer"></i>
+    </div>
+    <button type="button" class="mobile-admin-menu-item" id="btn-mobile-quick-admin-panel">
+      <i data-lucide="shield-alert" width="16" height="16" style="color:var(--accent)"></i>
+      <span>REVISAR PROYECTOS</span>
+    </button>
+    <button type="button" class="mobile-admin-menu-item" id="btn-mobile-quick-reports">
+      <i data-lucide="inbox" width="16" height="16" style="color:var(--accent-2)"></i>
+      <span>BUZÓN DE REPORTES</span>
+    </button>
+    <a href="./perfil.html" class="mobile-admin-menu-item">
+      <i data-lucide="user" width="16" height="16"></i>
+      <span>PERFIL PERSONAL</span>
+    </a>
+  </div>
+
   <!-- Leyenda técnica del radar (Desplegable) -->
   <div id="map-legend" class="radar-legend collapsed" aria-label="Leyenda del mapa">
     <button type="button" id="btn-legend-toggle" class="legend-header-btn" aria-expanded="false">
@@ -275,6 +303,9 @@
 
   <!-- Sheet de ficha técnica -->
   <section id="sheet" class="sheet" aria-label="Ficha técnica de la obra">
+    <div class="sheet-drag-handle" id="sheet-drag-handle" aria-label="Arrastrar para cerrar ficha">
+      <span class="sheet-drag-bar"></span>
+    </div>
     <div class="sheet-header">
       <div class="flex items-center gap-2">
         <i data-lucide="square-dashed-bottom-code" width="14" height="14" style="color:var(--accent)"></i>

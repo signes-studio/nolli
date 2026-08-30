@@ -1,9 +1,12 @@
 /* =========================================================================
-   MOBILEBOTTOMNAV.JS — Controlador de navegación inferior táctil (<= 768px)
-   Transición instantánea entre vistas (0.2s), exclusión mutua y backdrop
+   MOBILEBOTTOMNAV.JS — Controlador de Navegación, Identidad y Gestos Táctiles (<= 768px)
+   - Barra de Navegación Inferior (Bottom Navigation)
+   - Widget Flotante de Identidad y Sesión (Esquina Superior Izquierda)
+   - Gesto Swipe-Down para cierre suave de Bottom Sheet
+   - Aceleración por hardware a 60 FPS estables
    ========================================================================= */
 
-import { state } from './state.js';
+import { state, esRolAdmin } from './state.js';
 
 export function initMobileBottomNav() {
   const bottomBar = document.getElementById('mobile-bottom-bar');
@@ -112,6 +115,8 @@ export function initMobileBottomNav() {
     panelBackdrop.addEventListener('click', () => {
       closeAllPanels();
       if (panelBackdrop) panelBackdrop.classList.remove('active');
+      const quickMenu = document.getElementById('mobile-admin-quickmenu');
+      if (quickMenu) quickMenu.hidden = true;
     });
   }
 
@@ -120,6 +125,8 @@ export function initMobileBottomNav() {
     if (e.key === 'Escape' && isMobile()) {
       closeAllPanels();
       if (panelBackdrop) panelBackdrop.classList.remove('active');
+      const quickMenu = document.getElementById('mobile-admin-quickmenu');
+      if (quickMenu) quickMenu.hidden = true;
     }
   });
 
@@ -132,7 +139,180 @@ export function initMobileBottomNav() {
     observer.observe(panel, { attributes: true, attributeFilter: ['class'] });
   });
 
-  // Inicializar estado de iconos
+  // Inicializar sub-componentes táctiles
+  initMobileIdentityWidget();
+  initSheetTouchGestures();
+
   if (window.lucide) window.lucide.createIcons();
 }
 
+/* =========================================================================
+   WIDGET FLOTANTE DE IDENTIDAD Y SESIÓN (SUPERIOR IZQUIERDA)
+   ========================================================================= */
+function initMobileIdentityWidget() {
+  const badge = document.getElementById('mobile-identity-badge');
+  const actionBtn = document.getElementById('btn-mobile-identity-action');
+  const quickMenu = document.getElementById('mobile-admin-quickmenu');
+  const btnCloseQuickMenu = document.getElementById('btn-close-quick-admin');
+  const btnQuickAdminPanel = document.getElementById('btn-mobile-quick-admin-panel');
+  const btnQuickReports = document.getElementById('btn-mobile-quick-reports');
+
+  if (!badge || !actionBtn) return;
+
+  function computeInitials() {
+    if (state.userProfile?.firstName || state.userProfile?.lastName) {
+      const f = (state.userProfile.firstName || '').charAt(0).toUpperCase();
+      const l = (state.userProfile.lastName || '').charAt(0).toUpperCase();
+      return f || l ? `${f}${l}` : 'ID';
+    }
+    if (state.userEmail) {
+      const namePart = state.userEmail.split('@')[0];
+      return namePart.slice(0, 3).toUpperCase();
+    }
+    return 'USER';
+  }
+
+  function updateIdentityUI() {
+    const isLogged = Boolean(state.sessionToken);
+    const isAdmin = esRolAdmin(state.userRole);
+
+    actionBtn.classList.remove('guest', 'user-logged', 'admin-logged');
+
+    if (!isLogged) {
+      actionBtn.classList.add('guest');
+      badge.textContent = '[ ACCEDER ]';
+      actionBtn.title = 'Iniciar sesión';
+      if (quickMenu) quickMenu.hidden = true;
+    } else if (isAdmin) {
+      actionBtn.classList.add('admin-logged');
+      badge.textContent = '[ ADMIN ]';
+      actionBtn.title = 'Menú rápido de administrador';
+    } else {
+      actionBtn.classList.add('user-logged');
+      const inits = computeInitials();
+      badge.textContent = `[ ${inits} ]`;
+      actionBtn.title = 'Ver perfil personal';
+      if (quickMenu) quickMenu.hidden = true;
+    }
+  }
+
+  actionBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const isLogged = Boolean(state.sessionToken);
+    const isAdmin = esRolAdmin(state.userRole);
+
+    if (!isLogged) {
+      const loginModal = document.getElementById('modal-login');
+      if (loginModal) loginModal.classList.add('open');
+    } else if (isAdmin && quickMenu) {
+      quickMenu.hidden = !quickMenu.hidden;
+    } else {
+      window.location.href = './perfil.html';
+    }
+  });
+
+  if (btnCloseQuickMenu && quickMenu) {
+    btnCloseQuickMenu.addEventListener('click', (e) => {
+      e.stopPropagation();
+      quickMenu.hidden = true;
+    });
+  }
+
+  if (btnQuickAdminPanel && quickMenu) {
+    btnQuickAdminPanel.addEventListener('click', (e) => {
+      e.stopPropagation();
+      quickMenu.hidden = true;
+      const adminPanel = document.getElementById('admin-panel');
+      if (adminPanel) {
+        adminPanel.classList.add('open');
+        document.getElementById('admin-view-projects')?.classList.remove('admin-view-hidden');
+        document.getElementById('admin-view-reports')?.classList.add('admin-view-hidden');
+        document.getElementById('admin-users-view')?.classList.add('admin-view-hidden');
+        document.getElementById('panel-backdrop')?.classList.add('active');
+      }
+    });
+  }
+
+  if (btnQuickReports && quickMenu) {
+    btnQuickReports.addEventListener('click', (e) => {
+      e.stopPropagation();
+      quickMenu.hidden = true;
+      const adminPanel = document.getElementById('admin-panel');
+      if (adminPanel) {
+        adminPanel.classList.add('open');
+        document.getElementById('admin-view-projects')?.classList.add('admin-view-hidden');
+        document.getElementById('admin-view-reports')?.classList.remove('admin-view-hidden');
+        document.getElementById('admin-users-view')?.classList.add('admin-view-hidden');
+        document.getElementById('panel-backdrop')?.classList.add('active');
+      }
+    });
+  }
+
+  document.addEventListener('click', (e) => {
+    if (quickMenu && !quickMenu.hidden && !quickMenu.contains(e.target) && !actionBtn.contains(e.target)) {
+      quickMenu.hidden = true;
+    }
+  });
+
+  ['radar:admin-login', 'radar:user-login', 'radar:logout', 'radar:user-session-ready', 'radar:admin-mode-change'].forEach((eventName) => {
+    document.addEventListener(eventName, updateIdentityUI);
+  });
+
+  updateIdentityUI();
+}
+
+/* =========================================================================
+   GESTO TÁCTIL SWIPE-DOWN PARA CERRAR EL BOTTOM SHEET DE OBRA
+   ========================================================================= */
+function initSheetTouchGestures() {
+  const sheetEl = document.getElementById('sheet');
+  const dragHandle = document.getElementById('sheet-drag-handle');
+  const sheetHeader = sheetEl?.querySelector('.sheet-header');
+
+  if (!sheetEl) return;
+
+  let startY = 0;
+  let currentY = 0;
+  let isDragging = false;
+
+  function onTouchStart(e) {
+    if (window.innerWidth > 768) return;
+    const touch = e.touches ? e.touches[0] : e;
+    startY = touch.clientY;
+    currentY = startY;
+    isDragging = true;
+    sheetEl.style.transition = 'none';
+  }
+
+  function onTouchMove(e) {
+    if (!isDragging || window.innerWidth > 768) return;
+    const touch = e.touches ? e.touches[0] : e;
+    currentY = touch.clientY;
+    const deltaY = currentY - startY;
+    if (deltaY > 0) {
+      sheetEl.style.transform = `translateY(${deltaY}px) translate3d(0, 0, 0)`;
+    }
+  }
+
+  function onTouchEnd() {
+    if (!isDragging || window.innerWidth > 768) return;
+    isDragging = false;
+    sheetEl.style.transition = '';
+    const deltaY = currentY - startY;
+    sheetEl.style.transform = '';
+
+    if (deltaY > 75) {
+      sheetEl.classList.remove('open');
+      document.getElementById('panel-backdrop')?.classList.remove('active');
+      document.dispatchEvent(new CustomEvent('radar:cerrar-ficha'));
+    }
+  }
+
+  [dragHandle, sheetHeader].filter(Boolean).forEach((el) => {
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchmove', onTouchMove, { passive: true });
+    el.addEventListener('touchend', onTouchEnd, { passive: true });
+  });
+}

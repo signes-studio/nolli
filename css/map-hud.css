@@ -42,8 +42,10 @@
   display: flex; align-items: flex-start; justify-content: space-between;
   padding-bottom: 10px;
 }
-/* Barra de navegación inferior móvil (Oculta por defecto en Desktop) */
-.mobile-bottom-bar {
+/* Barra de navegación inferior móvil y widget de identidad (Ocultos por defecto en Desktop) */
+.mobile-bottom-bar,
+.mobile-identity-widget,
+.mobile-admin-quickmenu {
   display: none !important;
 }
 .panel-backdrop {
@@ -54,6 +56,140 @@
   /* Ocultar barra superior en móviles para maximizar mapa a pantalla completa */
   .topbar {
     display: none !important;
+  }
+
+  /* Widget de identidad y sesión flotante en esquina superior izquierda */
+  .mobile-identity-widget {
+    display: flex !important;
+    position: fixed;
+    top: max(10px, env(safe-area-inset-top));
+    left: 10px;
+    z-index: 40;
+    align-items: center;
+    background: var(--bg-panel, #F4F1EA);
+    border: 1px solid var(--border-strong, #141411);
+    box-shadow: 2px 2px 0px var(--border-strong, #141411);
+    padding: 0;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  body.dark-mode .mobile-identity-widget {
+    background: #1C1C1A;
+  }
+
+  .mobile-identity-brand {
+    font-family: 'League Spartan', sans-serif !important;
+    font-weight: 900;
+    font-size: 18px;
+    line-height: 1;
+    color: var(--accent, #E95C0C);
+    text-decoration: none;
+    letter-spacing: -0.03em;
+    padding: 7px 9px 5px 8px;
+    display: inline-block;
+  }
+
+  .mobile-identity-brand span {
+    color: var(--fg, #141411);
+  }
+
+  .mobile-identity-btn {
+    border: 0;
+    border-left: 1px solid var(--border-strong, #141411);
+    background: transparent;
+    color: var(--fg, #141411);
+    padding: 6px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    touch-action: manipulation;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
+    transition: background 0.12s ease, color 0.12s ease;
+  }
+
+  .mobile-identity-btn:active {
+    background: var(--fg, #141411);
+    color: var(--bg-panel, #F4F1EA);
+  }
+
+  .mobile-identity-btn.user-logged {
+    background: var(--bg-raised, #ECE6D8);
+    color: var(--accent, #E95C0C);
+  }
+
+  .mobile-identity-btn.admin-logged {
+    background: #E84E1B !important;
+    color: #FFFFFF !important;
+    border-left-color: #141411 !important;
+  }
+
+  .mobile-admin-quickmenu {
+    position: fixed;
+    top: calc(max(10px, env(safe-area-inset-top)) + 40px);
+    left: 10px;
+    z-index: 46;
+    background: var(--bg-panel, #F4F1EA);
+    border: 1px solid var(--border-strong, #141411);
+    box-shadow: 3px 3px 0px var(--border-strong, #141411);
+    width: min(280px, calc(100vw - 20px));
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    animation: quickMenuPop 0.15s ease-out;
+  }
+
+  .mobile-admin-quickmenu[hidden] {
+    display: none !important;
+  }
+
+  @keyframes quickMenuPop {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .mobile-admin-quickmenu-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    background: #E84E1B;
+    color: #FFFFFF;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+  }
+
+  .mobile-admin-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 10px;
+    border: 0;
+    border-bottom: 1px solid var(--border);
+    background: transparent;
+    color: var(--fg, #141411);
+    font-family: 'League Spartan', sans-serif !important;
+    font-size: 13px;
+    font-weight: 800;
+    text-decoration: none;
+    cursor: pointer;
+    touch-action: manipulation;
+    text-align: left;
+    min-height: 48px;
+  }
+
+  .mobile-admin-menu-item:last-child {
+    border-bottom: 0;
+  }
+
+  .mobile-admin-menu-item:active {
+    background: var(--bg-raised);
+    color: var(--accent);
   }
 
   .mobile-bottom-bar {
