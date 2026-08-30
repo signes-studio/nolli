@@ -1,41 +1,46 @@
-# Walkthrough: Arquitectura Móvil Ampliada (Identidad Flotante + Perfil App + Bottom Sheet de Obra)
+# Walkthrough: Correcciones Críticas de Usabilidad, Espacio y Navegación Móvil
 
-Se ha completado la ampliación del sistema mobile-first de Nolli, adaptando la experiencia de usuario a patrones tipo App nativa (Google Maps + Neo-Bauhaus) con preservación del 100% de la versión de escritorio.
-
----
-
-## 🏛️ 1. Widget de Identidad y Sesión Flotante (`#mobile-identity-widget`)
-- **Ubicación**: Esquina superior izquierda (`top: max(10px, env(safe-area-inset-top)); left: 10px; z-index: 40;`).
-- **Morfología Bauhaus**: Bloque rectangular compacto con bordes rectos (`border-radius: 0`), marco negro estructural de 1px (`#141411`), fondo crema `#F4F1EA` y sombra sólida desplazada (`box-shadow: 2px 2px 0px #141411`).
-- **3 Estados de Sesión Dinámicos**:
-  1. **Invitado / No autenticado**: Muestra `nolli.` + `[ ACCEDER ]`. Al hacer tap abre `#modal-login`.
-  2. **Usuario Autenticado**: Muestra `nolli.` + `[ INICIALES ]` (ej. `[ JD ]` o `[ USR ]`). Al hacer tap navega a `perfil.html`.
-  3. **Administrador (`esRolAdmin`)**: Resalta en bermellón `#E84E1B` con `[ ADMIN ]`. Al hacer tap despliega un menú rápido flotante (`#mobile-admin-quickmenu`) con accesos directos a revisión de proyectos, buzón de reportes y perfil.
+Se han implementado con éxito todas las correcciones de usabilidad, espacio y navegación para la versión móvil de **Nolli**, consolidando la estética **Neo-Bauhaus** y blindando por completo la experiencia de escritorio.
 
 ---
 
-## 📱 2. Rediseño Mobile-First del Perfil (`perfil.html` + `profile.css`)
-- **Experiencia de App Dedicada**: Eliminada la estructura de página web convencional en móvil (`100dvh`), con barra superior compacta, cabecera de usuario constructivista y barra de navegación inferior fija (`#mobile-bottom-bar`).
-- **Bloques Modulares Rectangulares**:
-  - Títulos en **`League Spartan`** mayúsculas (`font-weight: 800/900`).
-  - Textos descriptivos en **`Inter`**.
-  - Metadatos y contadores en **`JetBrains Mono`**.
-- **Botones a Ancho Completo (`width: 100%`)**: Todos los botones de acción primarios ocupan el 100% del ancho con altura mínima de **$48\text{ px}$** para interacción con el pulgar.
-- **Pestañas Horizontales Táctiles**: Desplazamiento táctil suave con inercia nativa y botones de $\ge 46\text{px}$.
-- **Apertura de Obras *In-Situ***: Al pulsar en cualquier obra o lista del perfil, se abre en el mapa con su Bottom Sheet sin recargas innecesarias ni desajustes.
+## 1. 🔲 Cabecera y Botón de Usuario (Esquina Superior Izquierda)
+- **Bloque Rectangular Bauhaus**: Integra de forma compacta el logotipo `nolli.` y el botón de estado de usuario con marco negro sólido de 1px (`#141411`), bordes 100% rectos y sombra dura (`box-shadow: 2px 2px 0px #141411`).
+- **Estados Dinámicos**:
+  - **Sin sesión**: Muestra `[ ACCEDER ]` (tap despliega `#modal-login`).
+  - **Sesión activa**: Muestra las iniciales del usuario (ej. `[ JD ]`). Al pulsar, navega directamente a `perfil.html`.
+  - **Administrador**: Resalta con fondo Vermillon (`#E84E1B`), marco rígido y etiqueta `[ ADMIN ]`, desplegando el menú rápido flotante (`#mobile-admin-quickmenu`) para moderación y proyectos.
 
 ---
 
-## 📐 3. Fichas de Obra en Bottom Sheet Optimizado
-- **Dimensiones ergonómicas**: Ocupa el **70%–80% del alto** (`height: min(78vh, calc(100dvh - 55px)); max-height: 82vh;`), ideal para lectura reposada de la memoria y la fotografía.
-- **Estética Bauhaus Pura**: Fondo crema editorial `#F4F1EA`, bordes superiores totalmente rectos (`border-radius: 0 !important; border-top: 2px solid #141411;`), fotografía panorámica y tipografía técnica.
-- **Botón de Cierre "X"**: Caja ortogonal visible de $48 \times 48\text{ px}$.
-- **Gesto de Arrastre hacia Abajo (*Swipe-Down*)**: Implementado detector táctil en el *drag handle* y cabecera del panel para arrastrar y cerrar el panel con el dedo.
-- **Desplazamiento Inteligente de Cámara Mapbox**: El mapa reubica el marcador en la zona superior libre con `map.easeTo({ padding: { bottom: 45vh } })`.
+## 2. 🔍 Buscador Flotante y Expansivo (Esquina Superior Derecha)
+- **Botón Simétrico**: Ubicado en `top: max(10px, env(safe-area-inset-top)); right: 10px;` como un bloque rectangular compacto con icono de lupa.
+- **Expansión Fluida a la Izquierda**: Al pulsar, se expande horizontalmente a 60 FPS sobre el mapa revelando una barra de búsqueda de línea única con auto-foco y botón geométrico de cierre ("X").
+- **Dropdown Resistente al Teclado de Android/iOS**:
+  - Contenedor de resultados desplegable fijado a la barra con `max-height: 45vh; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain;`.
+  - Evita que el teclado virtual tape los resultados o rompa el viewport.
+  - Al pulsar sobre un resultado, la cámara del mapa vuela al edificio y abre el Bottom Sheet *in-situ*.
 
 ---
 
-## ⚡ 4. Rendimiento Táctil y Aislamiento de Escritorio
-- **60 FPS Estables**: Transiciones gobernadas por GPU (`transform: translateY(...) translate3d(0,0,0)` y `opacity`, `will-change: transform`).
-- **Escritorio Intacto**: Todos los elementos móviles (`#mobile-identity-widget`, `#mobile-admin-quickmenu`, `#mobile-bottom-bar`, drag handles) tienen `display: none !important;` en pantallas `> 768px`.
+## 3. 🗺️ Rediseño del Panel de Capas (Cuadrícula 2 Columnas con Previews)
+- **Cuadrícula Compacta**: Transforma el panel vertical anterior en una cuadrícula compacta de 2 columnas (`grid-template-columns: repeat(2, 1fr)`).
+- **Tarjetas de Previsualización Visual**:
+  - Cada estilo (**CLARO, OSCURO, HÍBRIDO**) cuenta con una miniatura gráfica del estilo cartográfico.
+  - Marco negro Bauhaus y etiqueta en mayúsculas `League Spartan`.
+  - Estado activo señalado con borde Vermillon `#E84E1B` y relieve acentuado.
+  - Altura vertical drásticamente reducida (`max-height: 48vh; height: auto;`).
 
+---
+
+## 4. 👤 Corrección de Scroll y Funcionalidad en Perfil (`perfil.html` + `profile.css`)
+- **Scroll Vertical Completo**:
+  - `overflow-y: auto !important; -webkit-overflow-scrolling: touch !important; min-height: 100dvh; overscroll-behavior-y: contain;`
+  - Padding inferior de `calc(95px + env(safe-area-inset-bottom))` asegurando que la barra inferior nunca tape botones de guardado, cierre de sesión o tarjetas.
+- **Estadísticas Modulares 2x2**: Tarjetas de métricas (Visitados, Favoritos, Listas, Notas) en cuadrícula flexible con números rotundos en `League Spartan` y etiquetas en `JetBrains Mono`.
+
+---
+
+## 5. ⚡ Rendimiento y Aislamiento de Escritorio
+- **Aceleración por GPU (60 FPS)**: `transform: translateY(...) translate3d(0, 0, 0)` y `opacity` con `transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1)`.
+- **Desktop 100% Intacto**: Todas las nuevas interfaces móviles están encapsuladas bajo `@media (max-width: 768px)` con `display: none !important;` en pantallas `> 768px`.

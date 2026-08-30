@@ -610,11 +610,21 @@ body.dark-mode {
   display: none !important;
 }
 
-@media (max-width: 768px) {
+  html, body.profile-body {
+    height: 100% !important;
+    min-height: 100dvh !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior-y: contain !important;
+  }
+
   .profile-wrapper {
-    padding: 12px 12px calc(80px + env(safe-area-inset-bottom));
-    gap: 16px;
-    max-width: 100%;
+    min-height: 100%;
+    padding: 14px 14px calc(95px + env(safe-area-inset-bottom)) !important;
+    gap: 18px !important;
+    max-width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
   }
 
   .profile-card,
@@ -687,27 +697,36 @@ body.dark-mode {
   }
 
   .profile-stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
   }
 
   .profile-stat-card {
-    padding: 12px 10px;
-    min-height: 60px;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    padding: 14px 12px !important;
+    min-height: 68px !important;
     touch-action: manipulation;
     cursor: pointer;
   }
 
   .profile-stat-val {
-    font-family: 'League Spartan', sans-serif;
-    font-weight: 800;
-    font-size: 22px;
+    font-family: 'League Spartan', sans-serif !important;
+    font-weight: 900 !important;
+    font-size: 24px !important;
+    line-height: 1 !important;
+    color: var(--fg) !important;
   }
 
   .profile-stat-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
-    letter-spacing: 0.04em;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 9px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.05em !important;
+    margin-top: 4px !important;
+    color: var(--fg-dim) !important;
   }
 
   /* Pestañas horizontales con scroll táctil suave */

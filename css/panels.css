@@ -396,6 +396,107 @@
     padding-bottom: max(16px, env(safe-area-inset-bottom)) !important;
   }
 
+  /* Panel de Capas / Tipo de Mapa en Cuadrícula 2 Columnas Compacta */
+  .map-style-panel {
+    height: auto !important;
+    max-height: 48vh !important;
+    min-height: auto !important;
+  }
+
+  .map-style-options {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    padding: 12px 14px !important;
+  }
+
+  .map-style-option {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    padding: 8px !important;
+    gap: 8px !important;
+    border: 1px solid var(--border-strong, #141411) !important;
+    border-radius: 0 !important;
+    background: var(--bg-panel, #F4F1EA) !important;
+    box-shadow: 2px 2px 0px var(--border-strong, #141411) !important;
+    cursor: pointer !important;
+    touch-action: manipulation !important;
+    transition: all 0.15s ease !important;
+  }
+
+  .map-style-option:active {
+    transform: scale(0.96) !important;
+  }
+
+  .map-style-option.active {
+    border-color: #E84E1B !important;
+    box-shadow: 2px 2px 0px #E84E1B !important;
+    background: #ECE6D8 !important;
+  }
+
+  body.dark-mode .map-style-option.active {
+    background: #252522 !important;
+  }
+
+  .map-style-preview {
+    width: 100% !important;
+    height: 48px !important;
+    border: 1px solid var(--border-strong, #141411) !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+
+  .preview-base {
+    position: absolute;
+    inset: 0;
+  }
+  .preview-base-light { background: #F5F4F0; }
+  .preview-base-dark { background: #141411; }
+  .preview-base-hybrid { background: #1a2f26; }
+
+  .preview-line {
+    position: absolute;
+    background: #141411;
+    opacity: 0.35;
+  }
+  .preview-dark .preview-line { background: #555; opacity: 0.6; }
+  .preview-hybrid .preview-line { background: #EFBC02; opacity: 0.6; }
+
+  .preview-line-1 {
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    transform: translateY(-50%) rotate(15deg);
+  }
+  .preview-line-2 {
+    left: 45%;
+    top: 0;
+    height: 100%;
+    width: 2px;
+    transform: translateX(-50%) rotate(-10deg);
+  }
+
+  .preview-dot {
+    position: absolute;
+    top: 38%;
+    left: 60%;
+    width: 6px;
+    height: 6px;
+    background: #E84E1B;
+    border: 1px solid #141411;
+  }
+
+  .map-style-label {
+    font-family: 'League Spartan', sans-serif !important;
+    font-weight: 800 !important;
+    font-size: 11px !important;
+    letter-spacing: 0.05em !important;
+    color: var(--fg, #141411) !important;
+    text-transform: uppercase !important;
+  }
+
   body.dark-mode .sheet,
   body.dark-mode .filter-panel,
   body.dark-mode .search-panel,

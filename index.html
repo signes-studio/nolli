@@ -97,6 +97,23 @@
     </button>
   </aside>
 
+  <!-- Buscador flotante y expansivo (Móvil sup-der) -->
+  <div id="mobile-search-widget" class="mobile-search-widget collapsed" aria-label="Buscador rápido móvil">
+    <button type="button" id="btn-mobile-search-toggle" class="mobile-search-trigger" aria-label="Abrir buscador rápido" title="Buscar obras">
+      <i data-lucide="search" width="18" height="18"></i>
+    </button>
+    <div class="mobile-search-bar">
+      <i data-lucide="search" width="16" height="16" class="mobile-search-icon"></i>
+      <input type="search" id="mobile-search-input" class="mobile-search-input" placeholder="BUSCAR OBRA, ARQUITECTO O CIUDAD..." autocomplete="off" aria-label="Buscar edificios">
+      <button type="button" id="btn-mobile-search-close" class="mobile-search-close" aria-label="Cerrar búsqueda">
+        <i data-lucide="x" width="16" height="16"></i>
+      </button>
+    </div>
+    <div id="mobile-search-dropdown" class="mobile-search-dropdown" hidden>
+      <div id="mobile-search-results" class="mobile-search-results"></div>
+    </div>
+  </div>
+
   <!-- Menú flotante rápido para administrador en móvil -->
   <div id="mobile-admin-quickmenu" class="mobile-admin-quickmenu" hidden aria-label="Menú rápido de administración">
     <div class="mobile-admin-quickmenu-head">
@@ -276,13 +293,37 @@
 
   <section id="map-style-panel" class="map-style-panel" aria-label="Tipo de mapa">
     <div class="filter-head">
-      <span style="color:var(--fg-dim)">[ TIPO DE MAPA ]</span>
-      <i data-lucide="x" id="btn-map-style-close" width="14" height="14" style="cursor:pointer; color:var(--fg-dim)" role="button" aria-label="Cerrar tipos de mapa"></i>
+      <span style="color:var(--fg-dim)">[ TIPO DE MAPA // CAPAS ]</span>
+      <i data-lucide="x" id="btn-map-style-close" width="16" height="16" style="cursor:pointer; color:var(--fg-dim)" role="button" aria-label="Cerrar tipos de mapa"></i>
     </div>
     <div class="map-style-options">
-      <button type="button" class="map-style-option active" data-map-style="abstract">CLARO</button>
-      <button type="button" class="map-style-option" data-map-style="dark">OSCURO</button>
-      <button type="button" class="map-style-option" data-map-style="hybrid">HÍBRIDO</button>
+      <button type="button" class="map-style-option active" data-map-style="abstract" aria-label="Mapa estilo claro">
+        <div class="map-style-preview preview-abstract" aria-hidden="true">
+          <span class="preview-base preview-base-light"></span>
+          <span class="preview-line preview-line-1"></span>
+          <span class="preview-line preview-line-2"></span>
+          <span class="preview-dot"></span>
+        </div>
+        <span class="map-style-label">CLARO</span>
+      </button>
+      <button type="button" class="map-style-option" data-map-style="dark" aria-label="Mapa estilo oscuro">
+        <div class="map-style-preview preview-dark" aria-hidden="true">
+          <span class="preview-base preview-base-dark"></span>
+          <span class="preview-line preview-line-1"></span>
+          <span class="preview-line preview-line-2"></span>
+          <span class="preview-dot"></span>
+        </div>
+        <span class="map-style-label">OSCURO</span>
+      </button>
+      <button type="button" class="map-style-option" data-map-style="hybrid" aria-label="Mapa estilo híbrido / satélite">
+        <div class="map-style-preview preview-hybrid" aria-hidden="true">
+          <span class="preview-base preview-base-hybrid"></span>
+          <span class="preview-line preview-line-1"></span>
+          <span class="preview-line preview-line-2"></span>
+          <span class="preview-dot"></span>
+        </div>
+        <span class="map-style-label">HÍBRIDO</span>
+      </button>
     </div>
   </section>
 

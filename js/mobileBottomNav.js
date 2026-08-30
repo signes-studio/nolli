@@ -1,7 +1,8 @@
 /* =========================================================================
-   MOBILEBOTTOMNAV.JS — Controlador de Navegación, Identidad y Gestos Táctiles (<= 768px)
+   MOBILEBOTTOMNAV.JS — Controlador de Navegación, Identidad, Búsqueda y Gestos (<= 768px)
    - Barra de Navegación Inferior (Bottom Navigation)
    - Widget Flotante de Identidad y Sesión (Esquina Superior Izquierda)
+   - Buscador Flotante y Expansivo con dropdown anti-teclado (Esquina Superior Derecha)
    - Gesto Swipe-Down para cierre suave de Bottom Sheet
    - Aceleración por hardware a 60 FPS estables
    ========================================================================= */
@@ -141,6 +142,7 @@ export function initMobileBottomNav() {
 
   // Inicializar sub-componentes táctiles
   initMobileIdentityWidget();
+  initMobileSearchWidget();
   initSheetTouchGestures();
 
   if (window.lucide) window.lucide.createIcons();
@@ -261,6 +263,115 @@ function initMobileIdentityWidget() {
   });
 
   updateIdentityUI();
+}
+
+/* =========================================================================
+   BUSCADOR FLOTANTE Y EXPANSIVO (SUPERIOR DERECHO)
+   ========================================================================= */
+function initMobileSearchWidget() {
+  const widget = document.getElementById('mobile-search-widget');
+  const btnToggle = document.getElementById('btn-mobile-search-toggle');
+  const btnClose = document.getElementById('btn-mobile-search-close');
+  const input = document.getElementById('mobile-search-input');
+  const dropdown = document.getElementById('mobile-search-dropdown');
+  const resultsContainer = document.getElementById('mobile-search-results');
+
+  if (!widget || !btnToggle || !input) return;
+
+  function openSearch() {
+    widget.classList.remove('collapsed');
+    widget.classList.add('expanded');
+    setTimeout(() => input.focus(), 100);
+  }
+
+  function closeSearch() {
+    widget.classList.remove('expanded');
+    widget.classList.add('collapsed');
+    input.value = '';
+    if (dropdown) dropdown.hidden = true;
+    if (resultsContainer) resultsContainer.innerHTML = '';
+  }
+
+  btnToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    openSearch();
+  });
+
+  if (btnClose) {
+    btnClose.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeSearch();
+    });
+  }
+
+  function normalize(str) {
+    return (str || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
+  }
+
+  input.addEventListener('input', () => {
+    const q = normalize(input.value.trim());
+    if (!q || q.length < 2) {
+      if (dropdown) dropdown.hidden = true;
+      if (resultsContainer) resultsContainer.innerHTML = '';
+      return;
+    }
+
+    const matches = (state.OBRAS || [])
+      .filter((obra) => {
+        const name = normalize(obra.nombre_obra);
+        const arq = normalize(Array.isArray(obra.arquitectos) ? obra.arquitectos.join(' ') : obra.arquitecto);
+        const city = normalize(obra.ciudad);
+        return name.includes(q) || arq.includes(q) || city.includes(q);
+      })
+      .slice(0, 8);
+
+    if (!matches.length) {
+      resultsContainer.innerHTML = `
+        <div style="padding: 14px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--fg-dim); text-align: center;">
+          [ SIN RESULTADOS PARA ESTA BÚSQUEDA ]
+        </div>
+      `;
+      dropdown.hidden = false;
+      return;
+    }
+
+    resultsContainer.innerHTML = matches.map((obra) => `
+      <button type="button" class="mobile-search-item" data-obra-id="${obra.id || obra.featureId}">
+        <div>
+          <div class="mobile-search-item-title">${obra.nombre_obra}</div>
+          <div class="mobile-search-item-sub">${obra.arquitecto || 'Arquitecto no indicado'}${obra.año_construccion ? ` · ${obra.año_construccion}` : ''}</div>
+        </div>
+        <div class="mobile-search-item-meta">${obra.ciudad || ''}</div>
+      </button>
+    `).join('');
+
+    dropdown.hidden = false;
+  });
+
+  resultsContainer?.addEventListener('click', (e) => {
+    const item = e.target.closest('.mobile-search-item');
+    if (!item) return;
+    const obraId = item.dataset.obraId;
+    const obra = (state.OBRAS || []).find((o) => String(o.id) === String(obraId) || String(o.featureId) === String(obraId));
+    if (obra) {
+      closeSearch();
+      if (state.map) {
+        state.map.flyTo({ center: obra.coordenadas, zoom: 16 });
+      }
+      import('./sheetUI.js').then(({ abrirFicha }) => {
+        abrirFicha(obra, obra.coordenadas, obra.featureId);
+      });
+    }
+  });
+
+  document.addEventListener('click', (e) => {
+    if (widget.classList.contains('expanded') && !widget.contains(e.target)) {
+      closeSearch();
+    }
+  });
 }
 
 /* =========================================================================
