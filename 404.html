@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>nolli. | Redirigiendo...</title>
+  <script>
+    // =========================================================================
+    // GitHub Pages Single Page App (SPA) Router Redirector
+    // Redirige rutas profundas como /obra/CTAV2386 a index.html preservando la URL limpia
+    // =========================================================================
+    (function(l) {
+      // 0 para dominio personalizado (nollimap.app), 1 si se alojara en subdirectorio de GitHub Pages (ej. usuario.github.io/nolli)
+      var pathSegmentsToKeep = 0;
+      var repoOffset = l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/');
+      var redirectPath = l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~');
+      var queryString = l.search ? '&q=' + l.search.slice(1).replace(/&/g, '~and~') : '';
+      
+      l.replace(
+        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+        repoOffset + '/?p=/' + redirectPath + queryString + l.hash
+      );
+    }(window.location));
+  </script>
+</head>
+<body style="background:#F4F1EA; color:#111111; font-family:sans-serif; display:flex; align-items:center; justify-content:center; height:100vh; margin:0;">
+  <p style="font-weight:bold; font-size:12px; letter-spacing:0.08em;">[ CARGANDO ATLAS NOLLI... ]</p>
+</body>
+</html>
+

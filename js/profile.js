@@ -487,7 +487,7 @@ function renderBuildingsFeed(buildings, tabKey) {
 
     return `
       <div class="profile-feed-row">
-        <a href="./?obra=${encodeURIComponent(obra.id || obra.featureId)}" class="profile-feed-item" aria-label="Ver ${escapeHtml(title)} en el mapa">
+        <a href="/obra/${encodeURIComponent(obra.id || obra.featureId)}" class="profile-feed-item" aria-label="Ver ${escapeHtml(title)} en el mapa">
           ${photo ? `
             <img src="${escapeHtml(photo)}" alt="${escapeHtml(title)}" class="profile-feed-thumb" loading="lazy" onerror="this.outerHTML='<div class=\\'profile-feed-thumb-fallback\\'>🏛️</div>'">
           ` : `
@@ -555,7 +555,7 @@ function renderCollectionsFeed() {
 
       return `
         <div class="profile-collection-work-row">
-          <a href="./?obra=${encodeURIComponent(obra.id)}" class="profile-collection-work-link">
+          <a href="/obra/${encodeURIComponent(obra.id)}" class="profile-collection-work-link">
             ${photo ? `
               <img src="${escapeHtml(photo)}" alt="${escapeHtml(title)}" class="profile-collection-work-thumb" loading="lazy" onerror="this.style.display='none'">
             ` : ''}

@@ -82,11 +82,20 @@ function programarCargaEdificiosVisibles() {
   publicLoadTimer = setTimeout(cargarEdificiosVisibles, 180);
 }
 
-async function verificarParametroObraURL() {
-  if (urlObraChecked) return;
-  urlObraChecked = true;
+function extraerObraIdDeURL() {
+  const match = window.location.pathname.match(/\/obra\/([^\/\?#]+)/i);
+  if (match && match[1]) {
+    return decodeURIComponent(match[1]);
+  }
   const params = new URLSearchParams(window.location.search);
-  const obraId = params.get('obra');
+  const paramId = params.get('obra');
+  if (paramId) {
+    return decodeURIComponent(paramId);
+  }
+  return null;
+}
+
+async function cargarYMostrarObra(obraId) {
   if (!obraId) return;
 
   let obra = state.OBRAS.find((item) => String(item.id) === String(obraId) || String(item.featureId) === String(obraId));
@@ -106,9 +115,27 @@ async function verificarParametroObraURL() {
 
   if (obra && state.map) {
     state.map.flyTo({ center: obra.coordenadas, zoom: Math.max(state.map.getZoom(), 15) });
-    abrirFicha(obra, obra.coordenadas, obra.featureId);
+    abrirFicha(obra, obra.coordenadas, obra.featureId || obra.id);
   }
 }
+
+async function verificarParametroObraURL() {
+  if (urlObraChecked) return;
+  urlObraChecked = true;
+  const obraId = extraerObraIdDeURL();
+  if (obraId) {
+    await cargarYMostrarObra(obraId);
+  }
+}
+
+window.addEventListener('popstate', (e) => {
+  const obraId = extraerObraIdDeURL();
+  if (obraId) {
+    cargarYMostrarObra(obraId);
+  } else {
+    import('./sheetUI.js').then(({ cerrarFicha }) => cerrarFicha());
+  }
+});
 
 async function inicializarRadar() {
   try {

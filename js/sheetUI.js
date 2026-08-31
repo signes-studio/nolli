@@ -117,6 +117,10 @@ export function cerrarFicha() {
   if (selected) selected.selected = false;
   state.selectedFeatureId = null;
   actualizarFuenteMapa();
+
+  if (window.location.pathname.startsWith('/obra/')) {
+    window.history.pushState(null, '', '/');
+  }
 }
 
 const CATEGORY_COLORS = {
@@ -141,6 +145,13 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
   const selected = getSelectedBuilding() || building;
   if (selected) selected.selected = true;
   actualizarFuenteMapa();
+
+  // Actualizar URL limpia /obra/[ID] usando History API sin recargar
+  const cleanId = String(building.id || targetId);
+  const targetPath = `/obra/${encodeURIComponent(cleanId)}`;
+  if (!window.location.pathname.startsWith('/obra/') || decodeURIComponent(window.location.pathname.replace(/^\/obra\//, '')) !== cleanId) {
+    window.history.pushState({ obraId: cleanId }, '', targetPath);
+  }
 
   const coords = coordinates || selected.coordenadas || building.coordenadas || [0, 0];
 
@@ -605,9 +616,8 @@ function handleShareAction(choice) {
   if (!building) return;
 
   const origin = window.location.origin;
-  const rawPath = window.location.pathname.replace(/\/index\.html$/, '/') || '/';
-  const path = rawPath.endsWith('/') ? rawPath : `${rawPath}/`;
-  const shareUrl = `${origin}${path}?obra=${encodeURIComponent(building.id || building.featureId)}`;
+  const shareId = building.id || building.featureId;
+  const shareUrl = `${origin}/obra/${encodeURIComponent(shareId)}`;
   const [lng, lat] = building.coordenadas || [0, 0];
   const arq = building.arquitectos ? (Array.isArray(building.arquitectos) ? building.arquitectos.join(', ') : building.arquitectos) : (building.arquitecto || '');
 
