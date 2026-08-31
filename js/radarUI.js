@@ -2,56 +2,255 @@
 import { state, CATEGORY_COLORS, escapeHtml } from './state.js';
 import { abrirFicha } from './sheetUI.js';
 import { calcularDistanciaMetros } from './exploreUI.js';
+import { actualizarFuenteMapa } from './mapData.js';
 
 let radarRadius = 1000; // 1000m por defecto
+const CURATED_PROXIMITY_METERS = 15000; // radio para considerar una colección "cercana" al usuario
 
 export const CURATED_ROUTES = [
   {
-    id: 'route-brutalismo',
-    title: 'BRUTALISMO EN EL CENTRO',
-    subtitle: 'Hormigón visto, geometrías masivas y honestidad estructural',
-    tag: 'CURADA POR NOLLI',
+    id: 'route-docomomo',
+    title: 'DOCOMOMO IBÉRICO',
+    subtitle: 'Registro y documentación de la arquitectura del Movimiento Moderno',
+    tag: 'REGISTRO OFICIAL',
     color: '#E84E1B',
-    stops: 6,
-    keywords: ['brutalismo', 'hormigón', 'estructura', 'industrial']
+    stops: 'CATÁLOGO',
+    addedByFilter: 'DOCOMOMO'
   },
   {
-    id: 'route-siza',
-    title: 'RUTA ÁLVARO SIZA',
-    subtitle: 'Luz atlántica, volúmenes puros y diálogo sensible con el lugar',
-    tag: 'MONOGRÁFICA',
-    color: '#0d682f',
-    stops: 4,
-    architectFilter: 'Álvaro Siza'
+    id: 'route-gatepac',
+    title: 'GATEPAC · RACIONALISMO ESPAÑOL',
+    subtitle: 'El núcleo del Movimiento Moderno en España, 1927-1937',
+    tag: 'MOVIMIENTO MODERNO',
+    color: '#C0392B',
+    stops: '~23 OBRAS',
+    yearRange: [1927, 1937],
+    architectsFilter: ['Sert', 'Torres Clavé', 'Subirana', 'Illescas', 'García Mercadal', 'Sánchez Arcas', 'Lacasa', 'Fernández-Shaw', 'Bergamín']
   },
   {
-    id: 'route-vanguardias',
-    title: 'VANGUARDIAS DEL SIGLO XX',
-    subtitle: 'Racionalismo, espíritu Bauhaus y los orígenes de la modernidad',
-    tag: 'HISTÓRICA',
-    color: '#EFBC02',
-    stops: 8,
-    decadeFilter: '1930'
+    id: 'route-racionalismo-valenciano',
+    title: 'RACIONALISMO VALENCIANO',
+    subtitle: 'Arquitectura moderna en la Comunitat Valenciana, 1925-1936',
+    tag: 'MOVIMIENTO MODERNO',
+    color: '#D35400',
+    stops: '~76 OBRAS',
+    yearRange: [1925, 1936],
+    bboxFilter: { latMin: 37.85, latMax: 40.75, lonMin: -1.55, lonMax: 0.75 }
   },
   {
-    id: 'route-racionalismo',
-    title: 'RACIONALISMO MEDITERRÁNEO',
-    subtitle: 'Blancura, sombra, pérgolas y adaptación climática vernácula',
-    tag: 'TIPOLÓGICA',
-    color: '#0284c7',
-    stops: 5,
-    keywords: ['mediterráneo', 'racionalismo', 'vivienda']
+    id: 'route-modernisme-catala',
+    title: 'MODERNISME CATALÀ',
+    subtitle: 'Gaudí, Domènech i Montaner, Puig i Cadafalch y el modernismo en Cataluña, 1888-1911',
+    tag: 'MODERNISMO',
+    color: '#8E44AD',
+    stops: '~118 OBRAS',
+    yearRange: [1888, 1911],
+    bboxFilter: { latMin: 40.5, latMax: 42.9, lonMin: 0.15, lonMax: 3.35 }
   },
   {
-    id: 'route-industrial',
-    title: 'ARQUITECTURA INDUSTRIAL',
-    subtitle: 'Naves históricas, tinglados portuarios y patrimonio recuperado',
-    tag: 'PATRIMONIO',
-    color: '#7c3aed',
-    stops: 7,
-    categoryFilter: 'industrial'
+    id: 'route-escuela-madrid',
+    title: 'ESCUELA DE MADRID',
+    subtitle: 'Organicismo y modernidad de posguerra: Sáenz de Oiza, Corrales y Molezún, Fisac, Sota, Higueras',
+    tag: 'POSGUERRA',
+    color: '#2C3E50',
+    stops: '~150 OBRAS',
+    yearRange: [1949, 1975],
+    architectsFilter: ['Sáenz de Oiza', 'Corrales', 'Molezún', 'Fisac', 'Sota', 'Aburto', 'Higueras', 'Cano Lasso']
+  },
+  {
+    id: 'route-grup-r',
+    title: 'GRUP R · ESCOLA DE BARCELONA',
+    subtitle: 'Coderch, Bohigas, Martorell y la renovación moderna catalana de posguerra, 1949-1970',
+    tag: 'POSGUERRA',
+    color: '#16A085',
+    stops: '~74 OBRAS',
+    yearRange: [1949, 1970],
+    architectsFilter: ['Coderch', 'Moragas', 'Sostres', 'Bohigas', 'Martorell', 'Mitjans', 'Ribas Piera', 'Pratmarsó']
+  },
+  {
+    id: 'route-regionalismo-vasco',
+    title: 'REGIONALISMO VASCO',
+    subtitle: 'Historicismo y arquitectura regional en el País Vasco, 1890-1936',
+    tag: 'HISTORICISMO',
+    color: '#7F8C8D',
+    stops: '~68 OBRAS',
+    yearRange: [1890, 1936],
+    bboxFilter: { latMin: 42.85, latMax: 43.45, lonMin: -3.5, lonMax: -1.7 }
+  },
+  {
+    id: 'route-arquitectura-canaria',
+    title: 'ARQUITECTURA CANARIA',
+    subtitle: 'Néstor y Miguel Martín-Fernández de la Torre y el regionalismo atlántico, 1900-1950',
+    tag: 'REGIONALISMO',
+    color: '#F39C12',
+    stops: '~44 OBRAS',
+    yearRange: [1900, 1950],
+    bboxFilter: { latMin: 27.6, latMax: 29.5, lonMin: -18.2, lonMax: -13.4 }
+  },
+  {
+    id: 'route-contemporanea-espana',
+    title: 'ARQUITECTURA CONTEMPORÁNEA ESPAÑOLA',
+    subtitle: 'Moneo, RCR, Nieto Sobejano, Mansilla+Tuñón, Campo Baeza y la escena actual, 1985-2025',
+    tag: 'CONTEMPORÁNEA',
+    color: '#E84E1B',
+    stops: '~150 OBRAS',
+    yearRange: [1985, 2025],
+    architectsFilter: ['Moneo', 'Nieto', 'Sobejano', 'Mansilla', 'Tuñón', 'RCR', 'Souto de Moura', 'Siza', 'Campo Baeza', 'Ábalos', 'Herreros']
+  },
+  {
+    id: 'route-escola-porto',
+    title: 'ESCOLA DO PORTO',
+    subtitle: 'Siza, Souto de Moura, Távora y la modernidad silenciosa portuguesa',
+    tag: 'ESCUELA PORTUGUESA',
+    color: '#2980B9',
+    stops: '~66 OBRAS',
+    yearRange: [1955, 2015],
+    architectsFilter: ['Siza', 'Souto de Moura', 'Távora', 'Soutinho']
+  },
+  {
+    id: 'route-estado-novo-portugal',
+    title: 'ARQUITECTURA DO ESTADO NOVO',
+    subtitle: 'Monumentalidad y regionalismo crítico bajo el régimen portugués, 1930-1955',
+    tag: 'HISTORICISMO',
+    color: '#7F8C8D',
+    stops: '~25 OBRAS',
+    yearRange: [1930, 1955],
+    architectsFilter: ['Cottinelli Telmo', 'Cristino da Silva', 'Pardal Monteiro', 'Keil do Amaral']
+  },
+  {
+    id: 'route-mouvement-moderne-francais',
+    title: 'MOUVEMENT MODERNE FRANÇAIS',
+    subtitle: 'Le Corbusier, Perret, Mallet-Stevens y los orígenes del racionalismo francés',
+    tag: 'MOVIMIENTO MODERNO',
+    color: '#C0392B',
+    stops: '~30 OBRAS',
+    architectsFilter: ['Le Corbusier', 'Perret', 'Mallet-Stevens', 'Lurçat', 'Chareau']
+  },
+  {
+    id: 'route-french-touch',
+    title: 'FRENCH TOUCH CONTEMPORÁNEA',
+    subtitle: 'Lacaton & Vassal, Perrault, Nouvel y la arquitectura francesa reciente, 1995-2025',
+    tag: 'CONTEMPORÁNEA',
+    color: '#16A085',
+    stops: '~62 OBRAS',
+    yearRange: [1995, 2025],
+    architectsFilter: ['Lacaton & Vassal', 'Perrault', 'Nouvel', 'Ricciotti', 'Bruther', 'LAN']
   }
 ];
+
+export function matchWorksForRoute(route) {
+  if (route.addedByFilter) {
+    return state.OBRAS.filter((o) => {
+      const addedBy = String(o.añadido_por || o.anadido_por || '').toUpperCase();
+      return addedBy.includes(route.addedByFilter.toUpperCase());
+    });
+  }
+  if (route.architectFilter) {
+    return state.OBRAS.filter((o) => (o.arquitectos || '').toLowerCase().includes(route.architectFilter.toLowerCase()));
+  }
+  if (route.decadeFilter) {
+    return state.OBRAS.filter((o) => {
+      const y = Number(o.año_construccion);
+      const dec = Number(route.decadeFilter);
+      return y >= dec && y < dec + 10;
+    });
+  }
+  if (route.categoryFilter) {
+    return state.OBRAS.filter((o) => String(o.categoria || '').toLowerCase() === route.categoryFilter.toLowerCase());
+  }
+  if (route.keywords) {
+    return state.OBRAS.filter((o) => {
+      const text = `${o.nombre_obra} ${o.arquitectos} ${o.categoria}`.toLowerCase();
+      return route.keywords.some((kw) => text.includes(kw));
+    });
+  }
+  if (route.yearRange || route.architectsFilter || route.bboxFilter) {
+    // Filtros "compuestos" para colecciones curatoriales (movimientos): se combinan con AND.
+    // Pensados para criterios de historiador de arquitectura: periodo + geografía y/o lista de autores.
+    return state.OBRAS.filter((o) => {
+      if (route.yearRange) {
+        const y = Number(o.año_construccion);
+        if (!Number.isFinite(y) || y < route.yearRange[0] || y > route.yearRange[1]) return false;
+      }
+      if (route.bboxFilter && o.coordenadas && o.coordenadas.length === 2) {
+        const [lon, lat] = o.coordenadas;
+        const { latMin, latMax, lonMin, lonMax } = route.bboxFilter;
+        if (lat < latMin || lat > latMax || lon < lonMin || lon > lonMax) return false;
+      } else if (route.bboxFilter) {
+        return false; // sin coordenadas no se puede verificar el bbox
+      }
+      if (route.architectsFilter) {
+        const arqText = String(o.arquitectos || '').toLowerCase();
+        const match = route.architectsFilter.some((name) => arqText.includes(name.toLowerCase()));
+        if (!match) return false;
+      }
+      return true;
+    });
+  }
+  return [];
+}
+
+// Para cada ruta, calcula cuántas obras coincidentes hay y la distancia a la más cercana
+// respecto al centro de referencia actual (usuario o centro de mapa).
+export function getNearbyRoutes(maxDistanceMeters = CURATED_PROXIMITY_METERS) {
+  const [refLon, refLat] = getRadarCenter();
+  const results = [];
+
+  for (const route of CURATED_ROUTES) {
+    const works = matchWorksForRoute(route);
+    let nearestDist = Infinity;
+    for (const obra of works) {
+      if (!obra.coordenadas || obra.coordenadas.length !== 2) continue;
+      const dist = calcularDistanciaMetros(refLon, refLat, obra.coordenadas[0], obra.coordenadas[1]);
+      if (dist < nearestDist) nearestDist = dist;
+    }
+    if (nearestDist <= maxDistanceMeters) {
+      results.push({ route, count: works.length, nearestDist });
+    }
+  }
+
+  results.sort((a, b) => a.nearestDist - b.nearestDist);
+  return results;
+}
+
+export function renderCuratedCarousel() {
+  const container = document.getElementById('radar-curated-carousel');
+  if (!container) return;
+
+  const nearby = getNearbyRoutes();
+
+  if (!nearby.length) {
+    container.innerHTML = `
+      <div class="radar-empty-state">
+        <i data-lucide="compass" width="24" height="24" style="color:var(--accent, #E84E1B); margin-bottom:8px;"></i>
+        <div class="font-display text-sm font-bold">[ NINGUNA COLECCIÓN CERCA DE TU POSICIÓN ]</div>
+        <p class="text-xs text-dim">Desplázate por el mapa para descubrir selecciones curatoriales de otras zonas.</p>
+      </div>
+    `;
+    if (window.lucide) window.lucide.createIcons();
+    return;
+  }
+
+  container.innerHTML = nearby.map(({ route, count, nearestDist }) => {
+    const distText = formatearDistanciaRadar(nearestDist);
+    return `
+      <article class="radar-curated-card" data-route-id="${escapeHtml(route.id)}" role="button" tabindex="0" aria-label="${escapeHtml(route.title)}">
+        <div class="radar-curated-header" style="border-color:${route.color};">
+          <span class="radar-curated-tag" style="color:${route.color};">[ ${escapeHtml(route.tag || 'RUTA')} ]</span>
+          <span class="radar-vermillon-badge">[ OBRA MÁS CERCANA: ${distText} ]</span>
+        </div>
+        <h4 class="radar-curated-title">${escapeHtml(route.title)}</h4>
+        <p class="radar-curated-subtitle">${escapeHtml(route.subtitle || '')}</p>
+        <div class="radar-curated-footer">
+          <span class="radar-curated-stops">${escapeHtml(route.stops || `${count} OBRAS`)}</span>
+        </div>
+      </article>
+    `;
+  }).join('');
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
 
 function getRadarCenter() {
   if (state.userLocation && state.userLocation.length === 2) {
@@ -75,27 +274,9 @@ export function formatearDistanciaRadar(metros) {
 export function renderRadarUI() {
   const container = document.getElementById('radar-detected-list');
   const countSpan = document.getElementById('radar-detected-count');
-  const curatedContainer = document.getElementById('radar-curated-carousel');
   if (!container) return;
 
-  // 1. Render Carrusel de Rutas Curatoriales
-  if (curatedContainer) {
-    curatedContainer.innerHTML = CURATED_ROUTES.map((route) => `
-      <div class="radar-route-card" data-curated-id="${escapeHtml(route.id)}" role="button" tabindex="0" aria-label="Ruta ${escapeHtml(route.title)}">
-        <div class="radar-route-topline">
-          <span class="radar-route-tag" style="color:${route.color}; border-color:${route.color};">[ ${escapeHtml(route.tag)} ]</span>
-          <span class="radar-route-stops">[ ${route.stops} PARADAS ]</span>
-        </div>
-        <h4 class="radar-route-title">${escapeHtml(route.title)}</h4>
-        <p class="radar-route-desc">${escapeHtml(route.subtitle)}</p>
-        <button type="button" class="radar-route-btn" data-curated-id="${escapeHtml(route.id)}">
-          [ INICIAR ITINERARIO ]
-        </button>
-      </div>
-    `).join('');
-  }
-
-  // 2. Render Feed de Proximidad Dinámica
+  // Feed exclusivo de Proximidad Dinámica GPS
   const [refLon, refLat] = getRadarCenter();
   const works = (state.OBRAS || []).map((obra) => {
     let dist = Infinity;
@@ -174,30 +355,47 @@ export function activarRutaEnMapa(routeId) {
   const backdrop = document.getElementById('panel-backdrop');
   if (backdrop) backdrop.classList.remove('active');
 
-  let matchingWorks = [];
+  let matchingWorks = matchWorksForRoute(route);
 
-  if (route.architectFilter) {
-    matchingWorks = state.OBRAS.filter((o) => (o.arquitectos || '').toLowerCase().includes(route.architectFilter.toLowerCase()));
-  } else if (route.decadeFilter) {
-    matchingWorks = state.OBRAS.filter((o) => {
-      const y = Number(o.año_construccion);
-      const dec = Number(route.decadeFilter);
-      return y >= dec && y < dec + 10;
-    });
-  } else if (route.categoryFilter) {
-    matchingWorks = state.OBRAS.filter((o) => String(o.categoria || '').toLowerCase() === route.categoryFilter.toLowerCase());
-  } else if (route.keywords) {
-    matchingWorks = state.OBRAS.filter((o) => {
-      const text = `${o.nombre_obra} ${o.arquitectos} ${o.categoria}`.toLowerCase();
-      return route.keywords.some((kw) => text.includes(kw));
-    });
+  if (matchingWorks.length === 0) {
+    matchingWorks = (state.OBRAS || []).slice(0, route.stops || 6);
   }
 
+  // 1. Establecer estado de aislamiento del itinerario
+  state.activeItinerary = {
+    id: route.id,
+    title: route.title,
+    workIds: new Set(matchingWorks.map((w) => String(w.id))),
+  };
+
+  // 2. Renderizar exclusivamente las obras del itinerario en el mapa
+  actualizarFuenteMapa();
+
+  // 3. Mostrar etiqueta flotante de filtro en la parte superior central del mapa
+  const itineraryBadge = document.getElementById('itinerary-filter-badge');
+  const titleEl = document.getElementById('itinerary-badge-title');
+  const countEl = document.getElementById('itinerary-badge-count');
+
+  if (itineraryBadge && titleEl) {
+    titleEl.textContent = `RUTA: ${route.title.toUpperCase()}`;
+    if (countEl) countEl.textContent = `${matchingWorks.length} OBRAS`;
+    itineraryBadge.classList.remove('hidden');
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  // 4. Transicionar a la pestaña Mapa en la navegación inferior
+  const mapNavBtn = document.getElementById('mobile-nav-map');
+  if (mapNavBtn) {
+    document.querySelectorAll('.mobile-nav-btn').forEach((b) => b.classList.remove('active'));
+    mapNavBtn.classList.add('active');
+  }
+
+  // 5. Encuadre geográfico fluido en Mapbox
   if (matchingWorks.length > 0) {
     const validCoords = matchingWorks.filter((w) => w.coordenadas && w.coordenadas.length === 2).map((w) => w.coordenadas);
     if (validCoords.length > 0) {
       if (validCoords.length === 1) {
-        state.map.flyTo({ center: validCoords[0], zoom: 16 });
+        state.map.flyTo({ center: validCoords[0], zoom: 16, duration: 800 });
       } else {
         const bounds = validCoords.reduce((b, coord) => b.extend(coord), new mapboxgl.LngLatBounds(validCoords[0], validCoords[0]));
         state.map.fitBounds(bounds, { padding: 80, maxZoom: 16, duration: 1000 });
@@ -206,12 +404,22 @@ export function activarRutaEnMapa(routeId) {
   }
 }
 
+export function restaurarMapaGeneral() {
+  state.activeItinerary = null;
+  const itineraryBadge = document.getElementById('itinerary-filter-badge');
+  if (itineraryBadge) {
+    itineraryBadge.classList.add('hidden');
+  }
+  actualizarFuenteMapa();
+}
+
 export function initRadarUI() {
   const panel = document.getElementById('radar-panel');
   const btnClose = document.getElementById('btn-radar-close');
   const radiusPills = document.querySelectorAll('.radar-radius-pill');
   const detectedList = document.getElementById('radar-detected-list');
   const curatedCarousel = document.getElementById('radar-curated-carousel');
+  const btnCloseItinerary = document.getElementById('btn-close-itinerary');
 
   if (btnClose && panel) {
     btnClose.addEventListener('click', () => {
@@ -219,6 +427,13 @@ export function initRadarUI() {
       const backdrop = document.getElementById('panel-backdrop');
       if (backdrop) backdrop.classList.remove('active');
       document.dispatchEvent(new CustomEvent('radar:panel-closed'));
+    });
+  }
+
+  if (btnCloseItinerary) {
+    btnCloseItinerary.addEventListener('click', (e) => {
+      e.stopPropagation();
+      restaurarMapaGeneral();
     });
   }
 
@@ -259,15 +474,12 @@ export function initRadarUI() {
     });
   }
 
-  // Tap en Tarjeta de Ruta Curatorial -> Activa itinerario en mapa
+  // Tap en tarjeta curatorial -> activa esa ruta/colección en el mapa
   if (curatedCarousel) {
     curatedCarousel.addEventListener('click', (e) => {
-      const btn = e.target.closest('.radar-route-btn') || e.target.closest('.radar-route-card');
-      if (!btn) return;
-      const routeId = btn.dataset.curatedId;
-      if (routeId) {
-        activarRutaEnMapa(routeId);
-      }
+      const card = e.target.closest('.radar-curated-card');
+      if (!card) return;
+      activarRutaEnMapa(card.dataset.routeId);
     });
   }
 
@@ -278,6 +490,7 @@ export function initRadarUI() {
         state.userLocation = [pos.coords.longitude, pos.coords.latitude];
         if (panel && panel.classList.contains('open')) {
           renderRadarUI();
+          renderCuratedCarousel();
         }
       },
       (err) => console.warn('Geolocalización en background:', err.message),
@@ -288,6 +501,19 @@ export function initRadarUI() {
   document.addEventListener('radar:data-ready', () => {
     if (panel && panel.classList.contains('open')) {
       renderRadarUI();
+      renderCuratedCarousel();
     }
   });
+
+  // Si el panel se abre vía otra parte de la app (toggle de clase 'open'),
+  // detectamos el cambio para refrescar el carrusel con la posición actual del mapa/usuario.
+  if (panel) {
+    const panelObserver = new MutationObserver(() => {
+      if (panel.classList.contains('open')) {
+        renderRadarUI();
+        renderCuratedCarousel();
+      }
+    });
+    panelObserver.observe(panel, { attributes: true, attributeFilter: ['class'] });
+  }
 }

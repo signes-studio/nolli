@@ -40,7 +40,17 @@ html, body {
   overflow: hidden;
 }
 
-main { position: fixed; inset: 0; overflow: hidden; }
+body.profile-body,
+html:has(body.profile-body) {
+  height: auto !important;
+  min-height: 100% !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  overscroll-behavior-y: auto !important;
+}
+
+main:not(.profile-main) { position: fixed; inset: 0; overflow: hidden; }
+main.profile-main { position: static !important; inset: auto !important; overflow: visible !important; height: auto !important; }
 
 body, input, button, select, textarea {
   background: var(--bg);

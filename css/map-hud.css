@@ -55,6 +55,14 @@
   display: none;
 }
 
+/* Ocultar splash screen si ya fue mostrado en la sesión actual */
+.splash-already-shown .mobile-splash,
+.splash-already-shown .splash-screen,
+.splash-already-shown #mobile-splash-screen,
+.splash-already-shown #app-splash-screen {
+  display: none !important;
+}
+
 @media (max-width: 768px) {
   /* Pantalla de Carga Móvil / Splash Screen (Neo-Bauhaus) */
   .mobile-splash {
@@ -374,12 +382,12 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    width: 48px;
+    height: 48px;
     background: var(--bg-panel, #F4F1EA);
-    border: 1px solid var(--border-strong, #141411);
-    box-shadow: 2px 2px 0px var(--border-strong, #141411);
-    color: var(--fg, #141411);
+    border: 2px solid var(--border-strong, #111111);
+    box-shadow: 2px 2px 0px var(--border-strong, #111111);
+    color: var(--fg, #111111);
     cursor: pointer;
     touch-action: manipulation;
     border-radius: 0 !important;
@@ -546,15 +554,15 @@
     border-color: #444 !important;
   }
 
-  /* Controles Flotantes Derechos Ergonomía Strava (Móvil) */
+  /* Controles Flotantes Derechos (Móvil) */
   .mobile-map-controls {
     display: flex !important;
     flex-direction: column;
     position: fixed;
-    bottom: calc(76px + env(safe-area-inset-bottom));
-    right: 12px;
+    bottom: calc(68px + env(safe-area-inset-bottom)) !important;
+    right: 14px;
     z-index: 42;
-    gap: 8px;
+    gap: 10px;
     pointer-events: auto;
   }
 
@@ -562,13 +570,13 @@
     width: 48px;
     height: 48px;
     background: var(--bg-panel, #F4F1EA);
-    border: 1.5px solid var(--border-strong, #141411);
-    box-shadow: 2px 2px 0px var(--border-strong, #141411);
+    border: 2px solid var(--border-strong, #111111);
+    box-shadow: 2px 2px 0px var(--border-strong, #111111);
     border-radius: 0 !important;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: var(--fg, #141411);
+    color: var(--fg, #111111);
     cursor: pointer;
     touch-action: manipulation;
     transition: transform 0.08s ease, background 0.12s ease, color 0.12s ease;
@@ -580,7 +588,7 @@
 
   .mobile-float-btn:active {
     transform: scale(0.92);
-    background: var(--fg, #141411);
+    background: var(--fg, #111111);
     color: var(--bg-panel, #F4F1EA);
   }
 
@@ -588,6 +596,24 @@
     color: var(--accent, #E84E1B) !important;
     border-color: var(--accent, #E84E1B) !important;
     background: var(--bg-panel, #F4F1EA) !important;
+  }
+
+  /* Botón de Acción Primaria Flotante [+] (Añadir Proyecto) */
+  .mobile-float-btn-primary {
+    background-color: var(--accent, #E84E1B) !important;
+    color: #F4F1EA !important;
+    border: 2px solid var(--border-strong, #111111) !important;
+    box-shadow: 2px 2px 0px var(--border-strong, #111111) !important;
+  }
+
+  .mobile-float-btn-primary svg {
+    color: #F4F1EA !important;
+    stroke: #F4F1EA !important;
+  }
+
+  .mobile-float-btn-primary:active {
+    background-color: #111111 !important;
+    color: #FFFFFF !important;
   }
 
   .mobile-bottom-bar {

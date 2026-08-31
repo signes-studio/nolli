@@ -430,6 +430,8 @@ export async function updateCurrentUserProfile(sessionToken, profile = {}) {
   const metadata = {
     first_name: String(profile.firstName || '').trim(),
     last_name: String(profile.lastName || '').trim(),
+    bio: String(profile.bio || '').trim(),
+    website: String(profile.website || '').trim(),
     city: String(profile.city || '').trim(),
     country: String(profile.country || '').trim(),
   };
@@ -448,6 +450,17 @@ export async function updateCurrentUserProfile(sessionToken, profile = {}) {
 }
 
 export async function upsertCurrentProfile(user, profile, sessionToken) {
+  const payload = {
+    id: user.id,
+    email: user.email || null,
+    first_name: String(profile.firstName || '').trim(),
+    last_name: String(profile.lastName || '').trim(),
+    city: String(profile.city || '').trim(),
+    country: String(profile.country || '').trim(),
+  };
+  if (profile.bio != null) payload.bio = String(profile.bio).trim();
+  if (profile.website != null) payload.website = String(profile.website).trim();
+
   const response = await fetch(`${SUPABASE_URL}/rest/v1/profiles?on_conflict=id`, {
     method: 'POST',
     headers: {
@@ -456,14 +469,7 @@ export async function upsertCurrentProfile(user, profile, sessionToken) {
       'Content-Type': 'application/json',
       'Prefer': 'resolution=merge-duplicates,return=representation',
     },
-    body: JSON.stringify({
-      id: user.id,
-      email: user.email || null,
-      first_name: String(profile.firstName || '').trim(),
-      last_name: String(profile.lastName || '').trim(),
-      city: String(profile.city || '').trim(),
-      country: String(profile.country || '').trim(),
-    }),
+    body: JSON.stringify(payload),
   });
   if (!response.ok) throw new Error('No se pudo sincronizar el perfil público.');
   return response.json();

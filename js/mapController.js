@@ -47,6 +47,9 @@ export function cargarMapaMapbox() {
     center: DEFAULT_CENTER,
     zoom: DEFAULT_ZOOM,
     attributionControl: true,
+    fadeDuration: 0, // Cero delay de transición/fade para carga instantánea como Google Maps
+    maxTileCacheSize: 200, // Caché extendida en memoria
+    crossSourceCollisions: false,
   });
 
   if (isMobile) {
@@ -111,10 +114,14 @@ export function cargarMapaMapbox() {
       cluster: true,
       clusterMaxZoom: 4,
       clusterRadius: 45,
+      buffer: 512, // Pre-renderiza un buffer del 400% alrededor de la pantalla para desplazamiento sin lag
+      tolerance: 0.25,
     });
     state.map.addSource('obras-maestras', {
       type: 'geojson',
       data: { type: 'FeatureCollection', features: [] },
+      buffer: 512, // Pre-renderiza etiquetas maestras fuera del viewport
+      tolerance: 0.25,
     });
     actualizarFuenteMapa();
 
@@ -159,10 +166,23 @@ export function cargarMapaMapbox() {
       source: 'obras',
       filter: ['==', ['get', 'selected'], 1],
       paint: {
-        'circle-radius': 14,
+        'circle-radius': 15,
         'circle-color': 'rgba(232, 78, 27, 0.22)',
         'circle-stroke-color': '#E84E1B',
         'circle-stroke-width': 2.5,
+      },
+    });
+
+    state.map.addLayer({
+      id: 'obras-maestras-selected-halo',
+      type: 'circle',
+      source: 'obras-maestras',
+      filter: ['==', ['get', 'selected'], 1],
+      paint: {
+        'circle-radius': 16,
+        'circle-color': 'rgba(232, 78, 27, 0.25)',
+        'circle-stroke-color': '#E84E1B',
+        'circle-stroke-width': 3,
       },
     });
 
@@ -336,10 +356,12 @@ export function cargarMapaMapbox() {
           'text-anchor': 'left',
           'text-justify': 'left',
           'text-max-width': 11,
-          'text-padding': 4,
+          'text-padding': 2,
           'text-allow-overlap': false,
           'text-ignore-placement': false,
           'text-optional': true,
+          'symbol-avoid-edges': false,
+          'text-pitch-alignment': 'viewport',
           'symbol-sort-key': cfg.sortKey,
         },
         paint: {
@@ -347,6 +369,7 @@ export function cargarMapaMapbox() {
           'text-halo-color': isDark ? 'rgba(18, 18, 18, 0.95)' : 'rgba(248, 241, 223, 0.95)',
           'text-halo-width': 1.5,
           'text-halo-blur': 0.5,
+          'text-opacity-transition': { duration: 0 },
         },
       });
       state.map.on('mouseenter', labelLayerId, () => { state.map.getCanvas().style.cursor = 'pointer'; });
@@ -410,8 +433,15 @@ function activarModoAñadir() {
   }
   state.addingBuilding = !state.addingBuilding;
   const button = document.getElementById('btn-add-project');
-  button.classList.toggle('active-state', state.addingBuilding);
-  button.title = state.addingBuilding ? 'Selecciona una ubicación en el mapa' : 'Añadir obra';
+  const floatBtn = document.getElementById('btn-float-add');
+  if (button) {
+    button.classList.toggle('active-state', state.addingBuilding);
+    button.title = state.addingBuilding ? 'Selecciona una ubicación en el mapa' : 'Añadir obra';
+  }
+  if (floatBtn) {
+    floatBtn.classList.toggle('active-state', state.addingBuilding);
+    floatBtn.title = state.addingBuilding ? 'Selecciona una ubicación en el mapa' : 'Añadir Proyecto';
+  }
   state.map.getCanvas().style.cursor = state.addingBuilding ? 'crosshair' : '';
 }
 

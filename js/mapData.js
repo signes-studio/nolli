@@ -26,9 +26,14 @@ export function actualizarFuenteMapa() {
   updateTimeout = setTimeout(() => {
     if (!state.map) return;
 
-    const obrasVisibles = state.OBRAS.filter((obra) => esRolAdmin(state.userRole) && state.adminMode
+    let obrasVisibles = state.OBRAS.filter((obra) => esRolAdmin(state.userRole) && state.adminMode
       ? obra.estado_revision !== 'rechazada'
       : obra.estado_revision !== 'pendiente' && obra.estado_revision !== 'rechazada');
+
+    // Aislamiento de datos en Modo Itinerario
+    if (state.activeItinerary && state.activeItinerary.workIds) {
+      obrasVisibles = obrasVisibles.filter((obra) => state.activeItinerary.workIds.has(String(obra.id)));
+    }
     
     const ubicacionesCompartidas = new Map();
     obrasVisibles.forEach((obra) => {

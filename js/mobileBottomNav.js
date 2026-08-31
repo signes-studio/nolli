@@ -25,6 +25,7 @@ export function initMobileBottomNav() {
   const btnProfile = document.getElementById('mobile-nav-profile');
 
   // Controles Flotantes Derechos
+  const btnFloatAdd = document.getElementById('btn-float-add');
   const btnFloatLayers = document.getElementById('btn-float-layers');
   const btnFloatFilters = document.getElementById('btn-float-filters');
   const btnFloatLocate = document.getElementById('btn-float-locate');
@@ -148,7 +149,21 @@ export function initMobileBottomNav() {
     });
   }
 
-  // 5. Controles Flotantes Derechos (Capas, Filtros, Ubicación)
+  // 5. Controles Flotantes Derechos (Añadir, Capas, Filtros, Ubicación)
+  if (btnFloatAdd) {
+    btnFloatAdd.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const addProjectBtn = document.getElementById('btn-add-project');
+      if (addProjectBtn) {
+        addProjectBtn.click();
+      } else {
+        const modalAdd = document.getElementById('modal-add-building');
+        if (modalAdd) modalAdd.classList.add('open');
+      }
+    });
+  }
+
   if (btnFloatLayers) {
     btnFloatLayers.addEventListener('click', (e) => {
       e.preventDefault();
@@ -233,19 +248,40 @@ export function initMobileBottomNav() {
 function initMobileSplashScreen() {
   const splash = document.getElementById('mobile-splash-screen');
   const status = document.getElementById('mobile-splash-status');
-  if (!splash) return;
+  const desktopSplash = document.getElementById('app-splash-screen');
+  if (!splash && !desktopSplash) return;
+
+  try {
+    if (sessionStorage.getItem('nolli_splash_shown')) {
+      if (splash) {
+        splash.style.display = 'none';
+        splash.classList.add('splash-hidden');
+      }
+      if (desktopSplash) {
+        desktopSplash.style.display = 'none';
+        desktopSplash.classList.add('splash-hidden');
+      }
+      return;
+    }
+  } catch (e) {}
 
   let dismissed = false;
 
   const dismissSplash = () => {
     if (dismissed) return;
     dismissed = true;
+    try {
+      sessionStorage.setItem('nolli_splash_shown', 'true');
+    } catch (e) {}
+
     if (status) status.textContent = '[ DATOS SINCRONIZADOS ]';
 
     setTimeout(() => {
-      splash.classList.add('splash-hidden');
+      if (splash) splash.classList.add('splash-hidden');
+      if (desktopSplash) desktopSplash.classList.add('splash-hidden');
       setTimeout(() => {
-        splash.style.display = 'none';
+        if (splash) splash.style.display = 'none';
+        if (desktopSplash) desktopSplash.style.display = 'none';
       }, 450);
     }, 280);
   };
@@ -257,7 +293,8 @@ function initMobileSplashScreen() {
   setTimeout(dismissSplash, 2500);
 
   // Permitir cierre al toque si el usuario pulsa
-  splash.addEventListener('click', dismissSplash, { once: true });
+  splash?.addEventListener('click', dismissSplash, { once: true });
+  desktopSplash?.addEventListener('click', dismissSplash, { once: true });
 }
 
 /* =========================================================================
@@ -274,16 +311,18 @@ function initMobileIdentityWidget() {
   if (!badge || !actionBtn) return;
 
   function computeInitials() {
-    if (state.userProfile?.firstName || state.userProfile?.lastName) {
-      const f = (state.userProfile.firstName || '').charAt(0).toUpperCase();
-      const l = (state.userProfile.lastName || '').charAt(0).toUpperCase();
-      return f || l ? `${f}${l}` : 'ID';
+    const p = state.userProfile || {};
+    const f = (p.firstName || p.first_name || '').trim();
+    const l = (p.lastName || p.last_name || '').trim();
+    if (f || l) {
+      const initF = f ? f.charAt(0).toUpperCase() : '';
+      const initL = l ? l.charAt(0).toUpperCase() : '';
+      return `${initF}${initL}` || 'N';
     }
     if (state.userEmail) {
-      const namePart = state.userEmail.split('@')[0];
-      return namePart.slice(0, 3).toUpperCase();
+      return state.userEmail.charAt(0).toUpperCase();
     }
-    return 'USER';
+    return 'N';
   }
 
   function updateIdentityUI() {

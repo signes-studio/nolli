@@ -16,6 +16,7 @@ export const state = {
   pendingLngLat: null,
   editingBuildingId: null,
   selectedFeatureId: null,
+  activeItinerary: null,
   locationMarker: null,
   userLocation: null,
   activeDecada: '',

@@ -42,6 +42,13 @@
     font-family: 'League Spartan', sans-serif !important;
   }
 </style>
+<script>
+  try {
+    if (sessionStorage.getItem('nolli_splash_shown')) {
+      document.documentElement.classList.add('splash-already-shown');
+    }
+  } catch(e) {}
+</script>
 </head>
 <body>
 
@@ -130,6 +137,17 @@
       <div id="mobile-search-results" class="mobile-search-results"></div>
     </div>
   </div>
+
+  <!-- Etiqueta Flotante Ligera de Modo Itinerario / Filtro Activo en Mapa (Neo-Bauhaus) -->
+  <aside id="itinerary-filter-badge" class="itinerary-filter-badge hidden" role="status" aria-live="polite">
+    <div class="itinerary-badge-text-wrap">
+      <span id="itinerary-badge-title" class="itinerary-badge-title">RUTA: DOCOMOMO IBÉRICO</span>
+      <span id="itinerary-badge-count" class="itinerary-badge-count">124 OBRAS</span>
+    </div>
+    <button type="button" id="btn-close-itinerary" class="itinerary-badge-close" aria-label="Cerrar filtro e itinerario activo" title="Cerrar itinerario">
+      <i data-lucide="x" width="15" height="15"></i>
+    </button>
+  </aside>
 
   <!-- Menú flotante rápido para administrador en móvil -->
   <div id="mobile-admin-quickmenu" class="mobile-admin-quickmenu" hidden aria-label="Menú rápido de administración">
@@ -389,58 +407,38 @@
       <div class="sheet-header">
         <div class="flex items-center gap-2">
           <i data-lucide="compass" width="15" height="15" style="color:var(--accent, #E84E1B)"></i>
-          <span style="letter-spacing:.06em; font-size:11px; color:var(--fg-dim); font-weight:800;">EXPLORA // DIRECTORIO</span>
+          <span style="letter-spacing:.06em; font-size:11px; color:var(--fg-dim); font-weight:800;">EXPLORA // LISTAS PÚBLICAS</span>
         </div>
         <div class="flex items-center gap-2">
-          <span id="explore-count-badge" class="badge-count">[ 0 OBRAS ]</span>
+          <span id="explore-count-badge" class="badge-count">[ 0 LISTAS ]</span>
           <button type="button" id="btn-explore-close" class="sheet-close-button" aria-label="Cerrar exploración"><i data-lucide="x" width="16" height="16"></i></button>
         </div>
       </div>
-      
-      <!-- Sub-navegación Catálogo vs Listas Públicas -->
-      <div class="explore-subnav flex border-b border-black">
-        <button type="button" id="explore-tab-works" class="explore-subnav-tab active flex-1 py-2 text-[11px] font-display font-extrabold uppercase text-center border-r border-black" style="background:var(--bg-panel, #F4F1EA); cursor:pointer;">[ OBRAS ]</button>
-        <button type="button" id="explore-tab-collections" class="explore-subnav-tab flex-1 py-2 text-[11px] font-display font-extrabold uppercase text-center" style="background:var(--bg-raised, #ECE6D8); cursor:pointer;">[ LISTAS PÚBLICAS ]</button>
-      </div>
 
       <div class="explore-toolbar">
-        <input id="explore-search-input" class="tech-input" type="search" placeholder="BUSCAR POR OBRA, CIUDAD O AUTOR..." aria-label="Filtrar obras del catálogo" autocomplete="off">
-      </div>
-
-      <!-- Contenedor Horizontal con Chips de Filtrado Rápido -->
-      <div id="explore-chips-bar" class="explore-chips-bar" aria-label="Filtros rápidos">
-        <button type="button" class="explore-chip active" data-chip-type="all" data-chip-value="">[ TODAS ]</button>
-        <button type="button" class="explore-chip" data-chip-type="decade" data-chip-value="1920">1920s</button>
-        <button type="button" class="explore-chip" data-chip-type="decade" data-chip-value="1930">1930s</button>
-        <button type="button" class="explore-chip" data-chip-type="decade" data-chip-value="1950">1950s</button>
-        <button type="button" class="explore-chip" data-chip-type="decade" data-chip-value="1960">1960s</button>
-        <button type="button" class="explore-chip" data-chip-type="decade" data-chip-value="1970">1970s</button>
-        <button type="button" class="explore-chip" data-chip-type="decade" data-chip-value="1980">1980s</button>
-        <button type="button" class="explore-chip" data-chip-type="decade" data-chip-value="1990">1990s</button>
-        <button type="button" class="explore-chip" data-chip-type="decade" data-chip-value="2000">2000s</button>
-        <button type="button" class="explore-chip" data-chip-type="decade" data-chip-value="2010">2010s</button>
-        <button type="button" class="explore-chip" data-chip-type="decade" data-chip-value="2020">2020s</button>
-        <button type="button" class="explore-chip" data-chip-type="category" data-chip-value="residencial">RESIDENCIAL</button>
-        <button type="button" class="explore-chip" data-chip-type="category" data-chip-value="cultural">CULTURAL</button>
-        <button type="button" class="explore-chip" data-chip-type="category" data-chip-value="religioso">RELIGIOSO</button>
-        <button type="button" class="explore-chip" data-chip-type="category" data-chip-value="industrial">INDUSTRIAL</button>
-        <button type="button" class="explore-chip" data-chip-type="category" data-chip-value="educativo">EDUCATIVO</button>
-        <button type="button" class="explore-chip" data-chip-type="category" data-chip-value="dotacional">DOTACIONAL</button>
-      </div>
-
-      <!-- Selector Compacto Dual de Ordenación -->
-      <div class="explore-sort-bar">
-        <span class="explore-sort-label">[ ORDEN ]</span>
-        <div class="explore-sort-toggle">
-          <button type="button" id="explore-sort-proximity" class="explore-sort-btn active" data-sort="proximity">PROXIMIDAD</button>
-          <button type="button" id="explore-sort-chrono" class="explore-sort-btn" data-sort="chronological">CRONOLÓGICO</button>
-        </div>
+        <input id="explore-search-input" class="tech-input" type="search" placeholder="BUSCAR LISTAS O COLECCIONES DE LA COMUNIDAD..." aria-label="Filtrar listas públicas" autocomplete="off">
       </div>
     </div>
 
-    <!-- Feed Vertical de Tarjetas Editoriales -->
+    <!-- Feed de Selecciones Curatoriales y Listas Públicas -->
     <div id="explore-list-container" class="explore-list-container">
-      <div class="explore-loading">[ CONSULTANDO CATÁLOGO Y PROXIMIDAD... ]</div>
+      <!-- Selecciones Curatoriales Oficiales -->
+      <div class="explore-section-block">
+        <div class="explore-section-title-wrap">
+          <span class="explore-section-tag">[ SELECCIÓN CURATORIAL ]</span>
+        </div>
+        <div id="explore-curated-container" class="explore-curated-container"></div>
+      </div>
+
+      <!-- Listas Públicas de la Comunidad -->
+      <div class="explore-section-block">
+        <div class="explore-section-title-wrap">
+          <span class="explore-section-tag">[ COLECCIONES DE LA COMUNIDAD ]</span>
+        </div>
+        <div id="explore-public-container" class="explore-public-container">
+          <div class="explore-loading">[ CONSULTANDO LISTAS PÚBLICAS DE LA COMUNIDAD... ]</div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -475,15 +473,7 @@
     </div>
 
     <div id="radar-content-container" class="radar-content-container">
-      <!-- Rutas Curatoriales (Módulo Destacado con Scroll-Snap Horizontal) -->
-      <div class="radar-curated-section">
-        <div class="radar-section-head">
-          <span class="radar-section-label">[ RUTAS Y SELECCIÓN CURATORIAL ]</span>
-        </div>
-        <div id="radar-curated-carousel" class="radar-curated-carousel"></div>
-      </div>
-
-      <!-- Feed de Distancia Dinámica -->
+      <!-- Feed exclusivo de Distancia Dinámica / Obras en Proximidad -->
       <div class="radar-detected-section">
         <div class="radar-section-head">
           <span class="radar-section-label">[ OBRAS EN TU RADIO ]</span>
@@ -494,16 +484,19 @@
     </div>
   </section>
 
-  <!-- Controles Flotantes Derechos Ergonomía Strava (Móvil) -->
+  <!-- Controles Flotantes Derechos (Móvil) -->
   <aside id="mobile-map-controls" class="mobile-map-controls" aria-label="Controles rápidos del mapa">
+    <button type="button" class="mobile-float-btn" id="btn-float-locate" aria-label="Centrar en mi ubicación" title="Mi ubicación">
+      <i data-lucide="crosshair" width="19" height="19"></i>
+    </button>
     <button type="button" class="mobile-float-btn" id="btn-float-layers" data-target-panel="map-style-panel" aria-label="Capas y estilos de mapa" title="Capas del mapa">
       <i data-lucide="layers-2" width="19" height="19"></i>
     </button>
     <button type="button" class="mobile-float-btn" id="btn-float-filters" data-target-panel="filter-panel" aria-label="Filtros avanzados" title="Filtros">
       <i data-lucide="sliders-horizontal" width="19" height="19"></i>
     </button>
-    <button type="button" class="mobile-float-btn" id="btn-float-locate" aria-label="Centrar en mi ubicación" title="Mi ubicación">
-      <i data-lucide="crosshair" width="19" height="19"></i>
+    <button type="button" class="mobile-float-btn mobile-float-btn-primary" id="btn-float-add" aria-label="Añadir nueva obra de arquitectura" title="Añadir Proyecto">
+      <i data-lucide="plus" width="22" height="22"></i>
     </button>
   </aside>
 
@@ -561,18 +554,39 @@
   </div>
 </div>
 
-<div id="modal-share" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-share-title">
-  <div class="modal-box share-box">
-    <div class="modal-head">
-      <span id="modal-share-title" style="letter-spacing:.06em; font-size:11px;">COMPARTIR UBICACIÓN</span>
-      <i data-lucide="x" id="btn-share-close" width="16" height="16" style="cursor:pointer" role="button" aria-label="Cerrar compartir"></i>
+<div id="modal-share" class="modal-overlay modal-share-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-share-title">
+  <div class="share-bottom-sheet">
+    <div class="share-sheet-head">
+      <div class="share-sheet-title-wrap">
+        <h3 id="modal-share-title" class="share-sheet-title">[ COMPARTIR OBRA ]</h3>
+        <p id="share-project-subtitle" class="share-sheet-subtitle">Obra seleccionada en Nolli</p>
+      </div>
+      <button type="button" id="btn-share-close" class="share-sheet-close" aria-label="Cerrar compartir">
+        <i data-lucide="x" width="18" height="18"></i>
+      </button>
     </div>
-    <div class="share-options">
-      <button type="button" class="btn share-option" data-share-choice="native">OTRAS APLICACIONES</button>
-      <button type="button" class="btn share-option" data-share-choice="whatsapp">WHATSAPP</button>
-      <button type="button" class="btn share-option" data-share-choice="google">GOOGLE MAPS</button>
-      <button type="button" class="btn share-option" data-share-choice="copy">COPIAR ENLACE</button>
+
+    <!-- Cuadrícula Secundaria de Canales -->
+    <div class="share-channels-grid">
+      <button type="button" class="share-channel-btn" data-share-choice="whatsapp" aria-label="Compartir en WhatsApp">
+        <i data-lucide="message-circle" width="22" height="22"></i>
+        <span>WHATSAPP</span>
+      </button>
+      <button type="button" class="share-channel-btn" data-share-choice="google" aria-label="Abrir en Google Maps">
+        <i data-lucide="map-pin" width="22" height="22"></i>
+        <span>GOOGLE MAPS</span>
+      </button>
+      <button type="button" class="share-channel-btn" data-share-choice="native" aria-label="Compartir en otras aplicaciones">
+        <i data-lucide="share-2" width="22" height="22"></i>
+        <span>MÁS OPCIONES</span>
+      </button>
     </div>
+
+    <!-- Botón de Acción Principal (Copiar Enlace) -->
+    <button type="button" id="btn-share-copy" class="share-primary-btn" data-share-choice="copy" aria-label="Copiar enlace de la obra">
+      <i data-lucide="copy" width="18" height="18"></i>
+      <span id="share-copy-text">[ COPIAR ENLACE ]</span>
+    </button>
   </div>
 </div>
 

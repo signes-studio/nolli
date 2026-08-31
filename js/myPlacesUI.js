@@ -564,8 +564,8 @@ function renderCollections() {
 
   list.innerHTML = `
     <div class="my-collections-header">
-      <span style="font-size: 10px; color: var(--fg-dim); font-weight: 700;">MIS LISTAS (${(state.userCollections || []).length})</span>
-      <button type="button" class="btn btn-accent" data-open-create-collection-modal style="padding: 4px 10px; font-size: 10px;">+ NUEVA LISTA</button>
+      <span style="font-size: 10px; color: var(--fg-dim); font-weight: 700; font-family:'JetBrains Mono', monospace;">MIS LISTAS (${(state.userCollections || []).length})</span>
+      <button type="button" class="btn-new-list" data-open-create-collection-modal style="padding: 5px 12px; font-size: 10px;">[ + NUEVA LISTA ]</button>
     </div>
     ${cards || '<div class="nearby-empty">Crea tu primera lista para organizar obras.</div>'}
   `;

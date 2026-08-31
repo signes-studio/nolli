@@ -5,170 +5,191 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="description" content="Perfil personal de usuario en Nolli, radar de arquitectura.">
 <meta name="color-scheme" content="light dark">
-<title>nolli | perfil de usuario</title>
+<title>nolli | tú</title>
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="./icon.svg">
 
-<!-- Tipografías: Inter para textos, League Spartan para títulos, JetBrains Mono para metadatos técnicos -->
+<!-- Tipografías: League Spartan e Inter -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=League+Spartan:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=League+Spartan:wght@600;700;800;900&display=swap" rel="stylesheet">
 
 <!-- Lucide Icons -->
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
-<!-- Estilos base -->
+<!-- Estilos base y de perfil -->
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/panels.css">
 <link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/map-hud.css">
 <link rel="stylesheet" href="css/profile.css">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#F4F1EA">
 <meta name="background-color" content="#F4F1EA">
 <style>
-  html, body {
+  html, body.profile-body {
+    height: auto !important;
+    min-height: 100% !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    overscroll-behavior-y: auto !important;
     background-color: #F4F1EA !important;
-    margin: 0;
-    padding: 0;
   }
-  @media (prefers-color-scheme: dark) {
-    html, body {
-      background-color: #141411 !important;
-    }
+  main.profile-main, #profile-app {
+    position: static !important;
+    inset: auto !important;
+    overflow: visible !important;
+    height: auto !important;
   }
 </style>
 </head>
 <body class="profile-body">
 
-  <div class="profile-wrapper">
-    <!-- Barra superior técnica -->
-    <header class="profile-topbar">
-      <div class="profile-brand-wrap">
-        <a href="./index.html" class="profile-brand">nolli<span>.</span></a>
-        <span class="profile-tagline">[ ESPACIO PERSONAL ]</span>
-      </div>
-      <div class="profile-topbar-actions">
-        <button type="button" id="btn-theme-toggle" class="profile-topbar-btn" title="Cambiar tema claro / oscuro" aria-label="Cambiar tema">
-          <i data-lucide="moon" width="14" height="14" id="theme-icon"></i>
+  <div class="profile-canvas">
+    <!-- Barra Superior Minimalista Fija -->
+    <header class="profile-header">
+      <a href="./index.html" class="profile-logo">nolli<span>.</span></a>
+      <div class="profile-header-actions">
+        <button type="button" id="btn-theme-toggle" class="profile-minimal-btn" title="Cambiar tema claro / oscuro" aria-label="Cambiar tema">
+          <i data-lucide="moon" width="16" height="16" id="theme-icon"></i>
         </button>
-        <a href="./legal.html" class="profile-topbar-btn">[ LEGAL ]</a>
-        <a href="./index.html" class="profile-topbar-btn profile-btn-accent">[ 🗺️ MAPA ]</a>
-        <button type="button" id="btn-profile-logout" class="profile-topbar-btn profile-btn-danger hidden">[ CERRAR SESIÓN ]</button>
+        <button type="button" id="btn-profile-settings" class="profile-minimal-btn" title="Personalizar perfil" aria-label="Personalizar perfil">
+          <i data-lucide="settings" width="17" height="17"></i>
+        </button>
+        <a href="./index.html" class="profile-minimal-btn" aria-label="Ir al mapa">MAPA</a>
+        <button type="button" id="btn-profile-logout" class="profile-minimal-btn hidden" aria-label="Cerrar sesión">SALIR</button>
       </div>
     </header>
 
-    <!-- Estado de autenticación requerida -->
-    <section id="profile-auth-required" class="profile-card profile-auth-card hidden">
-      <div class="profile-kicker">[ AUTENTICACIÓN REQUERIDA ]</div>
-      <h2 class="profile-title" style="font-size: 24px; margin: 12px 0;">INICIA SESIÓN PARA ACCEDER A TU ARCHIVO</h2>
-      <p class="profile-lead" style="margin-bottom: 20px;">Tu radar personal, listas con emojis personalizados, obras visitadas y notas privadas se encuentran sincronizados de forma segura con tu cuenta.</p>
-      <div class="profile-auth-actions">
-        <a class="btn btn-accent" href="./index.html" style="text-decoration: none; padding: 10px 20px; font-size: 11px;">IR AL MAPA E INICIAR SESIÓN</a>
-      </div>
+    <!-- Estado de autenticación requerida (Solo visible si NO está logueado) -->
+    <section id="profile-auth-required" class="profile-auth-message hidden">
+      <h2 class="profile-hero-name" style="font-size: 32px;">ACCESO AL ARCHIVO</h2>
+      <p class="profile-hero-sub" style="margin: 12px 0 28px;">Inicia sesión en Nolli para sincronizar y gestionar tus obras visitadas, favoritos y notas privadas.</p>
+      <a class="profile-login-cta-btn" href="./index.html">[ INICIAR SESIÓN EN EL MAPA ]</a>
     </section>
 
-    <!-- Aplicación de perfil autenticado -->
-    <main id="profile-app" class="profile-main-layout hidden">
-      <!-- Hero / Cabecera de usuario -->
-      <section class="profile-hero-section">
-        <div class="profile-hero-user">
-          <div class="profile-avatar" id="profile-avatar-initials">N</div>
-          <div class="profile-user-info">
-            <div class="profile-kicker" id="profile-kicker-role">[ USUARIO // ARCHIVO PERSONAL ]</div>
-            <h1 id="profile-title" class="profile-hero-name">MI PERFIL</h1>
-            <div class="profile-user-meta" id="profile-user-meta">
-              <span id="profile-user-email">email@nolli.app</span>
-              <span id="profile-user-location">Ubicación no indicada</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tarjetas de estadísticas -->
-        <div id="profile-stats" class="profile-stats-grid" aria-label="Estadísticas personales"></div>
+    <!-- Vista Principal de Perfil Autenticado (Hero + Métricas + Feed) -->
+    <main id="profile-app" class="profile-main">
+      <!-- 2. Hero Monumental (Identidad) -->
+      <section class="profile-hero">
+        <h1 id="profile-hero-name" class="profile-hero-name">LUIS ALBERTO SIGNES SACRISTÁN</h1>
+        <p id="profile-hero-sub" class="profile-hero-sub">Arquitecto &amp; ArchViz | SIGNES.STUDIO | Valencia, España</p>
       </section>
 
-      <!-- Bloque de Mecenazgo y Donativos Neo-Bauhaus -->
-      <section class="profile-donation-card">
-        <div class="profile-donation-info">
-          <span class="profile-kicker" style="color:var(--accent, #E84E1B)">[ MECENAZGO // ATLAS LIBRE ]</span>
-          <h3 class="profile-donation-title font-display text-lg font-bold">APOYAR PROYECTO NOLLI</h3>
-          <p class="profile-donation-desc text-xs text-dim">Nolli es un proyecto independiente y libre de publicidad. Tu aportación permite sostener la infraestructura de servidores y catalogar nuevas obras de arquitectura.</p>
+      <!-- 3. Métricas (Grid Invisible) -->
+      <section id="profile-stats" class="profile-metrics-row" aria-label="Métricas personales">
+        <div class="profile-metric-item" data-metric-tab="visited" role="button" tabindex="0">
+          <span class="profile-metric-num" id="stat-visited-num">24</span>
+          <span class="profile-metric-label">VISITADOS</span>
         </div>
-        <a href="https://buymeacoffee.com/signesstudio" target="_blank" rel="noopener noreferrer" class="btn-support-project" aria-label="Apoyar proyecto Nolli">
-          <i data-lucide="heart" width="16" height="16"></i>
-          <span>[ APOYAR PROYECTO ]</span>
-        </a>
-      </section>
-
-      <!-- Módulo Experimental para Rol Tester (Renderizado Condicional) -->
-      <section id="tester-experimental-section" class="profile-card tester-only hidden" style="border: 1.5px solid #7c3aed; background: var(--bg-raised, #ECE6D8); margin-bottom: 20px;">
-        <div class="flex items-center justify-between mb-2">
-          <span class="badge-count" style="color:#7c3aed; border-color:#7c3aed;">[ MODO TESTER ACTIVO ]</span>
-          <span class="text-[10px] font-mono text-dim">VISTA EXPERIMENTAL</span>
+        <div class="profile-metric-item" data-metric-tab="favorite" role="button" tabindex="0">
+          <span class="profile-metric-num" id="stat-favorite-num">12</span>
+          <span class="profile-metric-label">FAVORITOS</span>
         </div>
-        <p class="text-xs mb-3">Tienes acceso a funciones preliminares de prueba, flags de depuración geodésica y previsualización de nuevas capas.</p>
-        <div class="flex gap-2">
-          <button type="button" class="btn text-[11px] py-1.5" style="border-color:#7c3aed; color:#7c3aed;">[ REGISTRO DE EVENTOS GPS ]</button>
-          <button type="button" class="btn text-[11px] py-1.5" style="border-color:#7c3aed; color:#7c3aed;">[ PREVIEW MIGRACIONES ]</button>
+        <div class="profile-metric-item" data-metric-tab="notes" role="button" tabindex="0">
+          <span class="profile-metric-num" id="stat-notes-num">8</span>
+          <span class="profile-metric-label">NOTAS</span>
         </div>
       </section>
 
-      <!-- Barra de navegación por pestañas -->
-      <nav class="profile-nav-tabs places-tabs" aria-label="Pestañas del perfil">
-        <button type="button" class="places-tab active" data-profile-tab="overview">RESUMEN</button>
-        <button type="button" class="places-tab" data-profile-tab="visited">VISITADOS</button>
-        <button type="button" class="places-tab" data-profile-tab="favorite">FAVORITOS</button>
-        <button type="button" class="places-tab" data-profile-tab="collections">MIS LISTAS</button>
-        <button type="button" class="places-tab" data-profile-tab="notes">NOTAS</button>
-        <button type="button" class="places-tab" data-profile-tab="labels">ETIQUETAS</button>
-        <button type="button" class="places-tab" data-profile-tab="account">DATOS PERSONALES</button>
+      <!-- 4. Navegación Curatorial -->
+      <nav class="profile-curatorial-nav" aria-label="Navegación curatorial">
+        <button type="button" class="profile-curatorial-tab active" data-profile-tab="collections">MIS LISTAS</button>
+        <button type="button" class="profile-curatorial-tab" data-profile-tab="visited">VISITADOS</button>
+        <button type="button" class="profile-curatorial-tab" data-profile-tab="notes">NOTAS</button>
       </nav>
 
-      <!-- Contenedor dinámico del perfil -->
-      <section id="profile-content" class="profile-content-body" aria-live="polite"></section>
+      <!-- 5. Feed de Obras (Archivo con padding-bottom de 160px para scroll fluido) -->
+      <section id="profile-content" class="profile-feed-list" aria-live="polite"></section>
+
+      <!-- 6. Call to Action Flotante -->
+      <a href="https://ko-fi.com/nollimap" target="_blank" rel="noopener noreferrer" class="profile-floating-cta" aria-label="Apoyar proyecto nolli.">
+        APOYAR PROYECTO NOLLI
+      </a>
     </main>
-
-    <!-- Modal Flotante para Listas (Crear / Editar) -->
-    <div id="profile-modal-container"></div>
-
-    <!-- Pie de página -->
-    <footer class="profile-footer">
-      <span>NOLLI // RADAR ARQUITECTÓNICO INTERACTIVO</span>
-      <div class="profile-footer-links">
-        <a href="./index.html">[ MAPA ]</a>
-        <a href="./public-profile.html" id="public-profile-link" target="_blank">[ PERFIL PÚBLICO ]</a>
-        <a href="./legal.html">[ LEGAL ]</a>
-      </div>
-    </footer>
   </div>
 
-  <!-- Barra de navegación inferior fija para móviles (Neo-Bauhaus) -->
-  <!-- Barra de navegación inferior fija para móviles (Neo-Bauhaus estilo Strava) -->
+  <!-- Barra de navegación inferior fija para móviles (TWA) -->
   <nav id="mobile-bottom-bar" class="mobile-bottom-bar" aria-label="Navegación móvil">
-    <a href="./index.html" class="mobile-nav-btn" aria-label="Mapa cartográfico">
+    <a href="./index.html" class="mobile-nav-btn" aria-label="Mapa">
       <i data-lucide="map" width="19" height="19"></i>
       <span>MAPA</span>
     </a>
-    <a href="./index.html" class="mobile-nav-btn" aria-label="Explorar obras cercanas">
+    <a href="./index.html" class="mobile-nav-btn" aria-label="Explora">
       <i data-lucide="compass" width="19" height="19"></i>
       <span>EXPLORA</span>
     </a>
-    <a href="./index.html" class="mobile-nav-btn mobile-nav-radar-btn" aria-label="Mi radar arquitectónico">
+    <a href="./index.html" class="mobile-nav-btn mobile-nav-radar-btn" aria-label="Mi radar">
       <div class="radar-btn-inner">
         <i data-lucide="crosshair" width="19" height="19"></i>
       </div>
       <span>MI RADAR</span>
     </a>
-    <a href="./index.html" class="mobile-nav-btn" aria-label="Mis listas y guardados">
+    <a href="./index.html" class="mobile-nav-btn" aria-label="Listas">
       <i data-lucide="bookmark" width="19" height="19"></i>
       <span>LISTAS</span>
     </a>
-    <a href="./perfil.html" class="mobile-nav-btn active" aria-label="Tú y tu archivo personal">
+    <a href="./perfil.html" class="mobile-nav-btn active" aria-label="Tú">
       <i data-lucide="user" width="19" height="19"></i>
       <span>TÚ</span>
     </a>
   </nav>
 
-  <script type="module" src="js/profile.js"></script>
+  <!-- Modal Bottom Sheet: Personalizar Perfil -->
+  <div id="modal-edit-profile" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-edit-profile-title">
+    <div class="profile-edit-sheet">
+      <div class="profile-edit-head">
+        <div class="profile-edit-title-wrap">
+          <h3 id="modal-edit-profile-title" class="profile-edit-title">[ PERSONALIZAR PERFIL ]</h3>
+          <p class="profile-edit-subtitle">Edita tus datos personales, biografía y enlaces visibles en tu archivo.</p>
+        </div>
+        <button type="button" id="btn-edit-profile-close" class="profile-edit-close" aria-label="Cerrar personalización">
+          <i data-lucide="x" width="18" height="18"></i>
+        </button>
+      </div>
+
+      <form id="form-edit-profile" class="profile-edit-form">
+        <div class="profile-form-row">
+          <div class="profile-form-group">
+            <label class="profile-form-label" for="edit-profile-firstname">NOMBRE</label>
+            <input type="text" id="edit-profile-firstname" class="tech-input" placeholder="p.ej. Luis Alberto" required autocomplete="given-name">
+          </div>
+          <div class="profile-form-group">
+            <label class="profile-form-label" for="edit-profile-lastname">APELLIDOS</label>
+            <input type="text" id="edit-profile-lastname" class="tech-input" placeholder="p.ej. Signes Sacristán" autocomplete="family-name">
+          </div>
+        </div>
+
+        <div class="profile-form-group">
+          <label class="profile-form-label" for="edit-profile-bio">BIOGRAFÍA / ESPECIALIDAD</label>
+          <input type="text" id="edit-profile-bio" class="tech-input" placeholder="p.ej. Arquitecto &amp; ArchViz | SIGNES.STUDIO">
+        </div>
+
+        <div class="profile-form-row">
+          <div class="profile-form-group">
+            <label class="profile-form-label" for="edit-profile-city">CIUDAD</label>
+            <input type="text" id="edit-profile-city" class="tech-input" placeholder="p.ej. Valencia" autocomplete="address-level2">
+          </div>
+          <div class="profile-form-group">
+            <label class="profile-form-label" for="edit-profile-country">PAÍS</label>
+            <input type="text" id="edit-profile-country" class="tech-input" placeholder="p.ej. España" autocomplete="country-name">
+          </div>
+        </div>
+
+        <div class="profile-form-group">
+          <label class="profile-form-label" for="edit-profile-website">SITIO WEB / PORTFOLIO</label>
+          <input type="url" id="edit-profile-website" class="tech-input" placeholder="https://signes.studio" autocomplete="url">
+        </div>
+
+        <div id="profile-edit-status" class="profile-edit-status hidden"></div>
+
+        <button type="submit" id="btn-save-profile" class="profile-save-btn">
+          <span>[ GUARDAR CAMBIOS ]</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="./js/profile.js"></script>
 </body>
 </html>

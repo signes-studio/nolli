@@ -173,11 +173,6 @@ export function abrirFicha(building, coordinates, featureId = building.id) {
         <button type="button" class="sheet-hero-btn ${isSaved ? 'active saved' : ''}" data-save-collection>
           <i data-lucide="bookmark" width="15" height="15" ${isSaved ? 'fill="currentColor"' : ''}></i>
           <span>${isSaved ? 'GUARDADO' : 'GUARDAR'}</span>
-        </button>
-        <button type="button" class="sheet-hero-btn ${hasTags ? 'active tagged' : ''}" data-add-private-tag>
-          <i data-lucide="tag" width="15" height="15"></i>
-          <span>ETIQUETAS</span>
-        </button>
       ` : ''}
       <button type="button" class="sheet-hero-btn" data-share-action="open">
         <i data-lucide="share-2" width="15" height="15"></i>
@@ -558,6 +553,78 @@ async function deleteBuildingFromSheet() {
   try { await deleteBuilding(building.id, state.sessionToken); state.OBRAS = state.OBRAS.filter((item) => item !== building); cerrarFicha(); actualizarFuenteMapa(); generarFiltrosUI(); document.dispatchEvent(new CustomEvent('radar:buildings-changed')); } catch (error) { alert(error.message); }
 }
 
+function openShareModal() {
+  const building = getSelectedBuilding();
+  const modal = document.getElementById('modal-share');
+  if (!modal) return;
+
+  const subtitle = document.getElementById('share-project-subtitle');
+  if (subtitle) {
+    if (building) {
+      const arq = building.arquitectos ? (Array.isArray(building.arquitectos) ? building.arquitectos.join(', ') : building.arquitectos) : (building.arquitecto || '');
+      subtitle.textContent = `${building.nombre_obra} ${arq ? `· ${arq}` : ''}`;
+    } else {
+      subtitle.textContent = 'Guía de arquitectura Nolli';
+    }
+  }
+
+  const copyBtn = document.getElementById('btn-share-copy');
+  const copyText = document.getElementById('share-copy-text');
+  if (copyBtn) copyBtn.classList.remove('copied');
+  if (copyText) copyText.textContent = '[ COPIAR ENLACE ]';
+
+  modal.classList.add('open');
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function handleShareAction(choice) {
+  const building = getSelectedBuilding();
+  if (!building) return;
+
+  const origin = window.location.origin;
+  const path = window.location.pathname;
+  const shareUrl = `${origin}${path}?obra=${encodeURIComponent(building.id || building.featureId)}`;
+  const [lng, lat] = building.coordenadas || [0, 0];
+  const arq = building.arquitectos ? (Array.isArray(building.arquitectos) ? building.arquitectos.join(', ') : building.arquitectos) : (building.arquitecto || '');
+
+  if (choice === 'whatsapp') {
+    const text = `🏛️ ${building.nombre_obra}${arq ? `\n📐 ${arq}` : ''}\n📍 Ver en Nolli: ${shareUrl}`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+  } else if (choice === 'google') {
+    const gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+    window.open(gmapsUrl, '_blank');
+  } else if (choice === 'native') {
+    if (navigator.share) {
+      navigator.share({
+        title: building.nombre_obra,
+        text: `🏛️ ${building.nombre_obra} - Guía de Arquitectura Nolli`,
+        url: shareUrl
+      }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(shareUrl);
+      const copyBtn = document.getElementById('btn-share-copy');
+      const copyText = document.getElementById('share-copy-text');
+      if (copyBtn) copyBtn.classList.add('copied');
+      if (copyText) copyText.textContent = '[ ¡ENLACE COPIADO! ]';
+      setTimeout(() => {
+        if (copyBtn) copyBtn.classList.remove('copied');
+        if (copyText) copyText.textContent = '[ COPIAR ENLACE ]';
+      }, 2000);
+    }
+  } else if (choice === 'copy') {
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      const copyBtn = document.getElementById('btn-share-copy');
+      const copyText = document.getElementById('share-copy-text');
+      if (copyBtn) copyBtn.classList.add('copied');
+      if (copyText) copyText.textContent = '[ ¡ENLACE COPIADO! ]';
+      setTimeout(() => {
+        if (copyBtn) copyBtn.classList.remove('copied');
+        if (copyText) copyText.textContent = '[ COPIAR ENLACE ]';
+      }, 2000);
+    }).catch(() => {});
+  }
+}
+
 document.addEventListener('click', (event) => {
   const target = event.target;
   if (target.closest('[data-save-collection]')) { openOrganizer('collections'); return; }
@@ -588,7 +655,12 @@ document.addEventListener('click', (event) => {
     return;
   }
   if (target.closest('[data-open-report]')) { const building = getSelectedBuilding(); if (building) { document.getElementById('report-project-name').textContent = building.nombre_obra; document.getElementById('modal-report').classList.add('open'); } return; }
-  if (target.closest('[data-share-action]')) { document.getElementById('modal-share').classList.add('open'); return; }
+  if (target.closest('[data-share-action]')) { openShareModal(); return; }
+  const shareChoiceBtn = target.closest('[data-share-choice]');
+  if (shareChoiceBtn) {
+    handleShareAction(shareChoiceBtn.dataset.shareChoice);
+    return;
+  }
   if (target.closest('[data-photo-url]')) { const viewer = document.getElementById('modal-photo'); document.getElementById('photo-viewer-image').src = target.closest('[data-photo-url]').dataset.photoUrl; viewer.classList.add('open'); return; }
   if (target.closest('#btn-share-close') || target === document.getElementById('modal-share')) document.getElementById('modal-share').classList.remove('open');
   if (target.closest('#btn-photo-close') || target === document.getElementById('modal-photo')) document.getElementById('modal-photo').classList.remove('open');

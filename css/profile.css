@@ -1,1013 +1,732 @@
 /* =========================================================================
-   PROFILE.CSS — Estilos dedicados para la página de Perfil Personal
-   Diseño Neo-Bauhaus técnico sincronizado con el mapa y el sistema visual
+   PROFILE.CSS — Vista Perfil Editorial Museístico ("Tú")
+   Espacio en blanco estructurado, estética pura Neo-Bauhaus sin cajas cerradas
    ========================================================================= */
 
-html, body.profile-body {
-  min-height: 100vh;
-  margin: 0;
-  padding: 0;
-  background-color: var(--bg, #F5F4F0);
-  color: var(--fg, #141411);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  overflow-y: auto !important;
+:root {
+  --bg-cream: #F4F1EA;
+  --fg-black: #111111;
+  --accent-vermillon: #E84E1B;
+  --text-muted: rgba(17, 17, 17, 0.6);
+  --text-dim: rgba(17, 17, 17, 0.35);
+  --border-hairline: rgba(17, 17, 17, 0.1);
+}
+
+html,
+html:has(body.profile-body),
+body.profile-body {
   height: auto !important;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  overscroll-behavior-y: auto !important;
+  position: static !important;
 }
-
 body.dark-mode {
-  --bg: #141411;
-  --bg-panel: #1c1c1a;
-  --bg-raised: #252522;
-  --fg: #F8F1DF;
-  --fg-dim: #9A9A92;
-  --border: #32322E;
-  --border-strong: #4E4E48;
-  --accent: #E95C0C;
-  --accent-2: #EFBC02;
+  --fg-black: #F4F1EA;
+  --accent-vermillon: #E84E1B;
+  --text-muted: rgba(244, 241, 234, 0.6);
+  --text-dim: rgba(244, 241, 234, 0.35);
+  --border-hairline: rgba(244, 241, 234, 0.1);
 }
 
-.profile-wrapper {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 24px 20px 60px;
-  display: grid;
-  gap: 28px;
-}
-
-/* =========================================================================
-   TOPBAR
-   ========================================================================= */
-.profile-topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  padding-bottom: 16px;
-  border-bottom: 2px solid var(--border-strong);
-  font-family: 'JetBrains Mono', monospace;
-}
-
-.profile-brand-wrap {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-}
-
-.profile-brand {
-  font-family: 'League Spartan', sans-serif;
-  font-weight: 800;
-  font-size: 26px;
-  line-height: 1;
-  color: var(--accent);
-  text-decoration: none;
-  letter-spacing: -0.02em;
-}
-
-.profile-brand span {
-  color: var(--fg);
-}
-
-.profile-tagline {
-  font-size: 10px;
-  color: var(--fg-dim);
-  letter-spacing: 0.08em;
-}
-
-.profile-topbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.profile-topbar-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px 12px;
-  border: 1px solid var(--border-strong);
-  background: var(--bg-panel);
-  color: var(--fg);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  font-weight: 600;
-  text-decoration: none;
-  cursor: pointer;
-  transition: all 0.12s ease;
-}
-
-.profile-topbar-btn:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.profile-topbar-btn.profile-btn-accent {
-  background: var(--accent);
-  color: #FFFFFF;
-  border-color: var(--accent);
-}
-
-.profile-topbar-btn.profile-btn-accent:hover {
-  background: #d45107;
-  color: #FFFFFF;
-}
-
-.profile-topbar-btn.profile-btn-danger {
-  color: var(--red);
-}
-
-.profile-topbar-btn.profile-btn-danger:hover {
-  border-color: var(--red);
-  background: rgba(214, 32, 29, 0.1);
-}
-
-/* =========================================================================
-   HERO / USUARIO
-   ========================================================================= */
-.profile-hero-section {
-  display: grid;
-  gap: 24px;
-}
-
-.profile-hero-user {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.profile-avatar {
-  width: 64px;
-  height: 64px;
-  background: var(--accent);
-  color: #FFFFFF;
-  border: 2px solid var(--border-strong);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'League Spartan', sans-serif;
-  font-size: 28px;
-  font-weight: 800;
-  flex-shrink: 0;
-  text-transform: uppercase;
-}
-
-.profile-user-info {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-}
-
-.profile-kicker {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--accent);
-  letter-spacing: 0.08em;
-}
-
-.profile-hero-name {
-  margin: 0;
-  font-family: 'League Spartan', sans-serif;
-  font-size: clamp(26px, 4vw, 36px);
-  font-weight: 800;
-  line-height: 1.05;
-  color: var(--fg);
-  letter-spacing: -0.01em;
-}
-
-.profile-user-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 16px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  color: var(--fg-dim);
-}
-
-/* Estadísticas */
-.profile-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  gap: 8px;
-}
-
-.profile-stat-card {
-  padding: 12px 14px;
-  background: var(--bg-panel);
-  border: 1px solid var(--border-strong);
-  display: grid;
-  gap: 2px;
-  cursor: pointer;
-  transition: all 0.12s ease;
-  text-decoration: none;
-}
-
-.profile-stat-card:hover {
-  border-color: var(--accent);
-  transform: translateY(-1px);
-}
-
-.profile-stat-val {
-  font-family: 'League Spartan', sans-serif;
-  font-size: 26px;
-  font-weight: 800;
-  color: var(--accent);
-  line-height: 1;
-}
-
-.profile-stat-label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 9px;
-  font-weight: 700;
-  color: var(--fg-dim);
-  letter-spacing: 0.06em;
-}
-
-/* =========================================================================
-   BLOQUE CONTUNDENTE DE DONATIVOS Y MECENAZGO NEO-BAUHAUS
-   ========================================================================= */
-.profile-donation-card {
-  border: 2px solid var(--border-strong, #141411);
-  box-shadow: 3px 3px 0px var(--border-strong, #141411);
-  background: var(--bg-panel, #F4F1EA);
-  padding: 16px 20px;
-  margin-bottom: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-@media (min-width: 640px) {
-  .profile-donation-card {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
-}
-
-.profile-donation-title {
-  font-family: 'League Spartan', sans-serif;
-  font-weight: 900;
-  font-size: 17px;
-  color: var(--fg, #141411);
-  text-transform: uppercase;
-  margin: 4px 0;
-}
-
-.profile-donation-desc {
-  font-family: 'Inter', sans-serif;
-  font-size: 11px;
-  color: var(--fg-dim, #555550);
-  line-height: 1.4;
-  margin: 0;
-}
-
-.btn-support-project {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 46px;
-  padding: 0 20px;
-  background: var(--accent, #E84E1B) !important;
-  color: #FFFFFF !important;
-  border: 1.5px solid var(--border-strong, #141411);
-  box-shadow: 2px 2px 0px var(--border-strong, #141411);
-  font-family: 'League Spartan', sans-serif;
-  font-weight: 900;
-  font-size: 12px;
-  letter-spacing: 0.04em;
-  text-decoration: none;
-  cursor: pointer;
-  touch-action: manipulation;
-  border-radius: 0 !important;
-  flex-shrink: 0;
-  transition: transform 0.08s ease, background 0.12s ease;
-}
-
-.btn-support-project:active {
-  transform: scale(0.95);
-  background: #141411 !important;
-}
-
-/* =========================================================================
-   NAVEGACIÓN POR PESTAÑAS (PLACES-TABS)
-   ========================================================================= */
-.profile-nav-tabs {
-  display: flex;
-  gap: 2px;
-  border-bottom: 2px solid var(--border-strong);
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.profile-nav-tabs::-webkit-scrollbar {
-  display: none;
-}
-
-.profile-nav-tabs .places-tab {
-  padding: 10px 14px;
-  background: var(--bg-raised);
-  border: 1px solid var(--border-strong);
-  border-bottom: 0;
-  color: var(--fg-dim);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.12s ease;
-}
-
-.profile-nav-tabs .places-tab:hover {
-  color: var(--fg);
-  border-color: var(--accent);
-}
-
-.profile-nav-tabs .places-tab.active {
-  background: var(--bg-panel);
-  color: var(--accent);
-  border-color: var(--border-strong);
-  border-bottom: 2px solid var(--bg-panel);
-  margin-bottom: -2px;
-  z-index: 2;
-}
-
-/* =========================================================================
-   CONTENIDO DINÁMICO
-   ========================================================================= */
-.profile-content-body {
-  background: var(--bg-panel);
-  border: 1px solid var(--border-strong);
-  padding: 24px;
-  min-height: 380px;
-}
-
-.profile-section-title {
-  margin: 0 0 16px 0;
-  font-family: 'League Spartan', sans-serif;
-  font-size: 18px;
-  font-weight: 800;
-  color: var(--fg);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  letter-spacing: 0.02em;
-}
-
-.profile-section-desc {
-  font-size: 12px;
-  color: var(--fg-dim);
-  margin: -10px 0 18px 0;
-  line-height: 1.5;
-}
-
-/* Tarjetas de obras */
-.profile-buildings-grid {
-  display: grid;
-  gap: 8px;
-}
-
-.profile-building-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 12px 14px;
-  background: var(--bg-raised);
-  border: 1px solid var(--border);
-  transition: all 0.12s ease;
-}
-
-.profile-building-row:hover {
-  border-color: var(--border-strong);
-  background: var(--bg-panel);
-}
-
-.profile-building-main {
-  min-width: 0;
-  flex: 1;
-}
-
-.profile-building-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--fg);
-  margin-bottom: 3px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.profile-building-meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  color: var(--fg-dim);
-}
-
-.profile-cat-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 1px 6px;
-  border: 1px solid var(--border-strong);
-  font-size: 9px;
-  font-weight: 700;
-  color: var(--fg);
-}
-
-.profile-cat-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  display: inline-block;
-}
-
-.profile-building-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-}
-
-.profile-btn-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  padding: 0;
-  border: 1px solid var(--border-strong);
-  background: var(--bg-panel);
-  color: var(--fg-dim);
-  cursor: pointer;
-  transition: all 0.12s ease;
-  text-decoration: none;
-  font-size: 11px;
-}
-
-.profile-btn-icon:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.profile-btn-icon.active {
-  background: var(--accent);
-  color: #FFFFFF;
-  border-color: var(--accent);
-}
-
-.profile-btn-icon.btn-danger:hover {
-  border-color: var(--red);
-  color: var(--red);
-  background: rgba(214, 32, 29, 0.1);
-}
-
-/* Listas / Colecciones */
-.profile-collections-grid {
-  display: grid;
-  gap: 12px;
-}
-
-.profile-collection-card {
-  border: 1px solid var(--border-strong);
-  background: var(--bg-raised);
-  padding: 14px;
-  display: grid;
-  gap: 10px;
-}
-
-.profile-collection-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-
-.profile-collection-title-wrap {
-  min-width: 0;
-  flex: 1;
-}
-
-.profile-collection-title {
-  font-weight: 700;
-  font-size: 13px;
-  color: var(--fg);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.profile-collection-desc {
-  font-size: 11px;
-  color: var(--fg-dim);
-  margin-top: 2px;
-  font-style: italic;
-}
-
-.profile-collection-tools {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
-}
-
-.profile-collection-items-box {
-  display: grid;
-  gap: 4px;
-  padding-top: 4px;
-  border-top: 1px dashed var(--border);
-}
-
-.profile-collection-item-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 8px 10px;
-  background: var(--bg-panel);
-  border: 1px solid var(--border);
-}
-
-/* Notas */
-.profile-note-card {
-  padding: 12px 14px;
-  background: var(--bg-raised);
-  border: 1px solid var(--border);
-  display: grid;
-  gap: 6px;
-}
-
-.profile-note-text {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  color: var(--accent);
-  font-style: italic;
-  padding-left: 8px;
-  border-left: 2px solid var(--accent);
-  margin: 4px 0;
-}
-
-/* Formularios */
-.profile-form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 14px;
-}
-
-.profile-form-field {
-  display: grid;
-  gap: 4px;
-}
-
-.profile-form-field label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--fg-dim);
-  letter-spacing: 0.05em;
-}
-
-.profile-form-field.full-width {
-  grid-column: 1 / -1;
-}
-
-.profile-form-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 16px;
-}
-
-.profile-form-msg {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--accent);
-}
-
-.profile-empty-state {
-  padding: 40px 20px;
-  text-align: center;
-  border: 1px dashed var(--border-strong);
-  color: var(--fg-dim);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  display: grid;
-  gap: 8px;
-  justify-items: center;
-}
-
-/* =========================================================================
-   MODAL FLOTANTE
-   ========================================================================= */
-.profile-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-}
-
-.profile-modal-box {
-  background: var(--bg-panel);
-  border: 2px solid var(--border-strong);
-  padding: 20px;
-  width: 100%;
-  max-width: 360px;
-  display: grid;
-  gap: 12px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-}
-
-.profile-modal-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid var(--border-strong);
-  padding-bottom: 8px;
-}
-
-.profile-modal-head strong {
-  color: var(--accent);
-  font-size: 12px;
-}
-
-/* =========================================================================
-   FOOTER
-   ========================================================================= */
-.profile-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 14px;
-  padding-top: 20px;
-  border-top: 1px solid var(--border-strong);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  color: var(--fg-dim);
-}
-
-.profile-footer-links {
-  display: flex;
-  gap: 12px;
-}
-
-.profile-footer-links a {
-  color: var(--accent);
-  text-decoration: none;
-  font-weight: 700;
-}
-
-.profile-footer-links a:hover {
-  text-decoration: underline;
-}
-
-/* Barra inferior móvil en perfil (oculta en escritorio) */
-.mobile-bottom-bar {
+.hidden {
   display: none !important;
 }
 
-  html, body.profile-body {
-    height: 100% !important;
-    min-height: 100dvh !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-    overscroll-behavior-y: contain !important;
-  }
+/* =========================================================================
+   1. EL LIENZO BASE (PADDINGS PRECISOS PARA EVITAR SUPERPOSICIÓN)
+   ========================================================================= */
+.profile-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 64px;
+  background: var(--bg-cream);
+  z-index: 950;
+  padding: max(10px, env(safe-area-inset-top)) 24px 10px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-hairline);
+  box-sizing: border-box;
+}
 
-  .profile-wrapper {
-    min-height: 100%;
-    padding: 14px 14px 20px !important;
-    padding-bottom: calc(95px + env(safe-area-inset-bottom)) !important;
-    gap: 18px !important;
-    max-width: 100% !important;
-    display: flex !important;
-    flex-direction: column !important;
-  }
+.profile-canvas {
+  width: 100%;
+  max-width: 820px;
+  margin: 0 auto;
+  padding-top: calc(max(10px, env(safe-area-inset-top)) + 80px) !important;
+  padding-left: 24px !important;
+  padding-right: 24px !important;
+  padding-bottom: calc(180px + env(safe-area-inset-bottom)) !important;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
 
-  .profile-card,
-  .profile-hero-section,
-  .profile-collection-card,
-  .profile-stat-card {
-    border-radius: 0 !important;
-    border: 1px solid var(--border-strong, #141411) !important;
-    box-shadow: 2px 2px 0px var(--border-strong, #141411) !important;
-    background: var(--bg-panel, #F4F1EA);
-  }
+.profile-main {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
 
-  .profile-topbar {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 12px;
-    border-bottom: 2px solid var(--border-strong, #141411);
-  }
+.profile-logo {
+  font-family: 'League Spartan', sans-serif;
+  font-weight: 800;
+  font-size: 26px;
+  color: var(--accent-vermillon);
+  text-decoration: none;
+  line-height: 1;
+}
 
-  .profile-brand {
-    font-size: 22px;
-  }
+.profile-logo span {
+  color: var(--fg-black);
+}
 
-  .profile-tagline {
-    display: none;
-  }
+.profile-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
 
-  .profile-topbar-actions {
-    gap: 6px;
-  }
+.profile-minimal-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: 'League Spartan', sans-serif;
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  color: var(--fg-black);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  opacity: 0.8;
+  transition: opacity 0.1s ease, color 0.1s ease;
+}
 
-  .profile-topbar-btn {
-    padding: 6px 8px;
-    font-size: 10px;
-    min-height: 38px;
-  }
+.profile-minimal-btn:hover {
+  opacity: 1;
+  color: var(--accent-vermillon);
+}
 
-  .profile-hero-section {
-    padding: 14px;
-    gap: 16px;
-  }
+/* =========================================================================
+   ESTADO: AUTENTICACIÓN REQUERIDA
+   ========================================================================= */
+.profile-auth-message {
+  padding: 30px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
 
-  .profile-hero-user {
-    flex-direction: row;
-    align-items: center;
-    gap: 12px;
-  }
+.profile-login-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 28px;
+  background: #111111;
+  color: #F4F1EA;
+  font-family: 'League Spartan', sans-serif;
+  font-weight: 900;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: none;
+  border-radius: 0 !important;
+  box-shadow: 4px 4px 0px var(--accent-vermillon);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
 
-  .profile-avatar {
-    width: 52px;
-    height: 52px;
-    font-size: 20px;
-    flex-shrink: 0;
-    border-radius: 0 !important;
-    border: 1px solid var(--border-strong, #141411);
-  }
+.profile-login-cta-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px var(--accent-vermillon);
+}
 
-  .profile-hero-name {
-    font-family: 'League Spartan', sans-serif !important;
-    font-weight: 900 !important;
-    font-size: 22px !important;
-    letter-spacing: -0.01em;
-    text-transform: uppercase;
-  }
+/* =========================================================================
+   2. HERO MONUMENTAL (IDENTIDAD)
+   ========================================================================= */
+.profile-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
-  .profile-user-meta {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-  }
+.profile-hero-name {
+  font-family: 'League Spartan', sans-serif;
+  font-weight: 900;
+  font-size: clamp(36px, 8.5vw, 48px);
+  line-height: 1.1;
+  color: var(--fg-black);
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  margin: 0;
+  text-align: left;
+}
 
-  .profile-stats-grid {
-    display: grid !important;
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 10px !important;
-  }
+.profile-hero-sub {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-muted);
+  margin: 0;
+  text-align: left;
+}
 
-  .profile-stat-card {
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: center !important;
-    padding: 14px 12px !important;
-    min-height: 68px !important;
-    touch-action: manipulation;
-    cursor: pointer;
-  }
+/* =========================================================================
+   3. MÉTRICAS (GRID INVISIBLE)
+   ========================================================================= */
+.profile-metrics-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-top: 40px;
+  width: 100%;
+}
 
-  .profile-stat-val {
-    font-family: 'League Spartan', sans-serif !important;
-    font-weight: 900 !important;
-    font-size: 24px !important;
-    line-height: 1 !important;
-    color: var(--fg) !important;
-  }
+.profile-metric-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-right: 1px solid var(--border-hairline);
+  padding: 0 16px 0 0;
+  margin-right: 16px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity 0.1s ease;
+}
 
-  .profile-stat-label {
-    font-family: 'JetBrains Mono', monospace !important;
-    font-size: 9px !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.05em !important;
-    margin-top: 4px !important;
-    color: var(--fg-dim) !important;
-  }
+.profile-metric-item:last-child {
+  border-right: none;
+  padding-right: 0;
+  margin-right: 0;
+}
 
-  /* Pestañas horizontales con scroll táctil suave */
-  .profile-nav-tabs {
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-    scrollbar-width: none !important;
-    gap: 4px !important;
-    padding-bottom: 4px !important;
-    border-bottom: 2px solid var(--border-strong, #141411) !important;
-  }
+.profile-metric-item:active {
+  opacity: 0.7;
+}
 
-  .profile-nav-tabs::-webkit-scrollbar {
-    display: none;
-  }
+.profile-metric-num {
+  font-family: 'League Spartan', sans-serif;
+  font-weight: 900;
+  font-size: 40px;
+  line-height: 1;
+  color: var(--fg-black);
+}
 
-  .profile-nav-tabs .places-tab {
-    flex: 0 0 auto !important;
-    white-space: nowrap !important;
-    min-height: 46px !important;
-    padding: 8px 14px !important;
-    font-family: 'League Spartan', sans-serif !important;
-    font-weight: 800 !important;
-    font-size: 11px !important;
-    letter-spacing: 0.04em !important;
-    touch-action: manipulation !important;
-    border-radius: 0 !important;
-  }
+.profile-metric-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+}
 
-  .profile-building-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 14px;
-    border-radius: 0 !important;
-    border: 1px solid var(--border-strong, #141411) !important;
-    box-shadow: 2px 2px 0px var(--border-strong, #141411) !important;
-    background: var(--bg-panel, #F4F1EA);
-    margin-bottom: 10px;
-  }
+/* =========================================================================
+   4. NAVEGACIÓN CURATORIAL
+   ========================================================================= */
+.profile-curatorial-nav {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-top: 40px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border-hairline);
+  padding-bottom: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
 
-  .profile-building-title {
-    font-family: 'League Spartan', sans-serif !important;
-    font-weight: 800 !important;
-    font-size: 16px !important;
-    line-height: 1.2 !important;
-    text-transform: uppercase;
-  }
+.profile-curatorial-tab {
+  background: none;
+  border: none;
+  padding: 0 0 6px 0;
+  font-family: 'League Spartan', sans-serif;
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  cursor: pointer;
+  border-bottom: 4px solid transparent;
+  white-space: nowrap;
+  transition: color 0.12s ease, border-color 0.12s ease;
+  margin-bottom: -1px;
+}
 
-  .profile-building-meta {
-    font-family: 'Inter', sans-serif;
-    font-size: 12px;
-    color: var(--fg-dim);
-  }
+.profile-curatorial-tab:hover {
+  color: var(--fg-black);
+}
 
-  .profile-building-actions {
-    width: 100%;
-    justify-content: space-between;
-    border-top: 1px solid var(--border);
-    padding-top: 10px;
-    margin-top: 4px;
-  }
+.profile-curatorial-tab.active {
+  color: var(--fg-black) !important;
+  border-bottom: 4px solid var(--accent-vermillon) !important;
+}
 
-  .profile-action-btn {
-    min-width: 46px;
-    min-height: 46px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    touch-action: manipulation;
-  }
+/* =========================================================================
+   5. FEED DE OBRAS (ARCHIVO) CON AJUSTE DE SCROLL (160PX DE PULMÓN)
+   ========================================================================= */
+.profile-feed-list {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding-bottom: 160px !important;
+}
 
-  .profile-collection-card {
-    padding: 14px;
-    margin-bottom: 10px;
-  }
+.profile-feed-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: opacity 0.1s ease;
+}
 
-  .profile-collection-head {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
+.profile-feed-item:active {
+  opacity: 0.7;
+}
 
-  .profile-collection-actions {
-    gap: 8px;
-  }
+.profile-feed-thumb {
+  width: 72px;
+  height: 72px;
+  min-width: 72px;
+  min-height: 72px;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  background-color: rgba(17, 17, 17, 0.06);
+  border-radius: 0 !important;
+  display: block;
+}
 
-  /* Botones de acción principales a ancho completo en móvil */
-  .profile-form-actions button,
-  .profile-auth-actions .btn,
-  .profile-action-full,
-  .profile-content-body .btn-accent,
-  .profile-content-body .btn-primary,
-  .btn-create-collection {
-    width: 100% !important;
-    min-height: 48px !important;
-    font-family: 'League Spartan', sans-serif !important;
-    font-weight: 800 !important;
-    font-size: 12px !important;
-    letter-spacing: 0.05em !important;
-    text-transform: uppercase !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    touch-action: manipulation !important;
-    margin-top: 8px;
-  }
+.profile-feed-thumb-fallback {
+  width: 72px;
+  height: 72px;
+  min-width: 72px;
+  min-height: 72px;
+  background: #E4E0D6;
+  color: var(--accent-vermillon);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'League Spartan', sans-serif;
+  font-weight: 900;
+  font-size: 20px;
+}
 
-  .profile-footer {
-    display: none;
-  }
+.profile-feed-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
 
-  /* Barra inferior fija en perfil */
-  .mobile-bottom-bar {
-    display: flex !important;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 45;
-    background: var(--bg-panel, #F4F1EA);
-    border-top: 2px solid var(--border-strong, #141411);
-    padding-bottom: max(6px, env(safe-area-inset-bottom));
-    min-height: 56px;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-  }
+.profile-feed-title {
+  font-family: 'League Spartan', sans-serif;
+  font-weight: 800;
+  font-size: 16px;
+  line-height: 1.2;
+  color: var(--fg-black);
+  text-transform: uppercase;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
 
-  .mobile-nav-btn {
-    flex: 1;
-    min-height: 52px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-    border: 0;
-    border-right: 1px solid var(--border, #141411);
-    background: transparent !important;
-    color: var(--fg, #141411);
-    font-family: 'League Spartan', sans-serif !important;
-    font-weight: 800;
-    font-size: 10px;
-    line-height: 1;
-    letter-spacing: 0.04em;
-    cursor: pointer;
-    touch-action: manipulation;
-    text-decoration: none;
-    -webkit-tap-highlight-color: transparent;
-    transition: transform 0.08s ease, color 0.12s ease;
-  }
+.profile-feed-meta {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-  .mobile-nav-btn:last-child {
-    border-right: 0;
-  }
+/* Colecciones en Feed Curatorial */
+.profile-feed-collection-item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 24px;
+  cursor: pointer;
+}
 
-  .mobile-nav-btn:active {
-    transform: scale(0.92);
-  }
+.profile-collection-head-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
 
-  .mobile-nav-btn.active {
-    background: transparent !important;
-    color: var(--accent, #E84E1B) !important;
-  }
+.profile-collection-name {
+  font-family: 'League Spartan', sans-serif;
+  font-weight: 800;
+  font-size: 16px;
+  text-transform: uppercase;
+  color: var(--fg-black);
+  margin: 0;
+}
 
-  .mobile-nav-btn.active i,
-  .mobile-nav-btn.active svg {
-    color: var(--accent, #E84E1B) !important;
-    stroke: var(--accent, #E84E1B) !important;
-  }
+.profile-collection-count-badge {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
 
-  .mobile-nav-btn.active span {
-    color: var(--accent, #E84E1B) !important;
-    font-weight: 900 !important;
-  }
+.profile-collection-desc {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+}
 
-  /* Botón Central Destacado Neo-Bauhaus (MI RADAR) */
-  .mobile-nav-radar-btn {
-    position: relative;
-    font-weight: 900 !important;
-  }
+.profile-collection-items-mini {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
 
-  .radar-btn-inner {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 24px;
-    background: var(--bg-raised, #ECE6D8);
-    border: 1px solid var(--border-strong, #141411);
-    box-shadow: 1px 1px 0px var(--border-strong, #141411);
-    color: var(--fg, #141411);
-    margin-bottom: 2px;
-    transition: all 0.12s ease;
-  }
+.profile-collection-mini-thumb {
+  width: 72px;
+  height: 72px;
+  min-width: 72px;
+  min-height: 72px;
+  object-fit: cover;
+  background-color: rgba(17, 17, 17, 0.06);
+  border-radius: 0;
+}
 
-  body.dark-mode .radar-btn-inner {
-    background: #252522;
-  }
+/* Notas en Feed */
+.profile-feed-note-item {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
 
-  .mobile-nav-radar-btn.active .radar-btn-inner,
-  .mobile-nav-radar-btn:active .radar-btn-inner {
-    background: var(--bg-panel, #F4F1EA) !important;
-    color: var(--accent, #E84E1B) !important;
-    border-color: var(--accent, #E84E1B) !important;
-    box-shadow: 1px 1px 0px var(--accent, #E84E1B) !important;
-  }
+.profile-feed-note-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
 
-  .mobile-nav-radar-btn.active .radar-btn-inner svg,
-  .mobile-nav-radar-btn:active .radar-btn-inner svg {
-    color: var(--accent, #E84E1B) !important;
-    stroke: var(--accent, #E84E1B) !important;
+.profile-feed-note-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--fg-black);
+  margin: 0;
+}
+
+.profile-feed-empty {
+  padding: 32px 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* =========================================================================
+   6. CALL TO ACTION FLOTANTE (FIJADO JUSTO ENCIMA DE LA BARRA INFERIOR)
+   ========================================================================= */
+.profile-floating-cta {
+  position: fixed !important;
+  bottom: 85px !important;
+  left: 24px !important;
+  width: calc(100% - 48px) !important;
+  max-width: 772px !important;
+  height: 50px !important;
+  background: #111111 !important;
+  color: #F4F1EA !important;
+  font-family: 'League Spartan', sans-serif !important;
+  font-weight: 900 !important;
+  font-size: 13px !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-decoration: none !important;
+  border-radius: 0 !important;
+  border: none !important;
+  box-sizing: border-box !important;
+  z-index: 900 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
+  transition: transform 0.08s ease, background 0.12s ease !important;
+}
+
+.profile-floating-cta:active {
+  transform: scale(0.98) !important;
+  background: var(--accent-vermillon) !important;
+}
+
+@media (min-width: 820px) {
+  .profile-floating-cta {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+  }
+  .profile-floating-cta:active {
+    transform: translateX(-50%) scale(0.98) !important;
   }
 }
+
+/* =========================================================================
+   ANCLAJE ABSOLUTO DEL BOTTOM NAVIGATION (BARRA INFERIOR)
+   ========================================================================= */
+.mobile-bottom-bar {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  z-index: 1000 !important;
+  background-color: var(--bg-cream, #F4F1EA) !important;
+  border-top: 2px solid #111111 !important;
+  display: flex !important;
+  align-items: stretch !important;
+  justify-content: space-around !important;
+  padding-bottom: max(4px, env(safe-area-inset-bottom)) !important;
+  min-height: 56px !important;
+  height: calc(56px + env(safe-area-inset-bottom)) !important;
+  box-sizing: border-box !important;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08) !important;
+}
+
+.mobile-nav-btn {
+  flex: 1;
+  min-height: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 0;
+  border-right: 1px solid var(--border-hairline, rgba(17, 17, 17, 0.1));
+  background: transparent !important;
+  color: var(--fg-black, #111111);
+  font-family: 'League Spartan', sans-serif !important;
+  font-weight: 800;
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  touch-action: manipulation;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.08s ease, color 0.12s ease;
+}
+
+.mobile-nav-btn:last-child {
+  border-right: 0;
+}
+
+.mobile-nav-btn.active {
+  color: var(--accent-vermillon, #E84E1B) !important;
+}
+
+.mobile-nav-btn svg {
+  stroke-width: 2.2;
+}
+
+.radar-btn-inner {
+  width: 30px;
+  height: 30px;
+  background: var(--accent-vermillon, #E84E1B);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0 !important;
+}
+
+.radar-btn-inner svg {
+  color: #FFFFFF;
+  stroke: #FFFFFF;
+}
+
+/* =========================================================================
+   MODAL / BOTTOM SHEET DE PERSONALIZACIÓN DE PERFIL (NEO-BAUHAUS)
+   ========================================================================= */
+#modal-edit-profile.modal-overlay {
+  align-items: flex-end !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  background: rgba(17, 17, 17, 0.55) !important;
+  backdrop-filter: blur(2px) !important;
+  -webkit-backdrop-filter: blur(2px) !important;
+  z-index: 1050 !important;
+}
+
+.profile-edit-sheet {
+  width: 100% !important;
+  max-width: 540px !important;
+  background: var(--bg-cream, #F4F1EA) !important;
+  border: none !important;
+  border-top: 2px solid #111111 !important;
+  box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.25) !important;
+  border-radius: 0 !important;
+  margin: 0 auto !important;
+  padding: 24px 24px calc(28px + env(safe-area-inset-bottom)) 24px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  transform: translateY(100%);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  box-sizing: border-box !important;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+#modal-edit-profile.open .profile-edit-sheet {
+  transform: translateY(0) !important;
+}
+
+.profile-edit-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.profile-edit-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profile-edit-title {
+  font-family: 'League Spartan', sans-serif !important;
+  font-weight: 900 !important;
+  font-size: 20px !important;
+  color: var(--fg-black, #111111) !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+  margin: 0 !important;
+}
+
+.profile-edit-subtitle {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 12px !important;
+  color: var(--text-muted, rgba(17, 17, 17, 0.6)) !important;
+  margin: 0 !important;
+  line-height: 1.3 !important;
+}
+
+.profile-edit-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  background: transparent;
+  border: none;
+  color: var(--fg-black, #111111);
+  cursor: pointer;
+  touch-action: manipulation;
+  margin: -10px -10px 0 0;
+  padding: 0;
+  border-radius: 0 !important;
+  transition: color 0.12s ease;
+}
+
+.profile-edit-close:hover {
+  color: var(--accent-vermillon, #E84E1B);
+}
+
+.profile-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.profile-form-row {
+  display: flex;
+  gap: 12px;
+}
+
+.profile-form-row .profile-form-group {
+  flex: 1;
+}
+
+.profile-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.profile-form-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--text-muted, rgba(17, 17, 17, 0.6));
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.profile-edit-form .tech-input {
+  width: 100%;
+  background: var(--bg-cream, #F4F1EA);
+  border: 1px solid #111111;
+  color: var(--fg-black, #111111);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 12px;
+  border-radius: 0 !important;
+  box-sizing: border-box;
+}
+
+.profile-edit-form .tech-input:focus {
+  outline: 2px solid var(--accent-vermillon, #E84E1B);
+  outline-offset: 1px;
+}
+
+.profile-save-btn {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 8px;
+  background: #111111 !important;
+  color: #F4F1EA !important;
+  border: none;
+  box-shadow: 4px 4px 0px var(--accent-vermillon, #E84E1B);
+  font-family: 'League Spartan', sans-serif;
+  font-weight: 900;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  touch-action: manipulation;
+  border-radius: 0 !important;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.12s ease;
+}
+
+.profile-save-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px var(--accent-vermillon, #E84E1B);
+}
+
+.profile-edit-status {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-vermillon, #E84E1B);
+  padding: 6px 0;
 }

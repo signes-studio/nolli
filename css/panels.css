@@ -1154,29 +1154,9 @@ body.dark-mode .sheet-hero-btn.active.saved {
     text-decoration: underline !important;
   }
 
-  /* En móvil, solo mantener visibles los FABs flotantes de ubicación y añadir obra */
+  /* En móvil, los controles flotantes están gestionados exclusivamente por #mobile-map-controls */
   #map-tools {
-    position: fixed !important;
-    right: 14px !important;
-    bottom: calc(80px + env(safe-area-inset-bottom)) !important;
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 10px !important;
-    z-index: 41 !important;
-    pointer-events: none !important;
-  }
-  #map-tools > button:not(#btn-location):not(#btn-add-project) {
     display: none !important;
-  }
-  #map-tools #btn-location,
-  #map-tools #btn-add-project {
-    display: flex !important;
-    width: 48px !important;
-    height: 48px !important;
-    pointer-events: auto !important;
-    touch-action: manipulation !important;
-    box-shadow: 2px 2px 0px var(--border-strong, #141411) !important;
-    border: 1px solid var(--border-strong, #141411) !important;
   }
 }
 .search-controls { display: grid; gap: 7px; padding: 10px 12px; border-bottom: 1px solid var(--border); }
@@ -1345,21 +1325,23 @@ body.dark-mode .sheet-hero-btn.active.saved {
 }
 
 .explore-toolbar {
-  padding: 8px 14px;
+  padding: 12px 14px 8px;
   background: var(--bg-panel, #F4F1EA);
+  margin-bottom: 4px;
 }
 
 /* Banda Horizontal de Chips con Scroll Táctil */
 .explore-chips-bar {
   display: flex;
-  gap: 6px;
-  padding: 4px 14px 8px;
+  gap: 8px;
+  padding: 6px 14px 14px;
   overflow-x: auto;
   white-space: nowrap;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
   background: var(--bg-panel, #F4F1EA);
   border-bottom: 1px solid var(--border-strong, #111111);
+  margin-bottom: 12px;
 }
 
 .explore-chips-bar::-webkit-scrollbar {
@@ -1397,8 +1379,10 @@ body.dark-mode .sheet-hero-btn.active.saved {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 14px;
+  padding: 8px 14px;
   background: var(--bg-raised, #ECE6D8);
+  margin: 0 14px 14px;
+  border: 1px solid var(--border-strong, #111111);
 }
 
 .explore-sort-label {
@@ -1416,7 +1400,7 @@ body.dark-mode .sheet-hero-btn.active.saved {
 
 .explore-sort-btn {
   min-height: 28px;
-  padding: 3px 8px;
+  padding: 3px 10px;
   font-family: 'League Spartan', sans-serif;
   font-weight: 800;
   font-size: 10px;
@@ -1430,8 +1414,10 @@ body.dark-mode .sheet-hero-btn.active.saved {
 }
 
 .explore-sort-btn.active {
-  background: var(--fg, #111111) !important;
-  color: var(--bg-panel, #F4F1EA) !important;
+  background: var(--bg-panel, #F4F1EA) !important;
+  color: var(--accent, #E84E1B) !important;
+  border-color: var(--accent, #E84E1B) !important;
+  box-shadow: 1px 1px 0px var(--accent, #E84E1B) !important;
 }
 
 /* Feed Vertical de Explora */
@@ -1813,12 +1799,15 @@ body.dark-mode .sheet-hero-btn.active.saved {
 }
 
 .radar-proximity-thumb {
-  width: 60px;
-  height: 60px;
+  width: 88px;
+  height: 88px;
+  aspect-ratio: 1 / 1;
   flex-shrink: 0;
-  border: 1px solid var(--border-strong, #111111);
+  border: 1.5px solid var(--border-strong, #111111);
+  box-shadow: 2px 2px 0px var(--border-strong, #111111);
   overflow: hidden;
   background: #111111;
+  border-radius: 0 !important;
 }
 
 .radar-proximity-thumb img {
@@ -1918,6 +1907,45 @@ body.dark-mode .sheet-hero-btn.active.saved {
   border-bottom: 2px solid var(--accent, #E84E1B);
 }
 
+/* Secciones Estructurales en Explora */
+.explore-section-block {
+  margin-bottom: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.explore-section-title-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.explore-section-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--fg-dim, #555550);
+  letter-spacing: 0.08em;
+}
+
+.explore-curated-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.explore-curated-container .radar-route-card {
+  border: 2px solid var(--border-strong, #111111);
+  box-shadow: 3px 3px 0px var(--border-strong, #111111);
+  background: var(--bg-panel, #F4F1EA);
+  border-radius: 0 !important;
+  padding: 14px;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 /* Cuadrícula de Colecciones Públicas de la Comunidad */
 .public-collections-grid {
   display: grid;
@@ -1932,21 +1960,22 @@ body.dark-mode .sheet-hero-btn.active.saved {
 }
 
 .public-collection-card {
-  border: 1.5px solid var(--border-strong, #111111);
+  border: 2px solid var(--border-strong, #111111);
   background: var(--bg-panel, #F4F1EA);
-  box-shadow: 2px 2px 0px var(--border-strong, #111111);
+  box-shadow: 3px 3px 0px var(--border-strong, #111111);
   border-radius: 0 !important;
-  padding: 12px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   cursor: pointer;
   touch-action: manipulation;
-  transition: transform 0.08s ease;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
 }
 
 .public-collection-card:active {
   transform: scale(0.98);
+  box-shadow: 1px 1px 0px var(--border-strong, #111111);
   background: var(--bg-raised, #ECE6D8);
 }
 
@@ -1954,47 +1983,49 @@ body.dark-mode .sheet-hero-btn.active.saved {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .public-collection-emoji {
-  font-size: 20px;
+  font-size: 22px;
 }
 
 .public-collection-count {
   font-family: 'JetBrains Mono', monospace;
   font-size: 9px;
-  font-weight: 700;
-  color: var(--accent, #E84E1B);
+  font-weight: 800;
+  color: var(--fg, #111111);
   background: var(--bg-raised, #ECE6D8);
-  border: 1px solid var(--border-strong, #111111);
-  padding: 1px 5px;
+  border: 1.5px solid var(--border-strong, #111111);
+  padding: 2px 6px;
+  border-radius: 0 !important;
 }
 
 .public-collection-title {
   font-family: 'League Spartan', sans-serif;
   font-weight: 900;
-  font-size: 15px;
-  line-height: 1.15;
+  font-size: 16px;
+  line-height: 1.2;
   color: var(--fg, #111111);
-  margin: 0 0 4px;
+  margin: 0 0 6px;
   text-transform: uppercase;
 }
 
 .public-collection-desc {
   font-family: 'Inter', sans-serif;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--fg-dim, #555550);
-  line-height: 1.3;
-  margin: 0 0 10px;
+  line-height: 1.35;
+  margin: 0 0 12px;
 }
 
 .public-collection-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-top: 1px dashed var(--border-strong, #111111);
-  padding-top: 8px;
+  border-top: 1.5px dashed var(--border-strong, #111111);
+  padding-top: 10px;
+  gap: 8px;
 }
 
 .public-collection-author {
@@ -2008,7 +2039,13 @@ body.dark-mode .sheet-hero-btn.active.saved {
   font-family: 'League Spartan', sans-serif;
   font-weight: 900;
   font-size: 10px;
-  color: var(--accent, #E84E1B);
+  color: #FFFFFF;
+  background: var(--accent, #E84E1B);
+  border: 1px solid var(--border-strong, #111111);
+  padding: 4px 8px;
+  border-radius: 0 !important;
+  cursor: pointer;
+  letter-spacing: 0.04em;
 }
 
 /* Botones de Reporte en Bottom Sheet */
@@ -2070,5 +2107,125 @@ body.dark-mode .sheet-hero-btn.active.saved {
 
 .report-type-pill.active {
   background: var(--accent, #E84E1B) !important;
+  color: #FFFFFF !important;
+}
+
+/* ==========================================================================
+   ETIQUETA FLOTANTE LIGERA DE MODO ITINERARIO / FILTRO ACTIVO (NEO-BAUHAUS)
+   ========================================================================== */
+.itinerary-filter-badge {
+  display: inline-flex !important;
+  align-items: center;
+  position: fixed;
+  top: calc(max(10px, env(safe-area-inset-top)) + 42px);
+  left: 10px;
+  z-index: 40;
+  background-color: var(--accent, #E84E1B) !important;
+  color: #FFFFFF !important;
+  border: none !important;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.25);
+  border-radius: 0 !important;
+  padding: 4px 4px 4px 12px;
+  max-width: min(calc(100vw - 20px), 380px);
+  box-sizing: border-box;
+  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, visibility 0.3s ease;
+}
+
+@media (min-width: 769px) {
+  .itinerary-filter-badge {
+    top: 68px;
+    left: 16px;
+    max-width: 420px;
+  }
+}
+
+.itinerary-filter-badge.hidden {
+  transform: translateY(-8px) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+
+.itinerary-badge-text-wrap {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.itinerary-badge-title {
+  font-family: 'League Spartan', sans-serif;
+  font-weight: 800;
+  font-size: 13px;
+  color: #FFFFFF;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.1;
+}
+
+.itinerary-badge-count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.itinerary-badge-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 38px;
+  min-width: 44px;
+  min-height: 38px;
+  background: transparent;
+  border: none;
+  color: #FFFFFF;
+  cursor: pointer;
+  opacity: 0.85;
+  margin-left: 6px;
+  padding: 0;
+  touch-action: manipulation;
+  border-radius: 0 !important;
+  transition: opacity 0.12s ease, transform 0.1s ease;
+}
+
+.itinerary-badge-close:hover {
+  opacity: 1;
+}
+
+.itinerary-badge-close:active {
+  transform: scale(0.9);
+  opacity: 1;
+}
+
+/* Botón Neo-Bauhaus de Nueva Lista */
+.btn-new-list {
+  background: #111111 !important;
+  color: #F4F1EA !important;
+  border: 1.5px solid #111111 !important;
+  box-shadow: 2px 2px 0px #111111;
+  border-radius: 0 !important;
+  font-family: 'League Spartan', sans-serif !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.08s ease, background 0.12s ease;
+}
+
+.btn-new-list:active {
+  transform: scale(0.95);
+  background: var(--accent, #E84E1B) !important;
+  border-color: #111111 !important;
   color: #FFFFFF !important;
 }
