@@ -593,7 +593,8 @@ function handleShareAction(choice) {
   if (!building) return;
 
   const origin = window.location.origin;
-  const path = window.location.pathname;
+  const rawPath = window.location.pathname.replace(/\/index\.html$/, '/') || '/';
+  const path = rawPath.endsWith('/') ? rawPath : `${rawPath}/`;
   const shareUrl = `${origin}${path}?obra=${encodeURIComponent(building.id || building.featureId)}`;
   const [lng, lat] = building.coordenadas || [0, 0];
   const arq = building.arquitectos ? (Array.isArray(building.arquitectos) ? building.arquitectos.join(', ') : building.arquitectos) : (building.arquitecto || '');

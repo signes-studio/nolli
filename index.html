@@ -4,10 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://*.mapbox.com https://api.mapbox.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://*.mapbox.com https://api.mapbox.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.mapbox.com https://api.mapbox.com https://events.mapbox.com https://nominatim.openstreetmap.org; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
+<title>nolli. | radar arquitectónico</title>
 <meta name="description" content="Radar arquitectónico interactivo: explora y registra obras de arquitectura sobre un mapa en vivo.">
 <meta name="color-scheme" content="light dark">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="./icon.svg">
+
+<script>
+  if (window.location.pathname.endsWith('/index.html') || window.location.pathname.endsWith('index.html')) {
+    const cleanPath = window.location.pathname.replace(/\/index\.html$/, '/') || '/';
+    window.history.replaceState(null, '', cleanPath + window.location.search + window.location.hash);
+  }
+</script>
 
 <!-- Tailwind (CDN, utilidades de layout puntuales) -->
 <script src="https://cdn.tailwindcss.com"></script>
@@ -132,7 +140,7 @@
 
   <!-- Widget flotante de Identidad y Sesión (Móvil sup-izq) -->
   <aside id="mobile-identity-widget" class="mobile-identity-widget" aria-label="Identidad y sesión de usuario">
-    <a href="./index.html" class="mobile-identity-brand">nolli<span>.</span></a>
+    <a href="./" class="mobile-identity-brand">nolli<span>.</span></a>
     <button type="button" id="btn-mobile-identity-action" class="mobile-identity-btn" aria-label="Acceder o ver cuenta">
       <span id="mobile-identity-badge" class="mobile-identity-badge">[ ACCEDER ]</span>
     </button>

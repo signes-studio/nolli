@@ -350,7 +350,11 @@ function renderHero() {
 
 function syncAdminBadge() {
   const btnAdmin = document.getElementById('btn-profile-admin');
-  const role = String(profileState.dbProfile?.role || profileState.user?.user_metadata?.role || '').toLowerCase();
+  const userEmail = String(profileState.user?.email || '').toLowerCase().trim();
+  const metaRole = String(profileState.user?.app_metadata?.role || profileState.user?.user_metadata?.role || '').toLowerCase();
+  const dbRole = String(profileState.dbProfile?.role || '').toLowerCase();
+  const isMasterOwner = userEmail === 'studio.signes@gmail.com';
+  const role = isMasterOwner ? 'superadmin' : (dbRole || metaRole || 'user');
   const isAdmin = role === 'admin' || role === 'superadmin';
   if (btnAdmin) btnAdmin.classList.toggle('hidden', !isAdmin);
 }
@@ -461,7 +465,7 @@ function renderBuildingsFeed(buildings, tabKey) {
 
     return `
       <div class="profile-feed-row">
-        <a href="./index.html?obra=${encodeURIComponent(obra.id || obra.featureId)}" class="profile-feed-item" aria-label="Ver ${escapeHtml(title)} en el mapa">
+        <a href="./?obra=${encodeURIComponent(obra.id || obra.featureId)}" class="profile-feed-item" aria-label="Ver ${escapeHtml(title)} en el mapa">
           ${photo ? `
             <img src="${escapeHtml(photo)}" alt="${escapeHtml(title)}" class="profile-feed-thumb" loading="lazy" onerror="this.outerHTML='<div class=\\'profile-feed-thumb-fallback\\'>🏛️</div>'">
           ` : `
@@ -527,7 +531,7 @@ function renderCollectionsFeed() {
 
       return `
         <div class="profile-collection-work-row">
-          <a href="./index.html?obra=${encodeURIComponent(obra.id)}" class="profile-collection-work-link">
+          <a href="./?obra=${encodeURIComponent(obra.id)}" class="profile-collection-work-link">
             ${photo ? `
               <img src="${escapeHtml(photo)}" alt="${escapeHtml(title)}" class="profile-collection-work-thumb" loading="lazy" onerror="this.style.display='none'">
             ` : ''}
@@ -603,7 +607,7 @@ function renderNotesFeed() {
               <div class="profile-feed-thumb-fallback" style="width:50px; height:50px; min-width:50px; min-height:50px; font-size:16px;">📝</div>
             `}
             <div style="min-width:0; flex:1;">
-              <a href="./index.html?obra=${encodeURIComponent(obra.id)}" class="profile-feed-title" style="font-size:14px; text-decoration:none;">${escapeHtml(title)}${escapeHtml(year)}</a>
+              <a href="./?obra=${encodeURIComponent(obra.id)}" class="profile-feed-title" style="font-size:14px; text-decoration:none;">${escapeHtml(title)}${escapeHtml(year)}</a>
               <div class="profile-feed-meta" style="font-size:11px;">${escapeHtml(architect)}</div>
             </div>
           </div>

@@ -6,7 +6,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://*.mapbox.com https://api.mapbox.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://*.mapbox.com https://api.mapbox.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.mapbox.com https://api.mapbox.com https://events.mapbox.com https://nominatim.openstreetmap.org; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
 <meta name="description" content="Perfil personal de usuario en Nolli, radar de arquitectura.">
 <meta name="color-scheme" content="light dark">
-<title>nolli | tú</title>
+<title>nolli. | perfil</title>
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="./icon.svg">
 
@@ -51,16 +51,16 @@
   <div class="profile-canvas">
     <!-- Barra Superior Minimalista Fija -->
     <header class="profile-header">
-      <a href="./index.html" class="profile-logo">nolli<span>.</span></a>
+      <a href="./" class="profile-logo">nolli<span>.</span></a>
       <div class="profile-header-actions">
-        <a href="./index.html#admin" id="btn-profile-admin" class="profile-minimal-btn hidden" style="color:var(--accent-2); border-color:var(--accent-2); font-weight:700;" title="Abrir Panel de Administración">PANEL ADMIN</a>
+        <a href="./#admin" id="btn-profile-admin" class="profile-minimal-btn hidden" style="color:var(--accent-2); border-color:var(--accent-2); font-weight:700;" title="Abrir Panel de Administración">PANEL ADMIN</a>
         <button type="button" id="btn-theme-toggle" class="profile-minimal-btn" title="Cambiar tema claro / oscuro" aria-label="Cambiar tema">
           <i data-lucide="moon" width="16" height="16" id="theme-icon"></i>
         </button>
         <button type="button" id="btn-profile-settings" class="profile-minimal-btn" title="Personalizar perfil" aria-label="Personalizar perfil">
           <i data-lucide="settings" width="17" height="17"></i>
         </button>
-        <a href="./index.html" class="profile-minimal-btn" aria-label="Ir al mapa">MAPA</a>
+        <a href="./" class="profile-minimal-btn" aria-label="Ir al mapa">MAPA</a>
         <button type="button" id="btn-profile-logout" class="profile-minimal-btn hidden" aria-label="Cerrar sesión">SALIR</button>
       </div>
     </header>
@@ -116,21 +116,21 @@
 
   <!-- Barra de navegación inferior fija para móviles (TWA) -->
   <nav id="mobile-bottom-bar" class="mobile-bottom-bar" aria-label="Navegación móvil">
-    <a href="./index.html" class="mobile-nav-btn" aria-label="Mapa">
+    <a href="./" class="mobile-nav-btn" aria-label="Mapa">
       <i data-lucide="map" width="19" height="19"></i>
       <span>MAPA</span>
     </a>
-    <a href="./index.html" class="mobile-nav-btn" aria-label="Explora">
+    <a href="./#explore" class="mobile-nav-btn" aria-label="Explora">
       <i data-lucide="compass" width="19" height="19"></i>
       <span>EXPLORA</span>
     </a>
-    <a href="./index.html" class="mobile-nav-btn mobile-nav-radar-btn" aria-label="Mi radar">
+    <a href="./#radar" class="mobile-nav-btn mobile-nav-radar-btn" aria-label="Mi radar">
       <div class="radar-btn-inner">
         <i data-lucide="crosshair" width="19" height="19"></i>
       </div>
       <span>MI RADAR</span>
     </a>
-    <a href="./index.html" class="mobile-nav-btn" aria-label="Listas">
+    <a href="./#places" class="mobile-nav-btn" aria-label="Listas">
       <i data-lucide="bookmark" width="19" height="19"></i>
       <span>LISTAS</span>
     </a>

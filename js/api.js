@@ -595,16 +595,32 @@ export async function fetchUserDirectory(sessionToken) {
   return response.json();
 }
 
-/** Obtiene el rol del usuario autenticado desde el perfil gestionado en Supabase. */
+/** Obtiene el rol del usuario autenticado desde el perfil gestionado en Supabase, metadatos y fallback de fundador. */
 export async function fetchUserRole(sessionToken) {
   const user = await fetchCurrentUser(sessionToken);
-  const profileRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(user.id)}&select=role`, {
-    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
-  });
-  if (!profileRes.ok) return 'user';
-  const profiles = await profileRes.json();
-  const role = String(profiles[0]?.role || '').toLowerCase();
-  return role === 'admin' || role === 'superadmin' ? role : 'user';
+  if (!user) return 'user';
+
+  const userEmail = String(user.email || '').toLowerCase().trim();
+  const metaRole = String(user.app_metadata?.role || user.user_metadata?.role || '').toLowerCase();
+  
+  let dbRole = '';
+  try {
+    const profileRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(user.id)}&select=role`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
+    });
+    if (profileRes.ok) {
+      const profiles = await profileRes.json();
+      dbRole = String(profiles[0]?.role || '').toLowerCase();
+    }
+  } catch {}
+
+  // Rol de superadministrador garantizado para el correo fundador de la plataforma
+  if (userEmail === 'studio.signes@gmail.com') {
+    return 'superadmin';
+  }
+
+  const effectiveRole = dbRole || metaRole || 'user';
+  return (effectiveRole === 'admin' || effectiveRole === 'superadmin' || effectiveRole === 'tester') ? effectiveRole : 'user';
 }
 
 export async function fetchCurrentUser(sessionToken) {

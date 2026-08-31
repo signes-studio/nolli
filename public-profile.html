@@ -6,7 +6,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://*.mapbox.com https://api.mapbox.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://*.mapbox.com https://api.mapbox.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.mapbox.com https://api.mapbox.com https://events.mapbox.com https://nominatim.openstreetmap.org; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
   <meta name="description" content="Perfil de usuario en Nolli, radar arquitectónico interactivo.">
   <meta name="color-scheme" content="dark">
-  <title>nolli | perfil de usuario</title>
+  <title>nolli. | perfil de usuario</title>
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./icon.svg">
 
@@ -52,7 +52,7 @@
         <h1 id="profile-header-title" class="font-display text-2xl leading-none tracking-tight" style="color: var(--accent); margin: 0; text-transform: lowercase; font-weight: 800;">nolli<span style="color:var(--fg)">.</span></h1>
         <p class="text-[10px] tracking-widest mt-1" style="color:var(--fg-dim); margin:0;">perfil público</p>
       </div>
-      <a href="index.html" class="filter-action" style="text-decoration: none; padding: 6px 12px; border: 1px solid var(--border-strong, #141411); font-family: 'JetBrains Mono', monospace; font-size: 11px;">[ VOLVER AL MAPA ]</a>
+      <a href="./" class="filter-action" style="text-decoration: none; padding: 6px 12px; border: 1px solid var(--border-strong, #141411); font-family: 'JetBrains Mono', monospace; font-size: 11px;">[ VOLVER AL MAPA ]</a>
     </div>
 
     <!-- Tarjeta de cabecera del usuario (Avatar, Nick, Nombre y Bio) -->
@@ -205,7 +205,7 @@
               <strong style="font-size: 11px; display: block;">${obra.nombre_obra}</strong>
               <span style="font-size: 10px; color: var(--fg-dim, #666);">${obra.arquitecto || ''}</span>
             </div>
-            <a href="index.html?obra=${obra.id}" class="filter-action" style="text-decoration: none; padding: 4px 8px; font-size: 9px; border: 1px solid var(--border-strong, #141411);">VER EN MAPA</a>
+            <a href="./?obra=${obra.id}" class="filter-action" style="text-decoration: none; padding: 4px 8px; font-size: 9px; border: 1px solid var(--border-strong, #141411);">VER EN MAPA</a>
           </div>
         `).join('');
       }
