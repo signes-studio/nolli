@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<base href="/">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://*.mapbox.com https://api.mapbox.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://*.mapbox.com https://api.mapbox.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.mapbox.com https://api.mapbox.com https://events.mapbox.com https://nominatim.openstreetmap.org; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
 <title>nolli. | radar arquitectónico</title>
 <meta name="description" content="Radar arquitectónico interactivo: explora y registra obras de arquitectura sobre un mapa en vivo.">
 <meta name="color-scheme" content="light dark">
-<link rel="icon" href="./icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="./icon.svg">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icon.svg">
 
 <script>
   // Restauración de URL limpia tras redirección 404 en GitHub Pages (ej. /obra/CTAV2386)
@@ -47,14 +48,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=League+Spartan:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
 
 <!-- Estilos propios (orden: variables/base → layout → paneles → componentes) -->
-<link rel="stylesheet" href="css/base.css">
-<link rel="stylesheet" href="css/map-hud.css">
-<link rel="stylesheet" href="css/panels.css">
-<link rel="stylesheet" href="css/components.css">
-<link rel="prefetch" href="./perfil.html">
-<link rel="prefetch" href="./css/profile.css">
-<link rel="prefetch" href="./js/profile.js">
-<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/map-hud.css">
+<link rel="stylesheet" href="/css/panels.css">
+<link rel="stylesheet" href="/css/components.css">
+<link rel="prefetch" href="/perfil.html">
+<link rel="prefetch" href="/css/profile.css">
+<link rel="prefetch" href="/js/profile.js">
+<link rel="manifest" href="/manifest.webmanifest">
 
 <script>
   (function() {
@@ -863,9 +864,9 @@
 </div>
 
 <!-- Lógica de la aplicación: módulo ES6, se ejecuta en modo defer nativo -->
-<script type="module" src="js/main.js"></script>
+<script type="module" src="/js/main.js"></script>
 <script>
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
 </script>
 </body>
 </html>
