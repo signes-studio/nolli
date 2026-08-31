@@ -34,6 +34,52 @@ export async function fetchBuildingsByIds(ids) {
   return response.json();
 }
 
+/** Descarga todas las obras dentro de un radio geodésico directamente de la base de datos completa. */
+export async function fetchBuildingsInRadius({ lon, lat, radiusMeters = 10000, signal } = {}) {
+  if (!Number.isFinite(lon) || !Number.isFinite(lat)) return [];
+
+  const deltaLat = (radiusMeters + 500) / 111320;
+  const deltaLon = (radiusMeters + 500) / (111320 * Math.cos(lat * Math.PI / 180));
+
+  const minLat = lat - deltaLat;
+  const maxLat = lat + deltaLat;
+  const minLon = lon - deltaLon;
+  const maxLon = lon + deltaLon;
+
+  const publicFields = 'id,nombre_obra,foto_url,enlace_url,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,añadido_por,estado_revision,longitud,latitud,place';
+  const pageSize = 1000;
+  const results = [];
+  let start = 0;
+
+  while (true) {
+    try {
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?latitud=gte.${minLat}&latitud=lte.${maxLat}&longitud=gte.${minLon}&longitud=lte.${maxLon}&select=${publicFields}&order=id.asc`, {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          Range: `${start}-${start + pageSize - 1}`,
+        },
+        signal,
+      });
+      if (!response.ok) {
+        if (response.status === 416) return results;
+        break;
+      }
+      const page = await response.json();
+      if (!Array.isArray(page)) break;
+      results.push(...page);
+      if (page.length < pageSize) break;
+      start += pageSize;
+    } catch (err) {
+      if (err.name === 'AbortError' || signal?.aborted) throw err;
+      console.warn('Aviso en consulta de radar en base de datos:', err);
+      break;
+    }
+  }
+
+  return results;
+}
+
 /** Descarga las obras públicas del encuadre y nivel de zoom actuales. */
 export async function fetchBuildings({ bounds, zoom, architect, includeAllImportance = false, signal } = {}) {
   const pageSize = 1000;
@@ -461,17 +507,26 @@ export async function fetchCurrentProfile(userId, sessionToken) {
   return rows[0] || null;
 }
 
-export async function upsertCurrentProfile(user, profile, sessionToken) {
+export async function upsertCurrentProfile(user, profile = {}, sessionToken) {
+  const metadata = user.user_metadata || {};
   const payload = {
     id: user.id,
     email: user.email || null,
-    first_name: String(profile.firstName || '').trim(),
-    last_name: String(profile.lastName || '').trim(),
-    city: String(profile.city || '').trim(),
-    country: String(profile.country || '').trim(),
-    bio: profile.bio != null ? String(profile.bio).trim() : null,
-    website: profile.website != null ? String(profile.website).trim() : null,
+    first_name: String(profile.firstName !== undefined ? profile.firstName : (metadata.first_name || '')).trim(),
+    last_name: String(profile.lastName !== undefined ? profile.lastName : (metadata.last_name || '')).trim(),
+    city: String(profile.city !== undefined ? profile.city : (metadata.city || '')).trim(),
+    country: String(profile.country !== undefined ? profile.country : (metadata.country || '')).trim(),
   };
+
+  const bioVal = profile.bio !== undefined ? profile.bio : metadata.bio;
+  if (bioVal !== undefined) {
+    payload.bio = bioVal !== null ? String(bioVal).trim() : null;
+  }
+
+  const webVal = profile.website !== undefined ? profile.website : metadata.website;
+  if (webVal !== undefined) {
+    payload.website = webVal !== null ? String(webVal).trim() : null;
+  }
 
   const response = await fetch(`${SUPABASE_URL}/rest/v1/profiles?on_conflict=id`, {
     method: 'POST',
@@ -491,7 +546,7 @@ export async function upsertCurrentProfile(user, profile, sessionToken) {
 }
 
 export async function fetchUserDirectory(sessionToken) {
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/profiles?select=id,email,first_name,last_name,city,country,role,created_at&order=created_at.desc`, {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/profiles?select=id,email,first_name,last_name,city,country,bio,website,role,created_at&order=created_at.desc`, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
   });
   if (!response.ok) {

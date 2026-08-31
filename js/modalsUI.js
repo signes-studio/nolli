@@ -3,7 +3,7 @@
    ========================================================================= */
 
 import { state, separarArquitectos, normalizarCategoria, esRolAdmin } from './state.js';
-import { loginAdmin, registerUser, refreshUserSession, requestPasswordReset, fetchUserRole, fetchCurrentUser, fetchBuildingStatuses, upsertCurrentProfile, createBuildingReport, createBuilding, createPrivateBuilding, updateBuilding } from './api.js';
+import { loginAdmin, registerUser, refreshUserSession, requestPasswordReset, fetchUserRole, fetchCurrentUser, fetchCurrentProfile, fetchBuildingStatuses, upsertCurrentProfile, createBuildingReport, createBuilding, createPrivateBuilding, updateBuilding } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
 
@@ -55,11 +55,14 @@ async function initLoginModal() {
     const user = await fetchCurrentUser(state.sessionToken);
     state.userId = user.id;
     state.userEmail = user.email || null;
+    const dbProfile = await fetchCurrentProfile(user.id, state.sessionToken).catch(() => null);
     state.userProfile = {
-      firstName: user.user_metadata?.first_name || '',
-      lastName: user.user_metadata?.last_name || '',
-      city: user.user_metadata?.city || '',
-      country: user.user_metadata?.country || '',
+      firstName: dbProfile?.first_name || user.user_metadata?.first_name || '',
+      lastName: dbProfile?.last_name || user.user_metadata?.last_name || '',
+      bio: dbProfile?.bio != null ? dbProfile.bio : (user.user_metadata?.bio || ''),
+      city: dbProfile?.city || user.user_metadata?.city || '',
+      country: dbProfile?.country || user.user_metadata?.country || '',
+      website: dbProfile?.website != null ? dbProfile.website : (user.user_metadata?.website || ''),
     };
     upsertCurrentProfile(user, state.userProfile, state.sessionToken).catch(() => {});
     const statuses = await fetchBuildingStatuses(user.id, state.sessionToken);

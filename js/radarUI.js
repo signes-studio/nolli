@@ -1,11 +1,15 @@
 // js/radarUI.js
-import { state, CATEGORY_COLORS, escapeHtml } from './state.js';
+import { state, CATEGORY_COLORS, escapeHtml, separarArquitectos, normalizarCategoria, normalizarImportancia } from './state.js';
 import { abrirFicha } from './sheetUI.js';
 import { calcularDistanciaMetros } from './exploreUI.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { actualizarMarcadorUbicacion } from './mapController.js';
+import { fetchBuildingsInRadius } from './api.js';
 
-let radarRadius = 1000; // 1000m por defecto
+let radarRadius = 1000; // 1000m por defecto (1km)
+let radarAbortController = null;
+let radarCacheKey = '';
+let radarCachedData = [];
 const CURATED_PROXIMITY_METERS = 15000; // radio para considerar una colección "cercana" al usuario
 
 export const CURATED_ROUTES = [
@@ -272,37 +276,16 @@ export function formatearDistanciaRadar(metros) {
   return `A ${(metros / 1000).toFixed(1)} KM`;
 }
 
-export function renderRadarUI() {
-  const container = document.getElementById('radar-detected-list');
-  const countSpan = document.getElementById('radar-detected-count');
-  if (!container) return;
-
-  // Feed exclusivo de Proximidad Dinámica GPS
-  const [refLon, refLat] = getRadarCenter();
-  const works = (state.OBRAS || []).map((obra) => {
-    let dist = Infinity;
-    if (obra.coordenadas && obra.coordenadas.length === 2) {
-      dist = calcularDistanciaMetros(refLon, refLat, obra.coordenadas[0], obra.coordenadas[1]);
-    }
-    return { ...obra, _dist: dist };
-  });
-
-  const inRadius = works.filter((obra) => {
-    if (radarRadius === 0) return true; // Todo
-    return obra._dist <= radarRadius;
-  });
-
-  inRadius.sort((a, b) => a._dist - b._dist);
-
+export function renderRadarList(works, container, countSpan) {
   if (countSpan) {
-    countSpan.textContent = `[ ${inRadius.length} DETECTADAS ]`;
+    countSpan.textContent = `[ ${works.length} DETECTADAS ]`;
   }
 
-  if (!inRadius.length) {
+  if (!works.length) {
     container.innerHTML = `
       <div class="radar-empty-state">
         <i data-lucide="crosshair" width="28" height="28" style="color:var(--accent, #E84E1B); margin-bottom:8px;"></i>
-        <div class="font-display text-sm font-bold">[ NINGUNA OBRA A MENOS DE ${radarRadius < 1000 ? radarRadius + 'M' : (radarRadius/1000) + 'KM'} ]</div>
+        <div class="font-display text-sm font-bold">[ NINGUNA OBRA A MENOS DE ${radarRadius < 1000 ? radarRadius + 'M' : (radarRadius / 1000) + 'KM'} ]</div>
         <p class="text-xs text-dim">Amplía el radio de búsqueda o desplázate por el mapa.</p>
       </div>
     `;
@@ -310,7 +293,7 @@ export function renderRadarUI() {
     return;
   }
 
-  container.innerHTML = inRadius.slice(0, 40).map((obra) => {
+  container.innerHTML = works.slice(0, 50).map((obra) => {
     const catKey = obra.categoria || 'otro';
     const catColor = CATEGORY_COLORS[catKey] || '#E84E1B';
     const distText = formatearDistanciaRadar(obra._dist);
@@ -345,6 +328,82 @@ export function renderRadarUI() {
   }).join('');
 
   if (window.lucide) window.lucide.createIcons();
+}
+
+export async function renderRadarUI() {
+  const container = document.getElementById('radar-detected-list');
+  const countSpan = document.getElementById('radar-detected-count');
+  if (!container) return;
+
+  const [refLon, refLat] = getRadarCenter();
+  const currentKey = `${refLon.toFixed(4)}_${refLat.toFixed(4)}_${radarRadius}`;
+
+  // 1. Mostrar de inmediato lo que tengamos disponible para respuesta táctil instantánea
+  const localWorks = (state.OBRAS || []).map((obra) => {
+    let dist = Infinity;
+    if (obra.coordenadas && obra.coordenadas.length === 2) {
+      dist = calcularDistanciaMetros(refLon, refLat, obra.coordenadas[0], obra.coordenadas[1]);
+    }
+    return { ...obra, _dist: dist };
+  }).filter((o) => o._dist <= radarRadius);
+
+  let initialWorks = radarCachedData.length && radarCacheKey === currentKey ? radarCachedData : localWorks;
+  initialWorks.sort((a, b) => a._dist - b._dist);
+  renderRadarList(initialWorks, container, countSpan);
+
+  // 2. Consulta en vivo a toda la base de datos (incluso fuera del viewport)
+  radarAbortController?.abort();
+  radarAbortController = new AbortController();
+
+  try {
+    const dbBuildings = await fetchBuildingsInRadius({
+      lon: refLon,
+      lat: refLat,
+      radiusMeters: radarRadius,
+      signal: radarAbortController.signal,
+    });
+
+    const transformed = dbBuildings.map((fila, index) => ({
+      id: fila.id,
+      featureId: String(fila.id ?? `obra-${index}`),
+      nombre_obra: fila.nombre_obra,
+      foto_url: fila.foto_url || null,
+      enlace_url: fila.enlace_url || null,
+      arquitecto: fila.arquitecto,
+      arquitectos: Array.isArray(fila.arquitectos) ? fila.arquitectos.join(', ') : (fila.arquitecto || ''),
+      año_construccion: fila.año_construccion,
+      importancia: normalizarImportancia(fila.importancia),
+      categoria: normalizarCategoria(fila.categoria),
+      ciudad: fila.place || fila.ciudad || null,
+      place: fila.place || null,
+      estado_acceso: fila.estado_acceso || (fila.visitable ? 'publico' : 'privado'),
+      añadido_por: fila.añadido_por || null,
+      estado_revision: fila.estado_revision || 'publicada',
+      coordenadas: [fila.longitud, fila.latitud],
+      _dist: calcularDistanciaMetros(refLon, refLat, fila.longitud, fila.latitud),
+    })).filter((o) => o._dist <= radarRadius);
+
+    // Unir con obras privadas y pendientes
+    const privateWorks = (state.OBRAS || [])
+      .filter((o) => o.private || o.estado_revision === 'pendiente')
+      .map((o) => ({
+        ...o,
+        _dist: o.coordenadas ? calcularDistanciaMetros(refLon, refLat, o.coordenadas[0], o.coordenadas[1]) : Infinity,
+      }))
+      .filter((o) => o._dist <= radarRadius);
+
+    const existingIds = new Set(transformed.map((t) => String(t.id)));
+    const allWorks = [...transformed, ...privateWorks.filter((p) => !existingIds.has(String(p.id)))];
+    allWorks.sort((a, b) => a._dist - b._dist);
+
+    radarCachedData = allWorks;
+    radarCacheKey = currentKey;
+
+    renderRadarList(allWorks, container, countSpan);
+  } catch (err) {
+    if (err.name === 'AbortError' || radarAbortController?.signal?.aborted) return;
+    console.warn('Aviso al consultar obras en el radar:', err);
+  }
 }
 
 export function activarRutaEnMapa(routeId) {
@@ -438,7 +497,7 @@ export function initRadarUI() {
     });
   }
 
-  // Selector de radio GPS: 250m, 500m, 1km, 3km
+  // Selector de radio GPS: 1km, 3km, 5km, 10km
   radiusPills.forEach((pill) => {
     pill.addEventListener('click', () => {
       radiusPills.forEach((p) => p.classList.remove('active'));
@@ -455,7 +514,15 @@ export function initRadarUI() {
       if (!card) return;
 
       const featureId = card.dataset.radarFeatureId;
-      const obra = state.OBRAS.find((o) => String(o.featureId) === String(featureId) || String(o.id) === String(featureId));
+      let obra = state.OBRAS.find((o) => String(o.featureId) === String(featureId) || String(o.id) === String(featureId));
+
+      if (!obra && radarCachedData.length) {
+        obra = radarCachedData.find((o) => String(o.featureId) === String(featureId) || String(o.id) === String(featureId));
+        if (obra) {
+          state.OBRAS.push(obra);
+          actualizarFuenteMapa();
+        }
+      }
 
       if (obra) {
         if (panel) panel.classList.remove('open');

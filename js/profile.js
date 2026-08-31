@@ -261,8 +261,8 @@ function renderHero() {
   const metadata = user.user_metadata || {};
   const db = profileState.dbProfile || {};
 
-  const firstName = db.first_name || metadata.first_name || '';
-  const lastName = db.last_name || metadata.last_name || '';
+  const firstName = (db.first_name !== undefined && db.first_name !== null && db.first_name !== '') ? db.first_name : (metadata.first_name || '');
+  const lastName = (db.last_name !== undefined && db.last_name !== null && db.last_name !== '') ? db.last_name : (metadata.last_name || '');
   const fullName = `${firstName} ${lastName}`.trim() || 'LUIS ALBERTO SIGNES SACRISTÁN';
 
   const nameEl = document.getElementById('profile-hero-name');
@@ -270,11 +270,11 @@ function renderHero() {
 
   const subEl = document.getElementById('profile-hero-sub');
   if (subEl) {
-    const bio = db.bio != null ? db.bio : (metadata.bio || 'Arquitecto & ArchViz | SIGNES.STUDIO');
-    const city = db.city || metadata.city || 'Valencia';
-    const country = db.country || metadata.country || 'España';
+    const bio = (db.bio !== undefined && db.bio !== null && db.bio !== '') ? db.bio : (metadata.bio || 'Arquitecto & ArchViz | SIGNES.STUDIO');
+    const city = (db.city !== undefined && db.city !== null && db.city !== '') ? db.city : (metadata.city || 'Valencia');
+    const country = (db.country !== undefined && db.country !== null && db.country !== '') ? db.country : (metadata.country || 'España');
     const location = [city, country].filter(Boolean).join(', ');
-    const websiteRaw = db.website != null ? db.website : (metadata.website || '');
+    const websiteRaw = (db.website !== undefined && db.website !== null && db.website !== '') ? db.website : (metadata.website || '');
     const website = websiteRaw ? ` · ${websiteRaw.replace(/^https?:\/\//, '')}` : '';
     subEl.textContent = `${bio} | ${location}${website}`;
   }
@@ -475,12 +475,12 @@ function setupEditProfileModal() {
       const inCountry = document.getElementById('edit-profile-country');
       const inWebsite = document.getElementById('edit-profile-website');
 
-      if (inFirstName) inFirstName.value = db.first_name || metadata.first_name || 'Luis Alberto';
-      if (inLastName) inLastName.value = db.last_name || metadata.last_name || 'Signes Sacristán';
-      if (inBio) inBio.value = db.bio != null ? db.bio : (metadata.bio || 'Arquitecto & ArchViz | SIGNES.STUDIO');
-      if (inCity) inCity.value = db.city || metadata.city || 'Valencia';
-      if (inCountry) inCountry.value = db.country || metadata.country || 'España';
-      if (inWebsite) inWebsite.value = db.website != null ? db.website : (metadata.website || 'https://signes.studio');
+      if (inFirstName) inFirstName.value = (db.first_name !== undefined && db.first_name !== null) ? db.first_name : (metadata.first_name || 'Luis Alberto');
+      if (inLastName) inLastName.value = (db.last_name !== undefined && db.last_name !== null) ? db.last_name : (metadata.last_name || 'Signes Sacristán');
+      if (inBio) inBio.value = (db.bio !== undefined && db.bio !== null) ? db.bio : (metadata.bio || 'Arquitecto & ArchViz | SIGNES.STUDIO');
+      if (inCity) inCity.value = (db.city !== undefined && db.city !== null) ? db.city : (metadata.city || 'Valencia');
+      if (inCountry) inCountry.value = (db.country !== undefined && db.country !== null) ? db.country : (metadata.country || 'España');
+      if (inWebsite) inWebsite.value = (db.website !== undefined && db.website !== null) ? db.website : (metadata.website || 'https://signes.studio');
 
       if (editStatus) editStatus.classList.add('hidden');
       modalEditProfile.classList.add('open');

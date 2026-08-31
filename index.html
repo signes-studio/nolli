@@ -287,21 +287,9 @@
         </button>
       </div>
     </div>
-    <div class="filter-group" data-filter-group="decade">
-      <button type="button" class="filter-group-head" aria-expanded="true"><span>[ DÉCADA ]</span><span class="filter-chevron">−</span></button>
-      <div class="filter-group-body"><div class="filter-group-actions"><button type="button" class="filter-action" data-filter-all="decade">TODOS</button><button type="button" class="filter-action" data-filter-isolate="decade">AISLAR</button></div><select id="filter-decade" class="tech-input" aria-label="Filtrar por década"><option value="">TODAS LAS DÉCADAS</option></select></div>
-    </div>
-    <div class="filter-group" data-filter-group="category">
-      <button type="button" class="filter-group-head" aria-expanded="true"><span>[ CATEGORÍA ]</span><span class="filter-chevron">−</span></button>
-      <div class="filter-group-body"><div class="filter-group-actions"><button type="button" class="filter-action" data-filter-all="category">TODOS</button><button type="button" class="filter-action" data-filter-isolate="category">AISLAR</button></div><select id="filter-category" class="tech-input" aria-label="Filtrar por categoría"><option value="">TODAS LAS CATEGORÍAS</option></select></div>
-    </div>
-    <div class="filter-group" data-filter-group="access">
-    <button type="button" class="filter-group-head" aria-expanded="true"><span>[ ACCESO ]</span><span class="filter-chevron">−</span></button>
-    <div class="filter-group-body"><div class="filter-group-actions"><button type="button" class="filter-action" data-filter-all="access">TODOS</button><button type="button" class="filter-action" data-filter-isolate="access">AISLAR</button></div><select id="filter-access" class="tech-input" aria-label="Filtrar por estado de acceso"><option value="">TODOS LOS ESTADOS</option><option value="publico">PÚBLICO</option><option value="exterior_visible">EXTERIOR VISIBLE</option><option value="con_reserva">CON RESERVA</option><option value="privado">PRIVADO</option><option value="cerrado_temporalmente">CERRADO TEMPORALMENTE</option><option value="no_construido">NO CONSTRUIDO</option><option value="desaparecido">DESAPARECIDO</option></select></div>
-    </div>
-    <div class="filter-group filter-group-architects" data-filter-group="architects">
-      <button type="button" class="filter-group-head" aria-expanded="true"><span>[ ARQUITECTOS ]</span><span class="filter-chevron">−</span></button>
-      <div class="filter-group-body"><div class="filter-group-actions"><button type="button" class="filter-action" data-filter-all="architects">TODOS</button><button type="button" class="filter-action" data-filter-isolate="architects">AISLAR</button></div><input id="architect-search" class="tech-input" type="search" placeholder="BUSCAR ARQUITECTO..." aria-label="Buscar arquitecto"><div id="filter-switches"></div></div>
+    <div class="filter-group" data-filter-group="categories">
+      <button type="button" class="filter-group-head" aria-expanded="true"><span>[ CATEGORÍAS ]</span><span class="filter-chevron">−</span></button>
+      <div class="filter-group-body"><div id="switches-categories"></div></div>
     </div>
   </section>
 
@@ -369,38 +357,26 @@
     </div>
     <div class="map-style-options">
       <button type="button" class="map-style-option active" data-map-style="abstract" aria-label="Mapa estilo claro">
-        <div class="map-style-preview preview-abstract" aria-hidden="true">
-          <span class="preview-base preview-base-light"></span>
-          <span class="preview-line preview-line-1"></span>
-          <span class="preview-line preview-line-2"></span>
-          <span class="preview-dot"></span>
+        <div class="map-style-preview" aria-hidden="true">
+          <img src="img/Light.png" alt="Mapa Claro" class="map-style-thumb" loading="lazy">
         </div>
         <span class="map-style-label">CLARO</span>
       </button>
       <button type="button" class="map-style-option" data-map-style="dark" aria-label="Mapa estilo oscuro">
-        <div class="map-style-preview preview-dark" aria-hidden="true">
-          <span class="preview-base preview-base-dark"></span>
-          <span class="preview-line preview-line-1"></span>
-          <span class="preview-line preview-line-2"></span>
-          <span class="preview-dot"></span>
+        <div class="map-style-preview" aria-hidden="true">
+          <img src="img/Dark.png" alt="Mapa Oscuro" class="map-style-thumb" loading="lazy">
         </div>
         <span class="map-style-label">OSCURO</span>
       </button>
       <button type="button" class="map-style-option" data-map-style="hybrid" aria-label="Mapa estilo híbrido / estándar">
-        <div class="map-style-preview preview-hybrid" aria-hidden="true">
-          <span class="preview-base preview-base-hybrid"></span>
-          <span class="preview-line preview-line-1"></span>
-          <span class="preview-line preview-line-2"></span>
-          <span class="preview-dot"></span>
+        <div class="map-style-preview" aria-hidden="true">
+          <img src="img/Hybrid.png" alt="Mapa Híbrido" class="map-style-thumb" loading="lazy">
         </div>
         <span class="map-style-label">HÍBRIDO</span>
       </button>
       <button type="button" class="map-style-option" data-map-style="satellite" aria-label="Mapa estilo satélite">
-        <div class="map-style-preview preview-satellite" aria-hidden="true">
-          <span class="preview-base preview-base-satellite"></span>
-          <span class="preview-line preview-line-1"></span>
-          <span class="preview-line preview-line-2"></span>
-          <span class="preview-dot"></span>
+        <div class="map-style-preview" aria-hidden="true">
+          <img src="img/Satellite.png" alt="Mapa Satélite" class="map-style-thumb" loading="lazy">
         </div>
         <span class="map-style-label">SATÉLITE</span>
       </button>
@@ -511,10 +487,10 @@
       <div class="radar-radius-selector">
         <span class="radar-section-label">[ RADIO DE DETECCIÓN GPS ]</span>
         <div class="radar-radius-pills">
-          <button type="button" class="radar-radius-pill" data-radius="250">250m</button>
-          <button type="button" class="radar-radius-pill" data-radius="500">500m</button>
           <button type="button" class="radar-radius-pill active" data-radius="1000">1km</button>
           <button type="button" class="radar-radius-pill" data-radius="3000">3km</button>
+          <button type="button" class="radar-radius-pill" data-radius="5000">5km</button>
+          <button type="button" class="radar-radius-pill" data-radius="10000">10km</button>
         </div>
       </div>
     </div>

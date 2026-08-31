@@ -1,5 +1,5 @@
 /* =========================================================================
-   FILTERSUI.JS — Panel de filtros por Categorías y Accesos (Versión Corregida)
+   FILTERSUI.JS — Panel de filtros por Categorías
    ========================================================================= */
 
 import { state, nombreCategoria, esRolAdmin } from './state.js';
@@ -29,22 +29,9 @@ const CATEGORIAS_CONFIG = [
   { key: 'otro', label: 'Otros' },
 ];
 
-const ACCESOS_CONFIG = [
-  { key: 'publico', label: 'Público' },
-  { key: 'exterior_visible', label: 'Exterior visible' },
-  { key: 'con_reserva', label: 'Con reserva' },
-  { key: 'privado', label: 'Privado' },
-  { key: 'cerrado_temporalmente', label: 'Cerrado temporalmente' },
-  { key: 'no_construido', label: 'No construido' },
-  { key: 'desaparecido', label: 'Desaparecido' },
-];
-
 function asegurarEstadoFiltros() {
   if (!state.activeCategorias || !(state.activeCategorias instanceof Set)) {
     state.activeCategorias = new Set(CATEGORIAS_CONFIG.map(c => c.key));
-  }
-  if (!state.activeAccesos || !(state.activeAccesos instanceof Set)) {
-    state.activeAccesos = new Set(ACCESOS_CONFIG.map(a => a.key));
   }
 }
 
@@ -95,35 +82,6 @@ export function generarFiltrosUI() {
         </div>
       </div>
     </div>
-
-    <div class="filter-group" data-filter-group="access">
-      <button type="button" class="filter-group-head" aria-expanded="true">
-        <span>[ ESTADO DE ACCESO ]</span>
-        <span class="filter-chevron">−</span>
-      </button>
-      <div class="filter-group-body">
-        <div class="filter-group-actions">
-          <button type="button" class="filter-action" data-filter-all="access">TODOS</button>
-          <button type="button" class="filter-action" data-filter-isolate="access">AISLAR</button>
-        </div>
-        <div class="filter-switches-list" id="switches-access">
-          ${ACCESOS_CONFIG.map(acc => {
-            const checked = state.activeAccesos.has(acc.key) ? 'checked' : '';
-            return `
-              <div class="switch-row">
-                <span>${acc.label}</span>
-                <div class="tech-switch">
-                  <input type="checkbox" ${checked} data-access-key="${acc.key}">
-                  <div class="track"></div>
-                  <div class="thumb"></div>
-                </div>
-                <button type="button" class="filter-action filter-isolate" data-isolate-access="${acc.key}">AISLAR</button>
-              </div>
-            `;
-          }).join('')}
-        </div>
-      </div>
-    </div>
   `;
 
   if (window.lucide) window.lucide.createIcons();
@@ -139,9 +97,6 @@ function actualizarResumenFiltros() {
 
   if (state.activeCategorias.size < CATEGORIAS_CONFIG.length) {
     activeParts.push(`${state.activeCategorias.size} CAT.`);
-  }
-  if (state.activeAccesos.size < ACCESOS_CONFIG.length) {
-    activeParts.push(`${state.activeAccesos.size} ESTADOS`);
   }
 
   summary.textContent = activeParts.length ? activeParts.join(' · ') : 'TODAS LAS OBRAS';
@@ -164,10 +119,6 @@ function initFiltersUI() {
       const key = target.dataset.categoryKey;
       if (target.checked) state.activeCategorias.add(key);
       else state.activeCategorias.delete(key);
-    } else if (target.dataset.accessKey) {
-      const key = target.dataset.accessKey;
-      if (target.checked) state.activeAccesos.add(key);
-      else state.activeAccesos.delete(key);
     }
     aplicarFiltrosMapa();
   });
@@ -191,7 +142,6 @@ function initFiltersUI() {
     if (resetGroup) {
       const type = resetGroup.dataset.filterAll;
       if (type === 'categories') state.activeCategorias = new Set(CATEGORIAS_CONFIG.map(c => c.key));
-      if (type === 'access') state.activeAccesos = new Set(ACCESOS_CONFIG.map(a => a.key));
       generarFiltrosUI();
       aplicarFiltrosMapa();
       return;
@@ -200,7 +150,6 @@ function initFiltersUI() {
     const resetAll = e.target.closest('[data-filter-reset]');
     if (resetAll) {
       state.activeCategorias = new Set(CATEGORIAS_CONFIG.map(c => c.key));
-      state.activeAccesos = new Set(ACCESOS_CONFIG.map(a => a.key));
       generarFiltrosUI();
       aplicarFiltrosMapa();
       return;
@@ -209,14 +158,6 @@ function initFiltersUI() {
     const isolateCat = e.target.closest('[data-isolate-category]');
     if (isolateCat) {
       state.activeCategorias = new Set([isolateCat.dataset.isolateCategory]);
-      generarFiltrosUI();
-      aplicarFiltrosMapa();
-      return;
-    }
-
-    const isolateAcc = e.target.closest('[data-isolate-access]');
-    if (isolateAcc) {
-      state.activeAccesos = new Set([isolateAcc.dataset.isolateAccess]);
       generarFiltrosUI();
       aplicarFiltrosMapa();
       return;
@@ -243,16 +184,8 @@ export function aplicarFiltrosMapa() {
       ? ['in', ['coalesce', ['get', 'categoria'], 'otro'], ['literal', catsArray]]
       : ['==', 1, 0];
 
-  const accArray = [...state.activeAccesos];
-  const accesosFilter = accArray.length === ACCESOS_CONFIG.length
-    ? null
-    : accArray.length > 0
-      ? ['in', ['coalesce', ['get', 'estado_acceso'], 'publico'], ['literal', accArray]]
-      : ['==', 1, 0];
-
   const detalles = [];
   if (categoriasFilter) detalles.push(categoriasFilter);
-  if (accesosFilter) detalles.push(accesosFilter);
 
   const adminReviewFilter = document.getElementById('admin-review-filter');
   if (esRolAdmin(state.userRole) && adminReviewFilter?.value) {

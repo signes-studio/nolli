@@ -40,7 +40,7 @@ export function cargarMapaMapbox() {
     state.mapStyle = 'abstract';
   }
   const isDark = state.mapStyle === 'dark' || savedTheme === 'dark';
-  document.documentElement.classList.toggle('dark-mode', isDark);
+  document.documentElement?.classList.toggle('dark-mode', isDark);
   document.body?.classList.toggle('dark-mode', isDark);
 
   const isMobile = window.innerWidth <= 768;
@@ -64,8 +64,8 @@ export function cargarMapaMapbox() {
     state.map.setPadding({ top: 10, bottom: 64, left: 0, right: 0 });
   }
 
-  state.map.dragRotate.disable();
-  state.map.touchZoomRotate.disableRotation();
+  state.map.dragRotate?.disable?.();
+  state.map.touchZoomRotate?.disableRotation?.();
 
   // Redimensionamiento y ajuste dinámico de padding en dispositivos táctiles
   window.addEventListener('resize', () => {
