@@ -279,12 +279,9 @@ async function asegurarObrasEnMemoria() {
     const obrasDescargadas = await fetchBuildingsByIds(idsUnicos, state.sessionToken);
     if (obrasDescargadas?.length) {
       let agregados = 0;
-      obrasDescargadas.forEach((obra) => {
-        const yaEsta = state.OBRAS.some((item) => String(item.id) === String(obra.id));
-        if (!yaEsta) {
-          state.OBRAS.push(obra);
-          agregados++;
-        }
+      obrasDescargadas.forEach((raw, idx) => {
+        const obra = transformarEdificio(raw, state.OBRAS.length + idx);
+        if (!obra) return;
       });
       if (agregados > 0) {
         actualizarFuenteMapa();
@@ -662,11 +659,10 @@ function renderList() {
   }
 
   list.innerHTML = results.map((obra) => `
-    <button type="button" class="my-place-item" data-feature-id="${obra.featureId}">
+    <button type="button" class="my-place-item" data-feature-id="${obra.id}">
       <div class="my-place-item-main">
         <strong class="my-place-item-title">${escapeHtml(obra.nombre_obra)}</strong>
         <span class="my-place-meta">${escapeHtml(obra.arquitecto || 'Arquitecto no especificado')}</span>
-        ${activeTab === 'notes' && state.buildingStatuses.get(String(obra.id))?.notas ? `<span class="my-place-note" style="color:var(--accent); margin-top:2px;">"${escapeHtml(state.buildingStatuses.get(String(obra.id)).notas)}"</span>` : ''}
       </div>
       <span class="my-place-arrow">→</span>
     </button>
@@ -689,12 +685,11 @@ function renderCollections() {
       if (!obra) return '';
       return `
         <div class="my-collection-item-row">
-          <button type="button" class="my-place-item in-collection" data-feature-id="${obra.featureId}">
+          <button type="button" class="my-place-item in-collection" data-feature-id="${obra.id}">
             <div class="my-place-item-main">
               <strong class="my-place-item-title">${escapeHtml(obra.nombre_obra)}</strong>
               <span class="my-place-meta">${escapeHtml(obra.arquitecto || '')}</span>
             </div>
-            <span class="my-place-arrow">→</span>
           </button>
           <button type="button" class="btn-remove-collection" data-collection-id="${collection.id}" data-remove-from-collection="${obra.id}" title="Quitar de la lista" aria-label="Quitar de la lista">✕</button>
         </div>

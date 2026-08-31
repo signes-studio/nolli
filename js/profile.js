@@ -34,6 +34,7 @@ import {
   cargarZonaPersonalLocal,
   guardarZonaPersonalLocal,
   aplicarPreferenciasMapaColecciones,
+  transformarEdificio,
 } from './state.js';
 
 const SESSION_KEY = 'nolli_admin_session_token';
@@ -149,8 +150,13 @@ async function asegurarObrasFaltantes(neededIds) {
     const fetched = await fetchBuildingsByIds(missing);
     if (Array.isArray(fetched) && fetched.length > 0) {
       let added = false;
-      fetched.forEach((b) => {
-        if (!profileState.buildings.some((existing) => String(existing.id) === String(b.id))) {
+      fetched.forEach((raw, idx) => {
+        const b = transformarEdificio(raw, profileState.buildings.length + idx);
+        if (!b) return;
+        const existingIdx = profileState.buildings.findIndex((existing) => String(existing.id) === String(b.id));
+        if (existingIdx >= 0) {
+          profileState.buildings[existingIdx] = { ...profileState.buildings[existingIdx], ...b };
+        } else {
           profileState.buildings.push(b);
           added = true;
         }

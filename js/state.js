@@ -134,6 +134,33 @@ export function normalizarImportancia(valor) {
   return Number.isFinite(importancia) && importancia >= 0 && importancia <= 3 ? importancia : 1;
 }
 
+export function transformarEdificio(fila, index = 0) {
+  if (!fila) return null;
+  const idStr = String(fila.id ?? `obra-${index}`);
+  const lon = Number(fila.longitud ?? (Array.isArray(fila.coordenadas) ? fila.coordenadas[0] : 0));
+  const lat = Number(fila.latitud ?? (Array.isArray(fila.coordenadas) ? fila.coordenadas[1] : 0));
+  return {
+    id: fila.id ?? idStr,
+    featureId: idStr,
+    nombre_obra: fila.nombre_obra || 'Obra de arquitectura',
+    foto_url: fila.foto_url || null,
+    enlace_url: fila.enlace_url || null,
+    arquitecto: fila.arquitecto || '',
+    arquitectos: Array.isArray(fila.arquitectos) ? fila.arquitectos : separarArquitectos(fila.arquitecto),
+    año_construccion: fila.año_construccion || null,
+    importancia: normalizarImportancia(fila.importancia),
+    categoria: normalizarCategoria(fila.categoria),
+    ciudad: fila.place || fila.ciudad || null,
+    place: fila.place || fila.ciudad || null,
+    estado_acceso: fila.estado_acceso || (fila.visitable ? 'publico' : 'privado'),
+    añadido_por: fila.añadido_por || null,
+    estado_revision: fila.estado_revision || 'publicada',
+    coordenadas: [lon, lat],
+    selected: Boolean(fila.selected),
+    private: Boolean(fila.private),
+  };
+}
+
 export function getPersonalFallbackKey(userId) {
   return `nolli:personal-zone:${String(userId || 'guest')}`;
 }
@@ -222,26 +249,4 @@ export function guardarZonaPersonalLocal(userId) {
     labels: state.userPrivateLabels,
   };
   localStorage.setItem(getPersonalFallbackKey(userId), JSON.stringify(payload));
-}
-
-export function transformarEdificio(fila, index = 0) {
-  return {
-    id: fila.id,
-    featureId: String(fila.id ?? `obra-${index}`),
-    nombre_obra: fila.nombre_obra,
-    foto_url: fila.foto_url || null,
-    enlace_url: fila.enlace_url || null,
-    arquitecto: fila.arquitecto,
-    arquitectos: separarArquitectos(fila.arquitecto),
-    año_construccion: fila.año_construccion,
-    importancia: normalizarImportancia(fila.importancia),
-    categoria: normalizarCategoria(fila.categoria),
-    ciudad: fila.place || fila.ciudad || null,
-    place: fila.place || null,
-    estado_acceso: fila.estado_acceso || (fila.visitable ? 'publico' : 'privado'),
-    añadido_por: fila.añadido_por || null,
-    estado_revision: fila.estado_revision || 'publicada',
-    coordenadas: [fila.longitud, fila.latitud],
-    selected: false,
-  };
 }

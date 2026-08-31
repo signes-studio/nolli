@@ -4,7 +4,7 @@
    <script type="module"> por lo que se ejecuta en modo defer de forma nativa.
    ========================================================================= */
 
-import { state, separarArquitectos, normalizarCategoria, normalizarImportancia, esRolAdmin } from './state.js';
+import { state, separarArquitectos, normalizarCategoria, normalizarImportancia, esRolAdmin, transformarEdificio } from './state.js';
 import { fetchBuildings, fetchBuildingFacets, fetchUserPendingBuildings, fetchPendingBuildings, fetchPrivateBuildings, fetchAllPrivateBuildings } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
@@ -23,28 +23,6 @@ let publicLoadRequest = 0;
 let publicLoadTimer = null;
 let publicLoadController = null;
 let urlObraChecked = false;
-
-function transformarEdificio(fila, index) {
-  return {
-    id: fila.id,
-    featureId: String(fila.id ?? `obra-${index}`),
-    nombre_obra: fila.nombre_obra,
-    foto_url: fila.foto_url || null,
-    enlace_url: fila.enlace_url || null,
-    arquitecto: fila.arquitecto,
-    arquitectos: separarArquitectos(fila.arquitecto),
-    año_construccion: fila.año_construccion,
-    importancia: normalizarImportancia(fila.importancia),
-    categoria: normalizarCategoria(fila.categoria),
-    ciudad: fila.place || fila.ciudad || null,
-    place: fila.place || null,
-    estado_acceso: fila.estado_acceso || (fila.visitable ? 'publico' : 'privado'),
-    añadido_por: fila.añadido_por || null,
-    estado_revision: fila.estado_revision || 'publicada',
-    coordenadas: [fila.longitud, fila.latitud],
-    selected: false,
-  };
-}
 
 async function cargarEdificiosVisibles() {
   const requestId = ++publicLoadRequest;
