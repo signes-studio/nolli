@@ -224,7 +224,9 @@ async function loadUsersData() {
   try {
     const users = await fetchUserDirectory(adminConsoleState.token);
     adminConsoleState.users = users || [];
+    adminConsoleState.usersError = null;
   } catch (error) {
+    adminConsoleState.usersError = error.message;
     console.error('Error al cargar usuarios:', error);
   }
 }
@@ -422,6 +424,27 @@ function renderModuleReports() {
 function renderModuleUsers() {
   const container = document.getElementById('users-table-body');
   if (!container) return;
+
+  if (adminConsoleState.usersError) {
+    container.innerHTML = `
+      <tr>
+        <td colspan="5" style="padding: 24px;">
+          <div style="border: 1.5px solid var(--admin-red); background: var(--admin-red-bg); padding: 18px; color: var(--admin-fg);">
+            <strong style="color: var(--admin-red); display: block; font-size: 12px; margin-bottom: 6px; font-family: 'JetBrains Mono', monospace;">
+              ⚠️ CONFLICTO DE POLÍTICAS RLS EN SUPABASE (RECURSIÓN INFINITA EN "PROFILES")
+            </strong>
+            <p style="font-size: 11px; margin: 0 0 10px; line-height: 1.5;">
+              La política de seguridad de la tabla <code>profiles</code> en Supabase contiene una subconsulta que se evalúa a sí misma recursivamente.
+            </p>
+            <p style="font-size: 11px; margin: 0; line-height: 1.5; color: var(--admin-fg-dim);">
+              <strong>Solución:</strong> Ejecuta el bloque SQL anti-recursión en el <em>SQL Editor</em> del dashboard de Supabase para limpiar las políticas recursivas de <code>public.profiles</code>.
+            </p>
+          </div>
+        </td>
+      </tr>
+    `;
+    return;
+  }
 
   const searchVal = (document.getElementById('search-users')?.value || '').trim().toLowerCase();
   const roleFilter = document.getElementById('filter-users-role')?.value || 'all';

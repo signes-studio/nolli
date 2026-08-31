@@ -191,6 +191,47 @@ CREATE TRIGGER trg_enforce_building_revision
   FOR EACH ROW
   EXECUTE FUNCTION public.enforce_building_revision_status();
 
+-- 8. POLÍTICAS RLS ANTI-RECURSIÓN PARA PUBLIC.PROFILES Y HELPER SECURITY DEFINER IS_ADMIN
+-- Soluciona el error "infinite recursion detected in policy for relation profiles"
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS BOOLEAN
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+STABLE
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE id = auth.uid() AND role IN ('admin', 'superadmin')
+  );
+$$;
+
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public profiles are viewable by everyone" ON public.profiles;
+DROP POLICY IF EXISTS "Users can view own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Admins can view all profiles" ON public.profiles;
+DROP POLICY IF EXISTS "Allow select for all" ON public.profiles;
+DROP POLICY IF EXISTS "Allow all for authenticated users" ON public.profiles;
+DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can insert own profile" ON public.profiles;
+
+-- Lectura: Perfiles públicos legibles sin subconsulta recursiva
+CREATE POLICY "Public profiles are viewable by everyone" 
+  ON public.profiles FOR SELECT 
+  USING (true);
+
+-- Actualización: Cada usuario puede actualizar su propio perfil (o admin)
+CREATE POLICY "Users can update own profile" 
+  ON public.profiles FOR UPDATE 
+  USING (auth.uid() = id OR public.is_admin())
+  WITH CHECK (auth.uid() = id OR public.is_admin());
+
+-- Inserción: Cada usuario autenticado puede insertar su propio perfil
+CREATE POLICY "Users can insert own profile" 
+  ON public.profiles FOR INSERT 
+  WITH CHECK (auth.uid() = id);
+
 -- 7. FUNCIÓN RPC PARA RADAR GEODÉSICO EN TIEMPO REAL (POSTGIS)
 CREATE OR REPLACE FUNCTION public.get_buildings_within_radius(
   user_lat DOUBLE PRECISION,

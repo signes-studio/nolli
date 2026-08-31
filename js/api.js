@@ -599,7 +599,11 @@ export async function fetchUserDirectory(sessionToken) {
   }
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(error.message || error.details || 'No se pudo cargar el directorio de usuarios.');
+    const rawMsg = String(error.message || error.details || '');
+    if (rawMsg.includes('infinite recursion')) {
+      throw new Error('RLS Recursion: Las políticas de Supabase en public.profiles son recursivas. Ejecuta el script SQL de solución en el SQL Editor de Supabase.');
+    }
+    throw new Error(rawMsg || 'No se pudo cargar el directorio de usuarios.');
   }
   return response.json();
 }
