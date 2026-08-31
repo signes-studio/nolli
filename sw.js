@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nolli-shell-v13';
+const CACHE_NAME = 'nolli-shell-v14';
 const APP_SHELL = [
   './',
   './index.html',
@@ -15,14 +15,17 @@ const APP_SHELL = [
   './js/api.js',
   './js/adminUI.js',
   './js/config.js',
+  './js/exploreUI.js',
   './js/filtersUI.js',
   './js/icons.js',
   './js/main.js',
   './js/mapController.js',
   './js/mapData.js',
+  './js/mobileBottomNav.js',
   './js/modalsUI.js',
   './js/myPlacesUI.js',
   './js/profile.js',
+  './js/radarUI.js',
   './js/searchUI.js',
   './js/sheetUI.js',
   './js/state.js',

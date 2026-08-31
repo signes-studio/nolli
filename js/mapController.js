@@ -58,6 +58,11 @@ export function cargarMapaMapbox() {
 
   state.map.on('error', (e) => {
     console.warn('Mapbox GL error:', e);
+    const msg = String(e?.error?.message || e?.message || '');
+    const status = e?.error?.status || e?.status;
+    if (status === 401 || status === 403 || msg.includes('Forbidden') || msg.includes('Unauthorized')) {
+      console.error('🚨 [NOLLI] Error de autorización de Mapbox (401/403). Si el token de Mapbox tiene restricciones de dominio en account.mapbox.com, añade "https://nollimap.app/*" a la lista de URLs autorizadas.');
+    }
   });
 
   if (isMobile) {

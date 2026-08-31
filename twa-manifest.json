@@ -1,6 +1,6 @@
 {
   "packageId": "studio.signes.nolli",
-  "host": "nolli.app",
+  "host": "nollimap.app",
   "name": "nolli",
   "launcherName": "nolli",
   "display": "standalone",
@@ -12,8 +12,8 @@
   "backgroundColor": "#F4F1EA",
   "enableNotifications": true,
   "startUrl": "/",
-  "iconUrl": "https://nolli.app/icons/icon-512.png",
-  "maskableIconUrl": "https://nolli.app/icons/icon-512.png",
+  "iconUrl": "https://nollimap.app/icons/icon-512.png",
+  "maskableIconUrl": "https://nollimap.app/icons/icon-512.png",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
     "path": "./android.keystore",
@@ -23,7 +23,7 @@
   "appVersionCode": 1,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
-  "webManifestUrl": "https://nolli.app/manifest.json",
+  "webManifestUrl": "https://nollimap.app/manifest.json",
   "fallbackType": "customtabs",
   "features": {
     "locationDelegation": {

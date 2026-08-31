@@ -5,6 +5,9 @@
    depende de las Row Level Security policies en Supabase.
    ========================================================================= */
 
+export const SITE_URL = 'https://nollimap.app';
+export const SITE_DOMAIN = 'nollimap.app';
+
 export const MAPBOX_TOKEN = 'pk.eyJ1Ijoic2lnbmVzYXJjaCIsImEiOiJjbXQ3YjdzNXQyNjB2MnhxdW5vdjF6YjV3In0.tFJ9jN3e1z3ezNM9x0ofpg';
 
 export const SUPABASE_URL = 'https://ldtfvpjigzvcagtciipn.supabase.co';
