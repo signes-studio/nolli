@@ -1,0 +1,22 @@
+# =========================================================================
+# Robots.txt para nolli (https://nollimap.app)
+# Atlas y radar de arquitectura contemporánea
+# =========================================================================
+
+User-agent: *
+Allow: /
+Allow: /landing
+Allow: /perfil
+Allow: /public-profile
+Allow: /legal
+
+# Bloquear panel de administración y directorios internos
+Disallow: /admin
+Disallow: /admin.html
+Disallow: /js/
+Disallow: /scratch/
+Disallow: /supabase/
+
+# Archivo de mapa del sitio
+Sitemap: https://nollimap.app/sitemap.xml
+
