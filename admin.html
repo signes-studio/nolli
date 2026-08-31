@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https: http:; connect-src 'self' https://*.supabase.co https://nominatim.openstreetmap.org; object-src 'none'; base-uri 'self';">
+  
+  <title>nolli. | consola de administración</title>
+  <link rel="icon" type="image/svg+xml" href="./icon.svg">
+  <meta name="theme-color" content="#F4F1EA">
+
+  <!-- Google Fonts Neo-Bauhaus -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&family=League+Spartan:wght@700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <link rel="stylesheet" href="./css/admin.css">
+</head>
+<body>
+
+  <!-- =========================================================================
+       HEADER PRINCIPAL DE ADMINISTRACIÓN
+       ========================================================================= -->
+  <header class="admin-header">
+    <div class="admin-header-inner">
+      <div class="admin-brand-group">
+        <a href="./" class="admin-logo">nolli<span>.</span></a>
+        <span class="admin-tagline">[ CONSOLA DE ADMINISTRACIÓN // RADAR ]</span>
+      </div>
+
+      <div class="admin-header-actions">
+        <div class="admin-user-pill">
+          <span id="admin-user-email">Cargando...</span>
+          <span id="admin-user-role" class="admin-role-badge">[ ADMIN ]</span>
+        </div>
+
+        <button type="button" id="btn-theme-toggle" class="admin-header-btn" title="Alternar Modo Oscuro / Claro">
+          <i data-lucide="sun-moon" width="14" height="14"></i>
+        </button>
+
+        <a href="./" class="admin-header-btn">
+          <i data-lucide="arrow-left" width="14" height="14"></i>
+          <span>VOLVER AL MAPA</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       PANTALLA DE CARGA INICIAL
+       ========================================================================= -->
+  <div id="admin-loading" style="padding: 80px 20px; text-align: center; font-family: 'JetBrains Mono', monospace;">
+    <div style="font-size: 36px; margin-bottom: 12px;">⏳</div>
+    <div style="font-size: 13px; font-weight: 800; color: var(--admin-fg);">[ VERIFICANDO CREDENCIALES Y PRIVILEGIOS DE SEGURIDAD... ]</div>
+  </div>
+
+  <!-- =========================================================================
+       PANTALLA DE BLOQUEO // ACCESO DENEGADO
+       ========================================================================= -->
+  <section id="admin-lock-screen" class="admin-lock-screen hidden">
+    <div class="admin-lock-icon">🔐</div>
+    <h2 id="lock-screen-title" class="admin-lock-title">[ 403 // ACCESO DENEGADO ]</h2>
+    <p id="lock-screen-desc" class="admin-lock-desc">
+      Esta sección está restringida exclusivamente al equipo de administración y curaduría arquitectónica.
+    </p>
+    <div class="admin-lock-actions">
+      <button type="button" id="btn-lock-login" class="admin-btn admin-btn-approve">
+        <i data-lucide="log-in" width="14" height="14"></i>
+        <span>INICIAR SESIÓN COMO ADMIN</span>
+      </button>
+      <a href="./" class="admin-btn">
+        <i data-lucide="map" width="14" height="14"></i>
+        <span>IR AL MAPA PÚBLICO</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       APLICACIÓN PRINCIPAL DE ADMINISTRACIÓN
+       ========================================================================= -->
+  <main id="admin-main-app" class="admin-container hidden">
+
+    <!-- Menú de Navegación Curatorial de Texto Puro -->
+    <nav class="admin-curatorial-nav" aria-label="Secciones de administración">
+      <button type="button" class="admin-nav-tab active" data-tab-target="pending">
+        <span>[ 01. OBRAS PENDIENTES ]</span>
+        <span id="badge-count-pending" class="admin-tab-count">0</span>
+      </button>
+
+      <button type="button" class="admin-nav-tab" data-tab-target="reports">
+        <span>[ 02. REPORTES DE ERROR ]</span>
+        <span id="badge-count-reports" class="admin-tab-count">0</span>
+      </button>
+
+      <button type="button" class="admin-nav-tab" data-tab-target="users">
+        <span>[ 03. DIRECTORIO DE USUARIOS ]</span>
+        <span id="badge-count-users" class="admin-tab-count">0</span>
+      </button>
+    </nav>
+
+    <!-- =======================================================================
+         VISTA 01: OBRAS PENDIENTES & MODERACIÓN
+         ======================================================================= -->
+    <section id="view-pending" class="admin-tab-view">
+      <div class="admin-control-bar">
+        <div class="admin-search-wrapper">
+          <i data-lucide="search" width="14" height="14" style="color:var(--admin-fg-dim);"></i>
+          <input type="text" id="search-pending" class="admin-input" placeholder="Buscar por título de obra, arquitecto, ciudad o ID...">
+        </div>
+
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <label for="filter-pending-state" class="font-mono" style="font-size: 10px; font-weight: 800; color: var(--admin-fg-dim);">ESTADO:</label>
+          <select id="filter-pending-state" class="admin-filter-select">
+            <option value="pendiente" selected>Solo Pendientes</option>
+            <option value="publicada">Publicadas en Catálogo</option>
+            <option value="rechazada">Rechazadas</option>
+            <option value="todos">Todas las Obras</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="pending-works-list" class="admin-works-grid">
+        <!-- Renderizado dinámico desde admin.js -->
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         VISTA 02: REPORTES DE ERROR E INCIDENCIAS
+         ======================================================================= -->
+    <section id="view-reports" class="admin-tab-view hidden">
+      <div class="admin-control-bar">
+        <div class="admin-search-wrapper">
+          <i data-lucide="search" width="14" height="14" style="color:var(--admin-fg-dim);"></i>
+          <input type="text" id="search-reports" class="admin-input" placeholder="Buscar reporte por descripción, ID de obra o remitente...">
+        </div>
+      </div>
+
+      <div id="reports-list" class="admin-reports-grid">
+        <!-- Renderizado dinámico desde admin.js -->
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         VISTA 03: DIRECTORIO DE USUARIOS & CONECTIVIDAD
+         ======================================================================= -->
+    <section id="view-users" class="admin-tab-view hidden">
+      <div class="admin-control-bar">
+        <div class="admin-search-wrapper">
+          <i data-lucide="search" width="14" height="14" style="color:var(--admin-fg-dim);"></i>
+          <input type="text" id="search-users" class="admin-input" placeholder="Buscar usuario por nombre, email, ciudad o país...">
+        </div>
+
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <label for="filter-users-role" class="font-mono" style="font-size: 10px; font-weight: 800; color: var(--admin-fg-dim);">ROL:</label>
+          <select id="filter-users-role" class="admin-filter-select">
+            <option value="all" selected>Todos los Roles</option>
+            <option value="superadmin">Superadmin</option>
+            <option value="admin">Admin</option>
+            <option value="tester">Tester</option>
+            <option value="user">Usuario</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="admin-users-table-wrapper">
+        <table class="admin-users-table">
+          <thead>
+            <tr>
+              <th>Usuario & Conectividad</th>
+              <th>Rol</th>
+              <th>Ubicación</th>
+              <th>Última Conexión</th>
+              <th>Registro</th>
+            </tr>
+          </thead>
+          <tbody id="users-table-body">
+            <!-- Renderizado dinámico desde admin.js -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- =========================================================================
+       MODAL DE EDICIÓN DE FICHA DE OBRA
+       ========================================================================= -->
+  <div id="modal-edit-work" class="admin-modal-overlay" aria-hidden="true">
+    <div class="admin-modal-box">
+      <div class="admin-modal-head">
+        <h3 class="font-display" style="font-size: 18px; margin: 0;">[ EDITAR FICHA DE OBRA ]</h3>
+        <button type="button" id="btn-modal-close" class="admin-btn" style="padding: 4px 8px;">✕</button>
+      </div>
+
+      <form id="form-edit-work">
+        <div class="admin-form-grid">
+          <div class="admin-form-full">
+            <label for="edit-nombre" class="admin-form-label">Nombre de la Obra:</label>
+            <input type="text" id="edit-nombre" class="admin-input" required>
+          </div>
+
+          <div>
+            <label for="edit-arquitecto" class="admin-form-label">Arquitecto(s):</label>
+            <input type="text" id="edit-arquitecto" class="admin-input" required>
+          </div>
+
+          <div>
+            <label for="edit-ano" class="admin-form-label">Año de Construcción:</label>
+            <input type="number" id="edit-ano" class="admin-input" min="1000" max="2100">
+          </div>
+
+          <div>
+            <label for="edit-categoria" class="admin-form-label">Categoría:</label>
+            <select id="edit-categoria" class="admin-input">
+              <option value="residencial">Residencial</option>
+              <option value="cultural">Cultural</option>
+              <option value="comercial">Comercial</option>
+              <option value="publico">Público / Cívico</option>
+              <option value="educativo">Educativo</option>
+              <option value="religioso">Religioso</option>
+              <option value="industrial">Industrial</option>
+              <option value="paisaje">Paisaje / Espacio Público</option>
+              <option value="otro">Otro</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="edit-acceso" class="admin-form-label">Estado de Acceso:</label>
+            <select id="edit-acceso" class="admin-input">
+              <option value="publico">Público</option>
+              <option value="privado">Privado</option>
+              <option value="restringido">Restringido / Cita</option>
+            </select>
+          </div>
+
+          <div class="admin-form-full">
+            <label for="edit-place" class="admin-form-label">Ciudad / Localización:</label>
+            <input type="text" id="edit-place" class="admin-input">
+          </div>
+
+          <div class="admin-form-full">
+            <label for="edit-foto" class="admin-form-label">URL de Fotografía Principal:</label>
+            <input type="url" id="edit-foto" class="admin-input">
+          </div>
+
+          <div class="admin-form-full">
+            <label for="edit-enlace" class="admin-form-label">Enlace de Referencia / Web:</label>
+            <input type="url" id="edit-enlace" class="admin-input">
+          </div>
+
+          <div class="admin-form-full">
+            <label for="edit-estado-revision" class="admin-form-label">Estado de Publicación:</label>
+            <select id="edit-estado-revision" class="admin-input">
+              <option value="pendiente">Pendiente de Revisión</option>
+              <option value="publicada">Publicada (Visible en Mapa)</option>
+              <option value="rechazada">Rechazada</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; border-top: 1.5px solid var(--admin-border-light); padding-top: 16px;">
+          <button type="button" onclick="document.getElementById('modal-edit-work').classList.remove('open')" class="admin-btn">CANCELAR</button>
+          <button type="submit" class="admin-btn admin-btn-approve">
+            <i data-lucide="save" width="14" height="14"></i>
+            <span>GUARDAR CAMBIOS</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="./js/admin.js"></script>
+</body>
+</html>
+

@@ -182,6 +182,15 @@ export async function fetchPendingBuildings(sessionToken) {
   return response.json();
 }
 
+export async function fetchAllBuildingsForAdmin(sessionToken) {
+  const publicFields = 'id,nombre_obra,foto_url,enlace_url,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,añadido_por,propuesto_por,estado_revision,longitud,latitud,place';
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?select=${publicFields}&order=created_at.desc.nullslast,id.desc&limit=1000`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
+  });
+  if (!response.ok) return [];
+  return response.json().catch(() => []);
+}
+
 export async function fetchPrivateBuildings(userId, sessionToken) {
   const response = await fetch(`${SUPABASE_URL}/rest/v1/user_private_buildings?user_id=eq.${encodeURIComponent(userId)}&select=*`, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
