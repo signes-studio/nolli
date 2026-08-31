@@ -1,11 +1,12 @@
 // js/exploreUI.js
 import { state, escapeHtml } from './state.js';
-import { fetchAllPublicCollections } from './api.js';
+import { fetchAllPublicCollections, followCollection, unfollowCollection, fetchFollowedCollections } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { CURATED_ROUTES, activarRutaEnMapa } from './radarUI.js';
 import { activarFiltroBusquedaEnMapa } from './searchUI.js';
 
 let publicCollectionsCache = [];
+let activeExploreTab = 'all'; // 'all' | 'curated' | 'public'
 
 export function calcularDistanciaMetros(lon1, lat1, lon2, lat2) {
   if (lon1 == null || lat1 == null || lon2 == null || lat2 == null) return Infinity;
@@ -32,6 +33,8 @@ export function formatearDistancia(metros) {
 }
 
 export async function renderPublicCollections(query = '') {
+  const curatedSection = document.getElementById('explore-curated-section');
+  const publicSection = document.getElementById('explore-public-section');
   const curatedContainer = document.getElementById('explore-curated-container');
   const publicContainer = document.getElementById('explore-public-container');
   const countBadge = document.getElementById('explore-count-badge');
@@ -47,6 +50,10 @@ export async function renderPublicCollections(query = '') {
   }
 
   const q = query.trim().toLowerCase();
+
+  // Visibilidad por subpestañas
+  if (curatedSection) curatedSection.style.display = (activeExploreTab === 'all' || activeExploreTab === 'curated') ? 'block' : 'none';
+  if (publicSection) publicSection.style.display = (activeExploreTab === 'all' || activeExploreTab === 'public') ? 'block' : 'none';
 
   // 1. Filtrar y renderizar Selecciones Curatoriales
   let curatedRoutes = CURATED_ROUTES;
@@ -89,7 +96,7 @@ export async function renderPublicCollections(query = '') {
     }
   }
 
-  // 2. Filtrar y renderizar Colecciones de la Comunidad
+  // 2. Filtrar y renderizar Colecciones Públicas de la Comunidad
   let collections = publicCollectionsCache;
   if (q) {
     collections = collections.filter((col) => {
@@ -108,33 +115,55 @@ export async function renderPublicCollections(query = '') {
   if (publicContainer) {
     if (!collections.length) {
       publicContainer.innerHTML = `
-        <div class="explore-empty-state">
-          <i data-lucide="folder-search" width="28" height="28" style="color:var(--accent, #E84E1B); margin-bottom:8px;"></i>
-          <div class="font-display text-sm font-bold">[ ${q ? 'NO HAY LISTAS DE USUARIO COINCIDENTES' : 'NO HAY COLECCIONES PÚBLICAS AÚN'} ]</div>
-          <p class="text-xs text-dim">${q ? 'Prueba con otro término de búsqueda.' : 'Sé el primero en compartir una lista pública desde tu perfil.'}</p>
+        <div class="explore-empty-state" style="padding: 24px 16px; text-align: center; border: 1.5px dashed var(--border-strong, #111111); background: rgba(17,17,17,0.02);">
+          <div class="font-display text-sm font-bold" style="color:var(--fg);">[ ${q ? 'NO HAY LISTAS DE USUARIO COINCIDENTES' : 'NO HAY COLECCIONES PÚBLICAS AÚN'} ]</div>
+          <p class="text-xs text-dim" style="margin-top: 4px;">${q ? 'Prueba con otro término de búsqueda.' : 'Sé el primero en compartir una lista pública desde tu perfil.'}</p>
         </div>
       `;
     } else {
       publicContainer.innerHTML = `
-        <div class="public-collections-grid">
+        <div class="public-collections-grid" style="display: grid; gap: 12px;">
           ${collections.map((col) => {
             const authorNick = col.profiles?.nick ? `@${col.profiles.nick}` : (col.profiles?.first_name ? `@${col.profiles.first_name}` : 'Comunidad Nolli');
-            const emoji = col.emoji || col.icon || '🏛️';
+            const emoji = col.icon || col.emoji || '🏛️';
             const title = col.name || 'Colección sin título';
-            const desc = col.description || 'Selección curatorial de arquitectura';
-            const itemsCount = Array.isArray(col.building_ids) ? col.building_ids.length : 0;
+            const desc = col.description || 'Selección curatorial comunitaria';
+            
+            // Conteo de obras asociadas si viene en items o aproximado
+            const itemsCount = (state.userCollectionItems || []).filter(i => String(i.collection_id) === String(col.id)).length;
+            const countLabel = itemsCount > 0 ? `[ ${itemsCount} OBRAS ]` : '[ PÚBLICA ]';
+
+            const isOwn = String(col.user_id) === String(state.userId);
+            const isFollowing = (state.userFollowedCollections || []).some(f => String(f.collection_id) === String(col.id));
 
             return `
-              <article class="public-collection-card" data-collection-id="${escapeHtml(col.id)}" role="button" tabindex="0" aria-label="${escapeHtml(title)}">
-                <div class="public-collection-header">
-                  <span class="public-collection-emoji">${emoji}</span>
-                  <span class="public-collection-count">[ ${itemsCount} ${itemsCount === 1 ? 'OBRA' : 'OBRAS'} ]</span>
+              <article class="public-collection-card" data-collection-id="${escapeHtml(col.id)}" style="background:var(--bg-panel, #F8F1DF); border:1.5px solid var(--border-strong, #111111); box-shadow:3px 3px 0px #111111; padding:12px; display:grid; gap:8px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <div style="display:flex; align-items:center; gap:6px;">
+                    <span style="font-size:16px;">${escapeHtml(emoji)}</span>
+                    <strong style="font-family:'League Spartan',sans-serif; font-size:15px; color:var(--fg);">${escapeHtml(title)}</strong>
+                  </div>
+                  <span style="font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:800; color:var(--accent, #E84E1B);">${countLabel}</span>
                 </div>
-                <h3 class="public-collection-title">${escapeHtml(title)}</h3>
-                <p class="public-collection-desc">${escapeHtml(desc)}</p>
-                <div class="public-collection-footer">
-                  <span class="public-collection-author">${escapeHtml(authorNick)}</span>
-                  <button type="button" class="public-collection-btn">[ VER EN MAPA ]</button>
+                
+                ${desc ? `<p style="font-size:11px; color:var(--fg-dim); line-height:1.4; margin:0;">${escapeHtml(desc)}</p>` : ''}
+                
+                <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(17,17,17,0.1); padding-top:8px; margin-top:2px;">
+                  <span style="font-size:10px; font-family:'JetBrains Mono',monospace; color:var(--fg-dim);">Por <strong style="color:var(--fg);">${escapeHtml(authorNick)}</strong></span>
+                  
+                  <div style="display:flex; gap:6px; align-items:center;">
+                    ${!isOwn ? `
+                      <button type="button" class="btn-follow-collection" data-follow-collection-id="${col.id}" style="font-family:'JetBrains Mono',monospace; font-size:9.5px; font-weight:800; padding:4px 8px; border:1.5px solid ${isFollowing ? 'var(--accent, #E84E1B)' : 'var(--border-strong, #111111)'}; background:${isFollowing ? 'var(--accent, #E84E1B)' : 'transparent'}; color:${isFollowing ? '#FFF' : 'var(--fg)'}; cursor:pointer;">
+                        ${isFollowing ? '[ ✓ SIGUIENDO ]' : '[ + SEGUIR ]'}
+                      </button>
+                    ` : `
+                      <span style="font-size:9px; font-family:'JetBrains Mono',monospace; color:var(--accent, #E84E1B); font-weight:800;">[ TU LISTA ]</span>
+                    `}
+                    
+                    <button type="button" class="btn-view-collection-map" data-view-collection-id="${col.id}" style="font-family:'JetBrains Mono',monospace; font-size:9.5px; font-weight:800; padding:4px 8px; border:1.5px solid var(--border-strong, #111111); background:var(--bg-card, #FFFFFF); color:var(--fg); cursor:pointer;">
+                      [ VER EN MAPA ↗ ]
+                    </button>
+                  </div>
                 </div>
               </article>
             `;
@@ -180,10 +209,60 @@ export function initExploreUI() {
     });
   }
 
-  // Tap en Selecciones Curatoriales o Colecciones Públicas
+  // Delegación de clics para rutas, colecciones y seguir listas
   if (container) {
-    container.addEventListener('click', (e) => {
-      // 1. Tap en Ruta / Selección Curatorial
+    container.addEventListener('click', async (e) => {
+      // 1. Seguir / Dejar de seguir Colección
+      const followBtn = e.target.closest('[data-follow-collection-id]');
+      if (followBtn) {
+        e.stopPropagation();
+        e.preventDefault();
+        const colId = followBtn.dataset.followCollectionId;
+        
+        if (!state.sessionToken || !state.userId) {
+          const loginModal = document.getElementById('modal-login');
+          if (loginModal) loginModal.classList.add('open');
+          return;
+        }
+
+        const isFollowing = (state.userFollowedCollections || []).some(f => String(f.collection_id) === String(colId));
+        followBtn.disabled = true;
+        followBtn.textContent = '[ ... ]';
+
+        try {
+          if (isFollowing) {
+            await unfollowCollection(colId, state.userId, state.sessionToken);
+            state.userFollowedCollections = state.userFollowedCollections.filter(f => String(f.collection_id) !== String(colId));
+          } else {
+            await followCollection(colId, state.userId, state.sessionToken);
+            state.userFollowedCollections.push({ collection_id: colId, user_id: state.userId });
+          }
+          await renderPublicCollections(searchInput?.value || '');
+        } catch (err) {
+          alert(err.message || 'No se pudo actualizar el seguimiento de la lista.');
+          await renderPublicCollections(searchInput?.value || '');
+        }
+        return;
+      }
+
+      // 2. Ver Colección Pública en Mapa
+      const viewColBtn = e.target.closest('[data-view-collection-id]');
+      if (viewColBtn) {
+        e.stopPropagation();
+        e.preventDefault();
+        const colId = viewColBtn.dataset.viewCollectionId;
+        const col = publicCollectionsCache.find((c) => String(c.id) === String(colId));
+        if (!col) return;
+
+        if (panel) panel.classList.remove('open');
+        const backdrop = document.getElementById('panel-backdrop');
+        if (backdrop) backdrop.classList.remove('active');
+
+        window.location.hash = `#list=${encodeURIComponent(col.id)}`;
+        return;
+      }
+
+      // 3. Tap en Ruta Curatorial Nolli
       const curatedBtn = e.target.closest('.radar-route-btn') || e.target.closest('.radar-route-card');
       if (curatedBtn) {
         const routeId = curatedBtn.dataset.curatedId;
@@ -195,67 +274,23 @@ export function initExploreUI() {
           return;
         }
       }
-
-      // 2. Tap en Colección Pública de la Comunidad
-      const colCard = e.target.closest('.public-collection-card');
-      if (!colCard) return;
-
-      const colId = colCard.dataset.collectionId;
-      const col = publicCollectionsCache.find((c) => String(c.id) === String(colId));
-      if (!col) return;
-
-      const buildingIds = Array.isArray(col.building_ids) ? col.building_ids.map(String) : [];
-
-      if (panel) panel.classList.remove('open');
-      const backdrop = document.getElementById('panel-backdrop');
-      if (backdrop) backdrop.classList.remove('active');
-
-      // Establecer estado de aislamiento de la lista en el mapa
-      state.activeItinerary = {
-        id: col.id,
-        title: col.name,
-        workIds: new Set(buildingIds),
-      };
-
-      // Actualizar la fuente del mapa
-      actualizarFuenteMapa();
-
-      // Mostrar etiqueta flotante de lista activa
-      const itineraryBadge = document.getElementById('itinerary-filter-badge');
-      const titleEl = document.getElementById('itinerary-badge-title');
-      const countEl = document.getElementById('itinerary-badge-count');
-
-      if (itineraryBadge && titleEl) {
-        titleEl.textContent = `LISTA: ${(col.name || 'COLECCIÓN').toUpperCase()}`;
-        if (countEl) countEl.textContent = `${buildingIds.length} OBRAS`;
-        itineraryBadge.classList.remove('hidden');
-        if (window.lucide) window.lucide.createIcons();
-      }
-
-      // Cambiar a la pestaña Mapa en la Bottom Bar
-      const mapNavBtn = document.getElementById('mobile-nav-map');
-      if (mapNavBtn) {
-        document.querySelectorAll('.mobile-nav-btn').forEach((b) => b.classList.remove('active'));
-        mapNavBtn.classList.add('active');
-      }
-
-      // Encuadre geográfico en Mapbox
-      const colWorks = (state.OBRAS || []).filter((w) => buildingIds.includes(String(w.id)));
-      if (colWorks.length > 0 && state.map) {
-        const coords = colWorks.filter((w) => w.coordenadas && w.coordenadas.length === 2).map((w) => w.coordenadas);
-        if (coords.length === 1) {
-          state.map.flyTo({ center: coords[0], zoom: 16, duration: 800 });
-        } else if (coords.length > 1) {
-          const bounds = coords.reduce((b, c) => b.extend(c), new mapboxgl.LngLatBounds(coords[0], coords[0]));
-          state.map.fitBounds(bounds, { padding: 80, maxZoom: 16, duration: 1000 });
-        }
-      }
     });
   }
 
   document.addEventListener('radar:data-ready', () => {
     if (panel && panel.classList.contains('open')) {
       renderPublicCollections(searchInput?.value || '');
+    }
+  });
+
+  document.addEventListener('radar:user-session-ready', async () => {
+    if (state.userId && state.sessionToken) {
+      try {
+        state.userFollowedCollections = await fetchFollowedCollections(state.userId, state.sessionToken);
+      } catch {}
+      if (panel && panel.classList.contains('open')) {
+        renderPublicCollections(searchInput?.value || '');
+      }
     }
   });
 }

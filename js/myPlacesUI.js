@@ -1,5 +1,6 @@
 /* =========================================================================
-   MYPLACESUI.JS — Zona personal del usuario
+   MYPLACESUI.JS — Zona personal del usuario (Listas Propias y Seguidas)
+   Estética Neo-Bauhaus con Soporte Colaborativo y URLs Compartibles
    ========================================================================= */
 
 import {
@@ -23,6 +24,10 @@ import {
   updateUserCollection,
   deleteUserCollection,
   deleteUserCollectionItem,
+  fetchFollowedCollections,
+  followCollection,
+  unfollowCollection,
+  fetchCollectionById,
 } from './api.js';
 
 const panel = document.getElementById('my-places-panel');
@@ -52,6 +57,12 @@ export function initMyPlacesUI() {
         syncZonaPersonal();
       }
     });
+  }
+
+  // Router por hash para listas (#list=ID)
+  window.addEventListener('hashchange', handleListHashRoute);
+  if (window.location.hash.startsWith('#list=')) {
+    setTimeout(handleListHashRoute, 200);
   }
 
   document.addEventListener('click', (event) => {
@@ -118,93 +129,147 @@ export function initMyPlacesUI() {
       return;
     }
 
-    const removeItemButton = event.target.closest('[data-remove-from-collection]');
-    if (removeItemButton) {
-      quitarGuardado(removeItemButton.dataset.collectionId, removeItemButton.dataset.removeFromCollection);
+    const copyLinkBtn = event.target.closest('[data-copy-collection-link]');
+    if (copyLinkBtn) {
+      const colId = copyLinkBtn.dataset.copyCollectionLink;
+      copiarEnlaceLista(colId, copyLinkBtn);
       return;
     }
 
-    const item = event.target.closest('.my-place-item');
-    if (item) {
-      const obra = state.OBRAS.find((candidate) => String(candidate.featureId) === item.dataset.featureId);
-      if (!obra || !state.map) return;
-      state.map.flyTo({ center: obra.coordenadas, zoom: Math.max(state.map.getZoom(), 15) });
-      abrirFicha(obra, obra.coordenadas, obra.featureId);
-      panel.classList.remove('open');
-      button.classList.remove('active-state');
+    const unfollowBtn = event.target.closest('[data-unfollow-collection]');
+    if (unfollowBtn) {
+      dejarDeSeguirLista(unfollowBtn.dataset.unfollowCollection);
+      return;
+    }
+
+    const viewColMapBtn = event.target.closest('[data-view-collection-map]');
+    if (viewColMapBtn) {
+      aislarColeccionEnMapa(viewColMapBtn.dataset.viewCollectionMap);
+      return;
+    }
+
+    const removeItemBtn = event.target.closest('[data-remove-from-collection]');
+    if (removeItemBtn) {
+      quitarGuardado(removeItemBtn.dataset.collectionId, removeItemBtn.dataset.removeFromCollection);
+      return;
+    }
+
+    const placeItem = event.target.closest('.my-place-item');
+    if (placeItem && !event.target.closest('.btn-remove-collection')) {
+      const featureId = placeItem.dataset.featureId;
+      const obra = state.OBRAS.find((item) => String(item.featureId) === String(featureId) || String(item.id) === String(featureId));
+      if (obra) {
+        if (panel) panel.classList.remove('open');
+        if (button) button.classList.remove('active-state');
+        if (state.map) {
+          state.map.flyTo({
+            center: obra.coordenadas,
+            zoom: Math.max(state.map.getZoom(), 16),
+            essential: true,
+          });
+        }
+        abrirFicha(obra);
+      }
     }
   });
 
-  document.addEventListener('radar:user-status-ready', () => {
-    renderList();
-    asegurarObrasEnMemoria();
-  });
-  document.addEventListener('radar:user-status-changed', () => {
-    renderList();
-    asegurarObrasEnMemoria();
-  });
   document.addEventListener('radar:user-session-ready', () => {
-    syncZonaPersonal();
+    if (state.userId && state.sessionToken) {
+      syncZonaPersonal();
+    }
   });
-  document.addEventListener('radar:user-collections-changed', renderList);
+
   document.addEventListener('radar:logout', () => {
-    panel.classList.remove('open');
-    button.classList.remove('active-state');
     state.userCollections = [];
     state.userCollectionItems = [];
-    idsYaIntentados.clear();
+    state.userFollowedCollections = [];
+    state.buildingStatuses.clear();
     renderList();
   });
-  renderList();
+}
+
+export async function handleListHashRoute() {
+  const hash = window.location.hash;
+  if (!hash.startsWith('#list=')) return;
+  const listId = hash.replace('#list=', '').trim();
+  if (!listId) return;
+
+  try {
+    const col = await fetchCollectionById(listId, state.sessionToken);
+    if (!col) return;
+
+    // Cargar obras asociadas si no están en local
+    let items = (state.userCollectionItems || []).filter((i) => String(i.collection_id) === String(listId));
+    if (!items.length) {
+      items = await fetchUserCollectionItems(col.user_id, state.sessionToken || '').catch(() => []);
+      items = items.filter((i) => String(i.collection_id) === String(listId));
+    }
+
+    const buildingIds = items.map((i) => String(i.building_id));
+
+    // Aislar en mapa
+    state.activeItinerary = {
+      id: col.id,
+      title: col.name,
+      workIds: new Set(buildingIds),
+    };
+
+    actualizarFuenteMapa();
+
+    const itineraryBadge = document.getElementById('itinerary-filter-badge');
+    const titleEl = document.getElementById('itinerary-badge-title');
+    const countEl = document.getElementById('itinerary-badge-count');
+
+    if (itineraryBadge && titleEl) {
+      titleEl.textContent = `LISTA: ${(col.name || 'COLECCIÓN').toUpperCase()}`;
+      if (countEl) countEl.textContent = `${buildingIds.length} OBRAS`;
+      itineraryBadge.classList.remove('hidden');
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    // Encuadre geográfico
+    const colWorks = (state.OBRAS || []).filter((w) => buildingIds.includes(String(w.id)));
+    if (colWorks.length > 0 && state.map) {
+      const coords = colWorks.filter((w) => w.coordenadas && w.coordenadas.length === 2).map((w) => w.coordenadas);
+      if (coords.length === 1) {
+        state.map.flyTo({ center: coords[0], zoom: 16, duration: 800 });
+      } else if (coords.length > 1) {
+        const bounds = coords.reduce((b, c) => b.extend(c), new mapboxgl.LngLatBounds(coords[0], coords[0]));
+        state.map.fitBounds(bounds, { padding: 80, maxZoom: 16, duration: 1000 });
+      }
+    }
+  } catch (err) {
+    console.warn('No se pudo abrir la lista compartida:', err);
+  }
 }
 
 async function asegurarObrasEnMemoria() {
-  if (precargaEnProgreso) return;
-
-  const idsRelevantes = new Set();
-  state.buildingStatuses.forEach((status, id) => {
-    if (status.visited || status.favorite || (status.notas && status.notas.trim())) {
-      idsRelevantes.add(String(id));
-    }
+  const idsFaltantes = [];
+  state.buildingStatuses.forEach((_status, buildingId) => {
+    const yaEsta = state.OBRAS.some((item) => String(item.id) === String(buildingId));
+    if (!yaEsta && !idsYaIntentados.has(String(buildingId))) idsFaltantes.push(buildingId);
   });
 
   (state.userCollectionItems || []).forEach((item) => {
-    if (item.building_id) idsRelevantes.add(String(item.building_id));
+    const buildingId = item.building_id;
+    const yaEsta = state.OBRAS.some((candidate) => String(candidate.id) === String(buildingId));
+    if (!yaEsta && !idsYaIntentados.has(String(buildingId))) idsFaltantes.push(buildingId);
   });
 
-  const idsFaltantes = [...idsRelevantes].filter(
-    (id) => !idsYaIntentados.has(String(id)) && !state.OBRAS.some((obra) => String(obra.id) === String(id))
-  );
+  const idsUnicos = [...new Set(idsFaltantes)];
+  if (!idsUnicos.length) return;
 
-  if (idsFaltantes.length === 0) return;
-
-  idsFaltantes.forEach((id) => idsYaIntentados.add(String(id)));
+  idsUnicos.forEach((id) => idsYaIntentados.add(String(id)));
   precargaEnProgreso = true;
 
   try {
-    const filas = await fetchBuildingsByIds(idsFaltantes);
-    if (Array.isArray(filas) && filas.length > 0) {
+    const obrasDescargadas = await fetchBuildingsByIds(idsUnicos, state.sessionToken);
+    if (obrasDescargadas?.length) {
       let agregados = 0;
-      filas.forEach((fila, index) => {
-        if (!state.OBRAS.some((obra) => String(obra.id) === String(fila.id))) {
-          state.OBRAS.push({
-            id: fila.id,
-            featureId: String(fila.id ?? `obra-sync-${index}`),
-            nombre_obra: fila.nombre_obra,
-            foto_url: fila.foto_url || null,
-            enlace_url: fila.enlace_url || null,
-            arquitecto: fila.arquitecto,
-            arquitectos: separarArquitectos(fila.arquitecto),
-            año_construccion: fila.año_construccion,
-            importancia: normalizarImportancia(fila.importancia),
-            categoria: normalizarCategoria(fila.categoria),
-            ciudad: fila.ciudad || null,
-            estado_acceso: fila.estado_acceso || (fila.visitable ? 'publico' : 'privado'),
-            añadido_por: fila.añadido_por || null,
-            estado_revision: fila.estado_revision || 'publicada',
-            coordenadas: [fila.longitud, fila.latitud],
-            selected: false,
-          });
+      obrasDescargadas.forEach((obra) => {
+        const yaEsta = state.OBRAS.some((item) => String(item.id) === String(obra.id));
+        if (!yaEsta) {
+          state.OBRAS.push(obra);
           agregados++;
         }
       });
@@ -223,10 +288,11 @@ async function asegurarObrasEnMemoria() {
 async function syncZonaPersonal() {
   if (!state.userId || !state.sessionToken) return;
   try {
-    const [collections, collectionItems, statuses] = await Promise.all([
+    const [collections, collectionItems, statuses, followed] = await Promise.all([
       fetchUserCollections(state.userId, state.sessionToken),
       fetchUserCollectionItems(state.userId, state.sessionToken),
       fetchBuildingStatuses(state.userId, state.sessionToken).catch(() => []),
+      fetchFollowedCollections(state.userId, state.sessionToken).catch(() => []),
     ]);
 
     if (Array.isArray(statuses) && statuses.length > 0) {
@@ -243,6 +309,7 @@ async function syncZonaPersonal() {
 
     state.userCollections = aplicarPreferenciasMapaColecciones(collections || [], state.userId);
     state.userCollectionItems = collectionItems || [];
+    state.userFollowedCollections = followed || [];
     guardarZonaPersonalLocal(state.userId);
 
     await asegurarObrasEnMemoria();
@@ -258,24 +325,40 @@ async function syncZonaPersonal() {
 function abrirModalCrearLista() {
   removerModalExistente();
   const modalHTML = `
-    <div id="collection-modal-overlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; display:flex; align-items:center; justify-content:center; padding:16px;">
-      <div style="background:var(--bg-panel, #F8F1DF); border:1px solid var(--border-strong, #141411); padding:16px; width:100%; max-width:320px; display:grid; gap:10px; font-family:'JetBrains Mono', monospace; font-size:11px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-strong); padding-bottom:6px;">
-          <strong style="color:var(--accent);">NUEVA LISTA</strong>
-          <button type="button" class="filter-action" data-close-modal>✕</button>
+    <div id="collection-modal-overlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; display:flex; align-items:center; justify-content:center; padding:16px;">
+      <div style="background:var(--bg-panel, #F8F1DF); border:2px solid var(--border-strong, #111111); box-shadow:4px 4px 0px #111111; padding:18px; width:100%; max-width:340px; display:grid; gap:12px; font-family:'JetBrains Mono', monospace; font-size:11px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid var(--border-strong); padding-bottom:6px;">
+          <strong style="color:var(--accent); font-family:'League Spartan',sans-serif; font-size:14px;">[ NUEVA LISTA ]</strong>
+          <button type="button" class="filter-action" data-close-modal style="cursor:pointer;">✕</button>
         </div>
         <div style="display:grid; grid-template-columns: 50px 1fr; gap:6px;">
-          <input id="modal-emoji-input" class="tech-input" type="text" placeholder="🏛️" maxlength="4" style="text-align:center;" title="Pulsa para escribir o abrir el teclado de emojis">
+          <input id="modal-emoji-input" class="tech-input" type="text" placeholder="🏛️" maxlength="4" style="text-align:center;" title="Icono / Emoji">
           <input id="modal-name-input" class="tech-input" type="text" placeholder="NOMBRE DE LISTA">
         </div>
         <textarea id="modal-desc-input" class="tech-input" placeholder="Descripción breve (opcional)..." style="resize:vertical; min-height:50px; font-family:inherit; font-size:inherit;"></textarea>
+        
+        <!-- Selector de Privacidad Neo-Bauhaus -->
+        <div style="display:flex; flex-direction:column; gap:4px;">
+          <label style="font-size:9.5px; font-weight:800; color:var(--fg-dim);">VISIBILIDAD:</label>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
+            <label style="display:flex; align-items:center; gap:6px; padding:6px 8px; border:1.5px solid var(--border-strong, #111111); background:rgba(17,17,17,0.04); cursor:pointer; font-size:10px; font-weight:700;">
+              <input type="radio" name="modal-create-status" value="private" checked style="accent-color:var(--accent, #E84E1B);">
+              <span>🔒 PRIVADA</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:6px; padding:6px 8px; border:1.5px solid var(--border-strong, #111111); background:rgba(17,17,17,0.04); cursor:pointer; font-size:10px; font-weight:700;">
+              <input type="radio" name="modal-create-status" value="public" style="accent-color:var(--accent, #E84E1B);">
+              <span>🌐 PÚBLICA</span>
+            </label>
+          </div>
+        </div>
+
         <label class="keep-session" style="font-size:10px; cursor:pointer;">
           <input id="modal-map-toggle" type="checkbox" checked>
           <span>Mostrar obras en el mapa con este icono</span>
         </label>
         <div style="display:flex; gap:6px; justify-content:flex-end; margin-top:4px;">
           <button type="button" class="filter-action" data-close-modal>CANCELAR</button>
-          <button type="button" class="btn" data-confirm-create-collection style="padding:6px 12px;">CREAR LISTA</button>
+          <button type="button" class="btn" data-confirm-create-collection style="padding:6px 14px; font-weight:800; background:var(--accent); color:#FFF;">CREAR LISTA</button>
         </div>
       </div>
     </div>
@@ -293,11 +376,13 @@ async function crearListaDesdeModal() {
   const emojiInput = document.getElementById('modal-emoji-input');
   const descInput = document.getElementById('modal-desc-input');
   const mapToggle = document.getElementById('modal-map-toggle');
+  const statusRadio = document.querySelector('input[name="modal-create-status"]:checked');
 
   const name = String(nameInput?.value || '').trim();
   const icon = String(emojiInput?.value || '').trim();
   const description = String(descInput?.value || '').trim();
   const show_on_map = Boolean(mapToggle?.checked);
+  const status = statusRadio?.value === 'public' ? 'public' : 'private';
 
   if (!name) {
     alert('Escribe un nombre para la lista.');
@@ -310,6 +395,8 @@ async function crearListaDesdeModal() {
     name,
     icon,
     description,
+    status,
+    is_public: status === 'public',
     show_on_map,
     created_at: new Date().toISOString()
   };
@@ -320,10 +407,12 @@ async function crearListaDesdeModal() {
       user_id: newCollectionPayload.user_id,
       name: newCollectionPayload.name,
       icon: newCollectionPayload.icon,
-      description: newCollectionPayload.description
+      description: newCollectionPayload.description,
+      status: newCollectionPayload.status,
+      show_on_map: newCollectionPayload.show_on_map,
     }, state.sessionToken);
 
-    const savedCollection = (Array.isArray(created) && created[0]) ? { ...created[0], show_on_map } : newCollectionPayload;
+    const savedCollection = (Array.isArray(created) && created[0]) ? { ...created[0], show_on_map, status } : newCollectionPayload;
     state.userCollections.push(savedCollection);
     guardarZonaPersonalLocal(state.userId);
     registrarIconosColecciones();
@@ -346,26 +435,50 @@ function abrirModalEditarLista(collectionId) {
   const collection = state.userCollections.find((item) => String(item.id) === String(collectionId));
   if (!collection) return;
 
+  const isPublic = collection.status === 'public' || collection.is_public === true;
+
   removerModalExistente();
   const modalHTML = `
-    <div id="collection-modal-overlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; display:flex; align-items:center; justify-content:center; padding:16px;">
-      <div style="background:var(--bg-panel, #F8F1DF); border:1px solid var(--border-strong, #141411); padding:16px; width:100%; max-width:320px; display:grid; gap:10px; font-family:'JetBrains Mono', monospace; font-size:11px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-strong); padding-bottom:6px;">
-          <strong style="color:var(--accent);">EDITAR LISTA</strong>
-          <button type="button" class="filter-action" data-close-modal>✕</button>
+    <div id="collection-modal-overlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; display:flex; align-items:center; justify-content:center; padding:16px;">
+      <div style="background:var(--bg-panel, #F8F1DF); border:2px solid var(--border-strong, #111111); box-shadow:4px 4px 0px #111111; padding:18px; width:100%; max-width:340px; display:grid; gap:12px; font-family:'JetBrains Mono', monospace; font-size:11px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid var(--border-strong); padding-bottom:6px;">
+          <strong style="color:var(--accent); font-family:'League Spartan',sans-serif; font-size:14px;">[ EDITAR LISTA ]</strong>
+          <button type="button" class="filter-action" data-close-modal style="cursor:pointer;">✕</button>
         </div>
         <div style="display:grid; grid-template-columns: 50px 1fr; gap:6px;">
-          <input id="modal-edit-emoji" class="tech-input" type="text" value="${collection.icon || ''}" placeholder="🏛️" maxlength="4" style="text-align:center;">
-          <input id="modal-edit-name" class="tech-input" type="text" value="${collection.name || ''}" placeholder="Nombre de lista">
+          <input id="modal-edit-emoji" class="tech-input" type="text" value="${escapeHtml(collection.icon || '')}" placeholder="🏛️" maxlength="4" style="text-align:center;">
+          <input id="modal-edit-name" class="tech-input" type="text" value="${escapeHtml(collection.name || '')}" placeholder="Nombre de lista">
         </div>
-        <textarea id="modal-edit-desc" class="tech-input" placeholder="Descripción breve..." style="resize:vertical; min-height:50px; font-family:inherit; font-size:inherit;">${collection.description || ''}</textarea>
+        <textarea id="modal-edit-desc" class="tech-input" placeholder="Descripción breve..." style="resize:vertical; min-height:50px; font-family:inherit; font-size:inherit;">${escapeHtml(collection.description || '')}</textarea>
+        
+        <!-- Selector de Privacidad Neo-Bauhaus -->
+        <div style="display:flex; flex-direction:column; gap:4px;">
+          <label style="font-size:9.5px; font-weight:800; color:var(--fg-dim);">VISIBILIDAD:</label>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
+            <label style="display:flex; align-items:center; gap:6px; padding:6px 8px; border:1.5px solid var(--border-strong, #111111); background:rgba(17,17,17,0.04); cursor:pointer; font-size:10px; font-weight:700;">
+              <input type="radio" name="modal-edit-status" value="private" ${!isPublic ? 'checked' : ''} style="accent-color:var(--accent, #E84E1B);">
+              <span>🔒 PRIVADA</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:6px; padding:6px 8px; border:1.5px solid var(--border-strong, #111111); background:rgba(17,17,17,0.04); cursor:pointer; font-size:10px; font-weight:700;">
+              <input type="radio" name="modal-edit-status" value="public" ${isPublic ? 'checked' : ''} style="accent-color:var(--accent, #E84E1B);">
+              <span>🌐 PÚBLICA</span>
+            </label>
+          </div>
+        </div>
+
+        ${isPublic ? `
+          <button type="button" class="filter-action" data-copy-collection-link="${collection.id}" style="width:100%; padding:6px 10px; font-size:10px; font-weight:800; color:var(--accent); border:1.5px solid var(--accent); background:rgba(232,78,27,0.06); cursor:pointer;">
+            [ 🔗 COPIAR ENLACE COMPARTIBLE ]
+          </button>
+        ` : ''}
+
         <label class="keep-session" style="font-size:10px; cursor:pointer;">
           <input id="modal-edit-map-toggle" type="checkbox" ${collection.show_on_map !== false ? 'checked' : ''}>
           <span>Mostrar obras en el mapa con este icono</span>
         </label>
         <div style="display:flex; gap:6px; justify-content:flex-end; margin-top:4px;">
           <button type="button" class="filter-action" data-close-modal>CANCELAR</button>
-          <button type="button" class="btn" data-confirm-edit-collection="${collection.id}" style="padding:6px 12px;">GUARDAR</button>
+          <button type="button" class="btn" data-confirm-edit-collection="${collection.id}" style="padding:6px 14px; font-weight:800; background:var(--accent); color:#FFF;">GUARDAR</button>
         </div>
       </div>
     </div>
@@ -381,11 +494,13 @@ async function guardarEdicionListaModal(collectionId) {
   const nameInput = document.getElementById('modal-edit-name');
   const descInput = document.getElementById('modal-edit-desc');
   const mapToggle = document.getElementById('modal-edit-map-toggle');
+  const statusRadio = document.querySelector('input[name="modal-edit-status"]:checked');
 
   const newName = String(nameInput?.value || '').trim();
   const newIcon = String(emojiInput?.value || '').trim();
   const newDesc = String(descInput?.value || '').trim();
   const show_on_map = Boolean(mapToggle?.checked);
+  const status = statusRadio?.value === 'public' ? 'public' : 'private';
 
   if (!newName) {
     alert('El nombre no puede estar vacío.');
@@ -395,6 +510,8 @@ async function guardarEdicionListaModal(collectionId) {
   collection.name = newName;
   collection.icon = newIcon;
   collection.description = newDesc;
+  collection.status = status;
+  collection.is_public = status === 'public';
   collection.show_on_map = show_on_map;
 
   guardarZonaPersonalLocal(state.userId);
@@ -405,7 +522,7 @@ async function guardarEdicionListaModal(collectionId) {
 
   if (state.sessionToken) {
     try {
-      await updateUserCollection(collectionId, { name: newName, icon: newIcon, description: newDesc }, state.sessionToken);
+      await updateUserCollection(collectionId, { name: newName, icon: newIcon, description: newDesc, status, show_on_map }, state.sessionToken);
     } catch (err) {
       console.warn('Error sincronizando edición de lista con el servidor:', err);
     }
@@ -419,6 +536,21 @@ function cerrarModalFlotante() {
 function removerModalExistente() {
   const existing = document.getElementById('collection-modal-overlay');
   if (existing) existing.remove();
+}
+
+function copiarEnlaceLista(collectionId, btnElement = null) {
+  const url = `${window.location.origin}${window.location.pathname.replace(/\/$/, '')}/#list=${encodeURIComponent(collectionId)}`;
+  navigator.clipboard.writeText(url).then(() => {
+    if (btnElement) {
+      const orig = btnElement.textContent;
+      btnElement.textContent = '✓ ¡ENLACE COPIADO!';
+      setTimeout(() => { btnElement.textContent = orig; }, 2500);
+    } else {
+      alert('¡Enlace de lista copiado al portapapeles!');
+    }
+  }).catch(() => {
+    prompt('Copia este enlace directo a la lista:', url);
+  });
 }
 
 async function borrarLista(collectionId) {
@@ -441,6 +573,25 @@ async function borrarLista(collectionId) {
     actualizarFuenteMapa();
     renderList();
   }
+}
+
+async function dejarDeSeguirLista(collectionId) {
+  if (!state.userId || !state.sessionToken || !collectionId) return;
+  if (!window.confirm('¿Dejar de seguir esta lista pública?')) return;
+  try {
+    await unfollowCollection(collectionId, state.userId, state.sessionToken);
+    state.userFollowedCollections = state.userFollowedCollections.filter((item) => String(item.collection_id) !== String(collectionId));
+    renderList();
+  } catch (err) {
+    alert(err.message || 'Error al dejar de seguir la lista.');
+  }
+}
+
+function aislarColeccionEnMapa(collectionId) {
+  if (panel) panel.classList.remove('open');
+  if (button) button.classList.remove('active-state');
+  handleListHashRoute();
+  window.location.hash = `#list=${collectionId}`;
 }
 
 async function quitarGuardado(collectionId, buildingId) {
@@ -510,9 +661,11 @@ function renderList() {
 }
 
 function renderCollections() {
-  const cards = (state.userCollections || []).map((collection) => {
+  const ownCards = (state.userCollections || []).map((collection) => {
     const collectionItems = (state.userCollectionItems || []).filter((item) => String(item.collection_id) === String(collection.id));
     const isMapActive = collection.show_on_map !== false;
+    const isPublic = collection.status === 'public' || collection.is_public === true;
+
     const eyeIconSvg = isMapActive
       ? `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`
       : `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>`;
@@ -532,7 +685,7 @@ function renderCollections() {
           <button type="button" class="btn-remove-collection" data-collection-id="${collection.id}" data-remove-from-collection="${obra.id}" title="Quitar de la lista" aria-label="Quitar de la lista">✕</button>
         </div>
       `;
-    }).join('') || '<div class="nearby-empty">Lista sin obras añadidas.</div>';
+    }).join('') || '<div class="nearby-empty" style="font-size:10px;">[ Lista sin obras añadidas aún ]</div>';
 
     const collectionEmoji = collection.icon ? `<span style="margin-right: 6px;">${escapeHtml(collection.icon)}</span>` : '';
     const collectionDescription = collection.description ? `<div class="my-place-meta" style="margin-top: 2px; font-style: italic;">${escapeHtml(collection.description)}</div>` : '';
@@ -541,11 +694,19 @@ function renderCollections() {
       <article class="my-collection-card">
         <div class="my-collection-head">
           <div style="min-width:0; flex:1;">
-            <div style="font-weight:700; color:var(--fg); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${collectionEmoji}${escapeHtml(collection.name)}</div>
+            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+              <span style="font-weight:700; color:var(--fg);">${collectionEmoji}${escapeHtml(collection.name)}</span>
+              <span style="font-size:8.5px; font-weight:800; font-family:'JetBrains Mono',monospace; padding:1px 4px; border:1px solid ${isPublic ? 'var(--accent, #E84E1B)' : 'var(--border-strong, #111111)'}; color:${isPublic ? 'var(--accent, #E84E1B)' : 'var(--fg-dim)'};">${isPublic ? '[ 🌐 PÚBLICA ]' : '[ 🔒 PRIVADA ]'}</span>
+            </div>
             ${collectionDescription}
           </div>
           <div class="my-collection-tools">
-            <button type="button" class="collection-map-toggle ${isMapActive ? 'active' : ''}" data-toggle-map-collection="${collection.id}" title="${isMapActive ? 'Ocultar iconos de la lista en el mapa' : 'Mostrar iconos de la lista en el mapa'}" aria-label="${isMapActive ? 'Ocultar en mapa' : 'Mostrar en mapa'}">
+            ${isPublic ? `
+              <button type="button" class="collection-tool-btn" data-copy-collection-link="${collection.id}" title="Copiar enlace compartible" aria-label="Copiar enlace compartible">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              </button>
+            ` : ''}
+            <button type="button" class="collection-map-toggle ${isMapActive ? 'active' : ''}" data-toggle-map-collection="${collection.id}" title="${isMapActive ? 'Ocultar iconos en el mapa' : 'Mostrar iconos en el mapa'}" aria-label="${isMapActive ? 'Ocultar en mapa' : 'Mostrar en mapa'}">
               ${eyeIconSvg}
             </button>
             <span class="collection-counter" title="Total de obras">${collectionItems.length}</span>
@@ -564,12 +725,50 @@ function renderCollections() {
     `;
   }).join('');
 
+  // Renderizar listas seguidas de otros creadores
+  const followedCards = (state.userFollowedCollections || []).map((followItem) => {
+    const col = followItem.user_collections || followItem;
+    if (!col) return '';
+    const creatorName = col.profiles?.nick ? `@${col.profiles.nick}` : (col.profiles?.first_name ? `@${col.profiles.first_name}` : 'Comunidad Nolli');
+    const emoji = col.icon || '🏛️';
+    const title = col.name || 'Lista pública';
+
+    return `
+      <article class="my-collection-card" style="border-left: 3px solid var(--accent, #E84E1B);">
+        <div class="my-collection-head">
+          <div style="min-width:0; flex:1;">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="font-weight:700; color:var(--fg);">${escapeHtml(emoji)} ${escapeHtml(title)}</span>
+              <span style="font-size:8.5px; font-weight:800; font-family:'JetBrains Mono',monospace; padding:1px 4px; background:rgba(232,78,27,0.08); color:var(--accent, #E84E1B);">[ SEGUIDA ]</span>
+            </div>
+            <div class="my-place-meta" style="font-size:9.5px; color:var(--fg-dim); margin-top:2px;">Por ${escapeHtml(creatorName)}</div>
+          </div>
+          <div class="my-collection-tools">
+            <button type="button" class="collection-tool-btn" data-view-collection-map="${col.id}" title="Ver lista sobre el mapa" style="color:var(--accent); border-color:var(--accent);">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" x2="9" y1="3" y2="18"/><line x1="15" x2="15" y1="6" y2="21"/></svg>
+            </button>
+            <button type="button" class="collection-tool-btn btn-delete" data-unfollow-collection="${col.id}" title="Dejar de seguir" aria-label="Dejar de seguir">
+              ✕
+            </button>
+          </div>
+        </div>
+      </article>
+    `;
+  }).join('');
+
   list.innerHTML = `
     <div class="my-collections-header">
       <span style="font-size: 10px; color: var(--fg-dim); font-weight: 700; font-family:'JetBrains Mono', monospace;">MIS LISTAS (${(state.userCollections || []).length})</span>
       <button type="button" class="btn-new-list" data-open-create-collection-modal style="padding: 5px 12px; font-size: 10px;">[ + NUEVA LISTA ]</button>
     </div>
-    ${cards || '<div class="nearby-empty">Crea tu primera lista para organizar obras.</div>'}
+    ${ownCards || '<div class="nearby-empty" style="padding:16px;">Crea tu primera lista para organizar obras.</div>'}
+
+    ${(state.userFollowedCollections || []).length > 0 ? `
+      <div class="my-collections-header" style="margin-top:20px;">
+        <span style="font-size: 10px; color: var(--accent, #E84E1B); font-weight: 700; font-family:'JetBrains Mono', monospace;">LISTAS SEGUIDAS (${state.userFollowedCollections.length})</span>
+      </div>
+      ${followedCards}
+    ` : ''}
   `;
   if (window.lucide) window.lucide.createIcons();
 }

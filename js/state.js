@@ -48,6 +48,7 @@ export const state = {
   privateBuildings: [],
   userCollections: [],
   userCollectionItems: [],
+  userFollowedCollections: [],
   userPrivateLabels: [],
 };
 

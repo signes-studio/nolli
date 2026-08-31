@@ -68,9 +68,6 @@ export function initMobileBottomNav() {
     // Controles Flotantes
     btnFloatLayers?.classList.toggle('active-state', isLayersOpen);
     btnFloatFilters?.classList.toggle('active-state', isFilterOpen);
-    document.getElementById('btn-float-admin')?.classList.toggle('active-state', isAdminOpen);
-    document.getElementById('btn-mobile-admin')?.classList.toggle('active-state', isAdminOpen);
-    document.getElementById('btn-admin-float')?.classList.toggle('active-state', isAdminOpen);
     document.getElementById('btn-explore-float')?.classList.toggle('active-state', isExploreOpen);
     document.getElementById('btn-radar-float')?.classList.toggle('active-state', isRadarOpen);
 
@@ -220,31 +217,11 @@ export function initMobileBottomNav() {
     });
   }
 
-  const triggerAdminMobile = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    toggleMobilePanel(adminPanel);
-    if (adminPanel?.classList.contains('open')) {
-      document.dispatchEvent(new CustomEvent('radar:admin-panel-open'));
-    }
-  };
-
-  const btnFloatAdmin = document.getElementById('btn-float-admin');
-  if (btnFloatAdmin) btnFloatAdmin.addEventListener('click', triggerAdminMobile);
-
-  const btnMobileAdmin = document.getElementById('btn-mobile-admin');
-  if (btnMobileAdmin) btnMobileAdmin.addEventListener('click', triggerAdminMobile);
-
-  const btnAdminFloat = document.getElementById('btn-admin-float');
-  if (btnAdminFloat) btnAdminFloat.addEventListener('click', triggerAdminMobile);
-
   // Cierre táctil al tocar fuera (Backdrop)
   if (panelBackdrop) {
     panelBackdrop.addEventListener('click', () => {
       closeAllPanels();
       if (panelBackdrop) panelBackdrop.classList.remove('active');
-      const quickMenu = document.getElementById('mobile-admin-quickmenu');
-      if (quickMenu) quickMenu.hidden = true;
     });
   }
 
@@ -369,7 +346,6 @@ function initMobileIdentityWidget() {
       const inits = computeInitials();
       badge.textContent = `[ ${inits} ]`;
       actionBtn.title = 'Ver perfil personal';
-      if (quickMenu) quickMenu.hidden = true;
     }
   }
 
@@ -378,58 +354,11 @@ function initMobileIdentityWidget() {
     e.stopPropagation();
 
     const isLogged = Boolean(state.sessionToken);
-    const isAdmin = esRolAdmin(state.userRole);
-
     if (!isLogged) {
       const loginModal = document.getElementById('modal-login');
       if (loginModal) loginModal.classList.add('open');
-    } else if (isAdmin && quickMenu) {
-      quickMenu.hidden = !quickMenu.hidden;
     } else {
-      window.location.href = './perfil.html';
-    }
-  });
-
-  if (btnCloseQuickMenu && quickMenu) {
-    btnCloseQuickMenu.addEventListener('click', (e) => {
-      e.stopPropagation();
-      quickMenu.hidden = true;
-    });
-  }
-
-  if (btnQuickAdminPanel && quickMenu) {
-    btnQuickAdminPanel.addEventListener('click', (e) => {
-      e.stopPropagation();
-      quickMenu.hidden = true;
-      const adminPanel = document.getElementById('admin-panel');
-      if (adminPanel) {
-        adminPanel.classList.add('open');
-        document.getElementById('admin-project-list')?.classList.remove('admin-view-hidden');
-        document.getElementById('admin-reports-view')?.classList.add('admin-view-hidden');
-        document.getElementById('admin-users-view')?.classList.add('admin-view-hidden');
-        document.getElementById('panel-backdrop')?.classList.add('active');
-      }
-    });
-  }
-
-  if (btnQuickReports && quickMenu) {
-    btnQuickReports.addEventListener('click', (e) => {
-      e.stopPropagation();
-      quickMenu.hidden = true;
-      const adminPanel = document.getElementById('admin-panel');
-      if (adminPanel) {
-        adminPanel.classList.add('open');
-        document.getElementById('admin-project-list')?.classList.add('admin-view-hidden');
-        document.getElementById('admin-reports-view')?.classList.remove('admin-view-hidden');
-        document.getElementById('admin-users-view')?.classList.add('admin-view-hidden');
-        document.getElementById('panel-backdrop')?.classList.add('active');
-      }
-    });
-  }
-
-  document.addEventListener('click', (e) => {
-    if (quickMenu && !quickMenu.hidden && !quickMenu.contains(e.target) && !actionBtn.contains(e.target)) {
-      quickMenu.hidden = true;
+      window.location.href = './perfil';
     }
   });
 

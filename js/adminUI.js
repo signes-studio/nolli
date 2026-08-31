@@ -1,9 +1,19 @@
 /* =========================================================================
    ADMINUI.JS — Panel de administración para gestión de obras, reportes y usuarios
+   Arquitectura Serverless Blindada + Frontend Vanilla Neo-Bauhaus
    ========================================================================= */
 
 import { state, separarArquitectos, esRolAdmin, escapeHtml } from './state.js';
-import { deleteBuilding, fetchRatingAverages, reviewBuilding, fetchBuildingReports, fetchUserDirectory, updateBuildingReport, fetchAllBuildingsForAdmin } from './api.js';
+import { 
+  deleteBuilding, 
+  fetchRatingAverages, 
+  reviewBuilding, 
+  fetchBuildingReports, 
+  fetchUserDirectory, 
+  updateBuildingReport, 
+  fetchAllBuildingsForAdmin,
+  fetchUserRole
+} from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
 
@@ -21,7 +31,6 @@ const usersView = document.getElementById('admin-users-view');
 const userList = document.getElementById('admin-user-list');
 const userSearch = document.getElementById('admin-user-search');
 const userCount = document.getElementById('admin-user-count');
-const usersTab = document.querySelector('[data-admin-tab="users"]');
 const toolbar = document.querySelector('.admin-toolbar');
 
 const cityCache = new Map();
@@ -33,49 +42,10 @@ let currentAdminTab = 'projects';
 function getAdminButtons() {
   return [
     document.getElementById('btn-admin-panel'),
-    document.getElementById('btn-float-admin'),
-    document.getElementById('btn-mobile-admin'),
-    document.getElementById('btn-admin-float'),
   ].filter(Boolean);
 }
 
 export function initAdminUI() {
-  const toggleAdminPanel = async (forceOpen = null) => {
-    if (!panel) return;
-    const shouldOpen = forceOpen !== null ? forceOpen : !panel.classList.contains('open');
-    panel.classList.toggle('open', shouldOpen);
-    getAdminButtons().forEach((b) => b.classList.toggle('active-state', shouldOpen));
-
-    if (shouldOpen) {
-      if (!state.sessionToken) {
-        const savedRaw = localStorage.getItem('nolli_admin_session_token') || sessionStorage.getItem('nolli_admin_session_token');
-        if (savedRaw) {
-          if (list) {
-            list.innerHTML = `
-              <div style="padding: 32px 16px; text-align: center; color: var(--fg-dim); font-family: 'JetBrains Mono', monospace; font-size: 11px;">
-                <div style="font-size: 24px; margin-bottom: 8px;">⏳</div>
-                [ CARGANDO SESIÓN Y DATOS DE ADMINISTRACIÓN... ]
-              </div>
-            `;
-          }
-          setTimeout(async () => {
-            if (state.sessionToken) {
-              await syncAllAdminData();
-              renderCurrentTab();
-            } else {
-              renderAuthRequired();
-            }
-          }, 350);
-          return;
-        }
-        renderAuthRequired();
-        return;
-      }
-      await syncAllAdminData();
-      renderCurrentTab();
-    }
-  };
-
   getAdminButtons().forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -84,15 +54,10 @@ export function initAdminUI() {
     });
   });
 
-  const handleAdminHash = () => {
-    if (window.location.hash === '#admin' && panel) {
-      toggleAdminPanel(true);
-    }
-  };
-
-  window.addEventListener('hashchange', handleAdminHash);
+  // Router Global por Hash (#admin)
+  window.addEventListener('hashchange', handleAdminHashRoute);
   if (window.location.hash === '#admin') {
-    setTimeout(handleAdminHash, 80);
+    setTimeout(handleAdminHashRoute, 100);
   }
 
   if (search) search.addEventListener('input', renderList);
@@ -162,19 +127,6 @@ export function initAdminUI() {
     }
   });
 
-  const checkAdminVisibility = () => {
-    const isAdmin = esRolAdmin(state.userRole);
-    const buttons = getAdminButtons();
-    buttons.forEach((btn) => {
-      btn.classList.toggle('hidden', !isAdmin || state.adminMode === false);
-    });
-    if (window.location.hash === '#admin' && panel) {
-      toggleAdminPanel(true);
-    }
-  };
-
-  checkAdminVisibility();
-
   // Atajo de teclado: Alt + A para alternar panel admin
   window.addEventListener('keydown', (e) => {
     if (e.altKey && (e.key === 'a' || e.key === 'A')) {
@@ -197,6 +149,7 @@ export function initAdminUI() {
 
   document.addEventListener('radar:user-session-ready', () => {
     checkAdminVisibility();
+    if (window.location.hash === '#admin') handleAdminHashRoute();
   });
 
   document.addEventListener('radar:admin-mode-change', () => {
@@ -215,6 +168,120 @@ export function initAdminUI() {
 
   document.addEventListener('radar:data-ready', renderList);
   document.addEventListener('radar:buildings-changed', renderList);
+
+  checkAdminVisibility();
+}
+
+export async function toggleAdminPanel(forceOpen = null) {
+  if (!panel) return;
+  const shouldOpen = forceOpen !== null ? forceOpen : !panel.classList.contains('open');
+  
+  if (shouldOpen) {
+    if (!state.sessionToken) {
+      renderAuthRequired();
+      panel.classList.add('open');
+      return;
+    }
+
+    if (!esRolAdmin(state.userRole)) {
+      mostrarAlertaSeguridad('ACCESO DENEGADO', 'Se requieren privilegios de administrador para abrir este panel.');
+      return;
+    }
+
+    panel.classList.add('open');
+    getAdminButtons().forEach((b) => b.classList.add('active-state'));
+    await syncAllAdminData();
+    renderCurrentTab();
+  } else {
+    panel.classList.remove('open');
+    getAdminButtons().forEach((b) => b.classList.remove('active-state'));
+  }
+}
+
+export async function handleAdminHashRoute() {
+  if (window.location.hash !== '#admin') return;
+
+  let token = state.sessionToken;
+  if (!token) {
+    const saved = localStorage.getItem('nolli_admin_session_token') || sessionStorage.getItem('nolli_admin_session_token');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        token = parsed.access_token || parsed;
+      } catch {}
+    }
+  }
+
+  if (!token) {
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    mostrarAlertaSeguridad('AUTENTICACIÓN REQUERIDA', 'Inicia sesión con una cuenta de administrador para acceder a la curaduría.');
+    return;
+  }
+
+  try {
+    let role = state.userRole;
+    if (!role) {
+      role = await fetchUserRole(token);
+      state.userRole = role;
+    }
+
+    if (!esRolAdmin(role)) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      mostrarAlertaSeguridad('ACCESO DENEGADO', `Tu cuenta no tiene privilegios de administración (Rol: ${role.toUpperCase()}).`);
+      return;
+    }
+
+    await toggleAdminPanel(true);
+  } catch (err) {
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    mostrarAlertaSeguridad('ERROR DE SEGURIDAD', err.message || 'No se pudieron verificar las credenciales de administración.');
+  }
+}
+
+function checkAdminVisibility() {
+  const isAdmin = esRolAdmin(state.userRole);
+  const buttons = getAdminButtons();
+  buttons.forEach((btn) => {
+    btn.classList.toggle('hidden', !isAdmin || state.adminMode === false);
+  });
+}
+
+function mostrarAlertaSeguridad(titulo, mensaje) {
+  const toastId = 'admin-security-toast';
+  let toast = document.getElementById(toastId);
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = toastId;
+    toast.style.cssText = `
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10000;
+      background: #111111;
+      color: #F4F1EA;
+      border: 2px solid #D6201D;
+      box-shadow: 4px 4px 0px #111111;
+      padding: 14px 18px;
+      max-width: 90vw;
+      width: 440px;
+      font-family: 'JetBrains Mono', monospace;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    `;
+    document.body.appendChild(toast);
+  }
+
+  toast.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <span style="font-size:11px; font-weight:800; color:#E84E1B;">[ 403 // ${escapeHtml(titulo)} ]</span>
+      <button type="button" onclick="this.closest('#admin-security-toast').remove()" style="background:none; border:none; color:#F4F1EA; font-size:12px; cursor:pointer;">✕</button>
+    </div>
+    <div style="font-size:10px; color:#D5CFC0; line-height:1.4;">${escapeHtml(mensaje)}</div>
+  `;
+
+  setTimeout(() => toast?.remove(), 5000);
 }
 
 function renderAuthRequired() {
@@ -242,7 +309,7 @@ function renderAuthRequired() {
 }
 
 async function syncAllAdminData() {
-  if (!state.sessionToken) return;
+  if (!state.sessionToken || !esRolAdmin(state.userRole)) return;
 
   // 1. Cargar obras completas (incluidas pendientes)
   try {
@@ -295,7 +362,7 @@ function renderCurrentTab() {
 }
 
 async function renderList() {
-  if (!state.sessionToken) {
+  if (!state.sessionToken || !esRolAdmin(state.userRole)) {
     renderAuthRequired();
     return;
   }
@@ -304,7 +371,6 @@ async function renderList() {
   const filterVal = reviewFilter?.value || '';
 
   const allProjects = [...state.OBRAS].sort((a, b) => {
-    // Priorizar pendientes primero
     if (a.estado_revision === 'pendiente' && b.estado_revision !== 'pendiente') return -1;
     if (b.estado_revision === 'pendiente' && a.estado_revision !== 'pendiente') return 1;
     return 0;
@@ -359,7 +425,6 @@ async function renderList() {
       `;
     }).join('');
 
-    // Geocodificación inversa progresiva
     filtered.slice(0, 30).forEach(async (obra) => {
       const cityElement = list.querySelector(`[data-city-for="${obra.featureId || obra.id}"]`);
       if (!cityElement) return;
@@ -369,7 +434,7 @@ async function renderList() {
 }
 
 async function renderReports() {
-  if (!state.sessionToken) {
+  if (!state.sessionToken || !esRolAdmin(state.userRole)) {
     renderAuthRequired();
     return;
   }
@@ -442,7 +507,7 @@ function calcularEstadoPresencia(lastSeenAt) {
 }
 
 async function renderUsers() {
-  if (!state.sessionToken) {
+  if (!state.sessionToken || !esRolAdmin(state.userRole)) {
     renderAuthRequired();
     return;
   }
@@ -505,6 +570,10 @@ async function renderUsers() {
 }
 
 async function actualizarReporte(id, estado) {
+  if (!state.sessionToken || !esRolAdmin(state.userRole)) {
+    mostrarAlertaSeguridad('ACCESO RESTRINGIDO', 'Acción reservada a administradores autenticados.');
+    return;
+  }
   try {
     await updateBuildingReport(id, estado, state.sessionToken);
     await renderReports();
@@ -526,8 +595,12 @@ function formatearEstadoRevision(status) {
 }
 
 async function revisarProyecto(id, estadoRevision) {
+  if (!state.sessionToken || !esRolAdmin(state.userRole)) {
+    mostrarAlertaSeguridad('ACCESO RESTRINGIDO', 'Acción reservada a administradores autenticados.');
+    return;
+  }
   const obra = state.OBRAS.find((item) => String(item.id) === String(id));
-  if (!obra || !esRolAdmin(state.userRole)) return;
+  if (!obra) return;
   try {
     await reviewBuilding(id, estadoRevision, state.sessionToken);
     obra.estado_revision = estadoRevision;
@@ -563,6 +636,10 @@ async function obtenerCiudad(obra) {
 }
 
 async function eliminarProyecto(id) {
+  if (!state.sessionToken || !esRolAdmin(state.userRole)) {
+    mostrarAlertaSeguridad('ACCESO RESTRINGIDO', 'Acción reservada a administradores autenticados.');
+    return;
+  }
   const obra = state.OBRAS.find((item) => String(item.id) === String(id));
   if (!obra || !window.confirm(`¿Borrar "${obra.nombre_obra}"?`)) return;
   try {

@@ -77,35 +77,58 @@ CREATE POLICY "Admins can view and manage reports" ON public.reports
     )
   );
 
--- 4. COLECCIONES PÚBLICAS Y PRIVACIDAD EN USER_COLLECTIONS
+-- 4. COLECCIONES PÚBLICAS/PRIVADAS Y LISTAS SEGUIDAS (COLABORATIVAS)
 DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'user_collections') THEN
     ALTER TABLE public.user_collections 
-      ADD COLUMN IF NOT EXISTS is_public BOOLEAN DEFAULT false;
+      ADD COLUMN IF NOT EXISTS is_public BOOLEAN DEFAULT false,
+      ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'private';
+    
+    -- Sincronizar columna status con is_public si existía previamente
+    UPDATE public.user_collections 
+      SET status = 'public' 
+      WHERE (is_public = true OR status = 'public') AND status <> 'public';
   END IF;
 END $$;
 
+CREATE INDEX IF NOT EXISTS idx_user_collections_status ON public.user_collections(status);
 CREATE INDEX IF NOT EXISTS idx_user_collections_is_public ON public.user_collections(is_public);
+
+-- Tabla de Listas Seguidas / Guardadas de otros usuarios
+CREATE TABLE IF NOT EXISTS public.user_followed_collections (
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  collection_id UUID REFERENCES public.user_collections(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  PRIMARY KEY (user_id, collection_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_followed_collections_user ON public.user_followed_collections(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_followed_collections_collection ON public.user_followed_collections(collection_id);
+
+ALTER TABLE public.user_followed_collections ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can manage own followed collections" ON public.user_followed_collections;
+CREATE POLICY "Users can manage own followed collections" ON public.user_followed_collections
+  FOR ALL USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
 
 -- Políticas RLS para user_collections:
 -- A) Lectura: El dueño puede ver sus colecciones Y todo el mundo puede ver las colecciones públicas
 DROP POLICY IF EXISTS "Users can view own collections or public collections" ON public.user_collections;
 CREATE POLICY "Users can view own collections or public collections" ON public.user_collections
   FOR SELECT USING (
-    is_public = true 
+    status = 'public'
+    OR is_public = true 
     OR auth.uid() = user_id
-    OR EXISTS (
-      SELECT 1 FROM public.profiles 
-      WHERE profiles.id = auth.uid() AND profiles.role IN ('admin', 'superadmin')
-    )
+    OR public.is_admin()
   );
 
--- B) Modificación: Solo el dueño puede crear/actualizar/borrar sus colecciones
+-- B) Modificación: Solo el dueño (o admin) puede crear/actualizar/borrar sus colecciones
 DROP POLICY IF EXISTS "Users can manage own collections" ON public.user_collections;
 CREATE POLICY "Users can manage own collections" ON public.user_collections
-  FOR ALL USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+  FOR ALL USING (auth.uid() = user_id OR public.is_admin())
+  WITH CHECK (auth.uid() = user_id OR public.is_admin());
 
 -- 5. VISIBILIDAD DE ETIQUETAS Y NOTAS PRIVADAS PARA SUPERADMIN
 CREATE TABLE IF NOT EXISTS public.user_private_labels (

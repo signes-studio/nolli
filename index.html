@@ -11,8 +11,8 @@
 <link rel="apple-touch-icon" href="./icon.svg">
 
 <script>
-  if (window.location.pathname.endsWith('/index.html') || window.location.pathname.endsWith('index.html')) {
-    const cleanPath = window.location.pathname.replace(/\/index\.html$/, '/') || '/';
+  if (window.location.pathname.endsWith('.html')) {
+    const cleanPath = window.location.pathname.replace(/\/index\.html$/, '/').replace(/\.html$/, '') || '/';
     window.history.replaceState(null, '', cleanPath + window.location.search + window.location.hash);
   }
 </script>
@@ -144,9 +144,6 @@
     <button type="button" id="btn-mobile-identity-action" class="mobile-identity-btn" aria-label="Acceder o ver cuenta">
       <span id="mobile-identity-badge" class="mobile-identity-badge">[ ACCEDER ]</span>
     </button>
-    <button type="button" id="btn-mobile-admin" class="mobile-identity-btn hidden" style="border-color: var(--accent-2, #EFBC02); color: var(--accent-2, #EFBC02);" aria-label="Abrir panel admin">
-      <span class="mobile-identity-badge" style="color: var(--accent-2, #EFBC02); font-weight: 800;">[ ADMIN ]</span>
-    </button>
   </aside>
 
   <!-- Buscador flotante y expansivo (Desktop y Móvil) -->
@@ -177,25 +174,7 @@
     </button>
   </aside>
 
-  <!-- Menú flotante rápido para administrador en móvil -->
-  <div id="mobile-admin-quickmenu" class="mobile-admin-quickmenu" hidden aria-label="Menú rápido de administración">
-    <div class="mobile-admin-quickmenu-head">
-      <span>[ MODO ADMIN ACTIVO ]</span>
-      <i data-lucide="x" id="btn-close-quick-admin" width="14" height="14" style="cursor:pointer"></i>
-    </div>
-    <button type="button" class="mobile-admin-menu-item" id="btn-mobile-quick-admin-panel">
-      <i data-lucide="shield-alert" width="16" height="16" style="color:var(--accent)"></i>
-      <span>REVISAR PROYECTOS</span>
-    </button>
-    <button type="button" class="mobile-admin-menu-item" id="btn-mobile-quick-reports">
-      <i data-lucide="inbox" width="16" height="16" style="color:var(--accent-2)"></i>
-      <span>BUZÓN DE REPORTES</span>
-    </button>
-    <a href="./perfil.html" class="mobile-admin-menu-item">
-      <i data-lucide="user" width="16" height="16"></i>
-      <span>PERFIL PERSONAL</span>
-    </a>
-  </div>
+
 
   <!-- Leyenda técnica del radar (Desplegable) -->
   <div id="map-legend" class="radar-legend collapsed" aria-label="Leyenda del mapa">
@@ -257,9 +236,6 @@
   <div id="map-tools" class="absolute z-30 flex flex-col gap-2" style="right:14px; bottom:14px;">
     <button id="btn-map-tools" type="button" class="fab map-tools-toggle" title="Herramientas del mapa" aria-label="Mostrar herramientas del mapa" aria-expanded="false">
       <i data-lucide="menu" width="20" height="20"></i>
-    </button>
-    <button id="btn-admin-float" type="button" class="fab hidden" title="Panel Admin" aria-label="Abrir panel de administración" style="border-color: var(--accent-2, #EFBC02); color: var(--accent-2, #EFBC02); background: var(--bg-panel, #F8F1DF);">
-      <i data-lucide="shield-check" width="20" height="20"></i>
     </button>
     <button id="btn-explore-float" type="button" class="fab" title="Explora" aria-label="Explorar selecciones y listas">
       <i data-lucide="compass" width="20" height="20"></i>
@@ -467,7 +443,7 @@
     <!-- Feed de Selecciones Curatoriales y Listas Públicas -->
     <div id="explore-list-container" class="explore-list-container">
       <!-- Selecciones Curatoriales Oficiales -->
-      <div class="explore-section-block">
+      <div id="explore-curated-section" class="explore-section-block">
         <div class="explore-section-title-wrap">
           <span class="explore-section-tag">[ LISTAS NOLLI ]</span>
         </div>
@@ -475,7 +451,7 @@
       </div>
 
       <!-- Listas Públicas de la Comunidad -->
-      <div class="explore-section-block">
+      <div id="explore-public-section" class="explore-section-block">
         <div class="explore-section-title-wrap">
           <span class="explore-section-tag">[ LISTAS PÚBLICAS ]</span>
         </div>
@@ -545,9 +521,6 @@
     </button>
     <button type="button" class="mobile-float-btn" id="btn-float-filters" data-target-panel="filter-panel" aria-label="Filtros avanzados" title="Filtros">
       <i data-lucide="sliders-horizontal" width="19" height="19"></i>
-    </button>
-    <button type="button" class="mobile-float-btn hidden" id="btn-float-admin" data-target-panel="admin-panel" aria-label="Panel de administración" title="Panel Admin" style="border-color: var(--accent-2, #EFBC02); color: var(--accent-2, #EFBC02); background: var(--bg-panel, #F8F1DF);">
-      <i data-lucide="shield-check" width="19" height="19"></i>
     </button>
     <button type="button" class="mobile-float-btn mobile-float-btn-primary" id="btn-float-add" aria-label="Añadir nueva obra de arquitectura" title="Añadir Proyecto">
       <i data-lucide="plus" width="22" height="22"></i>

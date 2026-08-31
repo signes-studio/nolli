@@ -244,11 +244,10 @@ export async function deletePrivateBuilding(id, userId, sessionToken) {
 }
 
 export async function fetchUserCollections(userId, sessionToken) {
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?user_id=eq.${encodeURIComponent(userId)}&select=id,name,icon,description,show_on_map,created_at&order=created_at.asc`, {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?user_id=eq.${encodeURIComponent(userId)}&select=id,name,icon,description,status,is_public,show_on_map,created_at&order=created_at.asc`, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
   });
   if (!response.ok) {
-    // Si la columna show_on_map no existiera aún en el servidor, fallback a consulta estándar
     const fallbackResponse = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?user_id=eq.${encodeURIComponent(userId)}&select=id,name,icon,description,created_at&order=created_at.asc`, {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
     });
@@ -259,9 +258,12 @@ export async function fetchUserCollections(userId, sessionToken) {
 }
 
 export async function createUserCollection(collection, sessionToken) {
+  const isPublic = collection.status === 'public' || collection.is_public === true;
   const payload = {
     user_id: collection.user_id,
     name: collection.name,
+    status: isPublic ? 'public' : 'private',
+    is_public: isPublic,
   };
   if (collection.id) payload.id = collection.id;
   if (collection.icon !== undefined) payload.icon = collection.icon;
@@ -279,21 +281,25 @@ export async function createUserCollection(collection, sessionToken) {
     body: JSON.stringify(payload),
   });
   if (!response.ok) {
-    // Si falla por columna desconocida (por ejemplo si aún no se ha ejecutado el SQL), reintentar sin show_on_map
-    if (payload.show_on_map !== undefined) {
-      delete payload.show_on_map;
-      const retryResponse = await fetch(`${SUPABASE_URL}/rest/v1/user_collections`, {
-        method: 'POST',
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${sessionToken}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=representation',
-        },
-        body: JSON.stringify(payload),
-      });
-      if (retryResponse.ok) return retryResponse.json();
-    }
+    // Si falla por columna desconocida (por ejemplo si status o show_on_map no existen en la BD aún), reintentar simplificado
+    const simplified = {
+      user_id: collection.user_id,
+      name: collection.name,
+      icon: collection.icon,
+      description: collection.description,
+    };
+    if (collection.id) simplified.id = collection.id;
+    const retryResponse = await fetch(`${SUPABASE_URL}/rest/v1/user_collections`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${sessionToken}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation',
+      },
+      body: JSON.stringify(simplified),
+    });
+    if (retryResponse.ok) return retryResponse.json();
     const error = await response.json().catch(() => ({}));
     throw new Error(error.message || error.details || 'No se pudo crear la lista personal.');
   }
@@ -306,6 +312,13 @@ export async function updateUserCollection(collectionId, updates, sessionToken) 
   if (updates.icon !== undefined) payload.icon = updates.icon;
   if (updates.description !== undefined) payload.description = updates.description;
   if (updates.show_on_map !== undefined) payload.show_on_map = updates.show_on_map;
+  if (updates.status !== undefined) {
+    payload.status = updates.status;
+    payload.is_public = updates.status === 'public';
+  } else if (updates.is_public !== undefined) {
+    payload.is_public = updates.is_public;
+    payload.status = updates.is_public ? 'public' : 'private';
+  }
 
   const response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?id=eq.${encodeURIComponent(collectionId)}`, {
     method: 'PATCH',
@@ -318,20 +331,21 @@ export async function updateUserCollection(collectionId, updates, sessionToken) 
     body: JSON.stringify(payload),
   });
   if (!response.ok) {
-    if (payload.show_on_map !== undefined) {
-      delete payload.show_on_map;
-      const retryResponse = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?id=eq.${encodeURIComponent(collectionId)}`, {
-        method: 'PATCH',
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${sessionToken}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=representation',
-        },
-        body: JSON.stringify(payload),
-      });
-      if (retryResponse.ok) return retryResponse.json().catch(() => []);
-    }
+    const simplified = {};
+    if (updates.name !== undefined) simplified.name = updates.name;
+    if (updates.icon !== undefined) simplified.icon = updates.icon;
+    if (updates.description !== undefined) simplified.description = updates.description;
+    const retryResponse = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?id=eq.${encodeURIComponent(collectionId)}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${sessionToken}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation',
+      },
+      body: JSON.stringify(simplified),
+    });
+    if (retryResponse.ok) return retryResponse.json().catch(() => []);
     const error = await response.json().catch(() => ({}));
     throw new Error(error.message || error.details || 'No se pudo actualizar la lista personal.');
   }
@@ -899,13 +913,89 @@ export async function fetchPublicUserBuildingStatuses(userId) {
 
 /** Descarga todas las colecciones marcadas como públicas por cualquier usuario. */
 export async function fetchAllPublicCollections() {
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?is_public=eq.true&select=*,profiles:user_id(nick,first_name,last_name)&order=created_at.desc`, {
+  const url = `${SUPABASE_URL}/rest/v1/user_collections?or=(status.eq.public,is_public.eq.true)&select=id,name,icon,description,status,is_public,created_at,user_id,profiles:user_id(id,nick,first_name,last_name)&order=created_at.desc`;
+  const response = await fetch(url, {
     headers: {
       'apikey': SUPABASE_KEY,
       'Authorization': `Bearer ${SUPABASE_KEY}`,
     },
   });
 
-  if (!response.ok) return [];
+  if (!response.ok) {
+    // Fallback simple si profiles relation falla
+    const fallbackRes = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?or=(status.eq.public,is_public.eq.true)&select=*&order=created_at.desc`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
+    });
+    if (!fallbackRes.ok) return [];
+    return fallbackRes.json().catch(() => []);
+  }
+  return response.json().catch(() => []);
+}
+
+/** Carga una colección por su identificador único (pública o del usuario). */
+export async function fetchCollectionById(collectionId, sessionToken = null) {
+  const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken || SUPABASE_KEY}` };
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?id=eq.${encodeURIComponent(collectionId)}&select=id,name,icon,description,status,is_public,created_at,user_id,profiles:user_id(id,nick,first_name,last_name)&limit=1`, { headers });
+  if (!response.ok) return null;
+  const list = await response.json().catch(() => []);
+  return list[0] || null;
+}
+
+/** Obtiene las colecciones seguidas/guardadas por el usuario actual. */
+export async function fetchFollowedCollections(userId, sessionToken) {
+  if (!userId || !sessionToken) return [];
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_followed_collections?user_id=eq.${encodeURIComponent(userId)}&select=collection_id,created_at,user_collections:collection_id(id,name,icon,description,status,is_public,user_id,profiles:user_id(id,nick,first_name,last_name))&order=created_at.desc`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    // Fallback directo
+    const fallbackRes = await fetch(`${SUPABASE_URL}/rest/v1/user_followed_collections?user_id=eq.${encodeURIComponent(userId)}&select=collection_id,created_at`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
+    });
+    if (!fallbackRes.ok) return [];
+    return fallbackRes.json().catch(() => []);
+  }
+  return response.json().catch(() => []);
+}
+
+/** Seguir una colección pública. */
+export async function followCollection(collectionId, userId, sessionToken) {
+  if (!collectionId || !userId || !sessionToken) return null;
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_followed_collections`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation',
+    },
+    body: JSON.stringify({ collection_id: collectionId, user_id: userId }),
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.message || 'No se pudo seguir la colección.');
+  }
+  return response.json().catch(() => []);
+}
+
+/** Dejar de seguir una colección pública. */
+export async function unfollowCollection(collectionId, userId, sessionToken) {
+  if (!collectionId || !userId || !sessionToken) return null;
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_followed_collections?collection_id=eq.${encodeURIComponent(collectionId)}&user_id=eq.${encodeURIComponent(userId)}`, {
+    method: 'DELETE',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+      'Prefer': 'return=representation',
+    },
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.message || 'No se pudo dejar de seguir la colección.');
+  }
   return response.json().catch(() => []);
 }

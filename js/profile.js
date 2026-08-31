@@ -17,6 +17,8 @@ import {
   updateUserCollection,
   deleteUserCollection,
   deleteUserCollectionItem,
+  fetchFollowedCollections,
+  unfollowCollection,
   updateCurrentUserProfile,
   upsertCurrentProfile,
   fetchCurrentProfile,
@@ -42,6 +44,18 @@ const logoutBtn = document.getElementById('btn-profile-logout');
 const themeBtn = document.getElementById('btn-theme-toggle');
 const themeIcon = document.getElementById('theme-icon');
 const settingsBtn = document.getElementById('btn-profile-settings');
+
+const profileState = {
+  user: null,
+  dbProfile: null,
+  statuses: new Map(),
+  collections: [],
+  items: [],
+  followedCollections: [],
+  labels: [],
+  buildings: [],
+  activeTab: 'collections',
+};
 
 // Modales
 const modalLogin = document.getElementById('modal-login');
@@ -253,12 +267,13 @@ async function init() {
     profileState.items = state.userCollectionItems || [];
     profileState.labels = state.userPrivateLabels || [];
 
-    const [statuses, collections, items, labels, dbProfile] = await Promise.all([
+    const [statuses, collections, items, labels, dbProfile, followed] = await Promise.all([
       fetchBuildingStatuses(user.id, token).catch(() => []),
       fetchUserCollections(user.id, token).catch(() => profileState.collections),
       fetchUserCollectionItems(user.id, token).catch(() => profileState.items),
       fetchUserPrivateLabels(user.id, token).catch(() => profileState.labels),
       fetchCurrentProfile(user.id, token).catch(() => null),
+      fetchFollowedCollections(user.id, token).catch(() => []),
     ]);
 
     if (dbProfile) {
@@ -277,9 +292,11 @@ async function init() {
     profileState.collections = aplicarPreferenciasMapaColecciones(collections || [], user.id);
     profileState.items = items || [];
     profileState.labels = labels || [];
+    profileState.followedCollections = followed || [];
 
     state.userCollections = profileState.collections;
     state.userCollectionItems = profileState.items;
+    state.userFollowedCollections = profileState.followedCollections;
     state.userPrivateLabels = profileState.labels;
     guardarZonaPersonalLocal(user.id);
 
@@ -351,6 +368,7 @@ function renderHero() {
 function syncAdminBadge() {
   const btnAdmin = document.getElementById('btn-profile-admin');
   const btnMobileAdmin = document.getElementById('btn-profile-mobile-admin');
+  const cardAdmin = document.getElementById('profile-admin-card');
   const userEmail = String(profileState.user?.email || '').toLowerCase().trim();
   const metaRole = String(profileState.user?.app_metadata?.role || profileState.user?.user_metadata?.role || '').toLowerCase();
   const dbRole = String(profileState.dbProfile?.role || '').toLowerCase();
@@ -359,6 +377,7 @@ function syncAdminBadge() {
   const isAdmin = role === 'admin' || role === 'superadmin';
   if (btnAdmin) btnAdmin.classList.toggle('hidden', !isAdmin);
   if (btnMobileAdmin) btnMobileAdmin.classList.toggle('hidden', !isAdmin);
+  if (cardAdmin) cardAdmin.classList.toggle('hidden', !isAdmin);
 }
 
 // -------------------------------------------------------------------------
@@ -488,17 +507,18 @@ function renderBuildingsFeed(buildings, tabKey) {
 
 function renderCollectionsFeed() {
   const collections = profileState.collections || [];
+  const followed = profileState.followedCollections || [];
 
   content.innerHTML = `
     <div class="profile-collections-top">
-      <span style="font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:800; color:var(--fg-dim);">[ COLECCIONES // ${collections.length} ]</span>
+      <span style="font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:800; color:var(--fg-dim);">[ MIS LISTAS // ${collections.length} ]</span>
       <button type="button" class="profile-new-list-btn" id="btn-create-collection-top">
         <span>+ NUEVA LISTA</span>
       </button>
     </div>
   `;
 
-  if (!collections.length) {
+  if (!collections.length && !followed.length) {
     content.innerHTML += `
       <div class="profile-feed-empty">
         [ NO TIENES COLECCIONES CREADAS. PULSA EN "+ NUEVA LISTA" PARA EMPEZAR A ORGANIZAR OBRAS. ]
@@ -511,6 +531,7 @@ function renderCollectionsFeed() {
     const items = (profileState.items || []).filter((item) => String(item.collection_id) === String(col.id));
     const countText = `${items.length} ${items.length === 1 ? 'OBRA' : 'OBRAS'}`;
     const isMapActive = col.show_on_map !== false;
+    const isPublic = col.status === 'public' || col.is_public === true;
 
     const eyeIconSvg = isMapActive
       ? `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`
@@ -551,13 +572,19 @@ function renderCollectionsFeed() {
       <article class="profile-collection-card" data-col-id="${col.id}">
         <div class="profile-collection-card-head">
           <div style="min-width:0; flex:1;">
-            <div class="profile-collection-head-row">
+            <div class="profile-collection-head-row" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
               <h3 class="profile-collection-name">${col.icon ? `${escapeHtml(col.icon)} ` : ''}${escapeHtml(col.name)}</h3>
               <span class="profile-collection-count-badge">[ ${countText} ]</span>
+              <span style="font-size:8.5px; font-weight:800; font-family:'JetBrains Mono',monospace; padding:1px 5px; border:1px solid ${isPublic ? 'var(--accent, #E84E1B)' : 'var(--border-strong, #111111)'}; color:${isPublic ? 'var(--accent, #E84E1B)' : 'var(--fg-dim)'};">${isPublic ? '[ 🌐 PÚBLICA ]' : '[ 🔒 PRIVADA ]'}</span>
             </div>
             ${col.description ? `<p class="profile-collection-desc" style="margin-top:4px;">${escapeHtml(col.description)}</p>` : ''}
           </div>
           <div class="profile-collection-tools">
+            ${isPublic ? `
+              <button type="button" class="profile-collection-tool-btn" data-copy-col-link="${col.id}" title="Copiar enlace compartible">
+                <i data-lucide="share-2" width="13" height="13"></i>
+              </button>
+            ` : ''}
             <button type="button" class="profile-collection-tool-btn ${isMapActive ? 'active' : ''}" data-toggle-map-col="${col.id}" title="${isMapActive ? 'Ocultar iconos en mapa' : 'Mostrar iconos en mapa'}">
               ${eyeIconSvg}
             </button>
@@ -577,6 +604,50 @@ function renderCollectionsFeed() {
   }).join('');
 
   content.innerHTML += cardsHtml;
+
+  // Renderizar listas seguidas
+  if (followed.length > 0) {
+    const followedHtml = followed.map((f) => {
+      const col = f.user_collections || f;
+      if (!col) return '';
+      const creatorName = col.profiles?.nick ? `@${col.profiles.nick}` : (col.profiles?.first_name ? `@${col.profiles.first_name}` : 'Comunidad Nolli');
+      const emoji = col.icon || '🏛️';
+      const title = col.name || 'Lista pública';
+      const desc = col.description || '';
+
+      return `
+        <article class="profile-collection-card" style="border-left: 3px solid var(--accent, #E84E1B); margin-top: 12px;">
+          <div class="profile-collection-card-head">
+            <div style="min-width:0; flex:1;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <h3 class="profile-collection-name">${escapeHtml(emoji)} ${escapeHtml(title)}</h3>
+                <span style="font-size:8.5px; font-weight:800; font-family:'JetBrains Mono',monospace; padding:1px 5px; background:rgba(232,78,27,0.08); color:var(--accent, #E84E1B);">[ SEGUIDA ]</span>
+              </div>
+              <p style="font-size:10.5px; color:var(--fg-dim); margin-top:2px;">Por <strong style="color:var(--fg);">${escapeHtml(creatorName)}</strong></p>
+              ${desc ? `<p class="profile-collection-desc" style="margin-top:4px;">${escapeHtml(desc)}</p>` : ''}
+            </div>
+            <div class="profile-collection-tools">
+              <a href="./#list=${encodeURIComponent(col.id)}" class="profile-collection-tool-btn" title="Ver en el mapa" style="text-decoration:none;">
+                <i data-lucide="map" width="13" height="13"></i>
+              </a>
+              <button type="button" class="profile-collection-tool-btn btn-delete" data-unfollow-col="${col.id}" title="Dejar de seguir">
+                ✕
+              </button>
+            </div>
+          </div>
+        </article>
+      `;
+    }).join('');
+
+    content.innerHTML += `
+      <div class="profile-collections-top" style="margin-top:28px;">
+        <span style="font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:800; color:var(--accent, #E84E1B);">[ LISTAS SEGUIDAS DE LA COMUNIDAD // ${followed.length} ]</span>
+      </div>
+      ${followedHtml}
+    `;
+  }
+
+  if (window.lucide) window.lucide.createIcons();
 }
 
 function renderNotesFeed() {
@@ -715,6 +786,37 @@ function setupFeedActionHandlers() {
       await borrarNota(btnDeleteNote.dataset.deleteNote);
       return;
     }
+
+    // 10. Copiar enlace compartible de lista
+    const btnCopyColLink = e.target.closest('[data-copy-col-link]');
+    if (btnCopyColLink) {
+      const colId = btnCopyColLink.dataset.copyColLink;
+      const url = `${window.location.origin}${window.location.pathname.replace(/\/[^/]*$/, '')}/#list=${encodeURIComponent(colId)}`;
+      navigator.clipboard.writeText(url).then(() => {
+        alert('¡Enlace directo a la lista copiado al portapapeles!');
+      }).catch(() => {
+        prompt('Enlace a la lista:', url);
+      });
+      return;
+    }
+
+    // 11. Dejar de seguir lista pública
+    const btnUnfollow = e.target.closest('[data-unfollow-col]');
+    if (btnUnfollow) {
+      const colId = btnUnfollow.dataset.unfollowCol;
+      if (!window.confirm('¿Dejar de seguir esta lista pública?')) return;
+      try {
+        await unfollowCollection(colId, user.id, token);
+        profileState.followedCollections = profileState.followedCollections.filter(
+          (f) => String(f.collection_id) !== String(colId) && String(f.id) !== String(colId)
+        );
+        state.userFollowedCollections = profileState.followedCollections;
+        renderFeedContent();
+      } catch (err) {
+        alert(err.message || 'Error al dejar de seguir la lista.');
+      }
+      return;
+    }
   });
 }
 
@@ -812,6 +914,36 @@ function setupCollectionModal() {
     if (e.target === modalCollection) modalCollection.classList.remove('open');
   });
 
+  const shareWrap = document.getElementById('collection-share-wrap');
+  const btnCopyLink = document.getElementById('btn-copy-collection-link');
+  const copyFeedback = document.getElementById('copy-link-feedback');
+
+  if (btnCopyLink) {
+    btnCopyLink.addEventListener('click', () => {
+      const editId = document.getElementById('collection-edit-id')?.value || '';
+      if (!editId) return;
+      const url = `${window.location.origin}${window.location.pathname.replace(/\/[^/]*$/, '')}/#list=${encodeURIComponent(editId)}`;
+      navigator.clipboard.writeText(url).then(() => {
+        if (copyFeedback) {
+          copyFeedback.classList.remove('hidden');
+          setTimeout(() => copyFeedback.classList.add('hidden'), 2500);
+        }
+      }).catch(() => {
+        prompt('Enlace a la lista:', url);
+      });
+    });
+  }
+
+  // Alternar visualización del botón de compartir al cambiar de radio button
+  document.querySelectorAll('input[name="collection-status-radio"]').forEach((radio) => {
+    radio.addEventListener('change', () => {
+      const editId = document.getElementById('collection-edit-id')?.value || '';
+      if (shareWrap) {
+        shareWrap.classList.toggle('hidden', radio.value !== 'public' || !editId);
+      }
+    });
+  });
+
   formCollection.addEventListener('submit', async (e) => {
     e.preventDefault();
     const token = getSessionToken();
@@ -823,6 +955,7 @@ function setupCollectionModal() {
     const name = document.getElementById('collection-name')?.value.trim() || '';
     const description = document.getElementById('collection-desc')?.value.trim() || '';
     const show_on_map = Boolean(document.getElementById('collection-show-map')?.checked);
+    const status = document.querySelector('input[name="collection-status-radio"]:checked')?.value || 'private';
 
     if (!name) return;
 
@@ -840,11 +973,13 @@ function setupCollectionModal() {
           col.name = name;
           col.icon = icon;
           col.description = description;
+          col.status = status;
+          col.is_public = status === 'public';
           col.show_on_map = show_on_map;
         }
         guardarColeccionesLocalmente();
         renderFeedContent();
-        await updateUserCollection(editId, { name, icon, description, show_on_map }, token);
+        await updateUserCollection(editId, { name, icon, description, status, show_on_map }, token);
       } else {
         // Crear nueva lista
         const newCol = {
@@ -853,11 +988,13 @@ function setupCollectionModal() {
           name,
           icon,
           description,
+          status,
+          is_public: status === 'public',
           show_on_map,
           created_at: new Date().toISOString(),
         };
         const created = await createUserCollection(newCol, token).catch(() => [newCol]);
-        const savedCol = (Array.isArray(created) && created[0]) ? { ...created[0], show_on_map } : newCol;
+        const savedCol = (Array.isArray(created) && created[0]) ? { ...created[0], show_on_map, status } : newCol;
         profileState.collections.push(savedCol);
         guardarColeccionesLocalmente();
         renderFeedContent();
@@ -886,6 +1023,8 @@ function abrirModalCrearLista() {
   const nameInput = document.getElementById('collection-name');
   const descInput = document.getElementById('collection-desc');
   const mapToggle = document.getElementById('collection-show-map');
+  const shareWrap = document.getElementById('collection-share-wrap');
+  const radioPrivate = document.getElementById('status-private');
 
   if (title) title.textContent = '[ NUEVA LISTA ]';
   if (editIdInput) editIdInput.value = '';
@@ -893,6 +1032,8 @@ function abrirModalCrearLista() {
   if (nameInput) nameInput.value = '';
   if (descInput) descInput.value = '';
   if (mapToggle) mapToggle.checked = true;
+  if (radioPrivate) radioPrivate.checked = true;
+  if (shareWrap) shareWrap.classList.add('hidden');
   if (collectionStatus) collectionStatus.classList.add('hidden');
 
   modalCollection.classList.add('open');
@@ -904,12 +1045,16 @@ function abrirModalEditarLista(colId) {
   const col = profileState.collections.find((c) => String(c.id) === String(colId));
   if (!col) return;
 
+  const isPublic = col.status === 'public' || col.is_public === true;
   const title = document.getElementById('modal-collection-title');
   const editIdInput = document.getElementById('collection-edit-id');
   const iconInput = document.getElementById('collection-icon');
   const nameInput = document.getElementById('collection-name');
   const descInput = document.getElementById('collection-desc');
   const mapToggle = document.getElementById('collection-show-map');
+  const shareWrap = document.getElementById('collection-share-wrap');
+  const radioPrivate = document.getElementById('status-private');
+  const radioPublic = document.getElementById('status-public');
 
   if (title) title.textContent = '[ EDITAR LISTA ]';
   if (editIdInput) editIdInput.value = col.id;
@@ -917,6 +1062,11 @@ function abrirModalEditarLista(colId) {
   if (nameInput) nameInput.value = col.name || '';
   if (descInput) descInput.value = col.description || '';
   if (mapToggle) mapToggle.checked = col.show_on_map !== false;
+
+  if (isPublic && radioPublic) radioPublic.checked = true;
+  else if (radioPrivate) radioPrivate.checked = true;
+
+  if (shareWrap) shareWrap.classList.toggle('hidden', !isPublic);
   if (collectionStatus) collectionStatus.classList.add('hidden');
 
   modalCollection.classList.add('open');

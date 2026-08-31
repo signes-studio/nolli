@@ -10,6 +10,13 @@
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="./icon.svg">
 
+<script>
+  if (window.location.pathname.endsWith('.html')) {
+    const clean = window.location.pathname.replace(/\/index\.html$/, '/').replace(/\.html$/, '') || '/';
+    window.history.replaceState(null, '', clean + window.location.search + window.location.hash);
+  }
+</script>
+
 <!-- Tipografías: League Spartan e Inter -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -94,6 +101,17 @@
           <span class="profile-metric-num" id="stat-notes-num">0</span>
           <span class="profile-metric-label">NOTAS</span>
         </div>
+      </section>
+
+      <!-- Panel de Administración Centralizado (Solo visible si es Admin/Superadmin) -->
+      <section id="profile-admin-card" class="hidden" style="border: 2px solid var(--accent, #E84E1B); background: rgba(232, 78, 27, 0.05); padding: 16px 20px; margin-bottom: 24px; box-shadow: 4px 4px 0px #111111; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
+        <div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 800; color: var(--accent, #E84E1B); letter-spacing: 0.08em;">[ MODO ADMINISTRACIÓN // PRIVILEGIOS ACTIVOS ]</div>
+          <div style="font-family: 'League Spartan', sans-serif; font-size: 17px; font-weight: 800; margin-top: 2px; color: var(--fg, #111111);">Consola de Curaduría, Reportes y Usuarios</div>
+        </div>
+        <a href="./admin" class="profile-login-cta-btn" style="background: var(--accent, #E84E1B); color: #FFFFFF; border: 1.5px solid #111111; padding: 8px 16px; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 800; text-decoration: none; box-shadow: 2px 2px 0px #111111;">
+          [ ABRIR CONSOLA ADMIN ↗ ]
+        </a>
       </section>
 
       <!-- 4. Navegación Curatorial -->
@@ -228,6 +246,28 @@
         <div class="profile-form-group">
           <label class="profile-form-label" for="collection-desc">DESCRIPCIÓN (OPCIONAL)</label>
           <textarea id="collection-desc" class="tech-input" placeholder="Breve descripción o notas de la colección..." style="resize:vertical; min-height:60px;"></textarea>
+        </div>
+
+        <!-- Selector de Privacidad Neo-Bauhaus -->
+        <div class="profile-form-group">
+          <label class="profile-form-label">VISIBILIDAD Y COLABORACIÓN</label>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:4px;">
+            <label class="radio-option" style="display:flex; align-items:center; gap:8px; padding:8px 12px; border:1.5px solid var(--border-strong, #111111); background:rgba(17,17,17,0.04); cursor:pointer; font-size:11px; font-weight:700;">
+              <input type="radio" name="collection-status-radio" value="private" id="status-private" checked style="accent-color:var(--accent, #E84E1B);">
+              <span>🔒 PRIVADA</span>
+            </label>
+            <label class="radio-option" style="display:flex; align-items:center; gap:8px; padding:8px 12px; border:1.5px solid var(--border-strong, #111111); background:rgba(17,17,17,0.04); cursor:pointer; font-size:11px; font-weight:700;">
+              <input type="radio" name="collection-status-radio" value="public" id="status-public" style="accent-color:var(--accent, #E84E1B);">
+              <span>🌐 PÚBLICA</span>
+            </label>
+          </div>
+        </div>
+
+        <div id="collection-share-wrap" class="hidden" style="margin-bottom:8px;">
+          <button type="button" id="btn-copy-collection-link" class="profile-action-btn" style="width:100%; border-color:var(--accent, #E84E1B); color:var(--accent, #E84E1B); font-weight:800; font-size:11px;">
+            [ 🔗 COPIAR ENLACE COMPARTIBLE ]
+          </button>
+          <div id="copy-link-feedback" class="hidden" style="font-size:10px; font-family:'JetBrains Mono',monospace; color:var(--accent, #E84E1B); text-align:center; margin-top:4px; font-weight:700;">¡Enlace copiado al portapapeles!</div>
         </div>
 
         <label class="keep-session" style="font-size:11px; cursor:pointer; margin-bottom:8px; display:flex; align-items:center; gap:8px;">
