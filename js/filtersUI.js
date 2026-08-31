@@ -60,10 +60,6 @@ export function generarFiltrosUI() {
         <span class="filter-chevron">−</span>
       </button>
       <div class="filter-group-body">
-        <div class="filter-group-actions">
-          <button type="button" class="filter-action" data-filter-all="categories">TODOS</button>
-          <button type="button" class="filter-action" data-filter-isolate="categories">AISLAR</button>
-        </div>
         <div class="filter-switches-list" id="switches-categories">
           ${CATEGORIAS_CONFIG.map(cat => {
             const checked = state.activeCategorias.has(cat.key) ? 'checked' : '';

@@ -453,9 +453,10 @@ body.dark-mode .sheet-hero-btn.active.saved {
   overflow-x: hidden;
 }
 .my-places-list .my-collection-card {
-  border: 1px solid var(--border);
-  background: var(--bg-raised);
-  padding: 10px;
+  border: 1.5px solid var(--border-strong);
+  background: var(--bg-panel);
+  box-shadow: 2px 2px 0px var(--border-strong);
+  padding: 12px;
   display: grid;
   gap: 8px;
 }
@@ -466,15 +467,19 @@ body.dark-mode .sheet-hero-btn.active.saved {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 9px 11px;
-  border: 1px solid var(--border);
+  padding: 10px 12px;
+  border: 1px solid var(--border-strong);
   background: var(--bg-raised);
+  box-shadow: 1px 1px 0px var(--border-strong);
   color: var(--fg);
   font: inherit;
   font-size: 11px;
   text-align: left;
   cursor: pointer;
-  transition: border-color .12s, background .12s;
+  transition: border-color .12s, background .12s, transform .08s;
+}
+.my-place-item:active {
+  transform: scale(0.98);
 }
 .my-place-item:hover, .my-place-item:focus-visible {
   border-color: var(--accent);
@@ -482,7 +487,7 @@ body.dark-mode .sheet-hero-btn.active.saved {
   outline: none;
 }
 .my-place-item.in-collection {
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-strong);
   background: var(--bg-panel);
 }
 .my-place-item-main {
@@ -839,8 +844,7 @@ body.dark-mode .sheet-hero-btn.active.saved {
   }
 
   .sheet-close-button,
-  .sheet-fav-btn,
-  .filter-head-actions i {
+  .sheet-fav-btn {
     min-width: 44px !important;
     min-height: 44px !important;
     display: inline-flex !important;
@@ -1240,12 +1244,17 @@ body.dark-mode .sheet-hero-btn.active.saved {
 .photo-viewer { position: relative; width: min(94vw, 1000px); height: min(88vh, 760px); display: flex; align-items: center; justify-content: center; background: #0c0c0c; border: 1px solid var(--border-strong); }
 .photo-viewer img { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; }
 .photo-close { position: absolute; top: 8px; right: 8px; z-index: 1; width: 30px; height: 30px; border: 1px solid var(--fg-dim); background: rgba(17,17,17,.85); color: var(--fg); font: inherit; cursor: pointer; }
+/* ==========================================================================
+   PANEL DE FILTROS: ESTRUCTURA Y COMPONENTES NEO-BAUHAUS
+   ========================================================================== */
+
 .filter-head {
   padding: 10px 14px;
-  border-bottom: 1px solid var(--border, #D8D6CE);
+  border-bottom: 1.5px solid var(--border-strong, #141411);
   background: var(--bg-raised, #ECE6D8);
   font-family: 'League Spartan', sans-serif;
   font-size: 12px;
+  font-weight: 800;
   letter-spacing: .06em;
   display: flex;
   justify-content: space-between;
@@ -1253,6 +1262,13 @@ body.dark-mode .sheet-hero-btn.active.saved {
   position: sticky;
   top: 0;
   z-index: 2;
+}
+
+body.dark-mode .filter-head {
+  background: #20201D;
+  border-bottom-color: var(--border-strong, #4E4E48);
+}
+
 .filter-head-actions {
   display: flex;
   align-items: center;
@@ -1263,26 +1279,303 @@ body.dark-mode .sheet-hero-btn.active.saved {
   color: var(--accent, #E84E1B);
   font-family: 'JetBrains Mono', monospace;
   font-size: 9px;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: .04em;
+  display: block;
+  margin-top: 1px;
 }
 
 .filter-clear {
   padding: 4px 8px;
   border: 1px solid var(--border-strong, #141411);
-  background: transparent;
+  background: var(--bg-panel, #F8F1DF);
   color: var(--fg, #141411);
-  font-family: 'JetBrains Mono', monospace;
-  width: 10px;
-  height: 10px;
-  min-width: 10px;
-  min-height: 10px;
-  border-radius: 50%;
-  border-color: var(--accent);
-  outline: none;
+  font-family: 'League Spartan', sans-serif;
+  font-weight: 900;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  border-radius: 0 !important;
+  transition: all 0.1s ease;
 }
 
-.sheet-icon-action.active.visited {
+body.dark-mode .filter-clear {
+  background: #252522;
+  color: var(--fg, #F8F1DF);
+  border-color: var(--border-strong, #4E4E48);
+}
+
+.filter-clear:hover,
+.filter-clear:active {
+  background: var(--accent, #E84E1B) !important;
+  color: #FFFFFF !important;
+  border-color: var(--accent, #E84E1B) !important;
+}
+
+/* Acordeón de Grupos de Filtro */
+.filter-group {
+  border-bottom: 1.5px solid var(--border-strong, #141411);
+}
+
+body.dark-mode .filter-group {
+  border-bottom-color: var(--border-strong, #4E4E48);
+}
+
+.filter-group-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--bg-raised, #ECE6D8);
+  border: 0;
+  border-bottom: 1px solid var(--border-strong, #141411);
+  color: var(--fg, #141411);
+  font-family: 'League Spartan', sans-serif;
+  font-weight: 900;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  text-align: left;
+}
+
+body.dark-mode .filter-group-head {
+  background: #20201D;
+  color: var(--fg, #F8F1DF);
+  border-bottom-color: var(--border-strong, #4E4E48);
+}
+
+.filter-chevron {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 900;
+  font-size: 14px;
+  color: var(--accent, #E84E1B);
+}
+
+.filter-group.collapsed .filter-group-body {
+  display: none;
+}
+
+/* Barra de Acciones Globales del Grupo */
+.filter-group-actions {
+  display: flex;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--bg-panel, #F8F1DF);
+  border-bottom: 1px dashed var(--border, #D8D6CE);
+}
+
+body.dark-mode .filter-group-actions {
+  background: #171715;
+  border-bottom-color: var(--border, #32322E);
+}
+
+.filter-action {
+  font-family: 'League Spartan', sans-serif;
+  font-weight: 900;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  padding: 4px 8px;
+  border: 1px solid var(--border-strong, #141411);
+  background: var(--bg-raised, #ECE6D8);
+  color: var(--fg, #141411);
+  cursor: pointer;
+  border-radius: 0 !important;
+  transition: all 0.1s ease;
+}
+
+body.dark-mode .filter-action {
+  background: #252522;
+  color: var(--fg, #F8F1DF);
+  border-color: var(--border-strong, #4E4E48);
+}
+
+.filter-action:hover,
+.filter-action:active {
+  background: var(--fg, #141411);
+  color: var(--bg, #F8F1DF);
+}
+
+body.dark-mode .filter-action:hover,
+body.dark-mode .filter-action:active {
+  background: var(--accent, #E84E1B);
+  color: #FFFFFF;
+  border-color: var(--accent, #E84E1B);
+}
+
+/* Lista de Categorías y Filas de Interruptor */
+.filter-switches-list {
+  display: flex;
+  flex-direction: column;
+  padding: 2px 0 6px;
+}
+
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--border, #D8D6CE);
+  background: var(--bg-panel, #F8F1DF);
+  transition: background 0.12s ease;
+}
+
+body.dark-mode .switch-row {
+  background: #171715;
+  border-bottom-color: var(--border, #32322E);
+}
+
+.switch-row:last-child {
+  border-bottom: 0;
+}
+
+.switch-row:hover {
+  background: var(--bg-raised, #ECE6D8);
+}
+
+body.dark-mode .switch-row:hover {
+  background: #252522;
+}
+
+.switch-label-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.category-dot {
+  width: 11px;
+  height: 11px;
+  min-width: 11px;
+  min-height: 11px;
+  border: 1px solid var(--border-strong, #141411);
+  border-radius: 0 !important;
+  flex-shrink: 0;
+  display: inline-block;
+  box-shadow: 1px 1px 0px var(--border-strong, #141411);
+}
+
+body.dark-mode .category-dot {
+  border-color: var(--border-strong, #4E4E48);
+  box-shadow: 1px 1px 0px var(--border-strong, #4E4E48);
+}
+
+.category-name {
+  font-family: 'League Spartan', sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--fg, #141411);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body.dark-mode .category-name {
+  color: var(--fg, #F8F1DF);
+}
+
+.switch-actions-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.filter-isolate {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8.5px;
+  font-weight: 800;
+  padding: 3px 6px;
+  border: 1px solid var(--border-strong, #141411);
+  background: var(--bg-raised, #ECE6D8);
+  color: var(--fg-dim, #6B6B6B);
+  cursor: pointer;
+  border-radius: 0 !important;
+  letter-spacing: 0.04em;
+  transition: all 0.1s ease;
+}
+
+body.dark-mode .filter-isolate {
+  background: #252522;
+  color: var(--fg-dim, #9A9A92);
+  border-color: var(--border-strong, #4E4E48);
+}
+
+.filter-isolate:hover,
+.filter-isolate:active {
+  background: var(--accent, #E84E1B) !important;
+  color: #FFFFFF !important;
+  border-color: var(--accent, #E84E1B) !important;
+}
+
+/* Interruptor Técnico Instrumental (Neo-Bauhaus) */
+.tech-switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+  flex-shrink: 0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.tech-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.tech-switch .track {
+  position: absolute;
+  inset: 0;
+  background: var(--bg-raised, #ECE6D8);
+  border: 1.5px solid var(--border-strong, #141411);
+  box-shadow: 1px 1px 0px var(--border-strong, #141411);
+  border-radius: 0 !important;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+body.dark-mode .tech-switch .track {
+  background: #252522;
+  border-color: var(--border-strong, #4E4E48);
+  box-shadow: 1px 1px 0px var(--border-strong, #4E4E48);
+}
+
+.tech-switch .thumb {
+  position: absolute;
+  top: 2.5px;
+  left: 2.5px;
+  width: 12px;
+  height: 12px;
+  background: var(--fg-dim, #6B6B6B);
+  border: 1px solid var(--border-strong, #141411);
+  border-radius: 0 !important;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+
+body.dark-mode .tech-switch .thumb {
+  background: var(--fg-dim, #9A9A92);
+  border-color: var(--border-strong, #4E4E48);
+}
+
+.tech-switch input:checked ~ .track {
+  background: var(--accent, #E84E1B) !important;
+  border-color: var(--border-strong, #141411) !important;
+}
+
+body.dark-mode .tech-switch input:checked ~ .track {
+  border-color: var(--border-strong, #4E4E48) !important;
+}
+
+.tech-switch input:checked ~ .thumb {
+  transform: translateX(16px);
+  background: #FFFFFF !important;
+  border-color: #141411 !important;
 }
 
 .sheet-icon-action.admin-delete-action,
@@ -1295,11 +1588,6 @@ body.dark-mode .sheet-hero-btn.active.saved {
 .sheet-icon-action.private-delete-action:hover {
   background: rgba(214, 32, 29, 0.08);
 }
-
-/* ==========================================================================
-/* ==========================================================================
-   SECCIONES DEDICADAS: EXPLORA (DIRECTORIO ARCHIVO) & MI RADAR (TIEMPO REAL)
-   ========================================================================== */
 
 .badge-count {
   font-family: 'JetBrains Mono', monospace;
