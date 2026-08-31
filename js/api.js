@@ -617,16 +617,18 @@ export async function saveBuildingStatus(userId, buildingId, status, sessionToke
 }
 
 export async function createBuildingReport(report, sessionToken = null) {
+  const desc = String(report.description || report.descripcion || '').trim();
+  const tipo = report.report_type || 'error_datos';
+  const fullDesc = tipo && tipo !== 'error_datos' ? `[${tipo.toUpperCase()}] ${desc}` : desc;
+
   const payload = {
     building_id: report.building_id,
     user_id: report.user_id || null,
-    user_email: report.user_email || null,
-    report_type: report.report_type || 'error_datos',
-    description: report.description || report.descripcion || '',
-    status: 'pending',
+    descripcion: fullDesc,
+    estado: 'pendiente',
   };
 
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/reports`, {
+  let response = await fetch(`${SUPABASE_URL}/rest/v1/building_reports`, {
     method: 'POST',
     headers: {
       'apikey': SUPABASE_KEY,
@@ -637,23 +639,52 @@ export async function createBuildingReport(report, sessionToken = null) {
     body: JSON.stringify(payload),
   });
 
+  if (response.status === 404) {
+    const fallbackPayload = {
+      building_id: report.building_id,
+      user_id: report.user_id || null,
+      user_email: report.user_email || null,
+      report_type: tipo,
+      description: desc,
+      status: 'pending',
+    };
+    response = await fetch(`${SUPABASE_URL}/rest/v1/reports`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${sessionToken || SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation',
+      },
+      body: JSON.stringify(fallbackPayload),
+    });
+  }
+
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
+    if (error.code === '42501') {
+      throw new Error('Permisos RLS insuficientes en building_reports. Ejecuta la política RLS de inserción en Supabase SQL.');
+    }
     throw new Error(error.message || error.details || 'No se pudo enviar el reporte.');
   }
   return response.json().catch(() => ({}));
 }
 
 export async function fetchBuildingReports(sessionToken) {
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/reports?status=eq.pending&select=id,user_id,user_email,building_id,report_type,description,status,created_at,Buildings(nombre_obra,arquitecto)&order=created_at.desc`, {
+  let response = await fetch(`${SUPABASE_URL}/rest/v1/building_reports?select=id,user_id,building_id,descripcion,estado,created_at,Buildings(nombre_obra,arquitecto)&order=created_at.desc`, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
   });
+  if (response.status === 404) {
+    response = await fetch(`${SUPABASE_URL}/rest/v1/reports?status=eq.pending&select=id,user_id,user_email,building_id,report_type,description,status,created_at,Buildings(nombre_obra,arquitecto)&order=created_at.desc`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
+    });
+  }
   if (!response.ok) return [];
   return response.json().catch(() => []);
 }
 
 export async function updateBuildingReport(id, estado, sessionToken) {
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/reports?id=eq.${encodeURIComponent(id)}`, {
+  let response = await fetch(`${SUPABASE_URL}/rest/v1/building_reports?id=eq.${encodeURIComponent(id)}`, {
     method: 'PATCH',
     headers: {
       'apikey': SUPABASE_KEY,
@@ -661,8 +692,22 @@ export async function updateBuildingReport(id, estado, sessionToken) {
       'Content-Type': 'application/json',
       'Prefer': 'return=representation',
     },
-    body: JSON.stringify({ status: estado }),
+    body: JSON.stringify({ estado }),
   });
+
+  if (response.status === 404) {
+    response = await fetch(`${SUPABASE_URL}/rest/v1/reports?id=eq.${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${sessionToken}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation',
+      },
+      body: JSON.stringify({ status: estado }),
+    });
+  }
+
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
     throw new Error(error.message || error.details || 'No se pudo actualizar el reporte.');

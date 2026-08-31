@@ -18,30 +18,56 @@ BEGIN
 END $$;
 
 -- 3. TABLA DE REPORTES DE OBRAS (ERROR / DUPLICADO / UBICACIÓN)
+-- Tabla principal: building_reports
+CREATE TABLE IF NOT EXISTS public.building_reports (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  building_id BIGINT REFERENCES public.Buildings(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  descripcion TEXT,
+  estado TEXT DEFAULT 'pendiente'
+);
+
+CREATE INDEX IF NOT EXISTS idx_building_reports_building_id ON public.building_reports(building_id);
+CREATE INDEX IF NOT EXISTS idx_building_reports_user_id ON public.building_reports(user_id);
+CREATE INDEX IF NOT EXISTS idx_building_reports_estado ON public.building_reports(estado);
+
+ALTER TABLE public.building_reports ENABLE ROW LEVEL SECURITY;
+
+-- Políticas RLS para building_reports:
+-- A) Cualquier usuario (anónimo o autenticado) puede enviar un reporte de obra
+DROP POLICY IF EXISTS "Allow insert building_reports for all" ON public.building_reports;
+CREATE POLICY "Allow insert building_reports for all" ON public.building_reports
+  FOR INSERT WITH CHECK (true);
+
+-- B) Solo administradores y superadministradores pueden ver y gestionar reportes
+DROP POLICY IF EXISTS "Admins can view and manage building_reports" ON public.building_reports;
+CREATE POLICY "Admins can view and manage building_reports" ON public.building_reports
+  FOR ALL USING (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE profiles.id = auth.uid() AND profiles.role IN ('admin', 'superadmin')
+    )
+  );
+
+-- Compatibilidad: Tabla reports (alias / alternativa)
 CREATE TABLE IF NOT EXISTS public.reports (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   building_id BIGINT REFERENCES public.Buildings(id) ON DELETE CASCADE,
   user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   user_email TEXT,
-  report_type TEXT NOT NULL CHECK (report_type IN ('error_datos', 'duplicado', 'ubicacion_erronea', 'otro')),
+  report_type TEXT DEFAULT 'error_datos',
   description TEXT,
-  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'reviewed', 'resolved', 'dismissed'))
+  status TEXT DEFAULT 'pending'
 );
-
-CREATE INDEX IF NOT EXISTS idx_reports_building_id ON public.reports(building_id);
-CREATE INDEX IF NOT EXISTS idx_reports_user_id ON public.reports(user_id);
-CREATE INDEX IF NOT EXISTS idx_reports_status ON public.reports(status);
 
 ALTER TABLE public.reports ENABLE ROW LEVEL SECURITY;
 
--- Políticas RLS para reports:
--- A) Cualquier usuario autenticado (o anónimo) puede enviar un reporte
 DROP POLICY IF EXISTS "Users can create reports" ON public.reports;
 CREATE POLICY "Users can create reports" ON public.reports
   FOR INSERT WITH CHECK (true);
 
--- B) Solo administradores y superadministradores pueden ver y gestionar reportes
 DROP POLICY IF EXISTS "Admins can view and manage reports" ON public.reports;
 CREATE POLICY "Admins can view and manage reports" ON public.reports
   FOR ALL USING (
