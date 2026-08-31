@@ -130,15 +130,19 @@ const CATEGORY_COLORS = {
   'otro': '#064773',
 };
 
-export function abrirFicha(building, coordinates, featureId = building.id) {
+export function abrirFicha(building, coordinates, featureId = building?.id || building?.featureId) {
+  if (!building) return;
+  const targetId = featureId || building.id || building.featureId;
   if (state.selectedFeatureId !== null) {
     const previous = getSelectedBuilding();
     if (previous) previous.selected = false;
   }
-  state.selectedFeatureId = featureId;
-  const selected = getSelectedBuilding();
+  state.selectedFeatureId = targetId;
+  const selected = getSelectedBuilding() || building;
   if (selected) selected.selected = true;
   actualizarFuenteMapa();
+
+  const coords = coordinates || selected.coordenadas || building.coordenadas || [0, 0];
 
   const architectsList = Array.isArray(building.arquitectos) ? building.arquitectos : separarArquitectos(building.arquitecto);
   const architects = architectsList
@@ -172,7 +176,7 @@ export function abrirFicha(building, coordinates, featureId = building.id) {
 
     <!-- Botonera de Acción Rápida (Hero Actions) -->
     <div class="sheet-hero-actions">
-      <a href="https://www.google.com/maps/dir/?api=1&destination=${coordinates[1]},${coordinates[0]}" target="_blank" rel="noopener noreferrer" class="sheet-hero-btn btn-primary" title="Trazar ruta en Google Maps">
+      <a href="https://www.google.com/maps/dir/?api=1&destination=${coords[1]},${coords[0]}" target="_blank" rel="noopener noreferrer" class="sheet-hero-btn btn-primary" title="Trazar ruta en Google Maps">
         <i data-lucide="navigation" width="15" height="15"></i>
         <span>CÓMO LLEGAR</span>
       </a>
@@ -230,7 +234,7 @@ export function abrirFicha(building, coordinates, featureId = building.id) {
 
       <div class="tech-row">
         <span class="tech-label">[ COORDENADAS ]</span>
-        <span class="tech-value tech-value-mono">${coordinates[1].toFixed(5)}° N, ${coordinates[0].toFixed(5)}° E</span>
+        <span class="tech-value tech-value-mono">${coords[1].toFixed(5)}° N, ${coords[0].toFixed(5)}° E</span>
       </div>
 
       ${building.enlace_url && isValidHttpsUrl(building.enlace_url) ? `
@@ -306,9 +310,9 @@ export function abrirFicha(building, coordinates, featureId = building.id) {
   cerrarFiltros();
 
   // En móvil, centrar el mapa en la mitad superior para no tapar el marcador
-  if (window.innerWidth <= 768 && state.map && coordinates) {
+  if (window.innerWidth <= 768 && state.map && coords) {
     state.map.easeTo({
-      center: coordinates,
+      center: coords,
       padding: { top: 60, bottom: Math.round(window.innerHeight * 0.45), left: 0, right: 0 },
       duration: 350,
     });
@@ -327,8 +331,16 @@ export function abrirFicha(building, coordinates, featureId = building.id) {
 }
 
 function formatAccess(value) { return { publico: 'PUBLICO', exterior_visible: 'EXTERIOR VISIBLE', con_reserva: 'CON RESERVA', privado: 'PRIVADO', cerrado_temporalmente: 'CERRADO TEMPORALMENTE', no_construido: 'NO CONSTRUIDO', desaparecido: 'DESAPARECIDO' }[value] || value; }
-function getSelectedBuilding() { return state.OBRAS.find((item) => String(item.featureId) === String(state.selectedFeatureId)); }
-function getStatus(status) { const building = getSelectedBuilding(); return building ? state.buildingStatuses.get(String(building.id))?.[status] || false : false; }
+function getSelectedBuilding() {
+  if (!state.selectedFeatureId) return null;
+  const target = String(state.selectedFeatureId);
+  return state.OBRAS.find((item) => String(item.id) === target || String(item.featureId) === target) || null;
+}
+function getStatus(status) {
+  const building = getSelectedBuilding();
+  if (!building || !building.id) return false;
+  return state.buildingStatuses?.get(String(building.id))?.[status] || false;
+}
 function closeOrganizer() { document.getElementById('modal-personal-organizer').classList.remove('open'); }
 
 function organizerOptions(building, mode) {

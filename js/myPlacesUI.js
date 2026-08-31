@@ -168,7 +168,7 @@ export function initMyPlacesUI() {
             essential: true,
           });
         }
-        abrirFicha(obra);
+        abrirFicha(obra, obra.coordenadas, obra.featureId || obra.id);
       }
     }
   });

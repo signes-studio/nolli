@@ -133,6 +133,7 @@ export function cargarMapaMapbox() {
     state.map.addSource('obras', {
       type: 'geojson',
       data: { type: 'FeatureCollection', features: [] },
+      promoteId: 'featureId',
       cluster: true,
       clusterMaxZoom: 4,
       clusterRadius: 45,
@@ -142,6 +143,7 @@ export function cargarMapaMapbox() {
     state.map.addSource('obras-maestras', {
       type: 'geojson',
       data: { type: 'FeatureCollection', features: [] },
+      promoteId: 'featureId',
       buffer: 512, // Pre-renderiza etiquetas maestras fuera del viewport
       tolerance: 0.25,
     });
@@ -825,9 +827,12 @@ function iniciarInteraccionesMapa() {
     if (state.map.getLayer(layerId)) {
       state.map.on('click', layerId, (e) => {
         if (state.addingBuilding) return;
-        const feature = e.features[0];
-        const obra = state.OBRAS.find((item) => String(item.featureId) === String(feature.id));
-        abrirFicha(obra || feature.properties, obra?.coordenadas || feature.geometry.coordinates, feature.id);
+        const feature = e.features && e.features[0];
+        if (!feature) return;
+        const targetId = feature.properties?.id ?? feature.properties?.featureId ?? feature.id;
+        const obra = state.OBRAS.find((item) => String(item.id) === String(targetId) || String(item.featureId) === String(targetId));
+        const coords = (obra && obra.coordenadas) ? obra.coordenadas : (feature.geometry?.coordinates || [0, 0]);
+        abrirFicha(obra || feature.properties, coords, targetId);
       });
     }
   });
