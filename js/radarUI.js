@@ -470,8 +470,13 @@ export function restaurarMapaGeneral() {
   if (itineraryBadge) {
     itineraryBadge.classList.add('hidden');
   }
+  if (window.location.hash.startsWith('#list=')) {
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+  }
   actualizarFuenteMapa();
 }
+
+export const desactivarRutaEnMapa = restaurarMapaGeneral;
 
 export function initRadarUI() {
   const panel = document.getElementById('radar-panel');

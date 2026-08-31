@@ -190,7 +190,15 @@ export function initMyPlacesUI() {
 
 export async function handleListHashRoute() {
   const hash = window.location.hash;
-  if (!hash.startsWith('#list=')) return;
+  if (!hash.startsWith('#list=')) {
+    if (state.activeItinerary && state.activeItinerary.isCollectionItinerary) {
+      state.activeItinerary = null;
+      const itineraryBadge = document.getElementById('itinerary-filter-badge');
+      if (itineraryBadge) itineraryBadge.classList.add('hidden');
+      actualizarFuenteMapa();
+    }
+    return;
+  }
   const listId = hash.replace('#list=', '').trim();
   if (!listId) return;
 
@@ -206,11 +214,16 @@ export async function handleListHashRoute() {
     }
 
     const buildingIds = items.map((i) => String(i.building_id));
+    if (buildingIds.length === 0) {
+      alert(`La lista "${col.name}" aún no tiene obras añadidas.`);
+      return;
+    }
 
     // Aislar en mapa
     state.activeItinerary = {
       id: col.id,
       title: col.name,
+      isCollectionItinerary: true,
       workIds: new Set(buildingIds),
     };
 

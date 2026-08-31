@@ -11,20 +11,27 @@ import { abrirFicha, cerrarFicha } from './sheetUI.js';
 mapboxgl.accessToken = MAPBOX_TOKEN;
 
 /** Registra o actualiza los emojis de las listas del usuario en Mapbox */
+/** Registra o actualiza los emojis de las listas del usuario en Mapbox */
 export function registrarIconosColecciones() {
-  if (!state.map) return;
-  const isDark = state.mapStyle === 'dark' || document.body.classList.contains('dark-mode');
-  if (state.userCollections && state.userCollections.length > 0) {
-    state.userCollections.forEach((col) => {
-      if (col.icon) {
-        const emojiImageName = `collection-emoji-${col.id}`;
-        const imgData = buildEmojiIcon(col.icon, isDark, 64);
-        if (state.map.hasImage(emojiImageName)) {
-          state.map.removeImage(emojiImageName);
+  if (!state.map || !state.map.isStyleLoaded || !state.map.isStyleLoaded()) return;
+  try {
+    const isDark = state.mapStyle === 'dark' || document.body.classList.contains('dark-mode');
+    if (state.userCollections && state.userCollections.length > 0) {
+      state.userCollections.forEach((col) => {
+        if (col && col.id && col.icon) {
+          const emojiImageName = `collection-emoji-${col.id}`;
+          try {
+            const imgData = buildEmojiIcon(col.icon, isDark, 64);
+            if (state.map.hasImage(emojiImageName)) {
+              state.map.removeImage(emojiImageName);
+            }
+            state.map.addImage(emojiImageName, imgData, { pixelRatio: 2 });
+          } catch (e) {}
         }
-        state.map.addImage(emojiImageName, imgData, { pixelRatio: 2 });
-      }
-    });
+      });
+    }
+  } catch (err) {
+    console.warn('Error en registrarIconosColecciones:', err);
   }
 }
 
@@ -110,11 +117,13 @@ export function cargarMapaMapbox() {
       Object.entries(CATEGORY_COLORS).forEach(([cat, color]) => {
         const prefix = `icon-l${importance}-${cat}`;
 
-        if (!state.map.hasImage(prefix)) state.map.addImage(prefix, buildIcon(drawTargetIcon, color, importance), { pixelRatio: 2 });
-        if (!state.map.hasImage(`${prefix}-visited`)) state.map.addImage(`${prefix}-visited`, buildIcon(drawTargetIcon, '#82c812', importance), { pixelRatio: 2 });
-        if (!state.map.hasImage(`${prefix}-pending`)) state.map.addImage(`${prefix}-pending`, buildIcon(drawTargetIcon, '#FFCC00', importance), { pixelRatio: 2 });
-        if (!state.map.hasImage(`${prefix}-private`)) state.map.addImage(`${prefix}-private`, buildIcon(drawPrivateSquareIcon, color, importance), { pixelRatio: 2 });
-        if (!state.map.hasImage(`${prefix}-selected`)) state.map.addImage(`${prefix}-selected`, buildIcon(drawTargetIcon, selectedColor, importance), { pixelRatio: 2 });
+        try {
+          if (!state.map.hasImage(prefix)) state.map.addImage(prefix, buildIcon(drawTargetIcon, color, importance), { pixelRatio: 2 });
+          if (!state.map.hasImage(`${prefix}-visited`)) state.map.addImage(`${prefix}-visited`, buildIcon(drawTargetIcon, '#82c812', importance), { pixelRatio: 2 });
+          if (!state.map.hasImage(`${prefix}-pending`)) state.map.addImage(`${prefix}-pending`, buildIcon(drawTargetIcon, '#FFCC00', importance), { pixelRatio: 2 });
+          if (!state.map.hasImage(`${prefix}-private`)) state.map.addImage(`${prefix}-private`, buildIcon(drawPrivateSquareIcon, color, importance), { pixelRatio: 2 });
+          if (!state.map.hasImage(`${prefix}-selected`)) state.map.addImage(`${prefix}-selected`, buildIcon(drawTargetIcon, selectedColor, importance), { pixelRatio: 2 });
+        } catch (e) {}
       });
     });
 
