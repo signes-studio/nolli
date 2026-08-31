@@ -38,6 +38,8 @@ function asegurarEstadoFiltros() {
 export function generarFiltrosUI() {
   asegurarEstadoFiltros();
   
+  if (!filterPanel) return;
+
   filterPanel.innerHTML = `
     <div class="filter-head">
       <div>
@@ -46,7 +48,9 @@ export function generarFiltrosUI() {
       </div>
       <div class="filter-head-actions">
         <button type="button" class="filter-clear" data-filter-reset>LIMPIAR</button>
-        <i data-lucide="x" id="btn-filters-close" width="14" height="14" style="cursor:pointer; color:var(--fg-dim)" role="button" aria-label="Cerrar filtros"></i>
+        <button type="button" id="btn-filters-close" class="sheet-close-button" aria-label="Cerrar filtros" style="width:28px; height:28px; min-width:28px; min-height:28px;">
+          <i data-lucide="x" width="14" height="14"></i>
+        </button>
       </div>
     </div>
 
@@ -66,16 +70,18 @@ export function generarFiltrosUI() {
             const colorCat = COLORES_CATEGORIA[cat.key] || COLORES_CATEGORIA['otro'];
             return `
               <div class="switch-row">
-                <span>
-                  <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color:${colorCat}; margin-right:8px; vertical-align:middle;"></span>
-                  ${cat.label}
-                </span>
-                <div class="tech-switch">
-                  <input type="checkbox" ${checked} data-category-key="${cat.key}">
-                  <div class="track"></div>
-                  <div class="thumb"></div>
+                <div class="switch-label-wrap">
+                  <span class="category-dot" style="background-color:${colorCat};"></span>
+                  <span class="category-name">${cat.label}</span>
                 </div>
-                <button type="button" class="filter-action filter-isolate" data-isolate-category="${cat.key}">AISLAR</button>
+                <div class="switch-actions-wrap">
+                  <button type="button" class="filter-action filter-isolate" data-isolate-category="${cat.key}" title="Ver solo ${cat.label}">AISLAR</button>
+                  <label class="tech-switch" aria-label="Activar ${cat.label}">
+                    <input type="checkbox" ${checked} data-category-key="${cat.key}">
+                    <span class="track"></span>
+                    <span class="thumb"></span>
+                  </label>
+                </div>
               </div>
             `;
           }).join('')}
@@ -103,13 +109,15 @@ function actualizarResumenFiltros() {
 }
 
 export function cerrarFiltros() {
-  filterPanel.classList.remove('open');
-  btnFilters.classList.remove('active-state');
+  if (filterPanel) filterPanel.classList.remove('open');
+  if (btnFilters) btnFilters.classList.remove('active-state');
 }
 
 function initFiltersUI() {
   asegurarEstadoFiltros();
   generarFiltrosUI();
+
+  if (!filterPanel) return;
 
   filterPanel.addEventListener('change', (e) => {
     const target = e.target;
@@ -164,11 +172,16 @@ function initFiltersUI() {
     }
   });
 
-  btnFilters.addEventListener('click', () => {
-    filterPanel.classList.toggle('open');
-    btnFilters.classList.toggle('active-state');
-    document.dispatchEvent(new CustomEvent('radar:cerrar-ficha'));
-  });
+  if (btnFilters) {
+    btnFilters.addEventListener('click', () => {
+      const isOpen = filterPanel.classList.toggle('open');
+      btnFilters.classList.toggle('active-state', isOpen);
+      if (isOpen) {
+        generarFiltrosUI();
+      }
+      document.dispatchEvent(new CustomEvent('radar:cerrar-ficha'));
+    });
+  }
 }
 
 export function aplicarFiltrosMapa() {
