@@ -559,10 +559,35 @@ export async function upsertCurrentProfile(user, profile = {}, sessionToken) {
   return response.json();
 }
 
+export async function updateUserPresence(sessionToken) {
+  if (!sessionToken) return;
+  try {
+    const user = await fetchCurrentUser(sessionToken);
+    if (!user || !user.id) return;
+    await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(user.id)}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${sessionToken}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal',
+      },
+      body: JSON.stringify({ last_seen_at: new Date().toISOString() }),
+    });
+  } catch {
+    // Silencioso: si no se ha migrado aún la columna last_seen_at
+  }
+}
+
 export async function fetchUserDirectory(sessionToken) {
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/profiles?select=id,email,first_name,last_name,city,country,bio,website,role,created_at&order=created_at.desc`, {
+  let response = await fetch(`${SUPABASE_URL}/rest/v1/profiles?select=id,email,first_name,last_name,city,country,bio,website,role,created_at,last_seen_at&order=last_seen_at.desc.nullslast,created_at.desc`, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
   });
+  if (response.status === 400) {
+    response = await fetch(`${SUPABASE_URL}/rest/v1/profiles?select=id,email,first_name,last_name,city,country,bio,website,role,created_at&order=created_at.desc`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
+    });
+  }
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
     throw new Error(error.message || error.details || 'No se pudo cargar el directorio de usuarios.');

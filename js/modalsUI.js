@@ -3,11 +3,23 @@
    ========================================================================= */
 
 import { state, separarArquitectos, normalizarCategoria, esRolAdmin } from './state.js';
-import { loginAdmin, registerUser, refreshUserSession, requestPasswordReset, fetchUserRole, fetchCurrentUser, fetchCurrentProfile, fetchBuildingStatuses, upsertCurrentProfile, createBuildingReport, createBuilding, createPrivateBuilding, updateBuilding } from './api.js';
+import { loginAdmin, registerUser, refreshUserSession, requestPasswordReset, fetchUserRole, fetchCurrentUser, fetchCurrentProfile, fetchBuildingStatuses, upsertCurrentProfile, createBuildingReport, createBuilding, createPrivateBuilding, updateBuilding, updateUserPresence } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
 
 const ADMIN_SESSION_KEY = 'nolli_admin_session_token';
+let presenceTimer = null;
+
+function iniciarLatidoPresencia() {
+  if (presenceTimer) clearInterval(presenceTimer);
+  if (state.sessionToken) {
+    updateUserPresence(state.sessionToken);
+    presenceTimer = setInterval(() => {
+      if (state.sessionToken) updateUserPresence(state.sessionToken);
+      else clearInterval(presenceTimer);
+    }, 3 * 60 * 1000);
+  }
+}
 
 /* -------------------------------------------------------------------------
    MÓDULO DE LOGIN
@@ -41,6 +53,7 @@ async function initLoginModal() {
     bLoginT.style.background = 'rgba(239, 188, 2, 0.12)';
     logoutButton.classList.remove('hidden');
     loginEntryFields.forEach((field) => field.classList.add('hidden'));
+    iniciarLatidoPresencia();
     if (canUseAdminTools) document.dispatchEvent(new CustomEvent('radar:admin-login'));
     else document.dispatchEvent(new CustomEvent('radar:user-login'));
   };

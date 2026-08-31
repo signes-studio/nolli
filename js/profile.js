@@ -24,6 +24,7 @@ import {
   registerUser,
   requestPasswordReset,
   refreshUserSession,
+  updateUserPresence,
 } from './api.js';
 
 import {
@@ -189,6 +190,7 @@ async function init() {
   if (app) app.classList.remove('hidden');
   if (logoutBtn) logoutBtn.classList.remove('hidden');
   if (settingsBtn) settingsBtn.classList.remove('hidden');
+  updateUserPresence(token);
 
   // 3. Restauración instantánea desde caché local
   const cachedUserStr = localStorage.getItem('nolli_cached_user');

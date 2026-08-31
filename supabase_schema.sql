@@ -237,4 +237,32 @@ AS $$
   ORDER BY distance_meters ASC;
 $$;
 
+-- 8. GESTIÓN DE PRESENCIA Y ÚLTIMA CONEXIÓN DE USUARIOS (SUPERADMIN DIRECTORY)
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'profiles') THEN
+    ALTER TABLE public.profiles 
+      ADD COLUMN IF NOT EXISTS last_seen_at TIMESTAMPTZ DEFAULT NOW();
+    
+    CREATE INDEX IF NOT EXISTS idx_profiles_last_seen_at ON public.profiles(last_seen_at DESC);
+  END IF;
+END $$;
+
+-- Permitir a cada usuario actualizar su presencia y timestamp de última conexión
+DROP POLICY IF EXISTS "Users can update own presence" ON public.profiles;
+CREATE POLICY "Users can update own presence" ON public.profiles
+  FOR UPDATE USING (auth.uid() = id)
+  WITH CHECK (auth.uid() = id);
+
+-- Permitir a administradores y superadministradores leer todos los perfiles con presencia
+DROP POLICY IF EXISTS "Admins can view all profiles with presence" ON public.profiles;
+CREATE POLICY "Admins can view all profiles with presence" ON public.profiles
+  FOR SELECT USING (
+    auth.uid() = id
+    OR EXISTS (
+      SELECT 1 FROM public.profiles p
+      WHERE p.id = auth.uid() AND p.role IN ('admin', 'superadmin')
+    )
+  );
+
 

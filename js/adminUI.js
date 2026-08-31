@@ -176,6 +176,34 @@ async function renderReports() {
   }).join('');
 }
 
+function calcularEstadoPresencia(lastSeenAt) {
+  if (!lastSeenAt) {
+    return { isOnline: false, label: 'Sin actividad registrada', shortLabel: 'Desconectado' };
+  }
+  const diffMs = Date.now() - new Date(lastSeenAt).getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+
+  if (diffMin < 5) {
+    return { isOnline: true, label: 'EN LÍNEA AHORA', shortLabel: 'ONLINE' };
+  }
+  if (diffMin < 60) {
+    return { isOnline: false, label: `Última conexión: hace ${diffMin} min`, shortLabel: `hace ${diffMin}m` };
+  }
+  const diffHoras = Math.floor(diffMin / 60);
+  if (diffHoras < 24) {
+    return { isOnline: false, label: `Última conexión: hace ${diffHoras} h`, shortLabel: `hace ${diffHoras}h` };
+  }
+  const diffDias = Math.floor(diffHoras / 24);
+  if (diffDias === 1) {
+    return { isOnline: false, label: 'Última conexión: ayer', shortLabel: 'ayer' };
+  }
+  if (diffDias < 7) {
+    return { isOnline: false, label: `Última conexión: hace ${diffDias} días`, shortLabel: `hace ${diffDias}d` };
+  }
+  const fecha = new Date(lastSeenAt).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  return { isOnline: false, label: `Última conexión: ${fecha}`, shortLabel: fecha };
+}
+
 let users = [];
 async function renderUsers() {
   if (state.userRole !== 'superadmin') {
@@ -188,7 +216,13 @@ async function renderUsers() {
   }
   const query = userSearch.value.trim().toLowerCase();
   const filtered = users.filter((user) => `${user.first_name || ''} ${user.last_name || ''} ${user.email || ''} ${user.city || ''} ${user.country || ''}`.toLowerCase().includes(query));
-  userCount.textContent = `${filtered.length} / ${users.length}`;
+  
+  const onlineCount = users.filter((u) => {
+    if (!u.last_seen_at) return false;
+    return (Date.now() - new Date(u.last_seen_at).getTime()) < 5 * 60 * 1000;
+  }).length;
+
+  userCount.textContent = `${filtered.length} / ${users.length} (${onlineCount} online)`;
   userList.innerHTML = filtered.length ? filtered.map((user) => {
     const safeFirstName = escapeHtml(user.first_name || '');
     const safeLastName = escapeHtml(user.last_name || '');
@@ -197,13 +231,20 @@ async function renderUsers() {
     const safeCity = escapeHtml(user.city || 'Ciudad no indicada');
     const safeCountry = escapeHtml(user.country || 'País no indicado');
     const safeRole = escapeHtml((user.role || 'user').toUpperCase());
+    const presence = calcularEstadoPresencia(user.last_seen_at);
+    const safePresenceLabel = escapeHtml(presence.label);
 
     return `
-      <article class="admin-user">
+      <article class="admin-user ${presence.isOnline ? 'user-online' : ''}">
         <div class="admin-user-main">
-          <strong>${safeFullName}</strong>
+          <div class="admin-user-heading">
+            <span class="admin-presence-indicator ${presence.isOnline ? 'online' : 'offline'}" title="${safePresenceLabel}"></span>
+            <strong>${safeFullName}</strong>
+            ${presence.isOnline ? '<span class="admin-badge-online">[ ONLINE ]</span>' : ''}
+          </div>
           <span>${safeEmail}</span>
           <span>${safeCity} · ${safeCountry}</span>
+          <small class="admin-user-presence ${presence.isOnline ? 'online' : ''}">${safePresenceLabel}</small>
         </div>
         <span class="admin-user-role">${safeRole}</span>
       </article>

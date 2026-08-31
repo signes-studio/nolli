@@ -632,11 +632,20 @@ body.dark-mode .sheet-hero-btn.active.saved {
 .admin-report-badge { display: inline-flex; min-width: 16px; justify-content: center; margin-left: 4px; padding: 1px 3px; border: 1px solid var(--accent); color: var(--accent); font-size: 9px; }
 .admin-user-search { display: block; width: calc(100% - 24px); margin: 10px 12px; }
 .admin-user-list { border-top: 1px solid var(--border); }
-.admin-user { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 12px; border-bottom: 1px solid var(--border); }
+.admin-user { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 12px; border-bottom: 1px solid var(--border); transition: background 0.12s ease; }
+.admin-user.user-online { background: rgba(0, 204, 102, 0.05); }
 .admin-user-main { min-width: 0; display: grid; gap: 4px; font-size: 10px; }
+.admin-user-heading { display: flex; align-items: center; gap: 6px; }
 .admin-user-main strong, .admin-user-main span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .admin-user-main span { color: var(--fg-dim); }
-.admin-user-role { flex-shrink: 0; color: var(--accent-2); font-size: 9px; }
+.admin-user-presence { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--fg-dim); }
+.admin-user-presence.online { color: #00AA55; font-weight: 700; }
+body.dark-mode .admin-user-presence.online { color: #00FF88; }
+.admin-presence-indicator { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; background: var(--border-strong, #888888); }
+.admin-presence-indicator.online { background: #00CC66; box-shadow: 0 0 6px #00CC66; }
+.admin-badge-online { font-family: 'JetBrains Mono', monospace; font-size: 8.5px; font-weight: 800; color: #008844; background: rgba(0, 204, 102, 0.15); border: 1px solid rgba(0, 204, 102, 0.4); padding: 1px 4px; letter-spacing: 0.04em; }
+body.dark-mode .admin-badge-online { color: #00FF88; background: rgba(0, 255, 136, 0.15); border-color: rgba(0, 255, 136, 0.4); }
+.admin-user-role { flex-shrink: 0; color: var(--accent-2); font-size: 9px; font-weight: 700; }
 .admin-inbox-button { display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
 .admin-reports-view { display: block; }
 .admin-view-hidden { display: none !important; }
