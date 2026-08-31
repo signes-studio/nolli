@@ -67,6 +67,8 @@ export function initMobileBottomNav() {
     // Controles Flotantes
     btnFloatLayers?.classList.toggle('active-state', isLayersOpen);
     btnFloatFilters?.classList.toggle('active-state', isFilterOpen);
+    document.getElementById('btn-explore-float')?.classList.toggle('active-state', isExploreOpen);
+    document.getElementById('btn-radar-float')?.classList.toggle('active-state', isRadarOpen);
 
     if (panelBackdrop) {
       panelBackdrop.classList.toggle('active', isAnyPanelOpen);
@@ -187,6 +189,30 @@ export function initMobileBottomNav() {
       e.preventDefault();
       e.stopPropagation();
       localizarDispositivo();
+    });
+  }
+
+  const btnExploreFloat = document.getElementById('btn-explore-float');
+  if (btnExploreFloat) {
+    btnExploreFloat.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleMobilePanel(explorePanel);
+      if (explorePanel?.classList.contains('open')) {
+        renderExploreList();
+      }
+    });
+  }
+
+  const btnRadarFloat = document.getElementById('btn-radar-float');
+  if (btnRadarFloat) {
+    btnRadarFloat.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleMobilePanel(radarPanel);
+      if (radarPanel?.classList.contains('open')) {
+        renderRadarUI();
+      }
     });
   }
 
@@ -445,9 +471,12 @@ function initMobileSearchWidget() {
 
   if (!widget || !btnToggle || !input) return;
 
+  const btnSearch = document.getElementById('btn-search');
+
   function openSearch() {
     widget.classList.remove('collapsed');
     widget.classList.add('expanded');
+    btnSearch?.classList.add('active-state');
     setTimeout(() => input.focus(), 100);
     cargarTodasObrasMobile();
   }
@@ -456,6 +485,7 @@ function initMobileSearchWidget() {
     widget.classList.remove('expanded');
     widget.classList.add('collapsed');
     input.value = '';
+    btnSearch?.classList.remove('active-state');
     if (dropdown) dropdown.hidden = true;
     if (resultsContainer) resultsContainer.innerHTML = '';
   }
@@ -464,6 +494,18 @@ function initMobileSearchWidget() {
     e.stopPropagation();
     openSearch();
   });
+
+  if (btnSearch) {
+    btnSearch.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (widget.classList.contains('expanded')) {
+        closeSearch();
+      } else {
+        openSearch();
+      }
+    });
+  }
 
   if (btnClose) {
     btnClose.addEventListener('click', (e) => {
@@ -617,7 +659,13 @@ function initMobileSearchWidget() {
   });
 
   document.addEventListener('click', (e) => {
-    if (widget.classList.contains('expanded') && !widget.contains(e.target)) {
+    if (widget.classList.contains('expanded') && !widget.contains(e.target) && !e.target.closest('#btn-search')) {
+      closeSearch();
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && widget.classList.contains('expanded')) {
       closeSearch();
     }
   });

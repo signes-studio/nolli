@@ -51,18 +51,26 @@ function renderizarTarjetaObra(obra, distance = null) {
 }
 
 export function initSearchUI() {
-  btnSearch.addEventListener('click', () => {
-    const isOpen = searchPanel.classList.toggle('open');
-    btnSearch.classList.toggle('active-state', isOpen);
-    if (isOpen) {
-      if (architectSuggestions) {
-        architectSuggestions.innerHTML = '';
-        architectSuggestions.hidden = true;
+  if (btnSearch) {
+    btnSearch.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const widget = document.getElementById('mobile-search-widget');
+      const mobileInput = document.getElementById('mobile-search-input');
+      if (widget) {
+        const isCollapsed = widget.classList.contains('collapsed');
+        if (isCollapsed) {
+          widget.classList.remove('collapsed');
+          widget.classList.add('expanded');
+          btnSearch.classList.add('active-state');
+          setTimeout(() => mobileInput?.focus(), 100);
+        } else {
+          widget.classList.remove('expanded');
+          widget.classList.add('collapsed');
+          btnSearch.classList.remove('active-state');
+        }
       }
-      solicitarUbicacion();
-      ejecutarBusquedaGlobal();
-    }
-  });
+    });
+  }
 
   document.addEventListener('click', (event) => {
     if (event.target.closest('#btn-search-close')) {

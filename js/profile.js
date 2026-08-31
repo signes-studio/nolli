@@ -1127,10 +1127,40 @@ function setupLoginModal() {
   const err = document.getElementById('login-error');
   const termsCheckbox = document.getElementById('register-terms');
   const newsletterCheckbox = document.getElementById('register-newsletter');
-  let registerMode = false;
+  const registerSuccessView = document.getElementById('register-success-view');
+  const registerSuccessEmail = document.getElementById('register-success-email');
+  const btnSuccessToLogin = document.getElementById('btn-success-to-login');
+  const modalTitle = document.getElementById('modal-login-title');
+
+  const switchToLoginMode = () => {
+    registerMode = false;
+    if (loginForm) loginForm.classList.remove('hidden');
+    if (registerSuccessView) registerSuccessView.classList.add('hidden');
+    if (modalTitle) modalTitle.textContent = 'AUTENTICACIÓN REQUERIDA';
+    if (actionButton) actionButton.textContent = 'AUTORIZAR ACCESO';
+    if (registerButton) registerButton.textContent = 'CREAR CUENTA';
+    registerOnlyFields.forEach((field) => field.classList.add('hidden'));
+    forgotPasswordButton?.classList.remove('hidden');
+    document.querySelector('.keep-session')?.classList.remove('hidden');
+    if (passwordInput) {
+      passwordInput.value = '';
+      passwordInput.autocomplete = 'current-password';
+    }
+    if (err) err.classList.add('hidden');
+    if (window.lucide) window.lucide.createIcons();
+  };
+
+  if (btnSuccessToLogin) {
+    btnSuccessToLogin.addEventListener('click', () => {
+      switchToLoginMode();
+    });
+  }
 
   const openModal = () => {
     if (!mLogin) return;
+    if (registerSuccessView && !registerSuccessView.classList.contains('hidden')) {
+      switchToLoginMode();
+    }
     if (err) err.classList.add('hidden');
     mLogin.classList.add('open');
     if (window.lucide) window.lucide.createIcons();
@@ -1238,10 +1268,22 @@ function setupLoginModal() {
 
         try {
           const authData = await registerUser(email, password, { firstName, lastName, city, country, newsletter });
-          const storage = keepSession?.checked ? localStorage : sessionStorage;
-          storage.setItem(SESSION_KEY, JSON.stringify(authData));
-          closeModal();
-          await init();
+          if (authData.access_token) {
+            const storage = keepSession?.checked ? localStorage : sessionStorage;
+            storage.setItem(SESSION_KEY, JSON.stringify(authData));
+            closeModal();
+            await init();
+          } else {
+            // Desplegar pantalla de confirmación dedicada Neo-Bauhaus
+            if (err) err.classList.add('hidden');
+            if (loginForm) loginForm.classList.add('hidden');
+            if (registerSuccessView) {
+              registerSuccessView.classList.remove('hidden');
+              if (registerSuccessEmail) registerSuccessEmail.textContent = email;
+            }
+            if (modalTitle) modalTitle.textContent = 'CONFIRMACIÓN DE CUENTA';
+            if (window.lucide) window.lucide.createIcons();
+          }
         } catch (error) {
           if (err) {
             err.textContent = error.message;

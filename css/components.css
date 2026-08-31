@@ -839,3 +839,80 @@ body.dark-mode .btn-auth-secondary {
   color: #FFFFFF !important;
   border-color: #4E4E48 !important;
 }
+
+/* Pantalla de Confirmación de Registro (Neo-Bauhaus) */
+.register-success-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 20px 14px 8px;
+  gap: 12px;
+  background: var(--bg-panel, #F4F1EA);
+}
+
+.register-success-view.hidden {
+  display: none !important;
+}
+
+.register-success-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 58px;
+  height: 58px;
+  border: 2px solid var(--border-strong, #111111);
+  box-shadow: 2px 2px 0px var(--border-strong, #111111);
+  background: var(--bg-raised, #ECE6D8);
+  margin-bottom: 2px;
+}
+
+body.dark-mode .register-success-icon-wrap {
+  background: #20201D;
+  border-color: var(--border-strong, #4E4E48);
+  box-shadow: 2px 2px 0px #000000;
+}
+
+.register-success-title {
+  font-family: 'League Spartan', sans-serif !important;
+  font-weight: 900 !important;
+  font-size: 19px !important;
+  letter-spacing: 0.05em !important;
+  color: var(--fg, #111111) !important;
+  margin: 0 !important;
+  text-transform: uppercase !important;
+}
+
+body.dark-mode .register-success-title {
+  color: #FFFFFF !important;
+}
+
+.register-success-msg {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 12.5px !important;
+  line-height: 1.55 !important;
+  color: var(--fg-dim, #555555) !important;
+  margin: 0 !important;
+  max-width: 320px;
+}
+
+body.dark-mode .register-success-msg {
+  color: #BEBEB6 !important;
+}
+
+.register-success-meta {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  color: var(--accent, #E84E1B) !important;
+  background: rgba(232, 78, 27, 0.08) !important;
+  border: 1.5px dashed var(--accent, #E84E1B) !important;
+  padding: 6px 12px !important;
+  word-break: break-all;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+body.dark-mode .register-success-meta {
+  background: rgba(232, 78, 27, 0.15) !important;
+}

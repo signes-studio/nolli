@@ -781,13 +781,16 @@ function initHudReadout() {
   const hL = document.getElementById('hud-lng');
   const hLa = document.getElementById('hud-lat');
   const hZ = document.getElementById('hud-zoom');
+  if (!hL && !hLa && !hZ) return;
 
   function actualizarHud(lngLat) {
     if (lngLat) {
-      hL.textContent = lngLat.lng.toFixed(5);
-      hLa.textContent = lngLat.lat.toFixed(5);
+      if (hL) hL.textContent = lngLat.lng.toFixed(5);
+      if (hLa) hLa.textContent = lngLat.lat.toFixed(5);
     }
-    hZ.textContent = state.map.getZoom().toFixed(1);
+    if (hZ && state.map) {
+      hZ.textContent = state.map.getZoom().toFixed(1);
+    }
   }
 
   state.map.on('mousemove', (e) => actualizarHud(e.lngLat));

@@ -52,7 +52,6 @@
 .mobile-bottom-bar,
 .mobile-identity-widget,
 .mobile-admin-quickmenu,
-.mobile-search-widget,
 .mobile-splash,
 .mobile-map-controls {
   display: none !important;
@@ -393,22 +392,19 @@
     color: var(--accent);
   }
 
-  /* Buscador Flotante y Expansivo Superior Derecho (Móvil) */
+  /* Buscador Flotante y Expansivo (Desktop & Móvil) */
   .mobile-search-widget {
     display: flex !important;
-    position: fixed;
-    top: max(10px, env(safe-area-inset-top));
-    right: 10px;
-    z-index: 42;
-    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 45;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .mobile-search-trigger {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
     background: var(--bg-panel, #F4F1EA);
     border: 2px solid var(--border-strong, #111111);
     box-shadow: 2px 2px 0px var(--border-strong, #111111);
@@ -436,11 +432,6 @@
     display: none !important;
   }
 
-  .mobile-search-widget.expanded {
-    left: 10px;
-    right: 10px;
-  }
-
   .mobile-search-widget.expanded .mobile-search-trigger {
     display: none !important;
   }
@@ -449,13 +440,14 @@
     display: flex;
     align-items: center;
     width: 100%;
-    height: 38px;
+    height: 42px;
     background: var(--bg-panel, #F4F1EA);
-    border: 1px solid var(--border-strong, #141411);
-    box-shadow: 2px 2px 0px var(--border-strong, #141411);
+    border: 2px solid var(--border-strong, #141411);
+    box-shadow: 3px 3px 0px var(--border-strong, #141411);
     padding: 0 4px 0 10px;
     gap: 6px;
     animation: searchBarExpand 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    box-sizing: border-box;
   }
 
   @keyframes searchBarExpand {
@@ -482,7 +474,7 @@
   }
 
   .mobile-search-input::placeholder {
-    font-size: 9px;
+    font-size: 9.5px;
     color: var(--fg-dim, #888);
   }
 
@@ -504,7 +496,7 @@
     top: calc(100% + 6px);
     left: 0;
     right: 0;
-    max-height: 52vh;
+    max-height: 60vh;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: contain;
@@ -672,6 +664,37 @@
 
   body.dark-mode .mobile-search-meta-text {
     color: #C5C5BE;
+  }
+
+  @media (min-width: 769px) {
+    .mobile-search-widget {
+      position: absolute;
+      top: 12px;
+      right: 18px;
+    }
+    .mobile-search-widget.expanded {
+      width: 440px;
+      max-width: calc(100vw - 320px);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .mobile-search-widget {
+      position: fixed;
+      top: max(10px, env(safe-area-inset-top));
+      right: 10px;
+    }
+    .mobile-search-trigger {
+      width: 48px;
+      height: 48px;
+    }
+    .mobile-search-widget.expanded {
+      left: 10px;
+      right: 10px;
+    }
+    .mobile-search-bar {
+      height: 38px;
+    }
   }
 
   /* Controles Flotantes Derechos (Móvil) */

@@ -102,7 +102,38 @@ async function initLoginModal() {
     }
   }
 
-  bLoginT.addEventListener('click', () => mLogin.classList.add('open'));
+  const registerSuccessView = document.getElementById('register-success-view');
+  const registerSuccessEmail = document.getElementById('register-success-email');
+  const btnSuccessToLogin = document.getElementById('btn-success-to-login');
+
+  const switchToLoginMode = () => {
+    registerMode = false;
+    if (loginForm) loginForm.classList.remove('hidden');
+    if (registerSuccessView) registerSuccessView.classList.add('hidden');
+    if (title) title.textContent = 'AUTENTICACIÓN REQUERIDA';
+    if (actionButton) actionButton.textContent = 'AUTORIZAR ACCESO';
+    if (registerButton) registerButton.textContent = 'CREAR CUENTA';
+    registerOnlyFields.forEach((field) => field.classList.add('hidden'));
+    forgotPasswordButton?.classList.remove('hidden');
+    document.querySelector('.keep-session')?.classList.remove('hidden');
+    if (passwordInput) passwordInput.autocomplete = 'current-password';
+    const err = document.getElementById('login-error');
+    if (err) err.classList.add('hidden');
+    if (window.lucide) window.lucide.createIcons();
+  };
+
+  if (btnSuccessToLogin) {
+    btnSuccessToLogin.addEventListener('click', () => {
+      switchToLoginMode();
+    });
+  }
+
+  bLoginT.addEventListener('click', () => {
+    if (registerSuccessView && !registerSuccessView.classList.contains('hidden')) {
+      switchToLoginMode();
+    }
+    mLogin.classList.add('open');
+  });
   togglePassword.addEventListener('click', () => {
     const showing = passwordInput.type === 'text';
     passwordInput.type = showing ? 'password' : 'text';
@@ -195,8 +226,15 @@ async function initLoginModal() {
           else sessionStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(sessionData));
           marcarSesionIniciada('user');
         }
-        err.textContent = 'Cuenta creada. Revisa tu correo para confirmar el registro.';
-        err.classList.remove('hidden');
+        // Desplegar pantalla de confirmación dedicada Neo-Bauhaus
+        err.classList.add('hidden');
+        if (loginForm) loginForm.classList.add('hidden');
+        if (registerSuccessView) {
+          registerSuccessView.classList.remove('hidden');
+          if (registerSuccessEmail) registerSuccessEmail.textContent = email;
+        }
+        if (title) title.textContent = 'CONFIRMACIÓN DE CUENTA';
+        if (window.lucide) window.lucide.createIcons();
       } else {
         const auth = await loginAdmin(email, password);
         state.sessionToken = auth.access_token;

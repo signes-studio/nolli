@@ -337,6 +337,21 @@
           <button id="btn-register-mode" type="button" class="btn btn-auth-secondary mt-1 w-full login-entry-field">CREAR CUENTA</button>
           <button id="btn-logout" type="button" class="btn hidden mt-1 w-full">CERRAR SESIÓN</button>
         </form>
+
+        <!-- Vista de Transición / Confirmación de Registro Exitoso (Neo-Bauhaus) -->
+        <div id="register-success-view" class="register-success-view hidden" role="status" aria-live="polite">
+          <div class="register-success-icon-wrap">
+            <i data-lucide="mail-check" width="28" height="28" style="color:var(--accent, #E84E1B)"></i>
+          </div>
+          <h3 class="register-success-title">[ REGISTRO COMPLETADO ]</h3>
+          <p class="register-success-msg">
+            Se ha enviado un enlace de activación a tu correo electrónico. Por favor, revisa tu bandeja de entrada (y la carpeta de spam) para confirmar la cuenta y desbloquear el acceso al archivo de nolli.
+          </p>
+          <div class="register-success-meta" id="register-success-email"></div>
+          <button type="button" id="btn-success-to-login" class="btn btn-auth-primary w-full mt-2">
+            [ VOLVER AL INICIO DE SESIÓN ]
+          </button>
+        </div>
       </div>
     </div>
   </div>
