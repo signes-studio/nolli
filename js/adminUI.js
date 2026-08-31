@@ -2,7 +2,7 @@
    ADMINUI.JS — Gestión de proyectos para administradores
    ========================================================================= */
 
-import { state, separarArquitectos, esRolAdmin } from './state.js';
+import { state, separarArquitectos, esRolAdmin, escapeHtml } from './state.js';
 import { deleteBuilding, fetchRatingAverages, reviewBuilding, fetchBuildingReports, fetchUserDirectory, updateBuildingReport } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
@@ -105,22 +105,35 @@ async function renderList() {
     list.innerHTML = '<div class="nearby-empty">No hay proyectos que coincidan.</div>';
     return;
   }
-  list.innerHTML = projects.map((obra) => `
-    <div class="admin-project">
-      <div class="admin-project-info">
-        <strong>${obra.nombre_obra}</strong>
-        <span>${obra.arquitecto || 'Sin arquitecto'}</span>
-        <span class="admin-project-city" data-city-for="${obra.featureId}">LOCALIZACIÓN...</span>
-        <span class="admin-project-rating">${formatearMedia(obra.id)}</span>
-        <span class="admin-project-status ${obra.estado_revision === 'pendiente' ? 'pending' : ''}">${formatearEstadoRevision(obra.estado_revision)}</span>
+  list.innerHTML = projects.map((obra) => {
+    const safeId = escapeHtml(obra.id);
+    const safeFeatureId = escapeHtml(obra.featureId);
+    const safeNombre = escapeHtml(obra.nombre_obra);
+    const safeArquitecto = escapeHtml(obra.arquitecto || 'Sin arquitecto');
+    const safeRating = escapeHtml(formatearMedia(obra.id));
+    const safeStatus = escapeHtml(formatearEstadoRevision(obra.estado_revision));
+    const isPending = obra.estado_revision === 'pendiente';
+
+    return `
+      <div class="admin-project">
+        <div class="admin-project-info">
+          <strong>${safeNombre}</strong>
+          <span>${safeArquitecto}</span>
+          <span class="admin-project-city" data-city-for="${safeFeatureId}">LOCALIZACIÓN...</span>
+          <span class="admin-project-rating">${safeRating}</span>
+          <span class="admin-project-status ${isPending ? 'pending' : ''}">${safeStatus}</span>
+        </div>
+        <div class="admin-project-actions">
+          <button type="button" class="btn admin-action-edit" data-admin-edit="${safeId}">EDITAR</button>
+          ${isPending ? `
+            <button type="button" class="btn admin-action-review" data-admin-review="${safeId}" data-review-status="publicada">ACEPTAR</button>
+            <button type="button" class="btn admin-action-reject" data-admin-review="${safeId}" data-review-status="rechazada">RECHAZAR</button>
+          ` : ''}
+          <button type="button" class="btn admin-action-delete" data-admin-delete="${safeId}">BORRAR</button>
+        </div>
       </div>
-      <div class="admin-project-actions">
-        <button type="button" class="btn admin-action-edit" data-admin-edit="${obra.id}">EDITAR</button>
-        ${obra.estado_revision === 'pendiente' ? '<button type="button" class="btn admin-action-review" data-admin-review="' + obra.id + '" data-review-status="publicada">ACEPTAR</button><button type="button" class="btn admin-action-reject" data-admin-review="' + obra.id + '" data-review-status="rechazada">RECHAZAR</button>' : ''}
-        <button type="button" class="btn admin-action-delete" data-admin-delete="${obra.id}">BORRAR</button>
-      </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 
   await Promise.all(projects.map(async (obra) => {
     const cityElement = list.querySelector(`[data-city-for="${obra.featureId}"]`);
@@ -140,7 +153,26 @@ async function renderReports() {
   }
   reportList.innerHTML = reports.map((report) => {
     const obra = state.OBRAS.find((item) => String(item.id) === String(report.building_id));
-    return `<article class="admin-report"><div class="admin-report-copy"><strong>${obra?.nombre_obra || `Obra ${report.building_id}`}</strong><span>${report.descripcion}</span><small>${new Date(report.created_at).toLocaleString('es-ES')}</small></div><div class="admin-report-actions"><button type="button" class="btn admin-action-open" data-report-building="${report.building_id}">VER OBRA</button><button type="button" class="btn admin-action-review" data-report-id="${report.id}" data-report-status="revisado">REVISADO</button><button type="button" class="btn admin-action-reject" data-report-id="${report.id}" data-report-status="descartado">DESCARTAR</button></div></article>`;
+    const safeTitle = escapeHtml(obra?.nombre_obra || `Obra #${report.building_id}`);
+    const safeDesc = escapeHtml(report.descripcion || report.description || 'Sin descripción');
+    const safeDate = escapeHtml(new Date(report.created_at).toLocaleString('es-ES'));
+    const safeBuildingId = escapeHtml(report.building_id);
+    const safeReportId = escapeHtml(report.id);
+
+    return `
+      <article class="admin-report">
+        <div class="admin-report-copy">
+          <strong>${safeTitle}</strong>
+          <span>${safeDesc}</span>
+          <small>${safeDate}</small>
+        </div>
+        <div class="admin-report-actions">
+          <button type="button" class="btn admin-action-open" data-report-building="${safeBuildingId}">VER OBRA</button>
+          <button type="button" class="btn admin-action-review" data-report-id="${safeReportId}" data-report-status="revisado">REVISADO</button>
+          <button type="button" class="btn admin-action-reject" data-report-id="${safeReportId}" data-report-status="descartado">DESCARTAR</button>
+        </div>
+      </article>
+    `;
   }).join('');
 }
 
@@ -152,12 +184,31 @@ async function renderUsers() {
   }
   if (!users.length) {
     try { users = await fetchUserDirectory(state.sessionToken); }
-    catch (error) { userList.innerHTML = `<div class="nearby-empty">${error.message}</div>`; return; }
+    catch (error) { userList.innerHTML = `<div class="nearby-empty">${escapeHtml(error.message)}</div>`; return; }
   }
   const query = userSearch.value.trim().toLowerCase();
   const filtered = users.filter((user) => `${user.first_name || ''} ${user.last_name || ''} ${user.email || ''} ${user.city || ''} ${user.country || ''}`.toLowerCase().includes(query));
   userCount.textContent = `${filtered.length} / ${users.length}`;
-  userList.innerHTML = filtered.length ? filtered.map((user) => `<article class="admin-user"><div class="admin-user-main"><strong>${user.first_name || ''} ${user.last_name || ''}</strong><span>${user.email || 'Email no disponible'}</span><span>${user.city || 'Ciudad no indicada'} · ${user.country || 'País no indicado'}</span></div><span class="admin-user-role">${(user.role || 'user').toUpperCase()}</span></article>`).join('') : '<div class="nearby-empty">No hay usuarios que coincidan.</div>';
+  userList.innerHTML = filtered.length ? filtered.map((user) => {
+    const safeFirstName = escapeHtml(user.first_name || '');
+    const safeLastName = escapeHtml(user.last_name || '');
+    const safeFullName = `${safeFirstName} ${safeLastName}`.trim() || 'Usuario sin nombre';
+    const safeEmail = escapeHtml(user.email || 'Email no disponible');
+    const safeCity = escapeHtml(user.city || 'Ciudad no indicada');
+    const safeCountry = escapeHtml(user.country || 'País no indicado');
+    const safeRole = escapeHtml((user.role || 'user').toUpperCase());
+
+    return `
+      <article class="admin-user">
+        <div class="admin-user-main">
+          <strong>${safeFullName}</strong>
+          <span>${safeEmail}</span>
+          <span>${safeCity} · ${safeCountry}</span>
+        </div>
+        <span class="admin-user-role">${safeRole}</span>
+      </article>
+    `;
+  }).join('') : '<div class="nearby-empty">No hay usuarios que coincidan.</div>';
 }
 
 async function actualizarReporte(id, estado) {

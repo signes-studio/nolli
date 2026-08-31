@@ -123,7 +123,49 @@ FROM public.user_private_labels upl
 LEFT JOIN public.Buildings b ON upl.building_id = b.id
 LEFT JOIN public.profiles p ON upl.user_id = p.id;
 
--- 6. FUNCIÓN RPC PARA RADAR GEODÉSICO EN TIEMPO REAL (POSTGIS)
+-- Asegurar que la vista ejecute con el contexto y políticas RLS del usuario invocador
+ALTER VIEW public.view_superadmin_private_labels SET (security_invoker = true);
+
+-- 6. TRIGGER DE SEGURIDAD Y MODERACIÓN AUTOMÁTICA DE OBRAS
+-- Fuerza automáticamente estado_revision = 'pendiente' para cualquier rol no administrativo,
+-- impidiendo que peticiones manipuladas a la API REST publiquen obras directamente.
+CREATE OR REPLACE FUNCTION public.enforce_building_revision_status()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_user_role TEXT;
+BEGIN
+  -- Obtener el rol del usuario autenticado actual desde public.profiles
+  SELECT role INTO v_user_role
+  FROM public.profiles
+  WHERE id = auth.uid();
+
+  -- Si el usuario no está autenticado o su rol no es 'admin' ni 'superadmin'
+  IF v_user_role IS NULL OR v_user_role NOT IN ('admin', 'superadmin') THEN
+    -- En inserción, forzar siempre estado 'pendiente'
+    IF TG_OP = 'INSERT' THEN
+      NEW.estado_revision := 'pendiente';
+    -- En actualización por usuario regular, bloquear la auto-aprobación
+    ELSIF TG_OP = 'UPDATE' THEN
+      IF NEW.estado_revision IS DISTINCT FROM OLD.estado_revision THEN
+        NEW.estado_revision := OLD.estado_revision;
+      END IF;
+    END IF;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_enforce_building_revision ON public.Buildings;
+CREATE TRIGGER trg_enforce_building_revision
+  BEFORE INSERT OR UPDATE ON public.Buildings
+  FOR EACH ROW
+  EXECUTE FUNCTION public.enforce_building_revision_status();
+
+-- 7. FUNCIÓN RPC PARA RADAR GEODÉSICO EN TIEMPO REAL (POSTGIS)
 CREATE OR REPLACE FUNCTION public.get_buildings_within_radius(
   user_lat DOUBLE PRECISION,
   user_lon DOUBLE PRECISION,
@@ -168,4 +210,5 @@ AS $$
     ) <= radius_meters
   ORDER BY distance_meters ASC;
 $$;
+
 

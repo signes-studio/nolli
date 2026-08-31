@@ -14,6 +14,17 @@ function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character]));
 }
 
+export function isValidHttpsUrl(url) {
+  if (!url || typeof url !== 'string') return false;
+  const trimmed = url.trim();
+  try {
+    const parsed = new URL(trimmed);
+    return parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 async function abrirFichaArquitecto(nombreArquitecto) {
   const modal = document.getElementById('modal-architect');
   const works = document.getElementById('architect-profile-works');
@@ -78,7 +89,7 @@ async function abrirFichaArquitecto(nombreArquitecto) {
             ${cityName ? `<span class="architect-city-tag">· ${escapeHtml(cityName)}</span>` : ''}
           </div>
         </div>
-        ${obra.foto_url ? `
+        ${obra.foto_url && isValidHttpsUrl(obra.foto_url) ? `
           <div class="architect-work-thumb-wrap">
             <img src="${escapeHtml(obra.foto_url)}" alt="${escapeHtml(obra.nombre_obra)}" class="architect-work-thumb" loading="lazy">
           </div>
@@ -181,10 +192,10 @@ export function abrirFicha(building, coordinates, featureId = building.id) {
     </div>
 
     <!-- Fotografía Principal en Banner Panorámico -->
-    ${building.foto_url ? `
+    ${building.foto_url && isValidHttpsUrl(building.foto_url) ? `
       <div class="sheet-gallery-wrap">
-        <button type="button" class="photo-thumb sheet-photo-banner" data-photo-url="${building.foto_url}" aria-label="Ampliar fotografía de la obra">
-          <img class="sheet-photo" src="${building.foto_url}" alt="Fotografía de ${escapeHtml(building.nombre_obra)}" loading="lazy">
+        <button type="button" class="photo-thumb sheet-photo-banner" data-photo-url="${escapeHtml(building.foto_url)}" aria-label="Ampliar fotografía de la obra">
+          <img class="sheet-photo" src="${escapeHtml(building.foto_url)}" alt="Fotografía de ${escapeHtml(building.nombre_obra)}" loading="lazy">
           <span class="photo-zoom-badge"><i data-lucide="maximize-2" width="12" height="12"></i> AMPLIAR</span>
         </button>
       </div>
@@ -222,11 +233,11 @@ export function abrirFicha(building, coordinates, featureId = building.id) {
         <span class="tech-value tech-value-mono">${coordinates[1].toFixed(5)}° N, ${coordinates[0].toFixed(5)}° E</span>
       </div>
 
-      ${building.enlace_url ? `
+      ${building.enlace_url && isValidHttpsUrl(building.enlace_url) ? `
         <div class="tech-row tech-row-link">
           <span class="tech-label">[ ENLACE ]</span>
           <span class="tech-value">
-            <a href="${building.enlace_url}" target="_blank" rel="noopener noreferrer" class="sheet-web-link">PÁGINA OFICIAL DEL PROYECTO ↗</a>
+            <a href="${escapeHtml(building.enlace_url)}" target="_blank" rel="noopener noreferrer" class="sheet-web-link">PÁGINA OFICIAL DEL PROYECTO ↗</a>
           </span>
         </div>
       ` : ''}
