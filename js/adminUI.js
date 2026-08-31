@@ -26,12 +26,32 @@ const cityCache = new Map();
 let ratingAverages = new Map();
 
 export function initAdminUI() {
-  if (button) {
-    button.addEventListener('click', () => {
-      panel.classList.toggle('open');
-      if (panel.classList.contains('open')) { renderList(); renderReports(); }
+  const getAdminButtons = () => [
+    document.getElementById('btn-admin-panel'),
+    document.getElementById('btn-float-admin'),
+    document.getElementById('btn-mobile-admin'),
+    document.getElementById('btn-admin-float'),
+  ].filter(Boolean);
+
+  const toggleAdminPanel = (forceOpen = null) => {
+    if (!panel) return;
+    const shouldOpen = forceOpen !== null ? forceOpen : !panel.classList.contains('open');
+    panel.classList.toggle('open', shouldOpen);
+    getAdminButtons().forEach((b) => b.classList.toggle('active-state', shouldOpen));
+    if (shouldOpen) {
+      renderList();
+      renderReports();
+    }
+  };
+
+  getAdminButtons().forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleAdminPanel();
     });
-  }
+  });
+
   search.addEventListener('input', renderList);
   document.addEventListener('click', (event) => {
     const tab = event.target.closest('[data-admin-tab]');
@@ -53,13 +73,15 @@ export function initAdminUI() {
   userSearch.addEventListener('input', renderUsers);
 
   document.addEventListener('click', (event) => {
-    if (event.target.closest('#btn-admin-close')) panel.classList.remove('open');
+    if (event.target.closest('#btn-admin-close')) {
+      toggleAdminPanel(false);
+    }
     const edit = event.target.closest('[data-admin-edit]');
     if (edit) {
       const obra = state.OBRAS.find((item) => String(item.id) === edit.dataset.adminEdit);
       if (obra) {
         document.dispatchEvent(new CustomEvent('radar:edit-building', { detail: { obra } }));
-        panel.classList.remove('open');
+        toggleAdminPanel(false);
       }
     }
     const remove = event.target.closest('[data-admin-delete]');
@@ -74,16 +96,31 @@ export function initAdminUI() {
 
   const checkAdminVisibility = () => {
     const isAdmin = esRolAdmin(state.userRole);
-    button?.classList.toggle('hidden', !isAdmin || state.adminMode === false);
+    const buttons = getAdminButtons();
+    buttons.forEach((btn) => {
+      btn.classList.toggle('hidden', !isAdmin || state.adminMode === false);
+    });
     usersTab?.classList.toggle('hidden', state.userRole !== 'superadmin');
     if (isAdmin && window.location.hash === '#admin' && panel) {
-      panel.classList.add('open');
-      renderList();
-      renderReports();
+      toggleAdminPanel(true);
     }
   };
 
   checkAdminVisibility();
+
+  // Atajo de teclado: Alt + A para alternar panel admin
+  window.addEventListener('keydown', (e) => {
+    if (e.altKey && (e.key === 'a' || e.key === 'A')) {
+      if (esRolAdmin(state.userRole)) {
+        e.preventDefault();
+        toggleAdminPanel();
+      }
+    }
+  });
+
+  document.addEventListener('radar:admin-panel-open', () => {
+    toggleAdminPanel(true);
+  });
 
   document.addEventListener('radar:admin-login', () => {
     checkAdminVisibility();
@@ -94,12 +131,14 @@ export function initAdminUI() {
     checkAdminVisibility();
   });
   document.addEventListener('radar:admin-mode-change', () => {
-    button?.classList.toggle('hidden', !state.adminMode);
-    if (!state.adminMode) panel?.classList.remove('open');
+    const buttons = getAdminButtons();
+    buttons.forEach((btn) => btn.classList.toggle('hidden', !state.adminMode));
+    if (!state.adminMode) toggleAdminPanel(false);
   });
   document.addEventListener('radar:logout', () => {
-    button?.classList.add('hidden');
-    panel?.classList.remove('open');
+    const buttons = getAdminButtons();
+    buttons.forEach((btn) => btn.classList.add('hidden'));
+    toggleAdminPanel(false);
     usersTab?.classList.add('hidden');
   });
   document.addEventListener('radar:data-ready', renderList);

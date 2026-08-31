@@ -350,6 +350,7 @@ function renderHero() {
 
 function syncAdminBadge() {
   const btnAdmin = document.getElementById('btn-profile-admin');
+  const btnMobileAdmin = document.getElementById('btn-profile-mobile-admin');
   const userEmail = String(profileState.user?.email || '').toLowerCase().trim();
   const metaRole = String(profileState.user?.app_metadata?.role || profileState.user?.user_metadata?.role || '').toLowerCase();
   const dbRole = String(profileState.dbProfile?.role || '').toLowerCase();
@@ -357,6 +358,7 @@ function syncAdminBadge() {
   const role = isMasterOwner ? 'superadmin' : (dbRole || metaRole || 'user');
   const isAdmin = role === 'admin' || role === 'superadmin';
   if (btnAdmin) btnAdmin.classList.toggle('hidden', !isAdmin);
+  if (btnMobileAdmin) btnMobileAdmin.classList.toggle('hidden', !isAdmin);
 }
 
 // -------------------------------------------------------------------------

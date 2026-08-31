@@ -56,8 +56,9 @@ export function initMobileBottomNav() {
     const isSearchOpen = Boolean(searchPanel?.classList.contains('open'));
     const isFilterOpen = Boolean(filterPanel?.classList.contains('open'));
     const isLayersOpen = Boolean(mapStylePanel?.classList.contains('open'));
+    const isAdminOpen = Boolean(adminPanel?.classList.contains('open'));
     const isSheetOpen = Boolean(sheet?.classList.contains('open'));
-    const isAnyPanelOpen = isExploreOpen || isRadarOpen || isPlacesOpen || isSearchOpen || isFilterOpen || isLayersOpen || isSheetOpen;
+    const isAnyPanelOpen = isExploreOpen || isRadarOpen || isPlacesOpen || isSearchOpen || isFilterOpen || isLayersOpen || isAdminOpen || isSheetOpen;
 
     btnMap?.classList.toggle('active', !isAnyPanelOpen);
     btnExplore?.classList.toggle('active', isExploreOpen);
@@ -67,6 +68,9 @@ export function initMobileBottomNav() {
     // Controles Flotantes
     btnFloatLayers?.classList.toggle('active-state', isLayersOpen);
     btnFloatFilters?.classList.toggle('active-state', isFilterOpen);
+    document.getElementById('btn-float-admin')?.classList.toggle('active-state', isAdminOpen);
+    document.getElementById('btn-mobile-admin')?.classList.toggle('active-state', isAdminOpen);
+    document.getElementById('btn-admin-float')?.classList.toggle('active-state', isAdminOpen);
     document.getElementById('btn-explore-float')?.classList.toggle('active-state', isExploreOpen);
     document.getElementById('btn-radar-float')?.classList.toggle('active-state', isRadarOpen);
 
@@ -215,6 +219,24 @@ export function initMobileBottomNav() {
       }
     });
   }
+
+  const triggerAdminMobile = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleMobilePanel(adminPanel);
+    if (adminPanel?.classList.contains('open')) {
+      document.dispatchEvent(new CustomEvent('radar:admin-panel-open'));
+    }
+  };
+
+  const btnFloatAdmin = document.getElementById('btn-float-admin');
+  if (btnFloatAdmin) btnFloatAdmin.addEventListener('click', triggerAdminMobile);
+
+  const btnMobileAdmin = document.getElementById('btn-mobile-admin');
+  if (btnMobileAdmin) btnMobileAdmin.addEventListener('click', triggerAdminMobile);
+
+  const btnAdminFloat = document.getElementById('btn-admin-float');
+  if (btnAdminFloat) btnAdminFloat.addEventListener('click', triggerAdminMobile);
 
   // Cierre táctil al tocar fuera (Backdrop)
   if (panelBackdrop) {

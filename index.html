@@ -144,6 +144,9 @@
     <button type="button" id="btn-mobile-identity-action" class="mobile-identity-btn" aria-label="Acceder o ver cuenta">
       <span id="mobile-identity-badge" class="mobile-identity-badge">[ ACCEDER ]</span>
     </button>
+    <button type="button" id="btn-mobile-admin" class="mobile-identity-btn hidden" style="border-color: var(--accent-2, #EFBC02); color: var(--accent-2, #EFBC02);" aria-label="Abrir panel admin">
+      <span class="mobile-identity-badge" style="color: var(--accent-2, #EFBC02); font-weight: 800;">[ ADMIN ]</span>
+    </button>
   </aside>
 
   <!-- Buscador flotante y expansivo (Desktop y Móvil) -->
@@ -255,6 +258,9 @@
     <button id="btn-map-tools" type="button" class="fab map-tools-toggle" title="Herramientas del mapa" aria-label="Mostrar herramientas del mapa" aria-expanded="false">
       <i data-lucide="menu" width="20" height="20"></i>
     </button>
+    <button id="btn-admin-float" type="button" class="fab hidden" title="Panel Admin" aria-label="Abrir panel de administración" style="border-color: var(--accent-2, #EFBC02); color: var(--accent-2, #EFBC02); background: var(--bg-panel, #F8F1DF);">
+      <i data-lucide="shield-check" width="20" height="20"></i>
+    </button>
     <button id="btn-explore-float" type="button" class="fab" title="Explora" aria-label="Explorar selecciones y listas">
       <i data-lucide="compass" width="20" height="20"></i>
     </button>
@@ -322,6 +328,9 @@
   </section>
 
   <section id="admin-panel" class="admin-panel" aria-label="Panel de administración">
+    <div class="sheet-drag-handle" aria-hidden="true">
+      <span class="sheet-drag-pill"></span>
+    </div>
     <div class="filter-head">
       <span style="color:var(--accent-2)">[ ADMIN // PROYECTOS ]</span>
       <button type="button" id="btn-admin-close" class="sheet-close-button" aria-label="Cerrar panel admin">
@@ -533,6 +542,9 @@
     </button>
     <button type="button" class="mobile-float-btn" id="btn-float-filters" data-target-panel="filter-panel" aria-label="Filtros avanzados" title="Filtros">
       <i data-lucide="sliders-horizontal" width="19" height="19"></i>
+    </button>
+    <button type="button" class="mobile-float-btn hidden" id="btn-float-admin" data-target-panel="admin-panel" aria-label="Panel de administración" title="Panel Admin" style="border-color: var(--accent-2, #EFBC02); color: var(--accent-2, #EFBC02); background: var(--bg-panel, #F8F1DF);">
+      <i data-lucide="shield-check" width="19" height="19"></i>
     </button>
     <button type="button" class="mobile-float-btn mobile-float-btn-primary" id="btn-float-add" aria-label="Añadir nueva obra de arquitectura" title="Añadir Proyecto">
       <i data-lucide="plus" width="22" height="22"></i>

@@ -47,12 +47,25 @@ async function initLoginModal() {
     state.adminMode = canUseAdminTools;
     if (adminModeControl) adminModeControl.classList.toggle('hidden', !canUseAdminTools);
     if (adminModeToggle) adminModeToggle.checked = state.adminMode;
-    const btnAdminPanel = document.getElementById('btn-admin-panel');
-    if (btnAdminPanel) btnAdminPanel.classList.toggle('hidden', !canUseAdminTools);
+
+    const adminButtons = [
+      document.getElementById('btn-admin-panel'),
+      document.getElementById('btn-float-admin'),
+      document.getElementById('btn-mobile-admin'),
+      document.getElementById('btn-admin-float'),
+    ].filter(Boolean);
+    adminButtons.forEach((btn) => btn.classList.toggle('hidden', !canUseAdminTools));
+
     bLoginT.textContent = canUseAdminTools ? '[ ADMIN DESBLOQUEADO ]' : '[ SESIÓN INICIADA ]';
     bLoginT.style.color = 'var(--accent-2)';
     bLoginT.style.borderColor = 'var(--accent-2)';
     bLoginT.style.background = 'rgba(239, 188, 2, 0.12)';
+
+    const mobileBadge = document.getElementById('mobile-identity-badge');
+    if (mobileBadge) {
+      mobileBadge.textContent = canUseAdminTools ? '[ ADMIN ]' : '[ SESIÓN ]';
+    }
+
     logoutButton.classList.remove('hidden');
     loginEntryFields.forEach((field) => field.classList.add('hidden'));
     iniciarLatidoPresencia();
