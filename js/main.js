@@ -8,7 +8,7 @@ import { state, separarArquitectos, normalizarCategoria, normalizarImportancia, 
 import { fetchBuildings, fetchBuildingFacets, fetchUserPendingBuildings, fetchPendingBuildings, fetchPrivateBuildings, fetchAllPrivateBuildings } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
-import { cargarMapaMapbox } from './mapController.js';
+import { cargarMapaMapbox, actualizarMarcadorUbicacion } from './mapController.js';
 import { initModalsUI } from './modalsUI.js';
 import { initSearchUI } from './searchUI.js';
 import { initMyPlacesUI } from './myPlacesUI.js';
@@ -131,6 +131,15 @@ async function inicializarRadar() {
     state.map.once('load', async () => {
       await cargarEdificiosVisibles();
       verificarParametroObraURL();
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            actualizarMarcadorUbicacion([pos.coords.longitude, pos.coords.latitude]);
+          },
+          () => {},
+          { enableHighAccuracy: true, timeout: 6000, maximumAge: 60000 }
+        );
+      }
     });
     state.map.on('moveend', programarCargaEdificiosVisibles);
     document.addEventListener('radar:filters-changed', programarCargaEdificiosVisibles);
@@ -184,6 +193,18 @@ async function cargarContenidoPrivado() {
   state.activeArquitectos = new Set(state.ARQUITECTOS);
   generarFiltrosUI();
   actualizarFuenteMapa();
+  if (state.userId && state.sessionToken) {
+    import('./api.js').then(async ({ fetchCurrentUser, fetchBuildingStatuses }) => {
+      try {
+        const [u, st] = await Promise.all([
+          fetchCurrentUser(state.sessionToken).catch(() => null),
+          fetchBuildingStatuses(state.userId, state.sessionToken).catch(() => null),
+        ]);
+        if (u) localStorage.setItem('nolli_cached_user', JSON.stringify(u));
+        if (st) localStorage.setItem('nolli_cached_statuses', JSON.stringify(st));
+      } catch {}
+    });
+  }
 }
 
 document.addEventListener('radar:user-session-ready', cargarContenidoPrivado);

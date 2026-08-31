@@ -28,11 +28,34 @@
 <link rel="stylesheet" href="css/map-hud.css">
 <link rel="stylesheet" href="css/panels.css">
 <link rel="stylesheet" href="css/components.css">
+<link rel="prefetch" href="./perfil.html">
+<link rel="prefetch" href="./css/profile.css">
+<link rel="prefetch" href="./js/profile.js">
 <link rel="manifest" href="manifest.webmanifest">
+
+<script>
+  (function() {
+    const saved = localStorage.getItem('nolli_theme') || localStorage.getItem('nolli_map_style');
+    if (saved === 'dark') {
+      document.documentElement.classList.add('dark-mode');
+      const applyDark = () => document.body && document.body.classList.add('dark-mode');
+      if (document.body) {
+        applyDark();
+      } else {
+        document.addEventListener('DOMContentLoaded', applyDark);
+      }
+    }
+  })();
+</script>
 
 <style>
   html, body {
-    background-color: #F4F1EA !important;
+    background-color: var(--bg, #F8F1DF) !important;
+    color: var(--fg, #141411) !important;
+  }
+  html.dark-mode, body.dark-mode {
+    background-color: var(--bg, #141411) !important;
+    color: var(--fg, #F8F1DF) !important;
   }
   h1, h2, h3, h4, h5, h6, 
   .font-display, 
@@ -51,13 +74,6 @@
 </script>
 </head>
 <body>
-
-  <div id="app-splash-screen" class="splash-screen">
-  <div class="splash-content">
-    <h1 class="font-display">nolli</h1>
-    <p>CARGANDO MAPA...</p>
-  </div>
-</div>
 
   <!-- Pantalla de Carga Móvil / Splash Screen (Neo-Bauhaus) -->
   <div id="mobile-splash-screen" class="mobile-splash" aria-hidden="true">
@@ -237,7 +253,14 @@
       <i data-lucide="crosshair" width="20" height="20"></i>
     </button>
     <button id="btn-location" type="button" class="fab" title="Mi ubicación" aria-label="Mostrar mi ubicación">
-      <i data-lucide="locate-fixed" width="20" height="20"></i>
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-locate-fixed">
+        <line x1="2" x2="5" y1="12" y2="12"></line>
+        <line x1="19" x2="22" y1="12" y2="12"></line>
+        <line x1="12" x2="12" y1="2" y2="5"></line>
+        <line x1="12" x2="12" y1="19" y2="22"></line>
+        <circle cx="12" cy="12" r="7"></circle>
+        <circle cx="12" cy="12" r="3"></circle>
+      </svg>
     </button>
     <button id="btn-search" type="button" class="fab" title="Buscar edificios" aria-label="Buscar edificios">
       <i data-lucide="search" width="20" height="20"></i>
@@ -257,7 +280,12 @@
   <section id="filter-panel" class="filter-panel" aria-label="Filtro por arquitecto">
     <div class="filter-head">
       <div><span style="color:var(--fg-dim)">[ FILTROS ]</span><small id="filter-summary" class="filter-summary">TODAS LAS OBRAS</small></div>
-      <div class="filter-head-actions"><button type="button" class="filter-clear" data-filter-reset>LIMPIAR</button><i data-lucide="x" id="btn-filters-close" width="14" height="14" style="cursor:pointer; color:var(--fg-dim)" role="button" aria-label="Cerrar filtros"></i></div>
+      <div class="filter-head-actions">
+        <button type="button" class="filter-clear" data-filter-reset>LIMPIAR</button>
+        <button type="button" id="btn-filters-close" class="sheet-close-button" aria-label="Cerrar filtros">
+          <i data-lucide="x" width="14" height="14"></i>
+        </button>
+      </div>
     </div>
     <div class="filter-group" data-filter-group="decade">
       <button type="button" class="filter-group-head" aria-expanded="true"><span>[ DÉCADA ]</span><span class="filter-chevron">−</span></button>
@@ -283,7 +311,9 @@
         <span style="color:var(--accent, #E84E1B)">[ LISTAS // COLECCIONES ]</span>
         <small class="personal-panel-subtitle">ESPACIO PERSONAL</small>
       </div>
-      <i data-lucide="x" id="btn-my-places-close" width="14" height="14" style="cursor:pointer; color:var(--fg-dim)" role="button" aria-label="Cerrar mis listas"></i>
+      <button type="button" id="btn-my-places-close" class="sheet-close-button" aria-label="Cerrar mis listas">
+        <i data-lucide="x" width="14" height="14"></i>
+      </button>
     </div>
     <div class="places-tabs">
       <button type="button" class="places-tab active" data-place-tab="collections">LISTAS</button>
@@ -297,7 +327,9 @@
   <section id="admin-panel" class="admin-panel" aria-label="Panel de administración">
     <div class="filter-head">
       <span style="color:var(--accent-2)">[ ADMIN // PROYECTOS ]</span>
-      <i data-lucide="x" id="btn-admin-close" width="14" height="14" style="cursor:pointer; color:var(--fg-dim)" role="button" aria-label="Cerrar panel admin"></i>
+      <button type="button" id="btn-admin-close" class="sheet-close-button" aria-label="Cerrar panel admin">
+        <i data-lucide="x" width="14" height="14"></i>
+      </button>
     </div>
     <div class="admin-toolbar">
       <input id="admin-search" class="tech-input" type="search" placeholder="BUSCAR PROYECTO..." aria-label="Buscar proyecto">
@@ -314,9 +346,11 @@
       <button type="button" class="admin-tab admin-inbox-button" data-admin-tab="reports" title="Buzón de reportes" aria-label="Abrir buzón de reportes"><i data-lucide="inbox" width="15" height="15"></i><span id="admin-report-badge" class="admin-report-badge">0</span></button>
       <button type="button" class="admin-tab" data-admin-tab="users">USUARIOS</button>
     </div>
-    <div id="admin-project-list" class="admin-project-list"></div>
+    <div id="admin-projects-view" class="admin-projects-view">
+      <div id="admin-project-list" class="admin-project-list"></div>
+    </div>
     <div id="admin-reports-view" class="admin-reports-view admin-view-hidden">
-      <div class="admin-inbox-head"><span>[ BUZÓN // REPORTES ]</span><span id="admin-report-count" class="admin-count"></span></div>
+      <div class="admin-inbox-head"><span>[ BUZÓN DE INCIDENCIAS ]</span><span id="admin-inbox-count" class="admin-count"></span></div>
       <div id="admin-report-list" class="admin-report-list"></div>
     </div>
     <div id="admin-users-view" class="admin-users-view admin-view-hidden">
@@ -329,7 +363,9 @@
   <section id="map-style-panel" class="map-style-panel" aria-label="Tipo de mapa">
     <div class="filter-head">
       <span style="color:var(--fg-dim)">[ TIPO DE MAPA // CAPAS ]</span>
-      <i data-lucide="x" id="btn-map-style-close" width="16" height="16" style="cursor:pointer; color:var(--fg-dim)" role="button" aria-label="Cerrar tipos de mapa"></i>
+      <button type="button" id="btn-map-style-close" class="sheet-close-button" aria-label="Cerrar tipos de mapa">
+        <i data-lucide="x" width="16" height="16"></i>
+      </button>
     </div>
     <div class="map-style-options">
       <button type="button" class="map-style-option active" data-map-style="abstract" aria-label="Mapa estilo claro">
@@ -350,7 +386,7 @@
         </div>
         <span class="map-style-label">OSCURO</span>
       </button>
-      <button type="button" class="map-style-option" data-map-style="hybrid" aria-label="Mapa estilo híbrido / satélite">
+      <button type="button" class="map-style-option" data-map-style="hybrid" aria-label="Mapa estilo híbrido / estándar">
         <div class="map-style-preview preview-hybrid" aria-hidden="true">
           <span class="preview-base preview-base-hybrid"></span>
           <span class="preview-line preview-line-1"></span>
@@ -359,13 +395,24 @@
         </div>
         <span class="map-style-label">HÍBRIDO</span>
       </button>
+      <button type="button" class="map-style-option" data-map-style="satellite" aria-label="Mapa estilo satélite">
+        <div class="map-style-preview preview-satellite" aria-hidden="true">
+          <span class="preview-base preview-base-satellite"></span>
+          <span class="preview-line preview-line-1"></span>
+          <span class="preview-line preview-line-2"></span>
+          <span class="preview-dot"></span>
+        </div>
+        <span class="map-style-label">SATÉLITE</span>
+      </button>
     </div>
   </section>
 
   <section id="search-panel" class="search-panel" aria-label="Buscar edificios">
     <div class="filter-head">
       <span style="color:var(--fg-dim)">[ BUSCAR // EDIFICIOS ]</span>
-      <i data-lucide="x" id="btn-search-close" width="14" height="14" style="cursor:pointer; color:var(--fg-dim)" role="button" aria-label="Cerrar búsqueda"></i>
+      <button type="button" id="btn-search-close" class="sheet-close-button" aria-label="Cerrar búsqueda">
+        <i data-lucide="x" width="14" height="14"></i>
+      </button>
     </div>
     <div class="search-controls">
       <input id="location-search" class="tech-input" type="search" placeholder="CIUDAD O UBICACIÓN..." aria-label="Buscar una ciudad o ubicación">
@@ -487,7 +534,14 @@
   <!-- Controles Flotantes Derechos (Móvil) -->
   <aside id="mobile-map-controls" class="mobile-map-controls" aria-label="Controles rápidos del mapa">
     <button type="button" class="mobile-float-btn" id="btn-float-locate" aria-label="Centrar en mi ubicación" title="Mi ubicación">
-      <i data-lucide="crosshair" width="19" height="19"></i>
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-locate-fixed">
+        <line x1="2" x2="5" y1="12" y2="12"></line>
+        <line x1="19" x2="22" y1="12" y2="12"></line>
+        <line x1="12" x2="12" y1="2" y2="5"></line>
+        <line x1="12" x2="12" y1="19" y2="22"></line>
+        <circle cx="12" cy="12" r="7"></circle>
+        <circle cx="12" cy="12" r="3"></circle>
+      </svg>
     </button>
     <button type="button" class="mobile-float-btn" id="btn-float-layers" data-target-panel="map-style-panel" aria-label="Capas y estilos de mapa" title="Capas del mapa">
       <i data-lucide="layers-2" width="19" height="19"></i>
@@ -534,7 +588,9 @@
   <div class="modal-box report-box">
     <div class="modal-head">
       <span id="modal-report-title" style="letter-spacing:.06em; font-size:11px; font-family:'League Spartan', sans-serif; font-weight:800;">[ REPORTAR INCIDENCIA // OBRA ]</span>
-      <i data-lucide="x" id="btn-report-close" width="16" height="16" style="cursor:pointer" role="button" aria-label="Cerrar reporte"></i>
+      <button type="button" id="btn-report-close" class="sheet-close-button" aria-label="Cerrar reporte">
+        <i data-lucide="x" width="16" height="16"></i>
+      </button>
     </div>
     <div class="modal-body report-body">
       <p id="report-project-name" class="report-project-name font-display text-sm font-bold uppercase mb-2"></p>
@@ -549,7 +605,7 @@
       <label for="report-description" class="text-[10px] font-mono font-bold block mb-1" style="color:var(--fg-dim)">[ DETALLES O CORRECCIÓN PROPUESTA ]</label>
       <textarea id="report-description" class="tech-input" rows="4" placeholder="Indica el dato erróneo o el enlace a la obra duplicada..."></textarea>
       <div id="report-error" class="text-[10px] text-red-500 hidden mt-1" role="alert"></div>
-      <button type="button" id="btn-report-submit" class="btn btn-accent mt-3 w-full">[ ENVIAR REPORTE A SUPABASE ]</button>
+      <button type="button" id="btn-report-submit" class="btn btn-accent mt-3 w-full">[ ENVIAR REPORTE ]</button>
     </div>
   </div>
 </div>
@@ -617,7 +673,12 @@
 
 <div id="modal-personal-organizer" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="personal-organizer-title">
   <div class="modal-box personal-organizer-box">
-    <div class="modal-head"><span id="personal-organizer-title">ORGANIZAR OBRA</span><i data-lucide="x" id="btn-personal-organizer-close" width="16" height="16" style="cursor:pointer" role="button" aria-label="Cerrar"></i></div>
+    <div class="modal-head">
+      <span id="personal-organizer-title">ORGANIZAR OBRA</span>
+      <button type="button" id="btn-personal-organizer-close" class="sheet-close-button" aria-label="Cerrar organizador">
+        <i data-lucide="x" width="16" height="16"></i>
+      </button>
+    </div>
     <div class="modal-body personal-organizer-body">
       <p id="personal-organizer-project" class="personal-organizer-project"></p>
       <div id="personal-organizer-help" class="personal-organizer-help"></div>
@@ -637,7 +698,9 @@
         <i data-lucide="terminal" width="14" height="14" style="color:var(--accent)"></i>
         <span id="modal-login-title" style="letter-spacing:.06em; font-size:11px;">AUTENTICACIÓN REQUERIDA</span>
       </div>
-      <i data-lucide="x" id="btn-login-close" width="16" height="16" style="cursor:pointer" role="button" aria-label="Cerrar"></i>
+      <button type="button" id="btn-login-close" class="sheet-close-button" aria-label="Cerrar login">
+        <i data-lucide="x" width="16" height="16"></i>
+      </button>
     </div>
     <div class="modal-body">
       <form id="login-form" class="flex flex-col gap-3" autocomplete="on">
@@ -684,7 +747,9 @@
         <i data-lucide="crosshair" width="14" height="14" style="color:var(--accent-2)"></i>
         <span id="modal-add-title" style="letter-spacing:.06em; font-size:11px;">REGISTRO DE NUEVA OBRA (DB)</span>
       </div>
-      <i data-lucide="x" id="btn-add-close" width="16" height="16" style="cursor:pointer" role="button" aria-label="Cerrar"></i>
+      <button type="button" id="btn-add-close" class="sheet-close-button" aria-label="Cerrar registro obra">
+        <i data-lucide="x" width="16" height="16"></i>
+      </button>
     </div>
     <div class="modal-body flex flex-col gap-3">
       <div class="text-[10px] mb-1" style="color:var(--fg-dim)">
@@ -779,29 +844,6 @@
 <script type="module" src="js/main.js"></script>
 <script>
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
-</script>
-<script>
-  window.addEventListener('load', () => {
-  // Comprobamos si está instalada como app (standalone)
-  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-
-  // Si NO está instalada como app, podemos borrar o ignorar el splash screen directamente
-  const splash = document.getElementById('app-splash-screen');
-  if (!splash) return;
-
-  if (isStandalone) {
-    // ESTO SE EJECUTA SOLO SI LA APP ESTÁ INSTALADA:
-    setTimeout(() => {
-      splash.classList.add('fade-out');
-      setTimeout(() => {
-        splash.remove();
-      }, 400);
-    }, 600);
-  } else {
-    // Si se abre desde una pestaña normal del navegador, la quitamos al instante
-    splash.remove();
-  }
-});
 </script>
 </body>
 </html>

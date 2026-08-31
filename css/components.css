@@ -9,6 +9,15 @@
   background: var(--bg-panel); border: 1px solid var(--border-strong); color: var(--fg);
   cursor: pointer; transition: background .1s linear, color .1s linear;
 }
+.fab svg {
+  width: 20px !important;
+  height: 20px !important;
+  stroke: currentColor !important;
+  stroke-width: 2px !important;
+  fill: none !important;
+  display: block !important;
+  flex-shrink: 0;
+}
 .fab:active { background: var(--fg); color: var(--bg-panel); border-color: var(--fg); }
 .fab.active-state { background: var(--accent); color: #fff; border-color: var(--accent); }
 .location-active {

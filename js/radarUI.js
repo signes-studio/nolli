@@ -3,6 +3,7 @@ import { state, CATEGORY_COLORS, escapeHtml } from './state.js';
 import { abrirFicha } from './sheetUI.js';
 import { calcularDistanciaMetros } from './exploreUI.js';
 import { actualizarFuenteMapa } from './mapData.js';
+import { actualizarMarcadorUbicacion } from './mapController.js';
 
 let radarRadius = 1000; // 1000m por defecto
 const CURATED_PROXIMITY_METERS = 15000; // radio para considerar una colección "cercana" al usuario
@@ -487,7 +488,8 @@ export function initRadarUI() {
   if (navigator.geolocation) {
     navigator.geolocation.watchPosition(
       (pos) => {
-        state.userLocation = [pos.coords.longitude, pos.coords.latitude];
+        const coords = [pos.coords.longitude, pos.coords.latitude];
+        actualizarMarcadorUbicacion(coords);
         if (panel && panel.classList.contains('open')) {
           renderRadarUI();
           renderCuratedCarousel();

@@ -153,3 +153,72 @@ export function drawTargetIcon(ctx, color, importance, s) {
     ctx.stroke();
   }
 }
+
+/**
+ * Dibuja iconos cuadrados para obras guardadas privadas en el perfil,
+ * manteniendo el color distintivo de su categoría arquitectónica.
+ */
+export function drawPrivateSquareIcon(ctx, color, importance, s) {
+  const c = s / 2;
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.strokeStyle = color;
+
+  if (importance === 0) {
+    // Obra maestra privada: Rombo/cuadrado rotado 45°
+    ctx.translate(c, c);
+    ctx.rotate(Math.PI / 4);
+    const half = s * 0.28;
+
+    ctx.fillStyle = '#F4F1EA';
+    ctx.fillRect(-half - 3, -half - 3, (half + 3) * 2, (half + 3) * 2);
+
+    ctx.fillStyle = color;
+    ctx.fillRect(-half, -half, half * 2, half * 2);
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = '#141411';
+    ctx.strokeRect(-half, -half, half * 2, half * 2);
+
+    ctx.fillStyle = '#141411';
+    ctx.fillRect(-half * 0.35, -half * 0.35, half * 0.7, half * 0.7);
+  } else if (importance === 1) {
+    // Nivel 1 privado: Cuadrado con halo de contraste y centro técnico
+    const half = s * 0.30;
+    ctx.fillStyle = '#F4F1EA';
+    ctx.fillRect(c - half - 3, c - half - 3, (half + 3) * 2, (half + 3) * 2);
+
+    ctx.fillStyle = color;
+    ctx.fillRect(c - half, c - half, half * 2, half * 2);
+    ctx.lineWidth = 2.2;
+    ctx.strokeStyle = '#141411';
+    ctx.strokeRect(c - half, c - half, half * 2, half * 2);
+
+    ctx.fillStyle = '#141411';
+    const inner = half * 0.35;
+    ctx.fillRect(c - inner, c - inner, inner * 2, inner * 2);
+  } else if (importance === 2) {
+    // Nivel 2 privado: Cuadrado compacto de categoría
+    const half = s * 0.24;
+    ctx.fillStyle = '#F4F1EA';
+    ctx.fillRect(c - half - 2, c - half - 2, (half + 2) * 2, (half + 2) * 2);
+
+    ctx.fillStyle = color;
+    ctx.fillRect(c - half, c - half, half * 2, half * 2);
+    ctx.lineWidth = 1.8;
+    ctx.strokeStyle = '#141411';
+    ctx.strokeRect(c - half, c - half, half * 2, half * 2);
+  } else {
+    // Nivel 3 privado: Pequeño cuadrado de categoría
+    const half = s * 0.18;
+    ctx.fillStyle = '#F4F1EA';
+    ctx.fillRect(c - half - 2, c - half - 2, (half + 2) * 2, (half + 2) * 2);
+
+    ctx.fillStyle = color;
+    ctx.fillRect(c - half, c - half, half * 2, half * 2);
+    ctx.lineWidth = 1.4;
+    ctx.strokeStyle = '#141411';
+    ctx.strokeRect(c - half, c - half, half * 2, half * 2);
+  }
+
+  ctx.restore();
+}

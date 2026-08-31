@@ -483,7 +483,7 @@ function initReportModal() {
 
     const button = document.getElementById('btn-report-submit');
     if (button) {
-      button.textContent = '[ ENVIANDO A SUPABASE... ]';
+      button.textContent = '[ ENVIANDO REPORTE... ]';
       button.disabled = true;
     }
 
@@ -507,7 +507,7 @@ function initReportModal() {
       if (button) {
         button.disabled = false;
         setTimeout(() => {
-          if (!modal?.classList.contains('open')) button.textContent = '[ ENVIAR REPORTE A SUPABASE ]';
+          if (!modal?.classList.contains('open')) button.textContent = '[ ENVIAR REPORTE ]';
         }, 1000);
       }
     }

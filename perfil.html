@@ -24,24 +24,26 @@
 <link rel="stylesheet" href="css/map-hud.css">
 <link rel="stylesheet" href="css/profile.css">
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#F4F1EA">
-<meta name="background-color" content="#F4F1EA">
-<style>
-  html, body.profile-body {
-    height: auto !important;
-    min-height: 100% !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    overscroll-behavior-y: auto !important;
-    background-color: #F4F1EA !important;
-  }
-  main.profile-main, #profile-app {
-    position: static !important;
-    inset: auto !important;
-    overflow: visible !important;
-    height: auto !important;
-  }
-</style>
+<meta name="theme-color" content="#F8F1DF" id="meta-theme-color">
+
+<script>
+  (function() {
+    const saved = localStorage.getItem('nolli_theme') || localStorage.getItem('nolli_map_style');
+    if (saved === 'dark') {
+      document.documentElement.classList.add('dark-mode');
+      const applyDark = () => {
+        document.body && document.body.classList.add('dark-mode');
+        const meta = document.getElementById('meta-theme-color');
+        if (meta) meta.setAttribute('content', '#141411');
+      };
+      if (document.body) {
+        applyDark();
+      } else {
+        document.addEventListener('DOMContentLoaded', applyDark);
+      }
+    }
+  })();
+</script>
 </head>
 <body class="profile-body">
 

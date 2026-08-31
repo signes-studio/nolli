@@ -355,12 +355,9 @@ body.dark-mode .admin-tab.active {
   transition: opacity 0.4s ease-in-out;
 }
 
-.splash-screen.fade-out {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.splash-content {
+.splash-screen.fade-out,
+.splash-screen.splash-hidden {
+  opacity: 0 !important;
   text-align: center;
   font-family: 'JetBrains Mono', monospace;
 }

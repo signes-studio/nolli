@@ -655,6 +655,7 @@ body.dark-mode .sheet-hero-btn.active.saved {
   .preview-base-light { background: #F5F4F0; }
   .preview-base-dark { background: #141411; }
   .preview-base-hybrid { background: #1a2f26; }
+  .preview-base-satellite { background: #142817; }
 
   .preview-line {
     position: absolute;
@@ -2228,4 +2229,27 @@ body.dark-mode .sheet-hero-btn.active.saved {
   background: var(--accent, #E84E1B) !important;
   border-color: #111111 !important;
   color: #FFFFFF !important;
+}
+
+/* =========================================================================
+   SELECCIONES CURATORIALES EN EXPLORA: CARRUSEL HORIZONTAL CON SCROLL LATERAL
+   ========================================================================= */
+.explore-curated-container {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 12px !important;
+  overflow-x: auto !important;
+  scroll-snap-type: x mandatory !important;
+  -webkit-overflow-scrolling: touch !important;
+  padding: 4px 4px 10px 2px !important;
+  margin-bottom: 8px !important;
+  width: 100% !important;
+}
+
+.explore-curated-container .radar-route-card {
+  min-width: 270px !important;
+  max-width: 300px !important;
+  flex: 0 0 280px !important;
+  scroll-snap-align: start !important;
+  margin-bottom: 0 !important;
 }

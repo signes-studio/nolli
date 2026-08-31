@@ -13,8 +13,10 @@ export const SUPABASE_KEY = 'sb_publishable_kYQ7Fa8nBsrkp1f8C4AuAg_4-5uBFm0';
 export const MAP_STYLE = 'mapbox://styles/signesarch/cmtcs22rq001p01sgato8bqvj';
 export const MAP_STYLES = {
    abstract: 'mapbox://styles/signesarch/cmtcs22rq001p01sgato8bqvj',
+   light: 'mapbox://styles/signesarch/cmtcs22rq001p01sgato8bqvj',
    dark: 'mapbox://styles/mapbox/dark-v11',
    hybrid: 'mapbox://styles/mapbox/standard',
+   satellite: 'mapbox://styles/mapbox/satellite-streets-v12',
 };
 export const DEFAULT_CENTER = [-0.3690, 39.4690];
 export const DEFAULT_ZOOM = 12.4;

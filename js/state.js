@@ -222,3 +222,25 @@ export function guardarZonaPersonalLocal(userId) {
   };
   localStorage.setItem(getPersonalFallbackKey(userId), JSON.stringify(payload));
 }
+
+export function transformarEdificio(fila, index = 0) {
+  return {
+    id: fila.id,
+    featureId: String(fila.id ?? `obra-${index}`),
+    nombre_obra: fila.nombre_obra,
+    foto_url: fila.foto_url || null,
+    enlace_url: fila.enlace_url || null,
+    arquitecto: fila.arquitecto,
+    arquitectos: separarArquitectos(fila.arquitecto),
+    año_construccion: fila.año_construccion,
+    importancia: normalizarImportancia(fila.importancia),
+    categoria: normalizarCategoria(fila.categoria),
+    ciudad: fila.place || fila.ciudad || null,
+    place: fila.place || null,
+    estado_acceso: fila.estado_acceso || (fila.visitable ? 'publico' : 'privado'),
+    añadido_por: fila.añadido_por || null,
+    estado_revision: fila.estado_revision || 'publicada',
+    coordenadas: [fila.longitud, fila.latitud],
+    selected: false,
+  };
+}

@@ -449,6 +449,18 @@ export async function updateCurrentUserProfile(sessionToken, profile = {}) {
   return data;
 }
 
+export async function fetchCurrentProfile(userId, sessionToken) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(userId)}&select=*`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+    },
+  });
+  if (!response.ok) return null;
+  const rows = await response.json().catch(() => []);
+  return rows[0] || null;
+}
+
 export async function upsertCurrentProfile(user, profile, sessionToken) {
   const payload = {
     id: user.id,
@@ -457,9 +469,9 @@ export async function upsertCurrentProfile(user, profile, sessionToken) {
     last_name: String(profile.lastName || '').trim(),
     city: String(profile.city || '').trim(),
     country: String(profile.country || '').trim(),
+    bio: profile.bio != null ? String(profile.bio).trim() : null,
+    website: profile.website != null ? String(profile.website).trim() : null,
   };
-  if (profile.bio != null) payload.bio = String(profile.bio).trim();
-  if (profile.website != null) payload.website = String(profile.website).trim();
 
   const response = await fetch(`${SUPABASE_URL}/rest/v1/profiles?on_conflict=id`, {
     method: 'POST',
@@ -471,7 +483,10 @@ export async function upsertCurrentProfile(user, profile, sessionToken) {
     },
     body: JSON.stringify(payload),
   });
-  if (!response.ok) throw new Error('No se pudo sincronizar el perfil público.');
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || error.details || 'No se pudo sincronizar el perfil público.');
+  }
   return response.json();
 }
 
@@ -481,7 +496,7 @@ export async function fetchUserDirectory(sessionToken) {
   });
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(error.message || error.details || 'No se pudo cargar el directorio de usuarios. Ejecuta supabase_profiles.sql.');
+    throw new Error(error.message || error.details || 'No se pudo cargar el directorio de usuarios.');
   }
   return response.json();
 }

@@ -2,9 +2,10 @@
    SEARCHUI.JS — Búsqueda de arquitectos con filtrado en cascada hacia edificios
    ========================================================================= */
 
-import { state, separarArquitectos } from './state.js';
+import { state, separarArquitectos, transformarEdificio } from './state.js';
 import { abrirFicha } from './sheetUI.js';
 import { searchPlaces, fetchBuildings } from './api.js';
+import { actualizarFuenteMapa } from './mapData.js';
 
 const searchPanel = document.getElementById('search-panel');
 const btnSearch = document.getElementById('btn-search');
@@ -17,6 +18,7 @@ const architectSuggestions = document.getElementById('architect-suggestions');
 let locationSearchTimer = null;
 let locationSearchRequest = 0;
 let searchDebounceTimer = null;
+let currentSearchResults = [];
 
 let cacheObrasGlobales = null;
 
@@ -39,13 +41,8 @@ function obtenerColorCategoria(categoria) {
 export function initSearchUI() {
   btnSearch.addEventListener('click', () => {
     const isOpen = searchPanel.classList.toggle('open');
-    btnSearch.classList.toggle('active-state');
+    btnSearch.classList.toggle('active-state', isOpen);
     if (isOpen) {
-      // Reseteamos los inputs y resultados cada vez que se ABRE el panel
-      searchInput.value = '';
-      architectInput.value = '';
-      locationInput.value = '';
-      locationResults.innerHTML = '';
       if (architectSuggestions) {
         architectSuggestions.innerHTML = '';
         architectSuggestions.hidden = true;
@@ -59,17 +56,27 @@ export function initSearchUI() {
     if (event.target.closest('#btn-search-close')) {
       searchPanel.classList.remove('open');
       btnSearch.classList.remove('active-state');
-      // Reseteamos también al cerrar explícitamente con la "X"
-      searchInput.value = '';
-      architectInput.value = '';
-      locationInput.value = '';
       locationResults.innerHTML = '';
+      const backdrop = document.getElementById('panel-backdrop');
+      if (backdrop) backdrop.classList.remove('active');
     }
   });
 
   searchInput.addEventListener('input', () => {
     clearTimeout(searchDebounceTimer);
     searchDebounceTimer = setTimeout(ejecutarBusquedaGlobal, 120);
+  });
+
+  searchInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      const val = searchInput.value.trim();
+      if (val) {
+        searchPanel.classList.remove('open');
+        btnSearch.classList.remove('active-state');
+        activarFiltroBusquedaEnMapa(val, currentSearchResults.length ? currentSearchResults : null);
+      }
+    }
   });
 
   architectInput.addEventListener('input', () => {
@@ -79,6 +86,18 @@ export function initSearchUI() {
     }
     clearTimeout(searchDebounceTimer);
     searchDebounceTimer = setTimeout(ejecutarBusquedaGlobal, 120);
+  });
+
+  architectInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      const val = architectInput.value.trim();
+      if (val) {
+        searchPanel.classList.remove('open');
+        btnSearch.classList.remove('active-state');
+        activarFiltroBusquedaEnMapa(val, currentSearchResults.length ? currentSearchResults : null);
+      }
+    }
   });
 
   locationInput.addEventListener('input', () => {
@@ -229,12 +248,20 @@ async function ejecutarBusquedaGlobal() {
       normalizarTexto(obra.nombre_obra).includes(textQuery)
     );
 
+    currentSearchResults = obrasFiltradas;
+
     if (!obrasFiltradas.length) {
       searchResults.innerHTML = '<div class="nearby-empty">No se encontraron edificios con ese nombre.</div>';
       return;
     }
 
-    searchResults.innerHTML = obrasFiltradas.slice(0, 15).map((obra) => {
+    const filterHeader = `
+      <button type="button" class="nearby-item btn-apply-search-filter" data-action="filter-text-map" style="background:#111111; color:#F4F1EA; font-family:'League Spartan', sans-serif; font-weight:800; font-size:11px; justify-content:center; text-transform:uppercase; border-bottom:2px solid var(--accent, #E84E1B);">
+        <span>[ VER TODAS LAS ${obrasFiltradas.length} OBRAS EN EL MAPA ]</span>
+      </button>
+    `;
+
+    const listHtml = obrasFiltradas.slice(0, 20).map((obra) => {
       const distance = state.userLocation ? distanciaEnKm(state.userLocation, obra.coordenadas) : 0;
       const colorCat = obtenerColorCategoria(obra.categoria);
       return `
@@ -247,6 +274,8 @@ async function ejecutarBusquedaGlobal() {
         </button>
       `;
     }).join('');
+
+    searchResults.innerHTML = filterHeader + listHtml;
     return;
   }
 
@@ -306,6 +335,28 @@ function formatearDistancia(distanceKm) {
 }
 
 document.addEventListener('click', (event) => {
+  const filterTextBtn = event.target.closest('[data-action="filter-text-map"]');
+  if (filterTextBtn) {
+    const q = searchInput.value.trim();
+    searchPanel.classList.remove('open');
+    btnSearch.classList.remove('active-state');
+    const backdrop = document.getElementById('panel-backdrop');
+    if (backdrop) backdrop.classList.remove('active');
+    activarFiltroBusquedaEnMapa(q, currentSearchResults);
+    return;
+  }
+
+  const filterArqBtn = event.target.closest('[data-action="filter-architect-map"]');
+  if (filterArqBtn) {
+    const q = architectInput.value.trim();
+    searchPanel.classList.remove('open');
+    btnSearch.classList.remove('active-state');
+    const backdrop = document.getElementById('panel-backdrop');
+    if (backdrop) backdrop.classList.remove('active');
+    activarFiltroBusquedaEnMapa(q, currentSearchResults);
+    return;
+  }
+
   const architectItem = event.target.closest('[data-architect-select]');
   if (architectItem) {
     const arqName = architectItem.dataset.architectSelect;
@@ -376,10 +427,18 @@ async function mostrarEdificiosDeArquitecto(nombreArquitecto) {
     return arqs.some((arq) => normalizarTexto(arq) === arqQuery);
   });
 
+  currentSearchResults = obrasDelArquitecto;
+
   if (!obrasDelArquitecto.length) {
     searchResults.innerHTML = '<div class="nearby-empty">No hay obras para este arquitecto.</div>';
     return;
   }
+
+  const filterHeader = `
+    <button type="button" class="nearby-item btn-apply-search-filter" data-action="filter-architect-map" style="background:#111111; color:#F4F1EA; font-family:'League Spartan', sans-serif; font-weight:800; font-size:11px; justify-content:center; text-transform:uppercase; border-bottom:2px solid var(--accent, #E84E1B);">
+      <span>[ VER TODAS LAS ${obrasDelArquitecto.length} OBRAS EN EL MAPA ]</span>
+    </button>
+  `;
 
   const resultadosConDistancia = obrasDelArquitecto.map((obra) => {
     const distance = state.userLocation ? distanciaEnKm(state.userLocation, obra.coordenadas) : 0;
@@ -390,7 +449,7 @@ async function mostrarEdificiosDeArquitecto(nombreArquitecto) {
     resultadosConDistancia.sort((a, b) => a.distance - b.distance);
   }
 
-  searchResults.innerHTML = resultadosConDistancia.map(({ obra, distance }) => {
+  const listHtml = resultadosConDistancia.map(({ obra, distance }) => {
     const colorCat = obtenerColorCategoria(obra.categoria);
     return `
       <button type="button" class="nearby-item" data-feature-id="${obra.featureId}" data-lng="${obra.coordenadas[0]}" data-lat="${obra.coordenadas[1]}">
@@ -402,4 +461,109 @@ async function mostrarEdificiosDeArquitecto(nombreArquitecto) {
       </button>
     `;
   }).join('');
+
+  searchResults.innerHTML = filterHeader + listHtml;
+}
+
+export async function activarFiltroBusquedaEnMapa(queryText, providedMatches = null) {
+  const q = String(queryText || '').trim();
+  if (!q) return;
+
+  function normalize(str) {
+    return (str || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
+  }
+
+  const qNorm = normalize(q);
+  let matches = Array.isArray(providedMatches) && providedMatches.length ? [...providedMatches] : null;
+
+  if (!matches || !matches.length) {
+    let catalogo = [];
+    try {
+      const dbRows = await fetchBuildings({ includeAllImportance: true });
+      catalogo = (dbRows || []).map((row, idx) => transformarEdificio(row, idx));
+    } catch (e) {
+      catalogo = state.OBRAS || [];
+    }
+
+    matches = catalogo.filter((obra) => {
+      const name = normalize(obra.nombre_obra);
+      const arq = normalize(Array.isArray(obra.arquitectos) ? obra.arquitectos.join(' ') : obra.arquitecto);
+      const city = normalize(obra.ciudad || obra.place);
+      const style = normalize(obra.estilo);
+      const cat = normalize(obra.categoria);
+      const tags = normalize(Array.isArray(obra.tags) ? obra.tags.join(' ') : obra.tags);
+      const year = String(obra.año_construccion || '');
+      return name.includes(qNorm) || arq.includes(qNorm) || city.includes(qNorm) || style.includes(qNorm) || cat.includes(qNorm) || tags.includes(qNorm) || year.includes(qNorm);
+    });
+  }
+
+  // 1. Garantizar que TODAS las obras coincidentes están presentes en state.OBRAS
+  const existingIds = new Set(state.OBRAS.map((o) => String(o.id)));
+  matches.forEach((m, idx) => {
+    if (!existingIds.has(String(m.id))) {
+      const transformed = (m.coordenadas && m.coordenadas.length === 2)
+        ? m
+        : transformarEdificio(m, state.OBRAS.length + idx);
+      state.OBRAS.push(transformed);
+      existingIds.add(String(m.id));
+    }
+  });
+
+  // Cerrar paneles abiertos y backdrops
+  ['search-panel', 'explore-panel', 'filter-panel', 'radar-panel', 'my-places-panel', 'map-style-panel'].forEach((id) => {
+    document.getElementById(id)?.classList.remove('open');
+  });
+  const backdrop = document.getElementById('panel-backdrop');
+  if (backdrop) backdrop.classList.remove('active');
+
+  const matchIds = new Set(matches.map((w) => String(w.id || w.featureId)));
+
+  // 2. Establecer filtro activo en el estado con TODAS las obras coincidentes
+  state.activeItinerary = {
+    id: `search-${qNorm}`,
+    title: `FILTRO: ${q.toUpperCase()}`,
+    workIds: matchIds,
+  };
+
+  // 3. Renderizar exclusivamente las obras del filtro en el mapa
+  actualizarFuenteMapa();
+
+  // 4. Mostrar etiqueta flotante de filtro
+  const itineraryBadge = document.getElementById('itinerary-filter-badge');
+  const titleEl = document.getElementById('itinerary-badge-title');
+  const countEl = document.getElementById('itinerary-badge-count');
+
+  if (itineraryBadge && titleEl) {
+    titleEl.textContent = `CRITERIO: ${q.toUpperCase()}`;
+    if (countEl) countEl.textContent = `${matches.length} ${matches.length === 1 ? 'OBRA' : 'OBRAS'}`;
+    itineraryBadge.classList.remove('hidden');
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  // 5. Transicionar a la pestaña Mapa en la barra inferior móvil
+  const mapNavBtn = document.getElementById('mobile-nav-map');
+  if (mapNavBtn) {
+    document.querySelectorAll('.mobile-nav-btn').forEach((b) => b.classList.remove('active'));
+    mapNavBtn.classList.add('active');
+  }
+
+  // 6. Encuadre geográfico en el mapa que abarque todas las obras
+  const validCoords = matches
+    .map((w) => w.coordenadas || (w.longitud != null && w.latitud != null ? [w.longitud, w.latitud] : null))
+    .filter((coords) => coords && coords.length === 2 && !isNaN(coords[0]) && !isNaN(coords[1]));
+
+  if (validCoords.length > 0 && state.map) {
+    if (validCoords.length === 1) {
+      state.map.flyTo({ center: validCoords[0], zoom: 16, duration: 800 });
+    } else {
+      const bounds = validCoords.reduce(
+        (b, coord) => b.extend(coord),
+        new mapboxgl.LngLatBounds(validCoords[0], validCoords[0])
+      );
+      state.map.fitBounds(bounds, { padding: 80, maxZoom: 16, duration: 1000 });
+    }
+  }
 }

@@ -4,7 +4,7 @@
 
 import { state } from './state.js';
 import { MAPBOX_TOKEN, MAP_STYLES, DEFAULT_CENTER, DEFAULT_ZOOM } from './config.js';
-import { buildIcon, drawTargetIcon, buildEmojiIcon } from './icons.js';
+import { buildIcon, drawTargetIcon, drawPrivateSquareIcon, buildEmojiIcon } from './icons.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { abrirFicha, cerrarFicha } from './sheetUI.js';
 
@@ -31,25 +31,33 @@ export function registrarIconosColecciones() {
 /** Crea el mapa, añade la capa de obras y arranca el HUD de coordenadas. */
 export function cargarMapaMapbox() {
   const savedStyle = localStorage.getItem('nolli_map_style');
+  const savedTheme = localStorage.getItem('nolli_theme');
   if (savedStyle && MAP_STYLES[savedStyle]) {
     state.mapStyle = savedStyle;
-  }
-  if (state.mapStyle === 'dark') {
-    document.body?.classList.add('dark-mode');
+  } else if (savedTheme === 'dark') {
+    state.mapStyle = 'dark';
   } else {
-    document.body?.classList.remove('dark-mode');
+    state.mapStyle = 'abstract';
   }
+  const isDark = state.mapStyle === 'dark' || savedTheme === 'dark';
+  document.documentElement.classList.toggle('dark-mode', isDark);
+  document.body?.classList.toggle('dark-mode', isDark);
 
   const isMobile = window.innerWidth <= 768;
+  const initialStyle = MAP_STYLES[state.mapStyle] || MAP_STYLES.abstract;
   state.map = new mapboxgl.Map({
     container: 'map',
-    style: MAP_STYLES[state.mapStyle] || MAP_STYLES.abstract,
+    style: initialStyle,
     center: DEFAULT_CENTER,
     zoom: DEFAULT_ZOOM,
     attributionControl: true,
-    fadeDuration: 0, // Cero delay de transición/fade para carga instantánea como Google Maps
+    fadeDuration: 0, // Cero delay de transición/fade para carga instantánea
     maxTileCacheSize: 200, // Caché extendida en memoria
     crossSourceCollisions: false,
+  });
+
+  state.map.on('error', (e) => {
+    console.warn('Mapbox GL error:', e);
   });
 
   if (isMobile) {
@@ -100,7 +108,7 @@ export function cargarMapaMapbox() {
         if (!state.map.hasImage(prefix)) state.map.addImage(prefix, buildIcon(drawTargetIcon, color, importance), { pixelRatio: 2 });
         if (!state.map.hasImage(`${prefix}-visited`)) state.map.addImage(`${prefix}-visited`, buildIcon(drawTargetIcon, '#82c812', importance), { pixelRatio: 2 });
         if (!state.map.hasImage(`${prefix}-pending`)) state.map.addImage(`${prefix}-pending`, buildIcon(drawTargetIcon, '#FFCC00', importance), { pixelRatio: 2 });
-        if (!state.map.hasImage(`${prefix}-private`)) state.map.addImage(`${prefix}-private`, buildIcon(drawTargetIcon, '#0478f2', importance), { pixelRatio: 2 });
+        if (!state.map.hasImage(`${prefix}-private`)) state.map.addImage(`${prefix}-private`, buildIcon(drawPrivateSquareIcon, color, importance), { pixelRatio: 2 });
         if (!state.map.hasImage(`${prefix}-selected`)) state.map.addImage(`${prefix}-selected`, buildIcon(drawTargetIcon, selectedColor, importance), { pixelRatio: 2 });
       });
     });
@@ -161,15 +169,43 @@ export function cargarMapaMapbox() {
     });
 
     state.map.addLayer({
+      id: 'obras-selected-halo-outer',
+      type: 'circle',
+      source: 'obras',
+      filter: ['==', ['get', 'selected'], 1],
+      paint: {
+        'circle-radius': 22,
+        'circle-color': 'transparent',
+        'circle-stroke-color': '#E84E1B',
+        'circle-stroke-width': 1,
+        'circle-stroke-opacity': 0.45,
+      },
+    });
+
+    state.map.addLayer({
       id: 'obras-selected-halo',
       type: 'circle',
       source: 'obras',
       filter: ['==', ['get', 'selected'], 1],
       paint: {
-        'circle-radius': 15,
-        'circle-color': 'rgba(232, 78, 27, 0.22)',
+        'circle-radius': 16,
+        'circle-color': 'rgba(232, 78, 27, 0.08)',
         'circle-stroke-color': '#E84E1B',
-        'circle-stroke-width': 2.5,
+        'circle-stroke-width': 1.6,
+      },
+    });
+
+    state.map.addLayer({
+      id: 'obras-maestras-selected-halo-outer',
+      type: 'circle',
+      source: 'obras-maestras',
+      filter: ['==', ['get', 'selected'], 1],
+      paint: {
+        'circle-radius': 24,
+        'circle-color': 'transparent',
+        'circle-stroke-color': '#E84E1B',
+        'circle-stroke-width': 1,
+        'circle-stroke-opacity': 0.5,
       },
     });
 
@@ -179,10 +215,10 @@ export function cargarMapaMapbox() {
       source: 'obras-maestras',
       filter: ['==', ['get', 'selected'], 1],
       paint: {
-        'circle-radius': 16,
-        'circle-color': 'rgba(232, 78, 27, 0.25)',
+        'circle-radius': 18,
+        'circle-color': 'rgba(232, 78, 27, 0.10)',
         'circle-stroke-color': '#E84E1B',
-        'circle-stroke-width': 3,
+        'circle-stroke-width': 1.8,
       },
     });
 
@@ -479,15 +515,14 @@ function initMapStyleSelector() {
     button.classList.toggle('active-state', isOpen);
   });
 
-  const closeBtn = document.getElementById('btn-map-style-close');
-  if (closeBtn) {
-    closeBtn.addEventListener('click', (e) => {
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('#btn-map-style-close')) {
       e.stopPropagation();
       panel.classList.remove('open');
       button.classList.remove('active-state');
       document.getElementById('panel-backdrop')?.classList.remove('active');
-    });
-  }
+    }
+  });
 
   document.addEventListener('click', (event) => {
     const option = event.target.closest('[data-map-style]');
@@ -516,11 +551,10 @@ function initMapStyleSelector() {
 
     state.map.setStyle(MAP_STYLES[styleKey]);
 
-    if (styleKey === 'dark') {
-      document.body.classList.add('dark-mode');
-    } else {
-      document.body.classList.remove('dark-mode');
-    }
+    const isDarkMode = styleKey === 'dark';
+    document.documentElement.classList.toggle('dark-mode', isDarkMode);
+    document.body.classList.toggle('dark-mode', isDarkMode);
+    localStorage.setItem('nolli_theme', isDarkMode ? 'dark' : 'light');
 
     panel.classList.remove('open');
     button.classList.remove('active-state');
@@ -528,34 +562,54 @@ function initMapStyleSelector() {
   });
 }
 
-function localizarDispositivo() {
+export function actualizarMarcadorUbicacion(coordinates) {
+  if (!coordinates || !state.map) return;
+  const lngLat = Array.isArray(coordinates)
+    ? coordinates
+    : [coordinates.lng, coordinates.lat];
+
+  state.userLocation = { lng: lngLat[0], lat: lngLat[1] };
+
+  if (!state.locationMarker) {
+    const markerElement = document.createElement('div');
+    markerElement.className = 'location-marker';
+    markerElement.innerHTML = '<span class="location-pulse"></span><span class="location-core"></span>';
+    markerElement.setAttribute('aria-label', 'Tu ubicación actual');
+    state.locationMarker = new mapboxgl.Marker({ element: markerElement })
+      .setLngLat(lngLat)
+      .addTo(state.map);
+  } else {
+    state.locationMarker.setLngLat(lngLat);
+  }
+
+  const hudLng = document.getElementById('hud-lng');
+  const hudLat = document.getElementById('hud-lat');
+  if (hudLng) hudLng.textContent = lngLat[0].toFixed(5);
+  if (hudLat) hudLat.textContent = lngLat[1].toFixed(5);
+}
+
+export function localizarDispositivo() {
   if (!navigator.geolocation) {
     alert('Este dispositivo no admite geolocalización.');
     return;
   }
 
-  const button = document.getElementById('btn-location');
-  button.classList.add('location-active');
+  const buttonDesktop = document.getElementById('btn-location');
+  const buttonMobile = document.getElementById('btn-float-locate');
+  buttonDesktop?.classList.add('location-active');
+  buttonMobile?.classList.add('active-state');
 
   navigator.geolocation.getCurrentPosition(
     (position) => {
+      buttonDesktop?.classList.remove('location-active');
+      buttonMobile?.classList.remove('active-state');
       const coordinates = [position.coords.longitude, position.coords.latitude];
-      state.userLocation = { lng: coordinates[0], lat: coordinates[1] };
-      if (state.locationMarker) state.locationMarker.remove();
-
-      const markerElement = document.createElement('div');
-      markerElement.className = 'location-marker';
-      markerElement.innerHTML = '<span class="location-pulse"></span><span class="location-core"></span>';
-      markerElement.setAttribute('aria-label', 'Tu ubicación actual');
-      state.locationMarker = new mapboxgl.Marker({ element: markerElement })
-        .setLngLat(coordinates)
-        .addTo(state.map);
-
-      state.map.flyTo({ center: coordinates, zoom: Math.max(state.map.getZoom(), 14) });
-      document.getElementById('hud-lng').textContent = coordinates[0].toFixed(5);
-      document.getElementById('hud-lat').textContent = coordinates[1].toFixed(5);
+      actualizarMarcadorUbicacion(coordinates);
+      state.map.flyTo({ center: coordinates, zoom: Math.max(state.map.getZoom(), 15), duration: 800 });
     },
     (error) => {
+      buttonDesktop?.classList.remove('location-active');
+      buttonMobile?.classList.remove('active-state');
       const messages = {
         1: 'Permiso de ubicación denegado.',
         2: 'No se pudo determinar tu ubicación.',

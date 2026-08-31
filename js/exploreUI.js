@@ -3,6 +3,7 @@ import { state, escapeHtml } from './state.js';
 import { fetchAllPublicCollections } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { CURATED_ROUTES, activarRutaEnMapa } from './radarUI.js';
+import { activarFiltroBusquedaEnMapa } from './searchUI.js';
 
 let publicCollectionsCache = [];
 
@@ -169,6 +170,13 @@ export function initExploreUI() {
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
       renderPublicCollections(e.target.value);
+    });
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const val = searchInput.value.trim();
+        if (val) activarFiltroBusquedaEnMapa(val);
+      }
     });
   }
 

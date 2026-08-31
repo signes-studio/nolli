@@ -12,6 +12,7 @@ import {
   fetchUserPrivateLabels,
   updateCurrentUserProfile,
   upsertCurrentProfile,
+  fetchCurrentProfile,
 } from './api.js';
 
 import {
@@ -38,6 +39,7 @@ let activeTab = 'collections'; // 'collections' | 'visited' | 'notes' | 'favorit
 
 let profileState = {
   user: null,
+  dbProfile: null,
   buildings: [],
   statuses: new Map(),
   collections: [],
@@ -72,14 +74,20 @@ function getSessionToken() {
 function initTheme() {
   const savedTheme = localStorage.getItem('nolli_theme') || localStorage.getItem('nolli_map_style');
   const isDark = savedTheme === 'dark';
+  document.documentElement.classList.toggle('dark-mode', isDark);
   document.body.classList.toggle('dark-mode', isDark);
+  const meta = document.getElementById('meta-theme-color');
+  if (meta) meta.setAttribute('content', isDark ? '#141411' : '#F8F1DF');
   updateThemeIcon(isDark);
 
   if (themeBtn) {
     themeBtn.addEventListener('click', () => {
       const nowDark = document.body.classList.toggle('dark-mode');
+      document.documentElement.classList.toggle('dark-mode', nowDark);
       localStorage.setItem('nolli_theme', nowDark ? 'dark' : 'light');
-      localStorage.setItem('nolli_map_style', nowDark ? 'dark' : 'light');
+      localStorage.setItem('nolli_map_style', nowDark ? 'dark' : 'abstract');
+      const metaEl = document.getElementById('meta-theme-color');
+      if (metaEl) metaEl.setAttribute('content', nowDark ? '#141411' : '#F8F1DF');
       updateThemeIcon(nowDark);
       if (window.lucide) window.lucide.createIcons();
     });
@@ -125,10 +133,54 @@ async function init() {
   if (logoutBtn) logoutBtn.classList.remove('hidden');
   if (settingsBtn) settingsBtn.classList.remove('hidden');
 
-  // Cargamos edificios del catálogo
+  // 3. RESTAURACIÓN INSTANTÁNEA DESDE CACHÉ LOCAL (0ms render de inicio)
+  const cachedUserStr = localStorage.getItem('nolli_cached_user');
+  const cachedDbProfileStr = localStorage.getItem('nolli_cached_db_profile');
+  const cachedStatusesStr = localStorage.getItem('nolli_cached_statuses');
+  const cachedBuildingsStr = localStorage.getItem('nolli_cached_buildings');
+
+  if (cachedUserStr) {
+    try {
+      profileState.user = JSON.parse(cachedUserStr);
+      cargarZonaPersonalLocal(profileState.user.id);
+      profileState.collections = state.userCollections || [];
+      profileState.items = state.userCollectionItems || [];
+      profileState.labels = state.userPrivateLabels || [];
+    } catch {}
+  }
+  if (cachedDbProfileStr) {
+    try {
+      profileState.dbProfile = JSON.parse(cachedDbProfileStr);
+    } catch {}
+  }
+  if (cachedStatusesStr) {
+    try {
+      const parsed = JSON.parse(cachedStatusesStr);
+      profileState.statuses = new Map(parsed.map((item) => [String(item.building_id), {
+        favorite: item.favorite === true,
+        visited: item.visited === true,
+        notas: item.notas || '',
+        valoracion: item.valoracion || null,
+      }]));
+    } catch {}
+  }
+  if (cachedBuildingsStr) {
+    try {
+      profileState.buildings = JSON.parse(cachedBuildingsStr);
+    } catch {}
+  }
+
+  renderHero();
+  renderMetrics();
+  renderFeedContent();
+
+  // Cargamos edificios del catálogo en segundo plano
   try {
     const buildings = await fetchBuildings({ includeAllImportance: true });
     profileState.buildings = buildings || [];
+    if (buildings && buildings.length) {
+      localStorage.setItem('nolli_cached_buildings', JSON.stringify(buildings.slice(0, 50)));
+    }
   } catch (err) {
     console.warn('Cargando catálogo en perfil:', err);
   }
@@ -142,12 +194,18 @@ async function init() {
     profileState.items = state.userCollectionItems || [];
     profileState.labels = state.userPrivateLabels || [];
 
-    const [statuses, collections, items, labels] = await Promise.all([
+    const [statuses, collections, items, labels, dbProfile] = await Promise.all([
       fetchBuildingStatuses(user.id, token).catch(() => []),
       fetchUserCollections(user.id, token).catch(() => profileState.collections),
       fetchUserCollectionItems(user.id, token).catch(() => profileState.items),
       fetchUserPrivateLabels(user.id, token).catch(() => profileState.labels),
+      fetchCurrentProfile(user.id, token).catch(() => null),
     ]);
+
+    if (dbProfile) {
+      profileState.dbProfile = dbProfile;
+      localStorage.setItem('nolli_cached_db_profile', JSON.stringify(dbProfile));
+    }
 
     profileState.statuses = new Map(statuses.map((item) => [String(item.building_id), {
       favorite: item.favorite === true,
@@ -165,10 +223,16 @@ async function init() {
     state.userPrivateLabels = profileState.labels;
     guardarZonaPersonalLocal(user.id);
 
+    localStorage.setItem('nolli_cached_user', JSON.stringify(user));
+    localStorage.setItem('nolli_cached_statuses', JSON.stringify(statuses));
+
     if (logoutBtn) {
       logoutBtn.addEventListener('click', () => {
         localStorage.removeItem(SESSION_KEY);
         sessionStorage.removeItem(SESSION_KEY);
+        localStorage.removeItem('nolli_cached_user');
+        localStorage.removeItem('nolli_cached_db_profile');
+        localStorage.removeItem('nolli_cached_statuses');
         window.location.reload();
       });
     }
@@ -190,13 +254,15 @@ async function init() {
 }
 
 // -------------------------------------------------------------------------
-// 2. HERO MONUMENTAL
+// 2. HERO MONUMENTAL (IDENTIDAD Y BIOGRAFÍA DESDE SUPABASE PROFILES)
 // -------------------------------------------------------------------------
 function renderHero() {
   const user = profileState.user || {};
   const metadata = user.user_metadata || {};
-  const firstName = metadata.first_name || '';
-  const lastName = metadata.last_name || '';
+  const db = profileState.dbProfile || {};
+
+  const firstName = db.first_name || metadata.first_name || '';
+  const lastName = db.last_name || metadata.last_name || '';
   const fullName = `${firstName} ${lastName}`.trim() || 'LUIS ALBERTO SIGNES SACRISTÁN';
 
   const nameEl = document.getElementById('profile-hero-name');
@@ -204,11 +270,12 @@ function renderHero() {
 
   const subEl = document.getElementById('profile-hero-sub');
   if (subEl) {
-    const bio = metadata.bio || 'Arquitecto & ArchViz | SIGNES.STUDIO';
-    const city = metadata.city || 'Valencia';
-    const country = metadata.country || 'España';
+    const bio = db.bio != null ? db.bio : (metadata.bio || 'Arquitecto & ArchViz | SIGNES.STUDIO');
+    const city = db.city || metadata.city || 'Valencia';
+    const country = db.country || metadata.country || 'España';
     const location = [city, country].filter(Boolean).join(', ');
-    const website = metadata.website ? ` · ${metadata.website.replace(/^https?:\/\//, '')}` : '';
+    const websiteRaw = db.website != null ? db.website : (metadata.website || '');
+    const website = websiteRaw ? ` · ${websiteRaw.replace(/^https?:\/\//, '')}` : '';
     subEl.textContent = `${bio} | ${location}${website}`;
   }
 }
@@ -399,6 +466,7 @@ function setupEditProfileModal() {
     settingsBtn.addEventListener('click', () => {
       const user = profileState.user || {};
       const metadata = user.user_metadata || {};
+      const db = profileState.dbProfile || {};
 
       const inFirstName = document.getElementById('edit-profile-firstname');
       const inLastName = document.getElementById('edit-profile-lastname');
@@ -407,12 +475,12 @@ function setupEditProfileModal() {
       const inCountry = document.getElementById('edit-profile-country');
       const inWebsite = document.getElementById('edit-profile-website');
 
-      if (inFirstName) inFirstName.value = metadata.first_name || 'Luis Alberto';
-      if (inLastName) inLastName.value = metadata.last_name || 'Signes Sacristán';
-      if (inBio) inBio.value = metadata.bio || 'Arquitecto & ArchViz | SIGNES.STUDIO';
-      if (inCity) inCity.value = metadata.city || 'Valencia';
-      if (inCountry) inCountry.value = metadata.country || 'España';
-      if (inWebsite) inWebsite.value = metadata.website || 'https://signes.studio';
+      if (inFirstName) inFirstName.value = db.first_name || metadata.first_name || 'Luis Alberto';
+      if (inLastName) inLastName.value = db.last_name || metadata.last_name || 'Signes Sacristán';
+      if (inBio) inBio.value = db.bio != null ? db.bio : (metadata.bio || 'Arquitecto & ArchViz | SIGNES.STUDIO');
+      if (inCity) inCity.value = db.city || metadata.city || 'Valencia';
+      if (inCountry) inCountry.value = db.country || metadata.country || 'España';
+      if (inWebsite) inWebsite.value = db.website != null ? db.website : (metadata.website || 'https://signes.studio');
 
       if (editStatus) editStatus.classList.add('hidden');
       modalEditProfile.classList.add('open');
@@ -464,10 +532,25 @@ function setupEditProfileModal() {
       };
 
       try {
-        await updateCurrentUserProfile(token, updatedProfile);
-        await upsertCurrentProfile(user, updatedProfile, token).catch(() => {});
+        await Promise.all([
+          updateCurrentUserProfile(token, updatedProfile).catch(() => {}),
+          upsertCurrentProfile(user, updatedProfile, token),
+        ]);
 
-        // Actualizar estado local
+        // Actualizar estado de perfil en base de datos local
+        profileState.dbProfile = {
+          ...(profileState.dbProfile || {}),
+          id: user.id,
+          first_name: firstName,
+          last_name: lastName,
+          bio,
+          city,
+          country,
+          website,
+        };
+        localStorage.setItem('nolli_cached_db_profile', JSON.stringify(profileState.dbProfile));
+
+        // Actualizar estado de usuario
         user.user_metadata = {
           ...user.user_metadata,
           first_name: firstName,
@@ -477,6 +560,7 @@ function setupEditProfileModal() {
           country,
           website,
         };
+        localStorage.setItem('nolli_cached_user', JSON.stringify(user));
         state.userProfile = updatedProfile;
 
         renderHero();

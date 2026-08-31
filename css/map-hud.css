@@ -4,7 +4,13 @@
    todo el chrome de interfaz pasa a panel opaco claro (ver 3.2 del sistema).
    ========================================================================= */
 
-#map { position: absolute; inset: 0; }
+#map {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
 
 /* Controles de atribucion/branding para Mapbox y MapLibre */
 .mapboxgl-ctrl-logo, .maplibregl-ctrl-logo, .mapboxgl-ctrl-attrib, .maplibregl-ctrl-attrib { filter: grayscale(1) opacity(0.5); }
@@ -493,6 +499,37 @@
     display: none !important;
   }
 
+  .mobile-search-filter-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 12px;
+    background: #111111 !important;
+    color: #F4F1EA !important;
+    border: none;
+    border-bottom: 2px solid var(--accent, #E84E1B);
+    font-family: 'League Spartan', sans-serif !important;
+    font-weight: 800 !important;
+    font-size: 11px !important;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: background 0.12s ease;
+  }
+
+  .mobile-search-filter-action:active {
+    background: var(--accent, #E84E1B) !important;
+    color: #FFFFFF !important;
+  }
+
+  body.dark-mode .mobile-search-filter-action {
+    background: #000000 !important;
+    color: #FFFFFF !important;
+  }
+
   .mobile-search-item {
     display: flex;
     justify-content: space-between;
@@ -582,6 +619,16 @@
     transition: transform 0.08s ease, background 0.12s ease, color 0.12s ease;
   }
 
+  .mobile-float-btn svg {
+    width: 20px !important;
+    height: 20px !important;
+    stroke: currentColor !important;
+    stroke-width: 2px !important;
+    fill: none !important;
+    display: block !important;
+    flex-shrink: 0;
+  }
+
   body.dark-mode .mobile-float-btn {
     background: #1C1C1A;
   }
@@ -601,19 +648,33 @@
   /* Botón de Acción Primaria Flotante [+] (Añadir Proyecto) */
   .mobile-float-btn-primary {
     background-color: var(--accent, #E84E1B) !important;
-    color: #F4F1EA !important;
+    color: #FFFFFF !important;
     border: 2px solid var(--border-strong, #111111) !important;
     box-shadow: 2px 2px 0px var(--border-strong, #111111) !important;
   }
 
   .mobile-float-btn-primary svg {
-    color: #F4F1EA !important;
-    stroke: #F4F1EA !important;
+    color: #FFFFFF !important;
+    stroke: #FFFFFF !important;
+    transition: transform 0.15s ease, stroke 0.12s ease;
   }
 
   .mobile-float-btn-primary:active {
+    transform: scale(0.92);
     background-color: #111111 !important;
     color: #FFFFFF !important;
+  }
+
+  .mobile-float-btn-primary.active-state {
+    background-color: #111111 !important;
+    border-color: var(--accent, #E84E1B) !important;
+    box-shadow: 2px 2px 0px var(--accent, #E84E1B) !important;
+  }
+
+  .mobile-float-btn-primary.active-state svg {
+    color: var(--accent, #E84E1B) !important;
+    stroke: var(--accent, #E84E1B) !important;
+    transform: rotate(45deg);
   }
 
   .mobile-bottom-bar {
@@ -698,8 +759,26 @@
     transition: all 0.12s ease;
   }
 
+  body.dark-mode .mobile-bottom-bar {
+    background: var(--bg-panel, #1c1c1a) !important;
+    border-top-color: var(--border-strong, #4E4E48) !important;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  body.dark-mode .mobile-nav-btn {
+    color: var(--fg, #F8F1DF) !important;
+    border-right-color: var(--border, #32322E) !important;
+  }
+
+  body.dark-mode .mobile-nav-btn.active {
+    color: var(--accent, #E84E1B) !important;
+  }
+
   body.dark-mode .radar-btn-inner {
     background: #252522;
+    border-color: var(--border-strong, #4E4E48);
+    box-shadow: 1px 1px 0px var(--border-strong, #4E4E48);
+    color: var(--fg, #F8F1DF);
   }
 
   .mobile-nav-radar-btn.active .radar-btn-inner,
@@ -708,6 +787,11 @@
     color: var(--accent, #E84E1B) !important;
     border-color: var(--accent, #E84E1B) !important;
     box-shadow: 1px 1px 0px var(--accent, #E84E1B) !important;
+  }
+
+  body.dark-mode .mobile-nav-radar-btn.active .radar-btn-inner,
+  body.dark-mode .mobile-nav-radar-btn:active .radar-btn-inner {
+    background: #1c1c1a !important;
   }
 
   .mobile-nav-radar-btn.active .radar-btn-inner svg,

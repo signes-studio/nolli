@@ -12,6 +12,8 @@ import { fetchBuildings } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { renderExploreList } from './exploreUI.js';
 import { renderRadarUI } from './radarUI.js';
+import { activarFiltroBusquedaEnMapa } from './searchUI.js';
+import { localizarDispositivo } from './mapController.js';
 
 export function initMobileBottomNav() {
   const bottomBar = document.getElementById('mobile-bottom-bar');
@@ -184,23 +186,7 @@ export function initMobileBottomNav() {
     btnFloatLocate.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      if (state.userLocation && state.map) {
-        state.map.flyTo({ center: state.userLocation, zoom: 16 });
-      } else if (navigator.geolocation) {
-        btnFloatLocate.classList.add('active-state');
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            btnFloatLocate.classList.remove('active-state');
-            const coords = [pos.coords.longitude, pos.coords.latitude];
-            state.userLocation = coords;
-            if (state.map) state.map.flyTo({ center: coords, zoom: 16 });
-          },
-          () => {
-            btnFloatLocate.classList.remove('active-state');
-          },
-          { enableHighAccuracy: true, timeout: 6000 }
-        );
-      }
+      localizarDispositivo();
     });
   }
 
@@ -248,19 +234,12 @@ export function initMobileBottomNav() {
 function initMobileSplashScreen() {
   const splash = document.getElementById('mobile-splash-screen');
   const status = document.getElementById('mobile-splash-status');
-  const desktopSplash = document.getElementById('app-splash-screen');
-  if (!splash && !desktopSplash) return;
+  if (!splash) return;
 
   try {
     if (sessionStorage.getItem('nolli_splash_shown')) {
-      if (splash) {
-        splash.style.display = 'none';
-        splash.classList.add('splash-hidden');
-      }
-      if (desktopSplash) {
-        desktopSplash.style.display = 'none';
-        desktopSplash.classList.add('splash-hidden');
-      }
+      splash.style.display = 'none';
+      splash.classList.add('splash-hidden');
       return;
     }
   } catch (e) {}
@@ -277,11 +256,9 @@ function initMobileSplashScreen() {
     if (status) status.textContent = '[ DATOS SINCRONIZADOS ]';
 
     setTimeout(() => {
-      if (splash) splash.classList.add('splash-hidden');
-      if (desktopSplash) desktopSplash.classList.add('splash-hidden');
+      splash.classList.add('splash-hidden');
       setTimeout(() => {
-        if (splash) splash.style.display = 'none';
-        if (desktopSplash) desktopSplash.style.display = 'none';
+        splash.style.display = 'none';
       }, 450);
     }, 280);
   };
@@ -293,8 +270,7 @@ function initMobileSplashScreen() {
   setTimeout(dismissSplash, 2500);
 
   // Permitir cierre al toque si el usuario pulsa
-  splash?.addEventListener('click', dismissSplash, { once: true });
-  desktopSplash?.addEventListener('click', dismissSplash, { once: true });
+  splash.addEventListener('click', dismissSplash, { once: true });
 }
 
 /* =========================================================================
@@ -503,6 +479,7 @@ function initMobileSearchWidget() {
   }
 
   let searchDebounce = null;
+  let currentMobileMatches = [];
 
   input.addEventListener('input', () => {
     clearTimeout(searchDebounce);
@@ -511,6 +488,7 @@ function initMobileSearchWidget() {
       if (!q || q.length < 2) {
         if (dropdown) dropdown.hidden = true;
         if (resultsContainer) resultsContainer.innerHTML = '';
+        currentMobileMatches = [];
         return;
       }
 
@@ -522,10 +500,14 @@ function initMobileSearchWidget() {
         .filter((obra) => {
           const name = normalize(obra.nombre_obra);
           const arq = normalize(Array.isArray(obra.arquitectos) ? obra.arquitectos.join(' ') : obra.arquitecto);
-          const city = normalize(obra.ciudad);
-          return name.includes(q) || arq.includes(q) || city.includes(q);
-        })
-        .slice(0, 15);
+          const city = normalize(obra.ciudad || obra.place);
+          const style = normalize(obra.estilo);
+          const cat = normalize(obra.categoria);
+          const tags = normalize(Array.isArray(obra.tags) ? obra.tags.join(' ') : obra.tags);
+          return name.includes(q) || arq.includes(q) || city.includes(q) || style.includes(q) || cat.includes(q) || tags.includes(q);
+        });
+
+      currentMobileMatches = matches;
 
       if (!matches.length) {
         resultsContainer.innerHTML = `
@@ -537,7 +519,14 @@ function initMobileSearchWidget() {
         return;
       }
 
-      resultsContainer.innerHTML = matches.map((obra) => `
+      const headerActionHtml = `
+        <button type="button" class="mobile-search-filter-action" data-action="filter-all-matches">
+          <i data-lucide="filter" width="13" height="13"></i>
+          <span>[ VER TODAS LAS ${matches.length} OBRAS EN EL MAPA ]</span>
+        </button>
+      `;
+
+      const listHtml = matches.slice(0, 25).map((obra) => `
         <button type="button" class="mobile-search-item" data-obra-id="${obra.id || obra.featureId}">
           <div style="min-width: 0; flex: 1;">
             <div class="mobile-search-item-title">${obra.nombre_obra}</div>
@@ -547,11 +536,35 @@ function initMobileSearchWidget() {
         </button>
       `).join('');
 
+      resultsContainer.innerHTML = headerActionHtml + listHtml;
+      if (window.lucide) window.lucide.createIcons();
       dropdown.hidden = false;
     }, 120);
   });
 
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const q = input.value.trim();
+      if (q) {
+        const matchesToApply = currentMobileMatches && currentMobileMatches.length ? currentMobileMatches : null;
+        closeSearch();
+        activarFiltroBusquedaEnMapa(q, matchesToApply);
+      }
+    }
+  });
+
   resultsContainer?.addEventListener('click', async (e) => {
+    const filterBtn = e.target.closest('[data-action="filter-all-matches"]');
+    if (filterBtn) {
+      e.stopPropagation();
+      const q = input.value.trim();
+      const matchesToApply = currentMobileMatches && currentMobileMatches.length ? currentMobileMatches : null;
+      closeSearch();
+      activarFiltroBusquedaEnMapa(q, matchesToApply);
+      return;
+    }
+
     const item = e.target.closest('.mobile-search-item');
     if (!item) return;
     const obraId = item.dataset.obraId;
