@@ -1,15 +1,22 @@
 /* =========================================================================
    PROFILE.JS — Lógica de la Vista de Perfil Editorial ("Tú")
    Sincronizado con Supabase, Mapbox y estética pura Neo-Bauhaus
+   Gestión completa de Listas, Favoritos, Visitados y Notas
    ========================================================================= */
 
 import {
   fetchBuildings,
+  fetchBuildingsByIds,
   fetchCurrentUser,
   fetchBuildingStatuses,
+  saveBuildingStatus,
   fetchUserCollections,
   fetchUserCollectionItems,
   fetchUserPrivateLabels,
+  createUserCollection,
+  updateUserCollection,
+  deleteUserCollection,
+  deleteUserCollectionItem,
   updateCurrentUserProfile,
   upsertCurrentProfile,
   fetchCurrentProfile,
@@ -30,12 +37,26 @@ const logoutBtn = document.getElementById('btn-profile-logout');
 const themeBtn = document.getElementById('btn-theme-toggle');
 const themeIcon = document.getElementById('theme-icon');
 const settingsBtn = document.getElementById('btn-profile-settings');
+
+// Modales
 const modalEditProfile = document.getElementById('modal-edit-profile');
 const formEditProfile = document.getElementById('form-edit-profile');
 const btnCloseEditProfile = document.getElementById('btn-edit-profile-close');
 const editStatus = document.getElementById('profile-edit-status');
 
-let activeTab = 'collections'; // 'collections' | 'visited' | 'notes' | 'favorite'
+const modalCollection = document.getElementById('modal-collection');
+const formCollection = document.getElementById('form-collection');
+const btnCloseCollection = document.getElementById('btn-modal-collection-close');
+const btnCancelCollection = document.getElementById('btn-collection-cancel');
+const collectionStatus = document.getElementById('collection-modal-status');
+
+const modalEditNote = document.getElementById('modal-edit-note');
+const formEditNote = document.getElementById('form-edit-note');
+const btnCloseNote = document.getElementById('btn-modal-note-close');
+const btnDeleteNoteModal = document.getElementById('btn-delete-note-modal');
+const noteStatus = document.getElementById('note-modal-status');
+
+let activeTab = 'collections'; // 'collections' | 'favorite' | 'visited' | 'notes'
 
 let profileState = {
   user: null,
@@ -107,17 +128,43 @@ const obraFor = (id) => profileState.buildings.find((b) => String(b.id) === Stri
 const statusBuildings = (key) => profileState.buildings.filter((b) => profileState.statuses.get(String(b.id))?.[key]);
 const notedBuildings = () => profileState.buildings.filter((b) => Boolean(profileState.statuses.get(String(b.id))?.notas?.trim()));
 
+async function asegurarObrasFaltantes(neededIds) {
+  const missing = (neededIds || []).filter((id) => id && !profileState.buildings.some((b) => String(b.id) === String(id)));
+  if (!missing.length) return;
+  try {
+    const fetched = await fetchBuildingsByIds(missing);
+    if (Array.isArray(fetched) && fetched.length > 0) {
+      let added = false;
+      fetched.forEach((b) => {
+        if (!profileState.buildings.some((existing) => String(existing.id) === String(b.id))) {
+          profileState.buildings.push(b);
+          added = true;
+        }
+      });
+      if (added) {
+        renderMetrics();
+        renderFeedContent();
+      }
+    }
+  } catch (e) {
+    console.warn('Aviso al precargar obras de usuario en perfil:', e);
+  }
+}
+
 // -------------------------------------------------------------------------
-// INICIALIZACIÓN CON LÓGICA CONDICIONAL LIMPIA
+// INICIALIZACIÓN
 // -------------------------------------------------------------------------
 async function init() {
   initTheme();
   setupNavTabs();
   setupEditProfileModal();
+  setupCollectionModal();
+  setupNoteModal();
+  setupFeedActionHandlers();
 
   const token = getSessionToken();
 
-  // 1. CONDICIONAL: Si NO está autenticado, mostramos SOLO invitación y salimos
+  // 1. Si NO está autenticado, mostramos invitación
   if (!token) {
     if (authRequired) authRequired.classList.remove('hidden');
     if (app) app.classList.add('hidden');
@@ -127,13 +174,13 @@ async function init() {
     return;
   }
 
-  // 2. CONDICIONAL: Si está autenticado, mostramos el Perfil completo y ocultamos Auth
+  // 2. Si está autenticado, mostramos perfil
   if (authRequired) authRequired.classList.add('hidden');
   if (app) app.classList.remove('hidden');
   if (logoutBtn) logoutBtn.classList.remove('hidden');
   if (settingsBtn) settingsBtn.classList.remove('hidden');
 
-  // 3. RESTAURACIÓN INSTANTÁNEA DESDE CACHÉ LOCAL (0ms render de inicio)
+  // 3. Restauración instantánea desde caché local
   const cachedUserStr = localStorage.getItem('nolli_cached_user');
   const cachedDbProfileStr = localStorage.getItem('nolli_cached_db_profile');
   const cachedStatusesStr = localStorage.getItem('nolli_cached_statuses');
@@ -174,7 +221,7 @@ async function init() {
   renderMetrics();
   renderFeedContent();
 
-  // Cargamos edificios del catálogo en segundo plano
+  // Carga del catálogo
   try {
     const buildings = await fetchBuildings({ includeAllImportance: true });
     profileState.buildings = buildings || [];
@@ -237,6 +284,13 @@ async function init() {
       });
     }
 
+    // Aseguramos que todas las obras con estados y en colecciones se carguen en memoria
+    const neededIds = [
+      ...statuses.map((s) => String(s.building_id)),
+      ...items.map((i) => String(i.building_id)),
+    ];
+    await asegurarObrasFaltantes(neededIds);
+
     renderHero();
     renderMetrics();
     renderFeedContent();
@@ -254,7 +308,7 @@ async function init() {
 }
 
 // -------------------------------------------------------------------------
-// 2. HERO MONUMENTAL (IDENTIDAD Y BIOGRAFÍA DESDE SUPABASE PROFILES)
+// 2. HERO MONUMENTAL
 // -------------------------------------------------------------------------
 function renderHero() {
   const user = profileState.user || {};
@@ -281,12 +335,18 @@ function renderHero() {
 }
 
 // -------------------------------------------------------------------------
-// 3. MÉTRICAS (GRID INVISIBLE)
+// 3. MÉTRICAS
 // -------------------------------------------------------------------------
 function renderMetrics() {
-  const visitedCount = statusBuildings('visited').length;
-  const favCount = statusBuildings('favorite').length;
-  const notesCount = notedBuildings().length;
+  let visitedCount = 0;
+  let favCount = 0;
+  let notesCount = 0;
+
+  profileState.statuses.forEach((status) => {
+    if (status.visited) visitedCount++;
+    if (status.favorite) favCount++;
+    if (status.notas && status.notas.trim()) notesCount++;
+  });
 
   const visEl = document.getElementById('stat-visited-num');
   if (visEl) visEl.textContent = visitedCount;
@@ -297,12 +357,11 @@ function renderMetrics() {
   const notesEl = document.getElementById('stat-notes-num');
   if (notesEl) notesEl.textContent = notesCount;
 
-  // Interacción al tocar métricas para cambiar de pestaña
   document.querySelectorAll('[data-metric-tab]').forEach((el) => {
-    el.addEventListener('click', () => {
+    el.onclick = () => {
       const tab = el.dataset.metricTab;
       switchTab(tab);
-    });
+    };
   });
 }
 
@@ -334,9 +393,9 @@ function renderFeedContent() {
   if (!content) return;
 
   if (activeTab === 'visited') {
-    renderBuildingsFeed(statusBuildings('visited'), 'VISITADOS');
+    renderBuildingsFeed(statusBuildings('visited'), 'visited');
   } else if (activeTab === 'favorite') {
-    renderBuildingsFeed(statusBuildings('favorite'), 'FAVORITOS');
+    renderBuildingsFeed(statusBuildings('favorite'), 'favorite');
   } else if (activeTab === 'notes') {
     renderNotesFeed();
   } else {
@@ -346,19 +405,22 @@ function renderFeedContent() {
   if (window.lucide) window.lucide.createIcons();
 }
 
-function renderBuildingsFeed(buildings, tabName) {
-  const list = buildings;
+function renderBuildingsFeed(buildings, tabKey) {
+  const isVisited = tabKey === 'visited';
+  const emptyText = isVisited
+    ? '[ NO TIENES OBRAS MARCADAS COMO VISITADAS. REGISTRA TUS VISITAS DESDE EL MAPA. ]'
+    : '[ NO TIENES OBRAS FAVORITAS AÚN. GUARDA OBRAS EN FAVORITOS DESDE EL MAPA. ]';
 
-  if (!list.length) {
+  if (!buildings.length) {
     content.innerHTML = `
       <div class="profile-feed-empty">
-        [ NO HAY OBRAS EN ESTA SECCIÓN AÚN. EXPLORA EL MAPA PARA REGISTRAR ARQUITECTURA. ]
+        ${emptyText}
       </div>
     `;
     return;
   }
 
-  content.innerHTML = list.map((obra) => {
+  content.innerHTML = buildings.map((obra) => {
     const photo = obra.foto_miniatura || obra.foto_url || '';
     const title = obra.nombre_obra || 'Obra de arquitectura';
     const year = obra.año_construccion || 'S. XX';
@@ -366,61 +428,128 @@ function renderBuildingsFeed(buildings, tabName) {
     const city = obra.place || obra.ciudad || '';
     const metaParts = [year, architect, city].filter(Boolean).join(' · ');
 
+    const actionBtnHtml = isVisited
+      ? `<button type="button" class="profile-card-action-btn danger" data-remove-visited="${obra.id}" title="Quitar de visitados" aria-label="Quitar de visitados">
+          <i data-lucide="check" width="12" height="12"></i>
+          <span>QUITAR</span>
+        </button>`
+      : `<button type="button" class="profile-card-action-btn danger" data-remove-favorite="${obra.id}" title="Quitar de favoritos" aria-label="Quitar de favoritos">
+          <i data-lucide="star" width="12" height="12"></i>
+          <span>QUITAR</span>
+        </button>`;
+
     return `
-      <a href="./index.html?obra=${encodeURIComponent(obra.id || obra.featureId)}" class="profile-feed-item" aria-label="Ver ${escapeHtml(title)} en el mapa">
-        ${photo ? `
-          <img src="${escapeHtml(photo)}" alt="${escapeHtml(title)}" class="profile-feed-thumb" loading="lazy" onerror="this.outerHTML='<div class=\\'profile-feed-thumb-fallback\\'>🏛️</div>'">
-        ` : `
-          <div class="profile-feed-thumb-fallback">🏛️</div>
-        `}
-        <div class="profile-feed-info">
-          <h3 class="profile-feed-title">${escapeHtml(title)}</h3>
-          <p class="profile-feed-meta">${escapeHtml(metaParts)}</p>
+      <div class="profile-feed-row">
+        <a href="./index.html?obra=${encodeURIComponent(obra.id || obra.featureId)}" class="profile-feed-item" aria-label="Ver ${escapeHtml(title)} en el mapa">
+          ${photo ? `
+            <img src="${escapeHtml(photo)}" alt="${escapeHtml(title)}" class="profile-feed-thumb" loading="lazy" onerror="this.outerHTML='<div class=\\'profile-feed-thumb-fallback\\'>🏛️</div>'">
+          ` : `
+            <div class="profile-feed-thumb-fallback">🏛️</div>
+          `}
+          <div class="profile-feed-info">
+            <h3 class="profile-feed-title">${escapeHtml(title)}</h3>
+            <p class="profile-feed-meta">${escapeHtml(metaParts)}</p>
+          </div>
+        </a>
+        <div class="profile-feed-row-actions">
+          ${actionBtnHtml}
         </div>
-      </a>
+      </div>
     `;
   }).join('');
 }
 
 function renderCollectionsFeed() {
-  const collections = profileState.collections;
+  const collections = profileState.collections || [];
 
-  if (!collections || !collections.length) {
-    content.innerHTML = `
+  content.innerHTML = `
+    <div class="profile-collections-top">
+      <span style="font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:800; color:var(--fg-dim);">[ COLECCIONES // ${collections.length} ]</span>
+      <button type="button" class="profile-new-list-btn" id="btn-create-collection-top">
+        <span>+ NUEVA LISTA</span>
+      </button>
+    </div>
+  `;
+
+  if (!collections.length) {
+    content.innerHTML += `
       <div class="profile-feed-empty">
-        [ NO TIENES COLECCIONES CREADAS. CREA TUS LISTAS DESDE LA VISTA EXPLORA O EL MAPA. ]
+        [ NO TIENES COLECCIONES CREADAS. PULSA EN "+ NUEVA LISTA" PARA EMPEZAR A ORGANIZAR OBRAS. ]
       </div>
     `;
     return;
   }
 
-  content.innerHTML = collections.map((col) => {
-    const items = profileState.items.filter((item) => String(item.collection_id) === String(col.id));
+  const cardsHtml = collections.map((col) => {
+    const items = (profileState.items || []).filter((item) => String(item.collection_id) === String(col.id));
     const countText = `${items.length} ${items.length === 1 ? 'OBRA' : 'OBRAS'}`;
+    const isMapActive = col.show_on_map !== false;
+
+    const eyeIconSvg = isMapActive
+      ? `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`
+      : `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>`;
+
+    const itemsRows = items.map((item) => {
+      const obra = obraFor(item.building_id);
+      if (!obra) {
+        return `
+          <div class="profile-collection-work-row">
+            <span style="font-size:11px; color:var(--fg-dim);">Obra #${escapeHtml(item.building_id)}</span>
+            <button type="button" class="profile-collection-item-remove-btn" data-collection-id="${col.id}" data-remove-item="${item.building_id}" title="Quitar de la lista">✕</button>
+          </div>
+        `;
+      }
+      const photo = obra.foto_miniatura || obra.foto_url || '';
+      const title = obra.nombre_obra || 'Obra';
+      const architect = obra.arquitecto || obra.arquitectos || '';
+      const year = obra.año_construccion ? ` · ${obra.año_construccion}` : '';
+
+      return `
+        <div class="profile-collection-work-row">
+          <a href="./index.html?obra=${encodeURIComponent(obra.id)}" class="profile-collection-work-link">
+            ${photo ? `
+              <img src="${escapeHtml(photo)}" alt="${escapeHtml(title)}" class="profile-collection-work-thumb" loading="lazy" onerror="this.style.display='none'">
+            ` : ''}
+            <div style="min-width:0; flex:1;">
+              <div class="profile-collection-work-title">${escapeHtml(title)}</div>
+              <div class="profile-collection-work-meta">${escapeHtml(architect)}${escapeHtml(year)}</div>
+            </div>
+          </a>
+          <button type="button" class="profile-collection-item-remove-btn" data-collection-id="${col.id}" data-remove-item="${obra.id}" title="Quitar de la lista">✕</button>
+        </div>
+      `;
+    }).join('') || '<div style="font-size:11px; color:var(--fg-dim); padding:6px 0;">[ Lista sin obras añadidas aún ]</div>';
 
     return `
-      <article class="profile-feed-collection-item" data-col-id="${col.id}">
-        <div class="profile-collection-head-row">
-          <h3 class="profile-collection-name">${col.icon ? `${escapeHtml(col.icon)} ` : ''}${escapeHtml(col.name)}</h3>
-          <span class="profile-collection-count-badge">[ ${countText} ]</span>
-        </div>
-        ${col.description ? `<p class="profile-collection-desc">${escapeHtml(col.description)}</p>` : ''}
-        ${items.length > 0 ? `
-          <div class="profile-collection-items-mini">
-            ${items.slice(0, 6).map((item) => {
-              const obra = obraFor(item.building_id);
-              const photo = obra?.foto_miniatura || obra?.foto_url || '';
-              return photo ? `
-                <img src="${escapeHtml(photo)}" alt="${escapeHtml(obra?.nombre_obra || '')}" class="profile-collection-mini-thumb" loading="lazy">
-              ` : `
-                <div class="profile-collection-mini-thumb profile-feed-thumb-fallback">🏛️</div>
-              `;
-            }).join('')}
+      <article class="profile-collection-card" data-col-id="${col.id}">
+        <div class="profile-collection-card-head">
+          <div style="min-width:0; flex:1;">
+            <div class="profile-collection-head-row">
+              <h3 class="profile-collection-name">${col.icon ? `${escapeHtml(col.icon)} ` : ''}${escapeHtml(col.name)}</h3>
+              <span class="profile-collection-count-badge">[ ${countText} ]</span>
+            </div>
+            ${col.description ? `<p class="profile-collection-desc" style="margin-top:4px;">${escapeHtml(col.description)}</p>` : ''}
           </div>
-        ` : ''}
+          <div class="profile-collection-tools">
+            <button type="button" class="profile-collection-tool-btn ${isMapActive ? 'active' : ''}" data-toggle-map-col="${col.id}" title="${isMapActive ? 'Ocultar iconos en mapa' : 'Mostrar iconos en mapa'}">
+              ${eyeIconSvg}
+            </button>
+            <button type="button" class="profile-collection-tool-btn" data-edit-col="${col.id}" title="Editar lista">
+              <i data-lucide="edit-2" width="13" height="13"></i>
+            </button>
+            <button type="button" class="profile-collection-tool-btn btn-delete" data-delete-col="${col.id}" title="Borrar lista">
+              <i data-lucide="trash-2" width="13" height="13"></i>
+            </button>
+          </div>
+        </div>
+        <div class="profile-collection-items-table">
+          ${itemsRows}
+        </div>
       </article>
     `;
   }).join('');
+
+  content.innerHTML += cardsHtml;
 }
 
 function renderNotesFeed() {
@@ -429,7 +558,7 @@ function renderNotesFeed() {
   if (!buildingsWithNotes.length) {
     content.innerHTML = `
       <div class="profile-feed-empty">
-        [ NO TIENES NOTAS PRIVADAS REGISTRADAS AÚN. ]
+        [ NO TIENES NOTAS PRIVADAS REGISTRADAS AÚN. REGISTRA TUS NOTAS EN CUALQUIER OBRA DESDE EL MAPA. ]
       </div>
     `;
     return;
@@ -441,17 +570,35 @@ function renderNotesFeed() {
     const photo = obra.foto_miniatura || obra.foto_url || '';
     const title = obra.nombre_obra || 'Obra';
     const year = obra.año_construccion ? ` · ${obra.año_construccion}` : '';
+    const architect = obra.arquitecto || obra.arquitectos || '';
 
     return `
-      <article class="profile-feed-note-item">
-        ${photo ? `
-          <img src="${escapeHtml(photo)}" alt="${escapeHtml(title)}" class="profile-feed-thumb" loading="lazy">
-        ` : `
-          <div class="profile-feed-thumb-fallback">📝</div>
-        `}
-        <div class="profile-feed-note-content">
-          <h3 class="profile-feed-title">${escapeHtml(title)}${escapeHtml(year)}</h3>
-          <p class="profile-feed-note-text">“${escapeHtml(noteText)}”</p>
+      <article class="profile-collection-card" data-note-building-id="${obra.id}">
+        <div class="profile-collection-card-head">
+          <div style="display:flex; align-items:center; gap:12px; min-width:0; flex:1;">
+            ${photo ? `
+              <img src="${escapeHtml(photo)}" alt="${escapeHtml(title)}" class="profile-feed-thumb" style="width:50px; height:50px; min-width:50px; min-height:50px;" loading="lazy">
+            ` : `
+              <div class="profile-feed-thumb-fallback" style="width:50px; height:50px; min-width:50px; min-height:50px; font-size:16px;">📝</div>
+            `}
+            <div style="min-width:0; flex:1;">
+              <a href="./index.html?obra=${encodeURIComponent(obra.id)}" class="profile-feed-title" style="font-size:14px; text-decoration:none;">${escapeHtml(title)}${escapeHtml(year)}</a>
+              <div class="profile-feed-meta" style="font-size:11px;">${escapeHtml(architect)}</div>
+            </div>
+          </div>
+          <div class="profile-collection-tools">
+            <button type="button" class="profile-card-action-btn" data-edit-note="${obra.id}" title="Editar nota">
+              <i data-lucide="edit-2" width="12" height="12"></i>
+              <span>EDITAR</span>
+            </button>
+            <button type="button" class="profile-card-action-btn danger" data-delete-note="${obra.id}" title="Eliminar nota">
+              <i data-lucide="trash-2" width="12" height="12"></i>
+              <span>BORRAR</span>
+            </button>
+          </div>
+        </div>
+        <div style="background:var(--bg-raised, #ECE6D8); padding:10px 12px; border-left:3px solid var(--accent, #E84E1B); font-size:13px; line-height:1.5; color:var(--fg);">
+          “${escapeHtml(noteText)}”
         </div>
       </article>
     `;
@@ -459,7 +606,368 @@ function renderNotesFeed() {
 }
 
 // -------------------------------------------------------------------------
-// 6. MODAL DE PERSONALIZACIÓN DE PERFIL
+// 6. GESTIÓN DE ACCIONES DE FEED (EVENT DELEGATION)
+// -------------------------------------------------------------------------
+function setupFeedActionHandlers() {
+  if (!content) return;
+
+  content.addEventListener('click', async (e) => {
+    const token = getSessionToken();
+    const user = profileState.user;
+    if (!token || !user) return;
+
+    // 1. Quitar de favoritos
+    const btnRemoveFav = e.target.closest('[data-remove-favorite]');
+    if (btnRemoveFav) {
+      const buildingId = btnRemoveFav.dataset.removeFavorite;
+      await toggleStatus(buildingId, { favorite: false });
+      return;
+    }
+
+    // 2. Quitar de visitados
+    const btnRemoveVisited = e.target.closest('[data-remove-visited]');
+    if (btnRemoveVisited) {
+      const buildingId = btnRemoveVisited.dataset.removeVisited;
+      await toggleStatus(buildingId, { visited: false });
+      return;
+    }
+
+    // 3. Crear lista desde el botón superior
+    const btnCreateCol = e.target.closest('#btn-create-collection-top');
+    if (btnCreateCol) {
+      abrirModalCrearLista();
+      return;
+    }
+
+    // 4. Editar colección
+    const btnEditCol = e.target.closest('[data-edit-col]');
+    if (btnEditCol) {
+      abrirModalEditarLista(btnEditCol.dataset.editCol);
+      return;
+    }
+
+    // 5. Borrar colección
+    const btnDeleteCol = e.target.closest('[data-delete-col]');
+    if (btnDeleteCol) {
+      await borrarColeccion(btnDeleteCol.dataset.deleteCol);
+      return;
+    }
+
+    // 6. Alternar mapa en colección
+    const btnToggleMap = e.target.closest('[data-toggle-map-col]');
+    if (btnToggleMap) {
+      const colId = btnToggleMap.dataset.toggleMapCol;
+      const col = profileState.collections.find((c) => String(c.id) === String(colId));
+      if (col) {
+        col.show_on_map = col.show_on_map === false ? true : false;
+        guardarColeccionesLocalmente();
+        renderFeedContent();
+      }
+      return;
+    }
+
+    // 7. Quitar obra de colección
+    const btnRemoveItem = e.target.closest('[data-remove-item]');
+    if (btnRemoveItem) {
+      const collectionId = btnRemoveItem.dataset.collectionId;
+      const buildingId = btnRemoveItem.dataset.removeItem;
+      await quitarObraDeColeccion(collectionId, buildingId);
+      return;
+    }
+
+    // 8. Editar nota
+    const btnEditNote = e.target.closest('[data-edit-note]');
+    if (btnEditNote) {
+      abrirModalEditarNota(btnEditNote.dataset.editNote);
+      return;
+    }
+
+    // 9. Borrar nota
+    const btnDeleteNote = e.target.closest('[data-delete-note]');
+    if (btnDeleteNote) {
+      await borrarNota(btnDeleteNote.dataset.deleteNote);
+      return;
+    }
+  });
+}
+
+// -------------------------------------------------------------------------
+// FUNCIONES CRUD
+// -------------------------------------------------------------------------
+async function toggleStatus(buildingId, statusUpdate) {
+  const token = getSessionToken();
+  const user = profileState.user;
+  if (!token || !user) return;
+
+  const current = profileState.statuses.get(String(buildingId)) || {};
+  const next = { ...current, ...statusUpdate };
+  profileState.statuses.set(String(buildingId), next);
+
+  // Sincronizar con state global y storage
+  state.buildingStatuses.set(String(buildingId), next);
+  localStorage.setItem(`nolli:building-status:${user.id}`, JSON.stringify([...state.buildingStatuses.entries()]));
+  localStorage.setItem('nolli_cached_statuses', JSON.stringify([...profileState.statuses.entries()].map(([id, s]) => ({ building_id: id, ...s }))));
+
+  renderMetrics();
+  renderFeedContent();
+
+  try {
+    await saveBuildingStatus(user.id, buildingId, next, token);
+  } catch (err) {
+    console.warn('Aviso sincronizando estado con Supabase:', err);
+  }
+}
+
+function guardarColeccionesLocalmente() {
+  const user = profileState.user;
+  if (!user) return;
+  state.userCollections = profileState.collections;
+  state.userCollectionItems = profileState.items;
+  guardarZonaPersonalLocal(user.id);
+}
+
+async function borrarColeccion(collectionId) {
+  const token = getSessionToken();
+  const user = profileState.user;
+  if (!token || !user || !collectionId) return;
+
+  const col = profileState.collections.find((c) => String(c.id) === String(collectionId));
+  if (!window.confirm(`¿Eliminar la lista "${col?.name || collectionId}"?`)) return;
+
+  profileState.collections = profileState.collections.filter((c) => String(c.id) !== String(collectionId));
+  profileState.items = profileState.items.filter((i) => String(i.collection_id) !== String(collectionId));
+  guardarColeccionesLocalmente();
+  renderFeedContent();
+
+  try {
+    await deleteUserCollection(collectionId, user.id, token);
+  } catch (err) {
+    console.warn('Aviso borrando lista en Supabase:', err);
+  }
+}
+
+async function quitarObraDeColeccion(collectionId, buildingId) {
+  const token = getSessionToken();
+  const user = profileState.user;
+  if (!token || !user || !collectionId || !buildingId) return;
+
+  profileState.items = profileState.items.filter(
+    (item) => !(String(item.collection_id) === String(collectionId) && String(item.building_id) === String(buildingId))
+  );
+  guardarColeccionesLocalmente();
+  renderFeedContent();
+
+  try {
+    await deleteUserCollectionItem(collectionId, user.id, buildingId, token);
+  } catch (err) {
+    console.warn('Aviso quitando obra de lista en Supabase:', err);
+  }
+}
+
+async function borrarNota(buildingId) {
+  if (!window.confirm('¿Eliminar la nota privada de esta obra?')) return;
+  await toggleStatus(buildingId, { notas: '' });
+}
+
+// -------------------------------------------------------------------------
+// 7. MODAL DE CREAR / EDITAR LISTA
+// -------------------------------------------------------------------------
+function setupCollectionModal() {
+  if (!modalCollection || !formCollection) return;
+
+  if (btnCloseCollection) {
+    btnCloseCollection.addEventListener('click', () => modalCollection.classList.remove('open'));
+  }
+  if (btnCancelCollection) {
+    btnCancelCollection.addEventListener('click', () => modalCollection.classList.remove('open'));
+  }
+  modalCollection.addEventListener('click', (e) => {
+    if (e.target === modalCollection) modalCollection.classList.remove('open');
+  });
+
+  formCollection.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const token = getSessionToken();
+    const user = profileState.user;
+    if (!token || !user) return;
+
+    const editId = document.getElementById('collection-edit-id')?.value || '';
+    const icon = document.getElementById('collection-icon')?.value.trim() || '🏛️';
+    const name = document.getElementById('collection-name')?.value.trim() || '';
+    const description = document.getElementById('collection-desc')?.value.trim() || '';
+    const show_on_map = Boolean(document.getElementById('collection-show-map')?.checked);
+
+    if (!name) return;
+
+    const submitBtn = document.getElementById('btn-save-collection');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.querySelector('span').textContent = '[ GUARDANDO... ]';
+    }
+
+    try {
+      if (editId) {
+        // Modificar lista existente
+        const col = profileState.collections.find((c) => String(c.id) === String(editId));
+        if (col) {
+          col.name = name;
+          col.icon = icon;
+          col.description = description;
+          col.show_on_map = show_on_map;
+        }
+        guardarColeccionesLocalmente();
+        renderFeedContent();
+        await updateUserCollection(editId, { name, icon, description, show_on_map }, token);
+      } else {
+        // Crear nueva lista
+        const newCol = {
+          id: `COL-${Date.now()}`,
+          user_id: user.id,
+          name,
+          icon,
+          description,
+          show_on_map,
+          created_at: new Date().toISOString(),
+        };
+        const created = await createUserCollection(newCol, token).catch(() => [newCol]);
+        const savedCol = (Array.isArray(created) && created[0]) ? { ...created[0], show_on_map } : newCol;
+        profileState.collections.push(savedCol);
+        guardarColeccionesLocalmente();
+        renderFeedContent();
+      }
+
+      modalCollection.classList.remove('open');
+    } catch (err) {
+      if (collectionStatus) {
+        collectionStatus.textContent = `[ ERROR: ${err.message || 'No se pudo guardar'} ]`;
+        collectionStatus.classList.remove('hidden');
+      }
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.querySelector('span').textContent = '[ GUARDAR LISTA ]';
+      }
+    }
+  });
+}
+
+function abrirModalCrearLista() {
+  if (!modalCollection) return;
+  const title = document.getElementById('modal-collection-title');
+  const editIdInput = document.getElementById('collection-edit-id');
+  const iconInput = document.getElementById('collection-icon');
+  const nameInput = document.getElementById('collection-name');
+  const descInput = document.getElementById('collection-desc');
+  const mapToggle = document.getElementById('collection-show-map');
+
+  if (title) title.textContent = '[ NUEVA LISTA ]';
+  if (editIdInput) editIdInput.value = '';
+  if (iconInput) iconInput.value = '🏛️';
+  if (nameInput) nameInput.value = '';
+  if (descInput) descInput.value = '';
+  if (mapToggle) mapToggle.checked = true;
+  if (collectionStatus) collectionStatus.classList.add('hidden');
+
+  modalCollection.classList.add('open');
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function abrirModalEditarLista(colId) {
+  if (!modalCollection) return;
+  const col = profileState.collections.find((c) => String(c.id) === String(colId));
+  if (!col) return;
+
+  const title = document.getElementById('modal-collection-title');
+  const editIdInput = document.getElementById('collection-edit-id');
+  const iconInput = document.getElementById('collection-icon');
+  const nameInput = document.getElementById('collection-name');
+  const descInput = document.getElementById('collection-desc');
+  const mapToggle = document.getElementById('collection-show-map');
+
+  if (title) title.textContent = '[ EDITAR LISTA ]';
+  if (editIdInput) editIdInput.value = col.id;
+  if (iconInput) iconInput.value = col.icon || '🏛️';
+  if (nameInput) nameInput.value = col.name || '';
+  if (descInput) descInput.value = col.description || '';
+  if (mapToggle) mapToggle.checked = col.show_on_map !== false;
+  if (collectionStatus) collectionStatus.classList.add('hidden');
+
+  modalCollection.classList.add('open');
+  if (window.lucide) window.lucide.createIcons();
+}
+
+// -------------------------------------------------------------------------
+// 8. MODAL DE NOTAS
+// -------------------------------------------------------------------------
+function setupNoteModal() {
+  if (!modalEditNote || !formEditNote) return;
+
+  if (btnCloseNote) {
+    btnCloseNote.addEventListener('click', () => modalEditNote.classList.remove('open'));
+  }
+  modalEditNote.addEventListener('click', (e) => {
+    if (e.target === modalEditNote) modalEditNote.classList.remove('open');
+  });
+
+  if (btnDeleteNoteModal) {
+    btnDeleteNoteModal.addEventListener('click', async () => {
+      const buildingId = document.getElementById('note-building-id')?.value;
+      if (!buildingId) return;
+      if (!window.confirm('¿Eliminar la nota privada de esta obra?')) return;
+      modalEditNote.classList.remove('open');
+      await toggleStatus(buildingId, { notas: '' });
+    });
+  }
+
+  formEditNote.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const buildingId = document.getElementById('note-building-id')?.value;
+    const text = document.getElementById('note-text-input')?.value.trim() || '';
+    if (!buildingId) return;
+
+    const submitBtn = document.getElementById('btn-save-note');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.querySelector('span').textContent = '[ GUARDANDO... ]';
+    }
+
+    try {
+      await toggleStatus(buildingId, { notas: text });
+      modalEditNote.classList.remove('open');
+    } catch (err) {
+      if (noteStatus) {
+        noteStatus.textContent = `[ ERROR: ${err.message || 'No se pudo guardar la nota'} ]`;
+        noteStatus.classList.remove('hidden');
+      }
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.querySelector('span').textContent = '[ GUARDAR NOTA ]';
+      }
+    }
+  });
+}
+
+function abrirModalEditarNota(buildingId) {
+  if (!modalEditNote) return;
+  const obra = obraFor(buildingId);
+  const status = profileState.statuses.get(String(buildingId)) || {};
+
+  const buildingIdInput = document.getElementById('note-building-id');
+  const buildingTitle = document.getElementById('modal-note-building-title');
+  const noteTextInput = document.getElementById('note-text-input');
+
+  if (buildingIdInput) buildingIdInput.value = buildingId;
+  if (buildingTitle) buildingTitle.textContent = obra?.nombre_obra ? obra.nombre_obra.toUpperCase() : `EDIFICIO #${buildingId}`;
+  if (noteTextInput) noteTextInput.value = status.notas || '';
+  if (noteStatus) noteStatus.classList.add('hidden');
+
+  modalEditNote.classList.add('open');
+  if (window.lucide) window.lucide.createIcons();
+}
+
+// -------------------------------------------------------------------------
+// 9. MODAL DE PERSONALIZACIÓN DE PERFIL
 // -------------------------------------------------------------------------
 function setupEditProfileModal() {
   if (settingsBtn && modalEditProfile) {
@@ -537,7 +1045,6 @@ function setupEditProfileModal() {
           upsertCurrentProfile(user, updatedProfile, token),
         ]);
 
-        // Actualizar estado de perfil en base de datos local
         profileState.dbProfile = {
           ...(profileState.dbProfile || {}),
           id: user.id,
@@ -550,7 +1057,6 @@ function setupEditProfileModal() {
         };
         localStorage.setItem('nolli_cached_db_profile', JSON.stringify(profileState.dbProfile));
 
-        // Actualizar estado de usuario
         user.user_metadata = {
           ...user.user_metadata,
           first_name: firstName,
@@ -595,3 +1101,4 @@ if (document.readyState === 'loading') {
 } else {
   init();
 }
+
