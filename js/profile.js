@@ -82,16 +82,6 @@ const noteStatus = document.getElementById('note-modal-status');
 let activeTab = 'collections'; // 'collections' | 'favorite' | 'visited' | 'notes'
 let loginInitialized = false;
 
-let profileState = {
-  user: null,
-  dbProfile: null,
-  buildings: [],
-  statuses: new Map(),
-  collections: [],
-  items: [],
-  labels: [],
-};
-
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>'"]/g, (character) => ({
     '&': '&amp;',
@@ -325,13 +315,18 @@ async function init() {
     renderMetrics();
     renderFeedContent();
   } catch (error) {
-    console.warn('Sesión caducada o error de red:', error);
-    localStorage.removeItem(SESSION_KEY);
-    sessionStorage.removeItem(SESSION_KEY);
-    if (authRequired) authRequired.classList.remove('hidden');
-    if (app) app.classList.add('hidden');
-    if (logoutBtn) logoutBtn.classList.add('hidden');
-    if (settingsBtn) settingsBtn.classList.add('hidden');
+    console.warn('Aviso sincronizando perfil con servidor:', error);
+    // Si tenemos usuario o datos en caché local, mantener la vista activa
+    if (profileState.user || localStorage.getItem('nolli_cached_user')) {
+      renderHero();
+      renderMetrics();
+      renderFeedContent();
+    } else {
+      if (authRequired) authRequired.classList.remove('hidden');
+      if (app) app.classList.add('hidden');
+      if (logoutBtn) logoutBtn.classList.add('hidden');
+      if (settingsBtn) settingsBtn.classList.add('hidden');
+    }
   }
 
   if (window.lucide) window.lucide.createIcons();
@@ -982,8 +977,9 @@ function setupCollectionModal() {
         await updateUserCollection(editId, { name, icon, description, status, show_on_map }, token);
       } else {
         // Crear nueva lista
+        const fallbackId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now());
         const newCol = {
-          id: `COL-${Date.now()}`,
+          id: fallbackId,
           user_id: user.id,
           name,
           icon,
@@ -994,7 +990,7 @@ function setupCollectionModal() {
           created_at: new Date().toISOString(),
         };
         const created = await createUserCollection(newCol, token).catch(() => [newCol]);
-        const savedCol = (Array.isArray(created) && created[0]) ? { ...created[0], show_on_map, status } : newCol;
+        const savedCol = (Array.isArray(created) && created[0]) ? { ...created[0], show_on_map, status } : (created?.id ? { ...created, show_on_map, status } : newCol);
         profileState.collections.push(savedCol);
         guardarColeccionesLocalmente();
         renderFeedContent();

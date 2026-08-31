@@ -363,8 +363,8 @@ async function createOrganizerItem() {
   if (!building || !name) return;
   try {
     if (organizerMode === 'collections') {
-      const created = await createUserCollection({ id: `COL-${Date.now()}`, user_id: state.userId, name }, state.sessionToken);
-      const newCol = (Array.isArray(created) && created[0]) ? created[0] : { id: `COL-${Date.now()}`, user_id: state.userId, name };
+      const created = await createUserCollection({ user_id: state.userId, name, status: 'private' }, state.sessionToken);
+      const newCol = (Array.isArray(created) && created[0]) ? created[0] : (created?.id ? created : { id: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()), user_id: state.userId, name, status: 'private' });
       state.userCollections.push(newCol);
     } else if (!state.userPrivateLabels.some((item) => String(item.building_id) === String(building.id) && String(item.label).toLowerCase() === name.toLowerCase())) {
       const created = await createUserPrivateLabel({ user_id: state.userId, building_id: building.id, label: name }, state.sessionToken);

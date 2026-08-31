@@ -78,27 +78,68 @@ CREATE POLICY "Admins can view and manage reports" ON public.reports
   );
 
 -- 4. COLECCIONES PÚBLICAS/PRIVADAS Y LISTAS SEGUIDAS (COLABORATIVAS)
+CREATE TABLE IF NOT EXISTS public.user_collections (
+  id TEXT PRIMARY KEY,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  icon TEXT,
+  description TEXT,
+  status TEXT DEFAULT 'private' CHECK (status IN ('private', 'public')),
+  is_public BOOLEAN DEFAULT false,
+  show_on_map BOOLEAN DEFAULT true
+);
+
 DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'user_collections') THEN
     ALTER TABLE public.user_collections 
       ADD COLUMN IF NOT EXISTS is_public BOOLEAN DEFAULT false,
-      ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'private';
+      ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'private',
+      ADD COLUMN IF NOT EXISTS show_on_map BOOLEAN DEFAULT true;
     
     -- Sincronizar columna status con is_public si existía previamente
     UPDATE public.user_collections 
-      SET status = 'public' 
-      WHERE (is_public = true OR status = 'public') AND status <> 'public';
+      SET status = 'public', is_public = true 
+      WHERE (is_public = true OR status = 'public');
+
+    UPDATE public.user_collections 
+      SET status = 'private', is_public = false 
+      WHERE status IS NULL OR (status <> 'public' AND status <> 'private');
   END IF;
 END $$;
 
 CREATE INDEX IF NOT EXISTS idx_user_collections_status ON public.user_collections(status);
 CREATE INDEX IF NOT EXISTS idx_user_collections_is_public ON public.user_collections(is_public);
+CREATE INDEX IF NOT EXISTS idx_user_collections_user_id ON public.user_collections(user_id);
+
+-- Trigger para sincronizar automáticamente status e is_public
+CREATE OR REPLACE FUNCTION public.sync_user_collections_status()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.status IS NOT NULL THEN
+    NEW.is_public := (NEW.status = 'public');
+  ELSIF NEW.is_public IS NOT NULL THEN
+    NEW.status := CASE WHEN NEW.is_public THEN 'public' ELSE 'private' END;
+  ELSE
+    NEW.status := 'private';
+    NEW.is_public := false;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_sync_user_collections_status ON public.user_collections;
+CREATE TRIGGER trg_sync_user_collections_status
+  BEFORE INSERT OR UPDATE ON public.user_collections
+  FOR EACH ROW
+  EXECUTE FUNCTION public.sync_user_collections_status();
 
 -- Tabla de Listas Seguidas / Guardadas de otros usuarios
+DROP TABLE IF EXISTS public.user_followed_collections CASCADE;
 CREATE TABLE IF NOT EXISTS public.user_followed_collections (
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-  collection_id UUID REFERENCES public.user_collections(id) ON DELETE CASCADE,
+  collection_id TEXT REFERENCES public.user_collections(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   PRIMARY KEY (user_id, collection_id)
 );
@@ -106,6 +147,7 @@ CREATE TABLE IF NOT EXISTS public.user_followed_collections (
 CREATE INDEX IF NOT EXISTS idx_user_followed_collections_user ON public.user_followed_collections(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_followed_collections_collection ON public.user_followed_collections(collection_id);
 
+ALTER TABLE public.user_collections ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_followed_collections ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Users can manage own followed collections" ON public.user_followed_collections;

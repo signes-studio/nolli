@@ -389,8 +389,9 @@ async function crearListaDesdeModal() {
     return;
   }
 
+  const fallbackId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now());
   const newCollectionPayload = {
-    id: `COL-${Date.now()}`,
+    id: fallbackId,
     user_id: state.userId,
     name,
     icon,
@@ -403,7 +404,7 @@ async function crearListaDesdeModal() {
 
   try {
     const created = await createUserCollection({
-      id: newCollectionPayload.id,
+      id: fallbackId,
       user_id: newCollectionPayload.user_id,
       name: newCollectionPayload.name,
       icon: newCollectionPayload.icon,
@@ -412,7 +413,7 @@ async function crearListaDesdeModal() {
       show_on_map: newCollectionPayload.show_on_map,
     }, state.sessionToken);
 
-    const savedCollection = (Array.isArray(created) && created[0]) ? { ...created[0], show_on_map, status } : newCollectionPayload;
+    const savedCollection = (Array.isArray(created) && created[0]) ? { ...created[0], show_on_map, status } : (created?.id ? { ...created, show_on_map, status } : newCollectionPayload);
     state.userCollections.push(savedCollection);
     guardarZonaPersonalLocal(state.userId);
     registrarIconosColecciones();
