@@ -417,6 +417,10 @@ export function cargarMapaMapbox() {
     });
 
     iniciarInteraccionesMapa();
+
+    if (state.userLocation) {
+      actualizarMarcadorUbicacion(state.userLocation);
+    }
   };
 
   state.map.on('load', configurarCapas);
@@ -568,17 +572,27 @@ export function actualizarMarcadorUbicacion(coordinates) {
     ? coordinates
     : [coordinates.lng, coordinates.lat];
 
+  if (!Number.isFinite(lngLat[0]) || !Number.isFinite(lngLat[1])) return;
+
   state.userLocation = { lng: lngLat[0], lat: lngLat[1] };
 
   if (!state.locationMarker) {
     const markerElement = document.createElement('div');
     markerElement.className = 'location-marker';
-    markerElement.innerHTML = '<span class="location-pulse"></span><span class="location-core"></span>';
+    markerElement.innerHTML = '<span class="location-pulse"></span><span class="location-reticle"></span><span class="location-core"></span>';
     markerElement.setAttribute('aria-label', 'Tu ubicación actual');
-    state.locationMarker = new mapboxgl.Marker({ element: markerElement })
+    state.locationMarker = new mapboxgl.Marker({
+      element: markerElement,
+      pitchAlignment: 'map',
+      rotationAlignment: 'map'
+    })
       .setLngLat(lngLat)
       .addTo(state.map);
   } else {
+    const markerEl = state.locationMarker.getElement();
+    if (!markerEl || !markerEl.parentNode) {
+      state.locationMarker.addTo(state.map);
+    }
     state.locationMarker.setLngLat(lngLat);
   }
 

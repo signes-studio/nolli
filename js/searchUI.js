@@ -1,8 +1,4 @@
-/* =========================================================================
-   SEARCHUI.JS — Búsqueda de arquitectos con filtrado en cascada hacia edificios
-   ========================================================================= */
-
-import { state, separarArquitectos, transformarEdificio } from './state.js';
+import { state, separarArquitectos, transformarEdificio, normalizarCategoria, nombreCategoria, CATEGORY_COLORS, escapeHtml } from './state.js';
 import { abrirFicha } from './sheetUI.js';
 import { searchPlaces, fetchBuildings } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
@@ -22,20 +18,32 @@ let currentSearchResults = [];
 
 let cacheObrasGlobales = null;
 
-const COLORES_CATEGORIA = {
-  'residencial': '#E95C0C',
-  'dotacional_equipamiento': '#4388C6',
-  'religioso_funerario': '#F2ACCD',
-  'comercial_terciario': '#EFBC02',
-  'espacio_publico_paisaje': '#0d682f',
-  'infraestructura_urbanismo': '#D6201D',
-  'industrial_logistico': '#691B14',
-  'otro': '#064773'
-};
+function renderizarTarjetaObra(obra, distance = null) {
+  const catClave = normalizarCategoria(obra.categoria);
+  const catTexto = nombreCategoria(obra.categoria);
+  const catColor = CATEGORY_COLORS[catClave] || '#E84E1B';
 
-function obtenerColorCategoria(categoria) {
-  const catKey = normalizarTexto(categoria || 'otro').replace(/\s+/g, '_');
-  return COLORES_CATEGORIA[catKey] || COLORES_CATEGORIA['otro'];
+  const titulo = escapeHtml(obra.nombre_obra || 'OBRA SIN TÍTULO').toUpperCase();
+  const arq = escapeHtml(obra.arquitecto || 'Desconocido');
+  const anio = obra.año_construccion ? escapeHtml(String(obra.año_construccion)) : '';
+  
+  const metaParts = [arq];
+  if (anio) metaParts.push(anio);
+  if (distance != null && state.userLocation && Number.isFinite(distance)) {
+    metaParts.push(formatearDistancia(distance));
+  }
+
+  return `
+    <button type="button" class="nearby-item search-work-card" data-feature-id="${escapeHtml(obra.featureId)}" data-lng="${obra.coordenadas[0]}" data-lat="${obra.coordenadas[1]}" aria-label="Ver obra ${titulo}">
+      <div class="search-card-main">
+        <div class="search-card-title">${titulo}</div>
+        <div class="search-card-meta">
+          <span class="search-cat-tag" style="color:${catColor}; border-color:${catColor};">[ ${escapeHtml(catTexto)} ]</span>
+          <span class="search-meta-text">· ${metaParts.join(' · ')}</span>
+        </div>
+      </div>
+    </button>
+  `;
 }
 
 export function initSearchUI() {
@@ -149,10 +157,6 @@ async function buscarUbicaciones(query) {
   }
 }
 
-function escapeHtml(value) {
-  return String(value ?? '').replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character]));
-}
-
 function actualizarOpciones() {
   const previousArchitect = architectInput.value;
   architectInput.value = previousArchitect;
@@ -227,18 +231,9 @@ async function ejecutarBusquedaGlobal() {
 
     const topCercanos = resultadosConDistancia.slice(0, 10);
 
-    searchResults.innerHTML = topCercanos.map(({ obra, distance }) => {
-      const colorCat = obtenerColorCategoria(obra.categoria);
-      return `
-        <button type="button" class="nearby-item" data-feature-id="${obra.featureId}" data-lng="${obra.coordenadas[0]}" data-lat="${obra.coordenadas[1]}">
-          <span class="nearby-name">
-            <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color:${colorCat}; margin-right:8px; vertical-align:middle;"></span>
-            ${escapeHtml(obra.nombre_obra)}
-          </span>
-          <span class="nearby-meta">${state.userLocation ? formatearDistancia(distance) : escapeHtml(obra.arquitecto || '')}</span>
-        </button>
-      `;
-    }).join('');
+    searchResults.innerHTML = topCercanos.map(({ obra, distance }) => 
+      renderizarTarjetaObra(obra, distance)
+    ).join('');
     return;
   }
 
@@ -256,23 +251,14 @@ async function ejecutarBusquedaGlobal() {
     }
 
     const filterHeader = `
-      <button type="button" class="nearby-item btn-apply-search-filter" data-action="filter-text-map" style="background:#111111; color:#F4F1EA; font-family:'League Spartan', sans-serif; font-weight:800; font-size:11px; justify-content:center; text-transform:uppercase; border-bottom:2px solid var(--accent, #E84E1B);">
+      <button type="button" class="nearby-item btn-apply-search-filter" data-action="filter-text-map">
         <span>[ VER TODAS LAS ${obrasFiltradas.length} OBRAS EN EL MAPA ]</span>
       </button>
     `;
 
     const listHtml = obrasFiltradas.slice(0, 20).map((obra) => {
-      const distance = state.userLocation ? distanciaEnKm(state.userLocation, obra.coordenadas) : 0;
-      const colorCat = obtenerColorCategoria(obra.categoria);
-      return `
-        <button type="button" class="nearby-item" data-feature-id="${obra.featureId}" data-lng="${obra.coordenadas[0]}" data-lat="${obra.coordenadas[1]}">
-          <span class="nearby-name">
-            <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color:${colorCat}; margin-right:8px; vertical-align:middle;"></span>
-            ${escapeHtml(obra.nombre_obra)}
-          </span>
-          <span class="nearby-meta">${state.userLocation ? formatearDistancia(distance) : escapeHtml(obra.arquitecto || '')}</span>
-        </button>
-      `;
+      const distance = state.userLocation ? distanciaEnKm(state.userLocation, obra.coordenadas) : null;
+      return renderizarTarjetaObra(obra, distance);
     }).join('');
 
     searchResults.innerHTML = filterHeader + listHtml;
@@ -435,32 +421,23 @@ async function mostrarEdificiosDeArquitecto(nombreArquitecto) {
   }
 
   const filterHeader = `
-    <button type="button" class="nearby-item btn-apply-search-filter" data-action="filter-architect-map" style="background:#111111; color:#F4F1EA; font-family:'League Spartan', sans-serif; font-weight:800; font-size:11px; justify-content:center; text-transform:uppercase; border-bottom:2px solid var(--accent, #E84E1B);">
+    <button type="button" class="nearby-item btn-apply-search-filter" data-action="filter-architect-map">
       <span>[ VER TODAS LAS ${obrasDelArquitecto.length} OBRAS EN EL MAPA ]</span>
     </button>
   `;
 
   const resultadosConDistancia = obrasDelArquitecto.map((obra) => {
-    const distance = state.userLocation ? distanciaEnKm(state.userLocation, obra.coordenadas) : 0;
+    const distance = state.userLocation ? distanciaEnKm(state.userLocation, obra.coordenadas) : null;
     return { obra, distance };
   });
 
   if (state.userLocation) {
-    resultadosConDistancia.sort((a, b) => a.distance - b.distance);
+    resultadosConDistancia.sort((a, b) => (a.distance ?? 0) - (b.distance ?? 0));
   }
 
-  const listHtml = resultadosConDistancia.map(({ obra, distance }) => {
-    const colorCat = obtenerColorCategoria(obra.categoria);
-    return `
-      <button type="button" class="nearby-item" data-feature-id="${obra.featureId}" data-lng="${obra.coordenadas[0]}" data-lat="${obra.coordenadas[1]}">
-        <span class="nearby-name">
-          <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color:${colorCat}; margin-right:8px; vertical-align:middle;"></span>
-          ${escapeHtml(obra.nombre_obra)}
-        </span>
-        <span class="nearby-meta">${state.userLocation ? formatearDistancia(distance) : escapeHtml(obra.arquitecto || '')}</span>
-      </button>
-    `;
-  }).join('');
+  const listHtml = resultadosConDistancia.map(({ obra, distance }) => 
+    renderizarTarjetaObra(obra, distance)
+  ).join('');
 
   searchResults.innerHTML = filterHeader + listHtml;
 }
