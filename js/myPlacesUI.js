@@ -37,25 +37,27 @@ function escapeHtml(value) {
 }
 
 export function initMyPlacesUI() {
-  button.addEventListener('click', () => {
-    if (!state.sessionToken) {
-      alert('Inicia sesión para consultar tu zona personal.');
-      return;
-    }
-    const isOpen = panel.classList.toggle('open');
-    button.classList.toggle('active-state');
-    if (isOpen) {
-      cargarZonaPersonalLocal(state.userId);
-      renderList();
-      asegurarObrasEnMemoria();
-      syncZonaPersonal();
-    }
-  });
+  if (button) {
+    button.addEventListener('click', () => {
+      if (!state.sessionToken) {
+        alert('Inicia sesión para consultar tu zona personal.');
+        return;
+      }
+      const isOpen = panel.classList.toggle('open');
+      button.classList.toggle('active-state');
+      if (isOpen) {
+        cargarZonaPersonalLocal(state.userId);
+        renderList();
+        asegurarObrasEnMemoria();
+        syncZonaPersonal();
+      }
+    });
+  }
 
   document.addEventListener('click', (event) => {
     if (event.target.closest('#btn-my-places-close')) {
-      panel.classList.remove('open');
-      button.classList.remove('active-state');
+      panel?.classList.remove('open');
+      button?.classList.remove('active-state');
     }
 
     const tab = event.target.closest('[data-place-tab]');

@@ -26,10 +26,12 @@ const cityCache = new Map();
 let ratingAverages = new Map();
 
 export function initAdminUI() {
-  button.addEventListener('click', () => {
-    panel.classList.toggle('open');
-    if (panel.classList.contains('open')) { renderList(); renderReports(); }
-  });
+  if (button) {
+    button.addEventListener('click', () => {
+      panel.classList.toggle('open');
+      if (panel.classList.contains('open')) { renderList(); renderReports(); }
+    });
+  }
   search.addEventListener('input', renderList);
   document.addEventListener('click', (event) => {
     const tab = event.target.closest('[data-admin-tab]');
@@ -70,24 +72,41 @@ export function initAdminUI() {
     if (reportBuilding) abrirProyectoDesdeReporte(reportBuilding.dataset.reportBuilding);
   });
 
+  const checkAdminVisibility = () => {
+    const isAdmin = esRolAdmin(state.userRole);
+    button?.classList.toggle('hidden', !isAdmin || state.adminMode === false);
+    usersTab?.classList.toggle('hidden', state.userRole !== 'superadmin');
+    if (isAdmin && window.location.hash === '#admin' && panel) {
+      panel.classList.add('open');
+      renderList();
+      renderReports();
+    }
+  };
+
+  checkAdminVisibility();
+
   document.addEventListener('radar:admin-login', () => {
-    button.classList.remove('hidden');
-    usersTab.classList.toggle('hidden', state.userRole !== 'superadmin');
+    checkAdminVisibility();
+    cargarMedias();
+    renderReports();
+  });
+  document.addEventListener('radar:user-session-ready', () => {
+    checkAdminVisibility();
   });
   document.addEventListener('radar:admin-mode-change', () => {
-    button.classList.toggle('hidden', !state.adminMode);
-    if (!state.adminMode) panel.classList.remove('open');
+    button?.classList.toggle('hidden', !state.adminMode);
+    if (!state.adminMode) panel?.classList.remove('open');
   });
   document.addEventListener('radar:logout', () => {
-    button.classList.add('hidden');
-    panel.classList.remove('open');
-    usersTab.classList.add('hidden');
+    button?.classList.add('hidden');
+    panel?.classList.remove('open');
+    usersTab?.classList.add('hidden');
   });
   document.addEventListener('radar:data-ready', renderList);
-  document.addEventListener('radar:user-login', () => button.classList.add('hidden'));
-  document.addEventListener('radar:admin-login', cargarMedias);
+  document.addEventListener('radar:user-login', () => {
+    if (!esRolAdmin(state.userRole)) button?.classList.add('hidden');
+  });
   document.addEventListener('radar:buildings-changed', renderList);
-  document.addEventListener('radar:admin-login', renderReports);
 }
 
 async function cargarMedias() {

@@ -45,8 +45,10 @@ async function initLoginModal() {
   const marcarSesionIniciada = (role) => {
     const canUseAdminTools = esRolAdmin(role);
     state.adminMode = canUseAdminTools;
-    adminModeControl.classList.toggle('hidden', !canUseAdminTools);
-    adminModeToggle.checked = state.adminMode;
+    if (adminModeControl) adminModeControl.classList.toggle('hidden', !canUseAdminTools);
+    if (adminModeToggle) adminModeToggle.checked = state.adminMode;
+    const btnAdminPanel = document.getElementById('btn-admin-panel');
+    if (btnAdminPanel) btnAdminPanel.classList.toggle('hidden', !canUseAdminTools);
     bLoginT.textContent = canUseAdminTools ? '[ ADMIN DESBLOQUEADO ]' : '[ SESIÓN INICIADA ]';
     bLoginT.style.color = 'var(--accent-2)';
     bLoginT.style.borderColor = 'var(--accent-2)';

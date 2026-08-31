@@ -265,6 +265,7 @@ async function init() {
       profileState.dbProfile = dbProfile;
       localStorage.setItem('nolli_cached_db_profile', JSON.stringify(dbProfile));
     }
+    syncAdminBadge();
 
     profileState.statuses = new Map(statuses.map((item) => [String(item.building_id), {
       favorite: item.favorite === true,
@@ -344,6 +345,14 @@ function renderHero() {
     const website = websiteRaw ? ` · ${websiteRaw.replace(/^https?:\/\//, '')}` : '';
     subEl.textContent = `${bio} | ${location}${website}`;
   }
+  syncAdminBadge();
+}
+
+function syncAdminBadge() {
+  const btnAdmin = document.getElementById('btn-profile-admin');
+  const role = String(profileState.dbProfile?.role || profileState.user?.user_metadata?.role || '').toLowerCase();
+  const isAdmin = role === 'admin' || role === 'superadmin';
+  if (btnAdmin) btnAdmin.classList.toggle('hidden', !isAdmin);
 }
 
 // -------------------------------------------------------------------------
