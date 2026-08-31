@@ -80,8 +80,8 @@ export async function fetchBuildingsInRadius({ lon, lat, radiusMeters = 10000, s
   return results;
 }
 
-/** Descarga las obras públicas del encuadre y nivel de zoom actuales. */
-export async function fetchBuildings({ bounds, zoom, architect, includeAllImportance = false, signal } = {}) {
+/** Descarga las obras públicas del encuadre y nivel de zoom actuales con precarga de buffer periférico. */
+export async function fetchBuildings({ bounds, zoom, architect, includeAllImportance = true, bufferRatio = 0.75, signal } = {}) {
   const pageSize = 1000;
   const buildings = [];
   let start = 0;
@@ -89,14 +89,23 @@ export async function fetchBuildings({ bounds, zoom, architect, includeAllImport
   const params = new URLSearchParams({ select: publicFields, order: 'id.asc' });
   if (bounds) {
     const [[minLongitude, minLatitude], [maxLongitude, maxLatitude]] = bounds.toArray();
-    params.append('longitud', `gte.${minLongitude}`);
-    params.append('latitud', `gte.${minLatitude}`);
-    params.append('longitud', `lte.${maxLongitude}`);
-    params.append('latitud', `lte.${maxLatitude}`);
+    // Expandir el bounding box en un 75% para precargar la zona colindante y lograr desplazamiento 60 FPS sin lag
+    const lonDelta = (maxLongitude - minLongitude) * bufferRatio;
+    const latDelta = (maxLatitude - minLatitude) * bufferRatio;
+    const fetchMinLon = minLongitude - lonDelta;
+    const fetchMaxLon = maxLongitude + lonDelta;
+    const fetchMinLat = minLatitude - latDelta;
+    const fetchMaxLat = maxLatitude + latDelta;
+
+    params.append('longitud', `gte.${fetchMinLon}`);
+    params.append('latitud', `gte.${fetchMinLat}`);
+    params.append('longitud', `lte.${fetchMaxLon}`);
+    params.append('latitud', `lte.${fetchMaxLat}`);
   }
   if (architect) params.set('arquitecto', `ilike.*${architect}*`);
-  const maxImportance = includeAllImportance ? 3 : Number(zoom) >= 13.5 ? 3 : Number(zoom) >= 8 ? 2 : 1;
-  params.set('importancia', `lte.${maxImportance}`);
+  if (!includeAllImportance && Number(zoom) < 8) {
+    params.set('importancia', 'lte.2');
+  }
 
   while (true) {
     try {
@@ -454,13 +463,18 @@ export async function requestPasswordReset(email) {
   return data;
 }
 
-/** Registra un usuario público con metadatos básicos de perfil. */
+/** Registra un usuario público con metadatos de perfil y auditoría de consentimiento legal (GDPR). */
 export async function registerUser(email, password, profile = {}) {
+  const timestamp = new Date().toISOString();
   const metadata = {
     first_name: String(profile.firstName || '').trim(),
     last_name: String(profile.lastName || '').trim(),
     city: String(profile.city || '').trim(),
     country: String(profile.country || '').trim(),
+    accepted_terms: true,
+    accepted_terms_at: timestamp,
+    newsletter_consent: Boolean(profile.newsletter),
+    newsletter_consent_at: profile.newsletter ? timestamp : null,
   };
   const res = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
     method: 'POST',

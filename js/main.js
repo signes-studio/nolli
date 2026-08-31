@@ -70,13 +70,20 @@ async function cargarEdificiosVisibles() {
     if (requestId !== publicLoadRequest) return;
     state.BUILDING_CATALOG = catalogo.map((fila) => ({ ...fila, categoria: normalizarCategoria(fila.categoria) }));
     state.ARQUITECTOS = [...new Set(state.BUILDING_CATALOG.flatMap((fila) => separarArquitectos(fila.arquitecto)))];
-    const estadosAnteriores = new Map(state.OBRAS.map((obra) => [String(obra.id), obra]));
-    const datosPublicos = datosDB.map((fila, index) => {
+    const mapaObras = new Map(state.OBRAS.map((obra) => [String(obra.id), obra]));
+    datosDB.forEach((fila, index) => {
+      const idStr = String(fila.id);
+      const anterior = mapaObras.get(idStr);
       const edificio = transformarEdificio(fila, index);
-      return { ...edificio, selected: estadosAnteriores.get(String(edificio.id))?.selected || false };
+      mapaObras.set(idStr, {
+        ...edificio,
+        selected: anterior ? anterior.selected : false,
+      });
     });
     const datosPrivados = state.OBRAS.filter((obra) => obra.private || obra.estado_revision === 'pendiente');
-    state.OBRAS = [...datosPublicos, ...datosPrivados];
+    datosPrivados.forEach((obra) => mapaObras.set(String(obra.id), obra));
+    state.OBRAS = Array.from(mapaObras.values());
+
     state.activeArquitectos = habiaFiltroDeArquitectos
       ? new Set([...arquitectosActivosAnteriores].filter((arquitecto) => state.ARQUITECTOS.includes(arquitecto)))
       : new Set(state.ARQUITECTOS);
@@ -94,7 +101,7 @@ async function cargarEdificiosVisibles() {
 
 function programarCargaEdificiosVisibles() {
   clearTimeout(publicLoadTimer);
-  publicLoadTimer = setTimeout(cargarEdificiosVisibles, 120);
+  publicLoadTimer = setTimeout(cargarEdificiosVisibles, 180);
 }
 
 async function verificarParametroObraURL() {
@@ -141,7 +148,11 @@ async function inicializarRadar() {
         );
       }
     });
-    state.map.on('moveend', programarCargaEdificiosVisibles);
+    state.map.on('move', programarCargaEdificiosVisibles);
+    state.map.on('moveend', () => {
+      clearTimeout(publicLoadTimer);
+      cargarEdificiosVisibles();
+    });
     document.addEventListener('radar:filters-changed', programarCargaEdificiosVisibles);
   } catch (error) {
     console.warn('Aviso de inicialización del mapa:', error);

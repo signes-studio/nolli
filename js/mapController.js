@@ -133,18 +133,39 @@ export function cargarMapaMapbox() {
     });
     actualizarFuenteMapa();
 
+    // 1. Indicador Sutil de Obras Favoritas (Fino contorno técnico perimetral que acompaña al icono)
     state.map.addLayer({
-      id: 'obras-favorites-halo',
+      id: 'obras-favorites-contour',
       type: 'circle',
       source: 'obras',
       filter: ['all', ['!', ['has', 'point_count']], ['==', ['get', 'favorite'], 1]],
       paint: {
-        'circle-radius': 13,
-        'circle-color': '#E95C0C',
-        'circle-opacity': 0.32,
-        'circle-blur': 0.55,
+        'circle-radius': 13.5,
+        'circle-color': 'transparent',
+        'circle-stroke-color': '#E84E1B',
+        'circle-stroke-width': 1.2,
+        'circle-stroke-opacity': 0.85,
+        'circle-blur': 0,
+        'circle-opacity': 1,
       },
     });
+
+    state.map.addLayer({
+      id: 'obras-maestras-favorites-contour',
+      type: 'circle',
+      source: 'obras-maestras',
+      filter: ['==', ['get', 'favorite'], 1],
+      paint: {
+        'circle-radius': 16,
+        'circle-color': 'transparent',
+        'circle-stroke-color': '#E84E1B',
+        'circle-stroke-width': 1.4,
+        'circle-stroke-opacity': 0.9,
+        'circle-blur': 0,
+        'circle-opacity': 1,
+      },
+    });
+
     state.map.addLayer({
       id: 'obras-clusters',
       type: 'circle',
@@ -168,62 +189,101 @@ export function cargarMapaMapbox() {
       },
     });
 
+    // 2. Indicador de Elemento Seleccionado (Diana CAD de Precisión + Sombra Dura Desplazada en Seco)
+    // Sombra dura offset en negro sólido
     state.map.addLayer({
-      id: 'obras-selected-halo-outer',
+      id: 'obras-selected-offset-shadow',
       type: 'circle',
       source: 'obras',
-      filter: ['==', ['get', 'selected'], 1],
-      paint: {
-        'circle-radius': 22,
-        'circle-color': 'transparent',
-        'circle-stroke-color': '#E84E1B',
-        'circle-stroke-width': 1,
-        'circle-stroke-opacity': 0.45,
-      },
-    });
-
-    state.map.addLayer({
-      id: 'obras-selected-halo',
-      type: 'circle',
-      source: 'obras',
-      filter: ['==', ['get', 'selected'], 1],
-      paint: {
-        'circle-radius': 16,
-        'circle-color': 'rgba(232, 78, 27, 0.08)',
-        'circle-stroke-color': '#E84E1B',
-        'circle-stroke-width': 1.6,
-      },
-    });
-
-    state.map.addLayer({
-      id: 'obras-maestras-selected-halo-outer',
-      type: 'circle',
-      source: 'obras-maestras',
-      filter: ['==', ['get', 'selected'], 1],
-      paint: {
-        'circle-radius': 24,
-        'circle-color': 'transparent',
-        'circle-stroke-color': '#E84E1B',
-        'circle-stroke-width': 1,
-        'circle-stroke-opacity': 0.5,
-      },
-    });
-
-    state.map.addLayer({
-      id: 'obras-maestras-selected-halo',
-      type: 'circle',
-      source: 'obras-maestras',
       filter: ['==', ['get', 'selected'], 1],
       paint: {
         'circle-radius': 18,
-        'circle-color': 'rgba(232, 78, 27, 0.10)',
+        'circle-color': isDark ? '#000000' : '#141411',
+        'circle-translate': [3.5, 3.5],
+        'circle-blur': 0,
+        'circle-opacity': 1,
+      },
+    });
+
+    state.map.addLayer({
+      id: 'obras-maestras-selected-offset-shadow',
+      type: 'circle',
+      source: 'obras-maestras',
+      filter: ['==', ['get', 'selected'], 1],
+      paint: {
+        'circle-radius': 21,
+        'circle-color': isDark ? '#000000' : '#141411',
+        'circle-translate': [4, 4],
+        'circle-blur': 0,
+        'circle-opacity': 1,
+      },
+    });
+
+    // Caja/Marco de precisión exterior
+    state.map.addLayer({
+      id: 'obras-selected-cad-box',
+      type: 'circle',
+      source: 'obras',
+      filter: ['==', ['get', 'selected'], 1],
+      paint: {
+        'circle-radius': 18,
+        'circle-color': isDark ? '#1C1C19' : '#F4F1EA',
+        'circle-stroke-color': isDark ? '#FFFFFF' : '#141411',
+        'circle-stroke-width': 2,
+        'circle-blur': 0,
+        'circle-opacity': 1,
+      },
+    });
+
+    state.map.addLayer({
+      id: 'obras-maestras-selected-cad-box',
+      type: 'circle',
+      source: 'obras-maestras',
+      filter: ['==', ['get', 'selected'], 1],
+      paint: {
+        'circle-radius': 21,
+        'circle-color': isDark ? '#1C1C19' : '#F4F1EA',
+        'circle-stroke-color': isDark ? '#FFFFFF' : '#141411',
+        'circle-stroke-width': 2.4,
+        'circle-blur': 0,
+        'circle-opacity': 1,
+      },
+    });
+
+    // Retícula/Anillo técnico en Vermillón
+    state.map.addLayer({
+      id: 'obras-selected-cad-ring',
+      type: 'circle',
+      source: 'obras',
+      filter: ['==', ['get', 'selected'], 1],
+      paint: {
+        'circle-radius': 14.5,
+        'circle-color': 'transparent',
+        'circle-stroke-color': '#E84E1B',
+        'circle-stroke-width': 1.6,
+        'circle-blur': 0,
+        'circle-opacity': 1,
+      },
+    });
+
+    state.map.addLayer({
+      id: 'obras-maestras-selected-cad-ring',
+      type: 'circle',
+      source: 'obras-maestras',
+      filter: ['==', ['get', 'selected'], 1],
+      paint: {
+        'circle-radius': 17,
+        'circle-color': 'transparent',
         'circle-stroke-color': '#E84E1B',
         'circle-stroke-width': 1.8,
+        'circle-blur': 0,
+        'circle-opacity': 1,
       },
     });
 
     [3, 2, 1, 0].forEach((importance) => {
-      const minzoom = importance === 0 ? 0 : importance === 1 ? 0 : importance === 2 ? 6.5 : 13.5;
+      // Importancia 0 y 1 visibles siempre (minzoom: 0); Importancia 2 a partir de zoom 12; Importancia 3 a partir de zoom 14
+      const minzoom = (importance === 0 || importance === 1) ? 0 : importance === 2 ? 12.0 : 14.0;
       const baseFilter = ['==', ['get', 'importancia'], importance];
       const sourceId = importance === 0 ? 'obras-maestras' : 'obras';
       const iconSize = importance === 0 ? 0.92 : importance === 1 ? 0.70 : importance === 2 ? 0.56 : 0.52;
@@ -248,6 +308,8 @@ export function cargarMapaMapbox() {
             iconSize
           ],
           'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+          'icon-optional': false,
         },
       });
 
@@ -270,15 +332,17 @@ export function cargarMapaMapbox() {
             iconSize
           ],
           'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+          'icon-optional': false,
         },
       });
 
-      // Capa seleccionada (Escalada 1.25x y con prioridad z-index 100)
+      // Capa seleccionada (Escalada 1.25x y con prioridad z-index 100, visible a cualquier zoom)
       state.map.addLayer({
         id: `obras-l${importance}-selected`,
         type: 'symbol',
         source: sourceId,
-        minzoom,
+        minzoom: 0,
         filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'publicada'], ['==', ['get', 'selected'], 1]],
         layout: {
           'icon-image': [
@@ -294,6 +358,7 @@ export function cargarMapaMapbox() {
           'symbol-sort-key': 100,
           'icon-allow-overlap': true,
           'icon-ignore-placement': true,
+          'icon-optional': false,
         },
       });
 
@@ -316,6 +381,8 @@ export function cargarMapaMapbox() {
             iconSize
           ],
           'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+          'icon-optional': false,
         },
       });
 
@@ -338,6 +405,8 @@ export function cargarMapaMapbox() {
             iconSize
           ],
           'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+          'icon-optional': false,
         },
       });
 
@@ -369,7 +438,7 @@ export function cargarMapaMapbox() {
       3: {
         font: ['Inter Light', 'Open Sans Light', 'Arial Unicode MS Regular'],
         size: 10,
-        minzoom: 16.0,
+        minzoom: 17.0,
         sortKey: 3,
       },
     };
@@ -467,7 +536,23 @@ export function cargarMapaMapbox() {
       },
     });
 
-    ['obras-l0', 'obras-l0-visited', 'obras-l0-selected', 'obras-l0-pending', 'obras-l0-private', 'obras-labels-l3', 'obras-labels-l2', 'obras-labels-l1', 'obras-labels-l0', 'obras-labels-selected', 'obras-maestras-labels-selected'].forEach((layerId) => {
+    [
+      'obras-favorites-contour',
+      'obras-maestras-favorites-contour',
+      'obras-selected-offset-shadow',
+      'obras-maestras-selected-offset-shadow',
+      'obras-selected-cad-box',
+      'obras-maestras-selected-cad-box',
+      'obras-selected-cad-ring',
+      'obras-maestras-selected-cad-ring',
+      'obras-l3', 'obras-l2', 'obras-l1', 'obras-l0',
+      'obras-l3-visited', 'obras-l2-visited', 'obras-l1-visited', 'obras-l0-visited',
+      'obras-l3-pending', 'obras-l2-pending', 'obras-l1-pending', 'obras-l0-pending',
+      'obras-l3-private', 'obras-l2-private', 'obras-l1-private', 'obras-l0-private',
+      'obras-l3-selected', 'obras-l2-selected', 'obras-l1-selected', 'obras-l0-selected',
+      'obras-labels-l3', 'obras-labels-l2', 'obras-labels-l1', 'obras-labels-l0',
+      'obras-labels-selected', 'obras-maestras-labels-selected',
+    ].forEach((layerId) => {
       if (state.map.getLayer(layerId)) {
         state.map.moveLayer(layerId);
       }

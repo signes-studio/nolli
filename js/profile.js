@@ -20,6 +20,10 @@ import {
   updateCurrentUserProfile,
   upsertCurrentProfile,
   fetchCurrentProfile,
+  loginAdmin,
+  registerUser,
+  requestPasswordReset,
+  refreshUserSession,
 } from './api.js';
 
 import {
@@ -39,6 +43,10 @@ const themeIcon = document.getElementById('theme-icon');
 const settingsBtn = document.getElementById('btn-profile-settings');
 
 // Modales
+const modalLogin = document.getElementById('modal-login');
+const btnProfileLoginCta = document.getElementById('btn-profile-login-cta');
+const btnLoginClose = document.getElementById('btn-login-close');
+
 const modalEditProfile = document.getElementById('modal-edit-profile');
 const formEditProfile = document.getElementById('form-edit-profile');
 const btnCloseEditProfile = document.getElementById('btn-edit-profile-close');
@@ -57,6 +65,7 @@ const btnDeleteNoteModal = document.getElementById('btn-delete-note-modal');
 const noteStatus = document.getElementById('note-modal-status');
 
 let activeTab = 'collections'; // 'collections' | 'favorite' | 'visited' | 'notes'
+let loginInitialized = false;
 
 let profileState = {
   user: null,
@@ -161,6 +170,7 @@ async function init() {
   setupCollectionModal();
   setupNoteModal();
   setupFeedActionHandlers();
+  setupLoginModal();
 
   const token = getSessionToken();
 
@@ -1091,6 +1101,195 @@ function setupEditProfileModal() {
           submitBtn.querySelector('span').textContent = '[ GUARDAR CAMBIOS ]';
         }
       }
+    });
+  }
+}
+
+// -------------------------------------------------------------------------
+// 10. MODAL DE AUTENTICACIÓN / LOGIN EN PERFIL
+// -------------------------------------------------------------------------
+function setupLoginModal() {
+  if (loginInitialized) return;
+  loginInitialized = true;
+
+  const mLogin = document.getElementById('modal-login');
+  const btnLoginCta = document.getElementById('btn-profile-login-cta');
+  const btnLoginClose = document.getElementById('btn-login-close');
+  const loginForm = document.getElementById('login-form');
+  const actionButton = document.getElementById('btn-do-login');
+  const registerButton = document.getElementById('btn-register-mode');
+  const registerOnlyFields = document.querySelectorAll('.register-only-field');
+  const loginEntryFields = document.querySelectorAll('.login-entry-field');
+  const keepSession = document.getElementById('keep-session');
+  const forgotPasswordButton = document.getElementById('btn-forgot-password');
+  const passwordInput = document.getElementById('login-password');
+  const togglePassword = document.getElementById('toggle-password');
+  const err = document.getElementById('login-error');
+  const termsCheckbox = document.getElementById('register-terms');
+  const newsletterCheckbox = document.getElementById('register-newsletter');
+  let registerMode = false;
+
+  const openModal = () => {
+    if (!mLogin) return;
+    if (err) err.classList.add('hidden');
+    mLogin.classList.add('open');
+    if (window.lucide) window.lucide.createIcons();
+  };
+
+  const closeModal = () => {
+    if (!mLogin) return;
+    mLogin.classList.remove('open');
+  };
+
+  if (btnLoginCta) btnLoginCta.addEventListener('click', openModal);
+  if (btnLoginClose) btnLoginClose.addEventListener('click', closeModal);
+  if (mLogin) {
+    mLogin.addEventListener('click', (e) => {
+      if (e.target === mLogin) closeModal();
+    });
+  }
+
+  if (togglePassword && passwordInput) {
+    togglePassword.addEventListener('click', () => {
+      const showing = passwordInput.type === 'text';
+      passwordInput.type = showing ? 'password' : 'text';
+      togglePassword.setAttribute('aria-label', showing ? 'Mostrar contraseña' : 'Ocultar contraseña');
+      togglePassword.setAttribute('aria-pressed', String(!showing));
+      togglePassword.innerHTML = `<i data-lucide="${showing ? 'eye' : 'eye-off'}" width="15" height="15"></i>`;
+      if (window.lucide) window.lucide.createIcons();
+    });
+  }
+
+  if (registerButton) {
+    registerButton.addEventListener('click', () => {
+      registerMode = !registerMode;
+      registerOnlyFields.forEach((field) => field.classList.toggle('hidden', !registerMode));
+      if (actionButton) actionButton.textContent = registerMode ? 'COMPLETAR REGISTRO' : 'AUTORIZAR ACCESO';
+      registerButton.textContent = registerMode ? 'VOLVER A INICIO DE SESIÓN' : 'CREAR CUENTA';
+      if (termsCheckbox) termsCheckbox.required = registerMode;
+      if (termsCheckbox && !registerMode) termsCheckbox.checked = false;
+      if (err) err.classList.add('hidden');
+      if (window.lucide) window.lucide.createIcons();
+    });
+  }
+
+  if (forgotPasswordButton) {
+    forgotPasswordButton.addEventListener('click', async () => {
+      const email = document.getElementById('login-email')?.value.trim();
+      if (!email) {
+        if (err) {
+          err.textContent = 'Escribe tu email para enviarte el enlace.';
+          err.classList.remove('hidden');
+        }
+        return;
+      }
+      forgotPasswordButton.disabled = true;
+      forgotPasswordButton.textContent = 'ENVIANDO ENLACE...';
+      try {
+        await requestPasswordReset(email);
+        if (err) {
+          err.textContent = 'Revisa tu correo para restablecer la contraseña.';
+          err.classList.remove('hidden');
+        }
+      } catch (error) {
+        if (err) {
+          err.textContent = error.message;
+          err.classList.remove('hidden');
+        }
+      } finally {
+        forgotPasswordButton.disabled = false;
+        forgotPasswordButton.textContent = '¿OLVIDASTE LA CONTRASEÑA?';
+      }
+    });
+  }
+
+  if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (err) err.classList.add('hidden');
+      const email = document.getElementById('login-email')?.value.trim();
+      const password = document.getElementById('login-password')?.value;
+
+      if (!email || !password) {
+        if (err) {
+          err.textContent = 'Introduce tu correo y contraseña.';
+          err.classList.remove('hidden');
+        }
+        return;
+      }
+
+      if (registerMode) {
+        if (!termsCheckbox?.checked) {
+          if (err) {
+            err.textContent = 'Debes aceptar los términos y bases legales para registrarte.';
+            err.classList.remove('hidden');
+          }
+          return;
+        }
+        if (actionButton) {
+          actionButton.disabled = true;
+          actionButton.textContent = 'CREANDO CUENTA...';
+        }
+        const firstName = document.getElementById('register-first-name')?.value.trim() || '';
+        const lastName = document.getElementById('register-last-name')?.value.trim() || '';
+        const city = document.getElementById('register-city')?.value.trim() || '';
+        const country = document.getElementById('register-country')?.value.trim() || '';
+        const newsletter = Boolean(newsletterCheckbox?.checked);
+
+        try {
+          const authData = await registerUser(email, password, { firstName, lastName, city, country, newsletter });
+          const storage = keepSession?.checked ? localStorage : sessionStorage;
+          storage.setItem(SESSION_KEY, JSON.stringify(authData));
+          closeModal();
+          await init();
+        } catch (error) {
+          if (err) {
+            err.textContent = error.message;
+            err.classList.remove('hidden');
+          }
+        } finally {
+          if (actionButton) {
+            actionButton.disabled = false;
+            actionButton.textContent = registerMode ? 'COMPLETAR REGISTRO' : 'AUTORIZAR ACCESO';
+          }
+        }
+      } else {
+        if (actionButton) {
+          actionButton.disabled = true;
+          actionButton.textContent = 'AUTENTICANDO...';
+        }
+        try {
+          const authData = await loginAdmin(email, password);
+          const storage = keepSession?.checked ? localStorage : sessionStorage;
+          storage.setItem(SESSION_KEY, JSON.stringify(authData));
+          closeModal();
+          await init();
+        } catch (error) {
+          if (err) {
+            err.textContent = error.message;
+            err.classList.remove('hidden');
+          }
+        } finally {
+          if (actionButton) {
+            actionButton.disabled = false;
+            actionButton.textContent = 'AUTORIZAR ACCESO';
+          }
+        }
+      }
+    });
+  }
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem(SESSION_KEY);
+      sessionStorage.removeItem(SESSION_KEY);
+      localStorage.removeItem('nolli_cached_user');
+      localStorage.removeItem('nolli_cached_db_profile');
+      localStorage.removeItem('nolli_cached_statuses');
+      profileState.user = null;
+      profileState.dbProfile = null;
+      profileState.statuses.clear();
+      init();
     });
   }
 }

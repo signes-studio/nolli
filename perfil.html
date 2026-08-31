@@ -68,7 +68,7 @@
     <section id="profile-auth-required" class="profile-auth-message hidden">
       <h2 class="profile-hero-name" style="font-size: 32px;">ACCESO AL ARCHIVO</h2>
       <p class="profile-hero-sub" style="margin: 12px 0 28px;">Inicia sesión en Nolli para sincronizar y gestionar tus obras visitadas, favoritos y notas privadas.</p>
-      <a class="profile-login-cta-btn" href="./index.html">[ INICIAR SESIÓN EN EL MAPA ]</a>
+      <button type="button" id="btn-profile-login-cta" class="profile-login-cta-btn">[ Inicia sesión en nolli ]</button>
     </section>
 
     <!-- Vista Principal de Perfil Autenticado (Hero + Métricas + Feed) -->
@@ -76,21 +76,21 @@
       <!-- 2. Hero Monumental (Identidad) -->
       <section class="profile-hero">
         <h1 id="profile-hero-name" class="profile-hero-name">TU NOMBRE</h1>
-        <p id="profile-hero-sub" class="profile-hero-sub">ÇTu biografía</p>
+        <p id="profile-hero-sub" class="profile-hero-sub">Tu biografía</p>
       </section>
 
       <!-- 3. Métricas (Grid Invisible) -->
       <section id="profile-stats" class="profile-metrics-row" aria-label="Métricas personales">
         <div class="profile-metric-item" data-metric-tab="visited" role="button" tabindex="0">
-          <span class="profile-metric-num" id="stat-visited-num">24</span>
+          <span class="profile-metric-num" id="stat-visited-num">0</span>
           <span class="profile-metric-label">VISITADOS</span>
         </div>
         <div class="profile-metric-item" data-metric-tab="favorite" role="button" tabindex="0">
-          <span class="profile-metric-num" id="stat-favorite-num">12</span>
+          <span class="profile-metric-num" id="stat-favorite-num">0</span>
           <span class="profile-metric-label">FAVORITOS</span>
         </div>
         <div class="profile-metric-item" data-metric-tab="notes" role="button" tabindex="0">
-          <span class="profile-metric-num" id="stat-notes-num">8</span>
+          <span class="profile-metric-num" id="stat-notes-num">0</span>
           <span class="profile-metric-label">NOTAS</span>
         </div>
       </section>
@@ -271,6 +271,73 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal: Login de Usuario / Registro (Neo-Bauhaus) -->
+  <div id="modal-login" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-login-title">
+    <div class="modal-box">
+      <div class="modal-head">
+        <div class="flex items-center gap-2">
+          <i data-lucide="terminal" width="14" height="14" style="color:var(--accent)"></i>
+          <span id="modal-login-title" style="letter-spacing:.06em; font-size:11px; font-weight:800; font-family:'League Spartan',sans-serif;">AUTENTICACIÓN REQUERIDA</span>
+        </div>
+        <button type="button" id="btn-login-close" class="sheet-close-button" aria-label="Cerrar login">
+          <i data-lucide="x" width="16" height="16"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="login-form" class="flex flex-col gap-3" autocomplete="on">
+          <div class="login-entry-field">
+            <label for="login-email" class="tech-label">USER_EMAIL_</label>
+            <input type="email" id="login-email" name="email" placeholder="usuario@signes.studio" class="tech-input" autocomplete="username" required>
+          </div>
+          <div class="login-entry-field password-field">
+            <label for="login-password" class="tech-label">PASSWORD_</label>
+            <div class="password-input-wrap">
+              <input type="password" id="login-password" name="password" placeholder="••••••••" class="tech-input" autocomplete="current-password" required>
+              <button type="button" id="toggle-password" class="password-toggle" aria-label="Mostrar contraseña" aria-pressed="false">
+                <i data-lucide="eye" width="15" height="15"></i>
+              </button>
+            </div>
+          </div>
+          <div class="register-only-field hidden">
+            <label for="register-first-name" class="tech-label">NOMBRE_</label>
+            <input type="text" id="register-first-name" placeholder="Tu nombre" class="tech-input" autocomplete="given-name">
+          </div>
+          <div class="register-only-field hidden">
+            <label for="register-last-name" class="tech-label">APELLIDOS_</label>
+            <input type="text" id="register-last-name" placeholder="Tus apellidos" class="tech-input" autocomplete="family-name">
+          </div>
+          <div class="register-only-field hidden">
+            <label for="register-city" class="tech-label">CIUDAD_</label>
+            <input type="text" id="register-city" placeholder="Ciudad de residencia" class="tech-input" autocomplete="address-level2">
+          </div>
+          <div class="register-only-field hidden">
+            <label for="register-country" class="tech-label">PAÍS_</label>
+            <input type="text" id="register-country" placeholder="País" class="tech-input" autocomplete="country-name">
+          </div>
+
+          <!-- Checkboxes Legales (Modo Registro) -->
+          <div class="register-only-field legal-consent-block hidden">
+            <label class="tech-checkbox-label">
+              <input type="checkbox" id="register-terms" class="tech-checkbox" required>
+              <span>He leído y acepto los <a href="./legal.html" target="_blank" class="tech-legal-link">términos, condiciones y bases legales</a> del servicio.</span>
+            </label>
+            <label class="tech-checkbox-label">
+              <input type="checkbox" id="register-newsletter" class="tech-checkbox">
+              <span>Acepto recibir comunicaciones de actualizaciones, novedades y boletines de nolli.</span>
+            </label>
+          </div>
+
+          <div id="login-error" class="text-[10px] text-red-500 hidden mt-1" role="alert"></div>
+          <label class="keep-session login-entry-field"><input id="keep-session" type="checkbox" checked> MANTENER SESIÓN INICIADA</label>
+          <button id="btn-forgot-password" type="button" class="forgot-password login-entry-field">¿OLVIDASTE LA CONTRASEÑA?</button>
+          <button id="btn-do-login" type="submit" class="btn btn-auth-primary mt-2 w-full login-entry-field">AUTORIZAR ACCESO</button>
+          <button id="btn-register-mode" type="button" class="btn btn-auth-secondary mt-1 w-full login-entry-field">CREAR CUENTA</button>
+          <button id="btn-logout" type="button" class="btn hidden mt-1 w-full">CERRAR SESIÓN</button>
+        </form>
+      </div>
     </div>
   </div>
 

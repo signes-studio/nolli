@@ -137,6 +137,16 @@ async function initLoginModal() {
     if (e.target.closest('#btn-login-close')) mLogin.classList.remove('open');
   });
 
+  const termsCheckbox = document.getElementById('register-terms');
+  const newsletterCheckbox = document.getElementById('register-newsletter');
+
+  termsCheckbox?.addEventListener('change', () => {
+    const err = document.getElementById('login-error');
+    if (termsCheckbox.checked && err?.textContent?.includes('términos')) {
+      err.classList.add('hidden');
+    }
+  });
+
   document.getElementById('btn-do-login')?.addEventListener('click', async () => {
     const err = document.getElementById('login-error');
     err.classList.add('hidden');
@@ -152,17 +162,30 @@ async function initLoginModal() {
       err.classList.remove('hidden');
       return;
     }
-    if (registerMode && (!firstName || !lastName || !city || !country)) {
-      err.textContent = 'Completa nombre, apellido, ciudad y país.';
-      err.classList.remove('hidden');
-      return;
+    if (registerMode) {
+      if (!firstName || !lastName || !city || !country) {
+        err.textContent = 'Completa nombre, apellidos, ciudad y país.';
+        err.classList.remove('hidden');
+        return;
+      }
+      if (termsCheckbox && !termsCheckbox.checked) {
+        err.textContent = 'Debes aceptar los términos y condiciones para crear una cuenta.';
+        err.classList.remove('hidden');
+        return;
+      }
     }
 
     const btnLogin = actionButton;
     btnLogin.textContent = registerMode ? 'CREANDO...' : 'VERIFICANDO...';
     try {
       if (registerMode) {
-        const data = await registerUser(email, password, { firstName, lastName, city, country });
+        const data = await registerUser(email, password, {
+          firstName,
+          lastName,
+          city,
+          country,
+          newsletter: newsletterCheckbox?.checked || false,
+        });
         if (data.access_token) {
           state.sessionToken = data.access_token;
           state.userRole = 'user';
@@ -205,7 +228,9 @@ async function initLoginModal() {
     registerButton.textContent = registerMode ? 'VOLVER AL LOGIN' : 'CREAR CUENTA';
     registerOnlyFields.forEach((field) => field.classList.toggle('hidden', !registerMode));
     forgotPasswordButton.classList.toggle('hidden', registerMode);
+    document.querySelector('.keep-session')?.classList.toggle('hidden', registerMode);
     passwordInput.autocomplete = registerMode ? 'new-password' : 'current-password';
+    document.getElementById('login-error')?.classList.add('hidden');
   });
 
   logoutButton.addEventListener('click', () => {
@@ -253,13 +278,68 @@ function initAddBuildingModal() {
   });
   document.getElementById('btn-add-cancel')?.addEventListener('click', closeAdd);
 
+  const selectVisibility = document.getElementById('add-visibility');
+
+  function actualizarOpcionesVisibilidad(selectedVal = null) {
+    if (!selectVisibility) return;
+    const esAdmin = esRolAdmin(state.userRole);
+    selectVisibility.innerHTML = '';
+
+    if (esAdmin) {
+      const optDirect = document.createElement('option');
+      optDirect.value = 'direct';
+      optDirect.textContent = 'AÑADIR OBRA DIRECTA (PÚBLICA)';
+      selectVisibility.appendChild(optDirect);
+    }
+
+    const optReview = document.createElement('option');
+    optReview.value = 'review';
+    optReview.textContent = 'PROPONER A REVISIÓN (PENDIENTE)';
+    selectVisibility.appendChild(optReview);
+
+    const optPrivate = document.createElement('option');
+    optPrivate.value = 'private';
+    optPrivate.textContent = 'GUARDAR PRIVADA (PERSONAL)';
+    selectVisibility.appendChild(optPrivate);
+
+    if (selectedVal && Array.from(selectVisibility.options).some((o) => o.value === selectedVal)) {
+      selectVisibility.value = selectedVal;
+    } else if (esAdmin && state.adminMode) {
+      selectVisibility.value = 'direct';
+    } else {
+      selectVisibility.value = 'review';
+    }
+
+    actualizarEstadoFormularioSegunVisibilidad();
+  }
+
+  function actualizarEstadoFormularioSegunVisibilidad() {
+    const visibility = selectVisibility?.value || 'review';
+    const modalTitle = document.getElementById('modal-add-title');
+    const btnSave = document.getElementById('btn-add-save');
+
+    if (visibility === 'direct') {
+      if (modalTitle) modalTitle.textContent = 'REGISTRO DE OBRA DIRECTA (DB)';
+      if (btnSave) btnSave.innerHTML = '<span class="inline-flex items-center gap-1"><i data-lucide="database" width="13" height="13"></i> PUBLICAR DIRECTA</span>';
+    } else if (visibility === 'private') {
+      if (modalTitle) modalTitle.textContent = 'NUEVA ETIQUETA PRIVADA';
+      if (btnSave) btnSave.innerHTML = '<span class="inline-flex items-center gap-1"><i data-lucide="bookmark" width="13" height="13"></i> GUARDAR PRIVADA</span>';
+    } else {
+      if (modalTitle) modalTitle.textContent = 'PROPONER OBRA A REVISIÓN';
+      if (btnSave) btnSave.innerHTML = '<span class="inline-flex items-center gap-1"><i data-lucide="send" width="13" height="13"></i> ENVIAR A REVISIÓN</span>';
+    }
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  selectVisibility?.addEventListener('change', actualizarEstadoFormularioSegunVisibilidad);
+
   document.addEventListener('radar:edit-building', (e) => {
     const obra = e.detail.obra;
     document.getElementById('sheet')?.classList.remove('open');
     state.editingBuildingId = obra.id;
     state.pendingLngLat = { lng: obra.coordenadas[0], lat: obra.coordenadas[1] };
     document.getElementById('modal-add-title').textContent = 'EDITAR OBRA (DB)';
-    document.getElementById('btn-add-save').innerHTML = 'GUARDAR CAMBIOS';
+    document.getElementById('btn-add-save').innerHTML = '<span class="inline-flex items-center gap-1"><i data-lucide="check" width="13" height="13"></i> GUARDAR CAMBIOS</span>';
     document.getElementById('add-coords').textContent = `${obra.coordenadas[0].toFixed(5)}, ${obra.coordenadas[1].toFixed(5)}`;
     document.getElementById('add-nombre').value = obra.nombre_obra || '';
     document.getElementById('add-foto').value = obra.foto_url || '';
@@ -269,6 +349,7 @@ function initAddBuildingModal() {
     document.getElementById('add-importancia').value = String(obra.importancia || 1);
     document.getElementById('add-categoria').value = normalizarCategoria(obra.categoria);
     document.getElementById('add-acceso').value = obra.estado_acceso || 'publico';
+    actualizarOpcionesVisibilidad(obra.private ? 'private' : (obra.estado_revision === 'publicada' ? 'direct' : 'review'));
     document.getElementById('add-error').classList.add('hidden');
     mAdd.classList.add('open');
   });
@@ -285,26 +366,33 @@ function initAddBuildingModal() {
     const importancia = Number(document.getElementById('add-importancia').value);
     const categoria = document.getElementById('add-categoria').value;
     const estadoAcceso = document.getElementById('add-acceso').value;
-    const visibility = document.getElementById('add-visibility').value;
+    const visibility = document.getElementById('add-visibility')?.value || 'review';
 
-    if (!nombre || !arq || !state.pendingLngLat) {
-      err.textContent = 'Faltan datos obligatorios (Nombre y Arquitecto).';
+    if (!nombre || (!arq && visibility !== 'private') || !state.pendingLngLat) {
+      err.textContent = visibility === 'private'
+        ? 'Introduce el nombre de tu etiqueta/obra privada.'
+        : 'Faltan datos obligatorios (Nombre y Arquitecto).';
       err.classList.remove('hidden');
       return;
     }
 
+    if (visibility === 'private' && !state.userId) {
+      err.textContent = 'Inicia sesión para guardar etiquetas privadas.';
+      err.classList.remove('hidden');
+      return;
+    }
+
+    const finalArq = arq || (visibility === 'private' ? 'Personal / Sin autor' : 'Autor desconocido');
     const btnSave = document.getElementById('btn-add-save');
-    const adminActivo = esRolAdmin(state.userRole) && state.adminMode;
     btnSave.innerHTML = visibility === 'private'
       ? 'GUARDANDO PRIVADA...'
-      : adminActivo ? 'PUBLICANDO...' : 'ENVIANDO A REVISIÓN...';
+      : visibility === 'direct' ? 'PUBLICANDO...' : 'ENVIANDO A REVISIÓN...';
 
-    // Código técnico de fondo generado automáticamente
     const edificio = {
       nombre_obra: nombre,
       foto_url: fotoUrl || null,
       enlace_url: enlaceUrl || null,
-      arquitecto: arq,
+      arquitecto: finalArq,
       año_construccion: Number.isNaN(ano) ? null : ano,
       importancia,
       categoria,
@@ -320,46 +408,52 @@ function initAddBuildingModal() {
         const obra = state.OBRAS.find((item) => String(item.id) === String(state.editingBuildingId));
         if (obra) Object.assign(obra, {
           ...edificio,
-          arquitectos: separarArquitectos(arq),
+          arquitectos: separarArquitectos(finalArq),
           id: obra.id,
           coordenadas: [updated?.longitud ?? edificio.longitud, updated?.latitud ?? edificio.latitud],
           featureId: obra.featureId,
           selected: obra.selected,
         });
       } else {
+        const isPrivate = visibility === 'private';
+        const isDirect = visibility === 'direct' && esRolAdmin(state.userRole);
+
         const nuevoEdificio = {
           ...edificio,
           id: 'VLC-' + Date.now(),
-          añadido_por: adminActivo ? 'administrador' : (state.userEmail || 'usuario'),
-          estado_revision: adminActivo ? 'publicada' : 'pendiente',
+          añadido_por: isDirect ? 'administrador' : (state.userEmail || 'usuario'),
+          estado_revision: isDirect ? 'publicada' : 'pendiente',
         };
         const privateData = {
           ...edificio,
           id: 'PRIV-' + Date.now(),
           user_id: state.userId,
         };
-        const insertedData = visibility === 'private' && !adminActivo
+
+        const insertedData = isPrivate
           ? await createPrivateBuilding(privateData, state.sessionToken)
           : await createBuilding({ ...nuevoEdificio, propuesto_por: state.userId }, state.sessionToken);
 
-        const isPrivate = visibility === 'private' && !adminActivo;
-        state.OBRAS.push({
+        const savedItem = {
           ...(isPrivate ? privateData : nuevoEdificio),
-          arquitectos: separarArquitectos(arq),
+          arquitectos: separarArquitectos(finalArq),
           añadido_por: nuevoEdificio.añadido_por,
           estado_revision: isPrivate ? 'privada' : nuevoEdificio.estado_revision,
           id: insertedData[0].id,
           featureId: String(insertedData[0].id ?? `obra-${Date.now()}`),
-          private: visibility === 'private' && !adminActivo,
+          private: isPrivate,
           coordenadas: [state.pendingLngLat.lng, state.pendingLngLat.lat],
           selected: false,
-        });
+        };
+
+        state.OBRAS.push(savedItem);
+        if (isPrivate) state.privateBuildings.push(savedItem);
       }
       actualizarFuenteMapa();
 
       // Actualizar filtros si hay un arquitecto nuevo
-      const arquitectosNuevos = separarArquitectos(arq).some((nombreArquitecto) => !state.ARQUITECTOS.includes(nombreArquitecto));
-      separarArquitectos(arq).forEach((nombreArquitecto) => {
+      const arquitectosNuevos = separarArquitectos(finalArq).some((nombreArquitecto) => !state.ARQUITECTOS.includes(nombreArquitecto));
+      separarArquitectos(finalArq).forEach((nombreArquitecto) => {
         if (!state.ARQUITECTOS.includes(nombreArquitecto)) state.ARQUITECTOS.push(nombreArquitecto);
         state.activeArquitectos.add(nombreArquitecto);
       });
@@ -371,9 +465,7 @@ function initAddBuildingModal() {
       err.textContent = error.message;
       err.classList.remove('hidden');
     } finally {
-      document.getElementById('modal-add-title').textContent = 'REGISTRO DE NUEVA OBRA (DB)';
-      btnSave.innerHTML = '<span class="inline-flex items-center gap-1"><i data-lucide="database" width="13" height="13"></i> PUBLICAR</span>';
-      lucide.createIcons();
+      actualizarEstadoFormularioSegunVisibilidad();
     }
   });
 
@@ -386,7 +478,7 @@ function initAddBuildingModal() {
 
 function handleMapLongPress(lngLat) {
   if (!state.sessionToken) {
-    alert('Inicia sesión para proponer una nueva obra.');
+    alert('Inicia sesión para registrar o proponer una nueva obra.');
     return;
   }
   state.editingBuildingId = null;
@@ -403,12 +495,41 @@ function handleMapLongPress(lngLat) {
   document.getElementById('add-importancia').value = '1';
   document.getElementById('add-categoria').value = 'otro';
   document.getElementById('add-acceso').value = 'publico';
-  const adminActivo = esRolAdmin(state.userRole) && state.adminMode;
-  document.getElementById('modal-add-title').textContent = adminActivo ? 'REGISTRO DE NUEVA OBRA (DB)' : 'PROPONER NUEVA OBRA';
-  document.getElementById('btn-add-save').innerHTML = adminActivo ? '<span class="inline-flex items-center gap-1"><i data-lucide="database" width="13" height="13"></i> PUBLICAR</span>' : 'ENVIAR A REVISIÓN';
-  document.getElementById('add-error').classList.add('hidden');
 
+  const select = document.getElementById('add-visibility');
+  if (select) {
+    const esAdmin = esRolAdmin(state.userRole);
+    select.innerHTML = '';
+    if (esAdmin) {
+      const optDirect = document.createElement('option');
+      optDirect.value = 'direct';
+      optDirect.textContent = 'AÑADIR OBRA DIRECTA (PÚBLICA)';
+      select.appendChild(optDirect);
+    }
+    const optReview = document.createElement('option');
+    optReview.value = 'review';
+    optReview.textContent = 'PROPONER A REVISIÓN (PENDIENTE)';
+    select.appendChild(optReview);
+
+    const optPrivate = document.createElement('option');
+    optPrivate.value = 'private';
+    optPrivate.textContent = 'GUARDAR PRIVADA (PERSONAL)';
+    select.appendChild(optPrivate);
+
+    select.value = (esAdmin && state.adminMode) ? 'direct' : 'review';
+  }
+
+  const modalTitle = document.getElementById('modal-add-title');
+  const btnSave = document.getElementById('btn-add-save');
+  const isDirect = (esRolAdmin(state.userRole) && state.adminMode);
+  if (modalTitle) modalTitle.textContent = isDirect ? 'REGISTRO DE OBRA DIRECTA (DB)' : 'PROPONER OBRA A REVISIÓN';
+  if (btnSave) btnSave.innerHTML = isDirect
+    ? '<span class="inline-flex items-center gap-1"><i data-lucide="database" width="13" height="13"></i> PUBLICAR DIRECTA</span>'
+    : '<span class="inline-flex items-center gap-1"><i data-lucide="send" width="13" height="13"></i> ENVIAR A REVISIÓN</span>';
+
+  document.getElementById('add-error').classList.add('hidden');
   document.getElementById('modal-add-building').classList.add('open');
+  if (window.lucide) window.lucide.createIcons();
 }
 
 export function initModalsUI() {

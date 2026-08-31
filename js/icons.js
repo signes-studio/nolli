@@ -134,18 +134,38 @@ export function drawTargetIcon(ctx, color, importance, s) {
       ctx.fill();
     }
   } else if (importance === 2) {
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = color;
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.arc(c, c, s * 0.28, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(c, c, s * 0.18, 0, Math.PI * 2);
-    ctx.fill();
+    if (isLightSelection || isDarkSelection) {
+      const outerColor = isDarkSelection ? '#F8F1DF' : '#141411';
+      const innerColor = isDarkSelection ? '#141411' : '#FFFFFF';
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = outerColor;
+      ctx.beginPath();
+      ctx.arc(c, c, s * 0.28, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.fillStyle = innerColor;
+      ctx.beginPath();
+      ctx.arc(c, c, s * 0.22, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = outerColor;
+      ctx.beginPath();
+      ctx.arc(c, c, s * 0.12, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = color;
+      ctx.beginPath();
+      ctx.arc(c, c, s * 0.28, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(c, c, s * 0.16, 0, Math.PI * 2);
+      ctx.fill();
+    }
   } else {
-    ctx.lineWidth = 3;
-    ctx.globalAlpha = isLightSelection ? 1.0 : 0.7;
+    ctx.lineWidth = isLightSelection || isDarkSelection ? 3 : 2.5;
     ctx.strokeStyle = color;
     ctx.beginPath();
     ctx.moveTo(c, s * 0.28); ctx.lineTo(c, s * 0.72);
@@ -155,68 +175,87 @@ export function drawTargetIcon(ctx, color, importance, s) {
 }
 
 /**
- * Dibuja iconos cuadrados para obras guardadas privadas en el perfil,
- * manteniendo el color distintivo de su categoría arquitectónica.
+ * Dibuja iconos cuadrados limpios para obras/etiquetas privadas,
+ * reflejando la jerarquía de tamaño por importancia y color por categoría arquitectónica (Neo-Bauhaus).
  */
 export function drawPrivateSquareIcon(ctx, color, importance, s) {
   const c = s / 2;
   ctx.save();
-  ctx.fillStyle = color;
-  ctx.strokeStyle = color;
 
   if (importance === 0) {
-    // Obra maestra privada: Rombo/cuadrado rotado 45°
+    // Obra maestra privada: Rombo/cuadrado girado 45° con marco doble Bauhaus
     ctx.translate(c, c);
     ctx.rotate(Math.PI / 4);
     const half = s * 0.28;
 
+    // Halo perimetral de contraste
     ctx.fillStyle = '#F4F1EA';
     ctx.fillRect(-half - 3, -half - 3, (half + 3) * 2, (half + 3) * 2);
 
+    // Relleno cromático de categoría
     ctx.fillStyle = color;
     ctx.fillRect(-half, -half, half * 2, half * 2);
+
+    // Contorno sólido negro
     ctx.lineWidth = 2.5;
-    ctx.strokeStyle = '#141411';
+    ctx.strokeStyle = '#111111';
     ctx.strokeRect(-half, -half, half * 2, half * 2);
 
-    ctx.fillStyle = '#141411';
+    // Núcleo técnico central
+    ctx.fillStyle = '#111111';
     ctx.fillRect(-half * 0.35, -half * 0.35, half * 0.7, half * 0.7);
   } else if (importance === 1) {
-    // Nivel 1 privado: Cuadrado con halo de contraste y centro técnico
+    // Importancia 1 (Alta): Cuadrado destacado con centro técnico
     const half = s * 0.30;
-    ctx.fillStyle = '#F4F1EA';
-    ctx.fillRect(c - half - 3, c - half - 3, (half + 3) * 2, (half + 3) * 2);
 
+    // Halo perimetral
+    ctx.fillStyle = '#F4F1EA';
+    ctx.fillRect(c - half - 2.5, c - half - 2.5, (half + 2.5) * 2, (half + 2.5) * 2);
+
+    // Relleno de categoría
     ctx.fillStyle = color;
     ctx.fillRect(c - half, c - half, half * 2, half * 2);
+
+    // Contorno sólido negro
     ctx.lineWidth = 2.2;
-    ctx.strokeStyle = '#141411';
+    ctx.strokeStyle = '#111111';
     ctx.strokeRect(c - half, c - half, half * 2, half * 2);
 
-    ctx.fillStyle = '#141411';
+    // Punto/cuadrado técnico central
+    ctx.fillStyle = '#111111';
     const inner = half * 0.35;
     ctx.fillRect(c - inner, c - inner, inner * 2, inner * 2);
   } else if (importance === 2) {
-    // Nivel 2 privado: Cuadrado compacto de categoría
-    const half = s * 0.24;
+    // Importancia 2 (Media): Cuadrado intermedio
+    const half = s * 0.23;
+
+    // Halo perimetral
     ctx.fillStyle = '#F4F1EA';
     ctx.fillRect(c - half - 2, c - half - 2, (half + 2) * 2, (half + 2) * 2);
 
+    // Relleno de categoría
     ctx.fillStyle = color;
     ctx.fillRect(c - half, c - half, half * 2, half * 2);
+
+    // Contorno sólido negro
     ctx.lineWidth = 1.8;
-    ctx.strokeStyle = '#141411';
+    ctx.strokeStyle = '#111111';
     ctx.strokeRect(c - half, c - half, half * 2, half * 2);
   } else {
-    // Nivel 3 privado: Pequeño cuadrado de categoría
-    const half = s * 0.18;
-    ctx.fillStyle = '#F4F1EA';
-    ctx.fillRect(c - half - 2, c - half - 2, (half + 2) * 2, (half + 2) * 2);
+    // Importancia 3 (Baja / Discreto): Icono cuadrado compacto
+    const half = s * 0.16;
 
+    // Halo perimetral sutil
+    ctx.fillStyle = '#F4F1EA';
+    ctx.fillRect(c - half - 1.5, c - half - 1.5, (half + 1.5) * 2, (half + 1.5) * 2);
+
+    // Relleno de categoría
     ctx.fillStyle = color;
     ctx.fillRect(c - half, c - half, half * 2, half * 2);
+
+    // Contorno sólido negro
     ctx.lineWidth = 1.4;
-    ctx.strokeStyle = '#141411';
+    ctx.strokeStyle = '#111111';
     ctx.strokeRect(c - half, c - half, half * 2, half * 2);
   }
 

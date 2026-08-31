@@ -26,9 +26,13 @@ export function actualizarFuenteMapa() {
   updateTimeout = setTimeout(() => {
     if (!state.map) return;
 
-    let obrasVisibles = state.OBRAS.filter((obra) => esRolAdmin(state.userRole) && state.adminMode
-      ? obra.estado_revision !== 'rechazada'
-      : obra.estado_revision !== 'pendiente' && obra.estado_revision !== 'rechazada');
+    let obrasVisibles = state.OBRAS.filter((obra) => {
+      if (obra.private) return true; // Las etiquetas/obras privadas del usuario son siempre visibles en su mapa
+      if (esRolAdmin(state.userRole) && state.adminMode) {
+        return obra.estado_revision !== 'rechazada';
+      }
+      return obra.estado_revision !== 'pendiente' && obra.estado_revision !== 'rechazada';
+    });
 
     // Aislamiento de datos en Modo Itinerario
     if (state.activeItinerary && state.activeItinerary.workIds) {
@@ -67,7 +71,7 @@ export function actualizarFuenteMapa() {
           ...obra,
           arquitectos: obra.arquitectos || [],
           estado_acceso: obra.estado_acceso || 'privado',
-          estado_revision: obra.estado_revision || 'publicada',
+          estado_revision: obra.private ? 'privada' : (obra.estado_revision || 'publicada'),
           shared_location_count: ubicacionesCompartidas.get(obra.coordenadas.join(',')) || 1,
           favorite: state.buildingStatuses.get(String(obra.id))?.favorite ? 1 : 0,
           visited: state.buildingStatuses.get(String(obra.id))?.visited ? 1 : 0,
