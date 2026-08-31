@@ -220,15 +220,23 @@ async function cargarContenidoPrivado() {
 
 document.addEventListener('radar:user-session-ready', cargarContenidoPrivado);
 
-initModalsUI();
-initSearchUI();
-initMyPlacesUI();
-initAdminUI();
-initMobileBottomNav();
-initExploreUI();
-initRadarUI();
-lucide.createIcons();
+// 1. Iniciar mapa inmediatamente
 inicializarRadar();
+
+// 2. Iniciar módulos de interfaz de forma desacoplada y protegida
+try { initModalsUI(); } catch (err) { console.warn('Init ModalsUI:', err); }
+try { initSearchUI(); } catch (err) { console.warn('Init SearchUI:', err); }
+try { initMyPlacesUI(); } catch (err) { console.warn('Init MyPlacesUI:', err); }
+try { initAdminUI(); } catch (err) { console.warn('Init AdminUI:', err); }
+try { initMobileBottomNav(); } catch (err) { console.warn('Init MobileBottomNav:', err); }
+try { initExploreUI(); } catch (err) { console.warn('Init ExploreUI:', err); }
+try { initRadarUI(); } catch (err) { console.warn('Init RadarUI:', err); }
+
+try {
+  if (window.lucide) window.lucide.createIcons();
+} catch (err) {
+  console.warn('Lucide icons:', err);
+}
 
 const mapTools = document.getElementById('map-tools');
 const mapToolsToggle = document.getElementById('btn-map-tools');

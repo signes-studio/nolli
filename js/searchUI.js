@@ -74,32 +74,32 @@ export function initSearchUI() {
 
   document.addEventListener('click', (event) => {
     if (event.target.closest('#btn-search-close')) {
-      searchPanel.classList.remove('open');
-      btnSearch.classList.remove('active-state');
-      locationResults.innerHTML = '';
+      searchPanel?.classList.remove('open');
+      btnSearch?.classList.remove('active-state');
+      if (locationResults) locationResults.innerHTML = '';
       const backdrop = document.getElementById('panel-backdrop');
       if (backdrop) backdrop.classList.remove('active');
     }
   });
 
-  searchInput.addEventListener('input', () => {
+  searchInput?.addEventListener('input', () => {
     clearTimeout(searchDebounceTimer);
     searchDebounceTimer = setTimeout(ejecutarBusquedaGlobal, 120);
   });
 
-  searchInput.addEventListener('keydown', (event) => {
+  searchInput?.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
       event.preventDefault();
       const val = searchInput.value.trim();
       if (val) {
-        searchPanel.classList.remove('open');
-        btnSearch.classList.remove('active-state');
+        searchPanel?.classList.remove('open');
+        btnSearch?.classList.remove('active-state');
         activarFiltroBusquedaEnMapa(val, currentSearchResults.length ? currentSearchResults : null);
       }
     }
   });
 
-  architectInput.addEventListener('input', () => {
+  architectInput?.addEventListener('input', () => {
     if (architectSuggestions) {
       architectSuggestions.innerHTML = '';
       architectSuggestions.hidden = true;
@@ -108,29 +108,29 @@ export function initSearchUI() {
     searchDebounceTimer = setTimeout(ejecutarBusquedaGlobal, 120);
   });
 
-  architectInput.addEventListener('keydown', (event) => {
+  architectInput?.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
       event.preventDefault();
       const val = architectInput.value.trim();
       if (val) {
-        searchPanel.classList.remove('open');
-        btnSearch.classList.remove('active-state');
+        searchPanel?.classList.remove('open');
+        btnSearch?.classList.remove('active-state');
         activarFiltroBusquedaEnMapa(val, currentSearchResults.length ? currentSearchResults : null);
       }
     }
   });
 
-  locationInput.addEventListener('input', () => {
+  locationInput?.addEventListener('input', () => {
     clearTimeout(locationSearchTimer);
     const query = locationInput.value.trim();
     if (query.length >= 2) {
       locationSearchTimer = setTimeout(() => buscarUbicaciones(query), 250);
     } else {
-      locationResults.innerHTML = '';
+      if (locationResults) locationResults.innerHTML = '';
     }
   });
 
-  locationInput.addEventListener('keydown', (event) => {
+  locationInput?.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
       event.preventDefault();
       clearTimeout(locationSearchTimer);
@@ -138,7 +138,7 @@ export function initSearchUI() {
       if (query.length >= 2) {
         buscarUbicaciones(query);
       } else {
-        locationResults.innerHTML = '';
+        if (locationResults) locationResults.innerHTML = '';
       }
     }
   });
@@ -150,6 +150,7 @@ export function initSearchUI() {
 }
 
 async function buscarUbicaciones(query) {
+  if (!locationResults) return;
   const requestId = ++locationSearchRequest;
   locationResults.innerHTML = '<div class="nearby-empty">BUSCANDO UBICACIONES...</div>';
   try {
@@ -165,13 +166,15 @@ async function buscarUbicaciones(query) {
   } catch (error) {
     if (requestId !== locationSearchRequest) return;
     console.error('Error buscando ubicación:', error);
-    locationResults.innerHTML = '<div class="nearby-empty">No se pudo buscar la ubicación.</div>';
+    if (locationResults) locationResults.innerHTML = '<div class="nearby-empty">No se pudo buscar la ubicación.</div>';
   }
 }
 
 function actualizarOpciones() {
-  const previousArchitect = architectInput.value;
-  architectInput.value = previousArchitect;
+  if (architectInput) {
+    const previousArchitect = architectInput.value;
+    architectInput.value = previousArchitect;
+  }
 }
 
 function solicitarUbicacion() {
