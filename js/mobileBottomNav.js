@@ -7,7 +7,7 @@
    - Aceleración por hardware a 60 FPS estables
    ========================================================================= */
 
-import { state, esRolAdmin, separarArquitectos, normalizarCategoria, normalizarImportancia } from './state.js';
+import { state, esRolAdmin, separarArquitectos, normalizarCategoria, normalizarImportancia, nombreCategoria, CATEGORY_COLORS, escapeHtml } from './state.js';
 import { fetchBuildings } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { renderExploreList } from './exploreUI.js';
@@ -415,7 +415,8 @@ async function cargarTodasObrasMobile() {
         año_construccion: fila.año_construccion,
         importancia: normalizarImportancia(fila.importancia),
         categoria: normalizarCategoria(fila.categoria),
-        ciudad: fila.ciudad || null,
+        ciudad: fila.place || fila.ciudad || null,
+        place: fila.place || null,
         estado_acceso: fila.estado_acceso || (fila.visitable ? 'publico' : 'privado'),
         coordenadas: [fila.longitud, fila.latitud],
       }));
@@ -526,15 +527,34 @@ function initMobileSearchWidget() {
         </button>
       `;
 
-      const listHtml = matches.slice(0, 25).map((obra) => `
-        <button type="button" class="mobile-search-item" data-obra-id="${obra.id || obra.featureId}">
-          <div style="min-width: 0; flex: 1;">
-            <div class="mobile-search-item-title">${obra.nombre_obra}</div>
-            <div class="mobile-search-item-sub">${obra.arquitecto || 'Arquitecto no indicado'}${obra.año_construccion ? ` · ${obra.año_construccion}` : ''}</div>
-          </div>
-          <div class="mobile-search-item-meta">${obra.ciudad ? `[ ${obra.ciudad.toUpperCase()} ]` : '[ S/C ]'}</div>
-        </button>
-      `).join('');
+      const listHtml = matches.slice(0, 25).map((obra) => {
+        const catClave = normalizarCategoria(obra.categoria);
+        const catTexto = nombreCategoria(obra.categoria);
+        const catColor = CATEGORY_COLORS[catClave] || '#E84E1B';
+
+        const titulo = escapeHtml(obra.nombre_obra || 'OBRA SIN TÍTULO').toUpperCase();
+        const arq = escapeHtml(obra.arquitecto || 'Arquitecto no indicado');
+        const anio = obra.año_construccion ? escapeHtml(String(obra.año_construccion)) : '';
+        const ciudad = obra.ciudad || obra.place ? escapeHtml(String(obra.ciudad || obra.place).toUpperCase()) : '';
+
+        const metaParts = [arq];
+        if (anio) metaParts.push(anio);
+        if (ciudad) metaParts.push(ciudad);
+
+        return `
+          <button type="button" class="mobile-search-item" data-obra-id="${escapeHtml(obra.id || obra.featureId)}" aria-label="Ver obra ${titulo}">
+            <div class="mobile-search-item-main">
+              <div class="mobile-search-item-top-row">
+                <span class="mobile-search-cat-tag" style="color: ${catColor};">[ ${escapeHtml(catTexto)} ]</span>
+              </div>
+              <div class="mobile-search-item-title">${titulo}</div>
+              <div class="mobile-search-item-sub">
+                <span class="mobile-search-meta-text">${metaParts.join(' · ')}</span>
+              </div>
+            </div>
+          </button>
+        `;
+      }).join('');
 
       resultsContainer.innerHTML = headerActionHtml + listHtml;
       if (window.lucide) window.lucide.createIcons();

@@ -383,7 +383,7 @@ export function cargarMapaMapbox() {
         type: 'symbol',
         source: sourceId,
         minzoom: cfg.minzoom,
-        filter: ['all', ['==', ['get', 'importancia'], importance], ['!=', ['get', 'estado_revision'], 'rechazada']],
+        filter: ['all', ['==', ['get', 'importancia'], importance], ['!=', ['get', 'estado_revision'], 'rechazada'], ['!=', ['get', 'selected'], 1]],
         layout: {
           'text-field': ['get', 'nombre_obra'],
           'text-font': cfg.font,
@@ -392,7 +392,7 @@ export function cargarMapaMapbox() {
           'text-anchor': 'left',
           'text-justify': 'left',
           'text-max-width': 11,
-          'text-padding': 2,
+          'text-padding': 4,
           'text-allow-overlap': false,
           'text-ignore-placement': false,
           'text-optional': true,
@@ -412,8 +412,65 @@ export function cargarMapaMapbox() {
       state.map.on('mouseleave', labelLayerId, () => { state.map.getCanvas().style.cursor = ''; });
     });
 
-    ['obras-l0', 'obras-l0-visited', 'obras-l0-selected', 'obras-l0-pending', 'obras-l0-private', 'obras-labels-l0'].forEach((layerId) => {
-      state.map.moveLayer(layerId);
+    // Capa de etiqueta de la obra seleccionada (siempre visible y destacada)
+    state.map.addLayer({
+      id: 'obras-labels-selected',
+      type: 'symbol',
+      source: 'obras',
+      filter: ['==', ['get', 'selected'], 1],
+      layout: {
+        'text-field': ['get', 'nombre_obra'],
+        'text-font': ['Inter Bold', 'Open Sans Bold', 'Arial Unicode MS Bold'],
+        'text-size': 13,
+        'text-offset': [1.2, 0],
+        'text-anchor': 'left',
+        'text-justify': 'left',
+        'text-max-width': 14,
+        'text-allow-overlap': true,
+        'text-ignore-placement': true,
+        'text-optional': false,
+        'text-pitch-alignment': 'viewport',
+        'symbol-sort-key': 100,
+      },
+      paint: {
+        'text-color': isDark ? '#FFFFFF' : '#04070B',
+        'text-halo-color': isDark ? 'rgba(18, 18, 18, 0.95)' : 'rgba(248, 241, 223, 0.95)',
+        'text-halo-width': 2,
+        'text-halo-blur': 0.5,
+      },
+    });
+
+    state.map.addLayer({
+      id: 'obras-maestras-labels-selected',
+      type: 'symbol',
+      source: 'obras-maestras',
+      filter: ['==', ['get', 'selected'], 1],
+      layout: {
+        'text-field': ['get', 'nombre_obra'],
+        'text-font': ['Inter Bold', 'Open Sans Bold', 'Arial Unicode MS Bold'],
+        'text-size': 13.5,
+        'text-offset': [1.2, 0],
+        'text-anchor': 'left',
+        'text-justify': 'left',
+        'text-max-width': 14,
+        'text-allow-overlap': true,
+        'text-ignore-placement': true,
+        'text-optional': false,
+        'text-pitch-alignment': 'viewport',
+        'symbol-sort-key': 100,
+      },
+      paint: {
+        'text-color': isDark ? '#FFFFFF' : '#04070B',
+        'text-halo-color': isDark ? 'rgba(18, 18, 18, 0.95)' : 'rgba(248, 241, 223, 0.95)',
+        'text-halo-width': 2,
+        'text-halo-blur': 0.5,
+      },
+    });
+
+    ['obras-l0', 'obras-l0-visited', 'obras-l0-selected', 'obras-l0-pending', 'obras-l0-private', 'obras-labels-l3', 'obras-labels-l2', 'obras-labels-l1', 'obras-labels-l0', 'obras-labels-selected', 'obras-maestras-labels-selected'].forEach((layerId) => {
+      if (state.map.getLayer(layerId)) {
+        state.map.moveLayer(layerId);
+      }
     });
 
     iniciarInteraccionesMapa();

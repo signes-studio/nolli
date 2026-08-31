@@ -26,9 +26,11 @@ function renderizarTarjetaObra(obra, distance = null) {
   const titulo = escapeHtml(obra.nombre_obra || 'OBRA SIN TÍTULO').toUpperCase();
   const arq = escapeHtml(obra.arquitecto || 'Desconocido');
   const anio = obra.año_construccion ? escapeHtml(String(obra.año_construccion)) : '';
+  const ciudad = obra.ciudad || obra.place ? escapeHtml(String(obra.ciudad || obra.place).toUpperCase()) : '';
   
   const metaParts = [arq];
   if (anio) metaParts.push(anio);
+  if (ciudad) metaParts.push(ciudad);
   if (distance != null && state.userLocation && Number.isFinite(distance)) {
     metaParts.push(formatearDistancia(distance));
   }
@@ -36,10 +38,12 @@ function renderizarTarjetaObra(obra, distance = null) {
   return `
     <button type="button" class="nearby-item search-work-card" data-feature-id="${escapeHtml(obra.featureId)}" data-lng="${obra.coordenadas[0]}" data-lat="${obra.coordenadas[1]}" aria-label="Ver obra ${titulo}">
       <div class="search-card-main">
+        <div class="search-card-top-row">
+          <span class="search-cat-tag" style="color:${catColor};">[ ${escapeHtml(catTexto)} ]</span>
+        </div>
         <div class="search-card-title">${titulo}</div>
         <div class="search-card-meta">
-          <span class="search-cat-tag" style="color:${catColor}; border-color:${catColor};">[ ${escapeHtml(catTexto)} ]</span>
-          <span class="search-meta-text">· ${metaParts.join(' · ')}</span>
+          <span class="search-meta-text">${metaParts.join(' · ')}</span>
         </div>
       </div>
     </button>
@@ -252,6 +256,7 @@ async function ejecutarBusquedaGlobal() {
 
     const filterHeader = `
       <button type="button" class="nearby-item btn-apply-search-filter" data-action="filter-text-map">
+        <i data-lucide="filter" class="filter-action-icon" width="14" height="14"></i>
         <span>[ VER TODAS LAS ${obrasFiltradas.length} OBRAS EN EL MAPA ]</span>
       </button>
     `;
@@ -262,6 +267,7 @@ async function ejecutarBusquedaGlobal() {
     }).join('');
 
     searchResults.innerHTML = filterHeader + listHtml;
+    if (window.lucide) window.lucide.createIcons();
     return;
   }
 
@@ -422,6 +428,7 @@ async function mostrarEdificiosDeArquitecto(nombreArquitecto) {
 
   const filterHeader = `
     <button type="button" class="nearby-item btn-apply-search-filter" data-action="filter-architect-map">
+      <i data-lucide="filter" class="filter-action-icon" width="14" height="14"></i>
       <span>[ VER TODAS LAS ${obrasDelArquitecto.length} OBRAS EN EL MAPA ]</span>
     </button>
   `;
@@ -440,6 +447,7 @@ async function mostrarEdificiosDeArquitecto(nombreArquitecto) {
   ).join('');
 
   searchResults.innerHTML = filterHeader + listHtml;
+  if (window.lucide) window.lucide.createIcons();
 }
 
 export async function activarFiltroBusquedaEnMapa(queryText, providedMatches = null) {

@@ -196,6 +196,25 @@
     letter-spacing: 0.05em;
     text-transform: uppercase;
   }
+
+  .mobile-splash-footer {
+    position: absolute;
+    bottom: calc(24px + env(safe-area-inset-bottom));
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--fg-dim, #666666);
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+
+  body.dark-mode .mobile-splash-footer {
+    color: #888884;
+  }
   /* Lienzo del mapa a pantalla completa sin capas bloqueantes */
   #map {
     position: fixed !important;
@@ -482,21 +501,35 @@
 
   .mobile-search-dropdown {
     position: absolute;
-    top: calc(100% + 4px);
+    top: calc(100% + 6px);
     left: 0;
     right: 0;
-    max-height: 45vh;
+    max-height: 52vh;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: contain;
     background: var(--bg-panel, #F4F1EA);
-    border: 1px solid var(--border-strong, #141411);
-    box-shadow: 3px 3px 0px var(--border-strong, #141411);
+    border: 2px solid var(--border-strong, #111111);
+    box-shadow: 4px 4px 0px var(--border-strong, #111111);
     z-index: 50;
+    padding: 10px;
+    box-sizing: border-box;
+  }
+
+  body.dark-mode .mobile-search-dropdown {
+    background: #171715;
+    border-color: var(--border-strong, #4E4E48);
+    box-shadow: 4px 4px 0px #000000;
   }
 
   .mobile-search-dropdown[hidden] {
     display: none !important;
+  }
+
+  #mobile-search-results {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
   }
 
   .mobile-search-filter-action {
@@ -505,90 +538,140 @@
     justify-content: center;
     gap: 8px;
     width: 100%;
-    padding: 10px 12px;
+    padding: 12px 14px;
     background: #111111 !important;
     color: #F4F1EA !important;
-    border: none;
-    border-bottom: 2px solid var(--accent, #E84E1B);
+    border: 2px solid #111111;
+    box-shadow: 3px 3px 0px var(--accent, #E84E1B);
     font-family: 'League Spartan', sans-serif !important;
-    font-weight: 800 !important;
-    font-size: 11px !important;
-    letter-spacing: 0.05em;
+    font-weight: 900 !important;
+    font-size: 11.5px !important;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     cursor: pointer;
     touch-action: manipulation;
-    transition: background 0.12s ease;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+    box-sizing: border-box;
+  }
+
+  .mobile-search-filter-action i {
+    color: var(--accent, #E84E1B) !important;
+    flex-shrink: 0;
   }
 
   .mobile-search-filter-action:active {
-    background: var(--accent, #E84E1B) !important;
-    color: #FFFFFF !important;
+    background: #1F1F1C !important;
+    transform: translate(1px, 1px);
+    box-shadow: 2px 2px 0px var(--accent, #E84E1B);
   }
 
   body.dark-mode .mobile-search-filter-action {
-    background: #000000 !important;
+    background: #20201D !important;
     color: #FFFFFF !important;
+    border-color: #4E4E48;
+    box-shadow: 3px 3px 0px var(--accent, #E84E1B);
   }
 
   .mobile-search-item {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 12px;
-    border: 0;
-    border-bottom: 1px solid var(--border);
-    background: transparent;
+    flex-direction: column;
+    gap: 5px;
+    padding: 12px 14px;
+    border: 2px solid var(--border-strong, #111111);
+    box-shadow: 3px 3px 0px var(--border-strong, #111111);
+    background: var(--bg-panel, #F8F1DF);
     width: 100%;
     text-align: left;
     cursor: pointer;
-    font-family: 'Inter', sans-serif;
-    color: var(--fg, #141411);
+    color: var(--fg, #111111);
     touch-action: manipulation;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+    box-sizing: border-box;
+    border-radius: 0 !important;
   }
 
-  .mobile-search-item:last-child {
-    border-bottom: 0;
+  body.dark-mode .mobile-search-item {
+    background: #1C1C19;
+    border-color: var(--border-strong, #4E4E48);
+    box-shadow: 3px 3px 0px #000000;
+    color: var(--fg, #F8F1DF);
   }
 
   .mobile-search-item:active {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0px var(--border-strong, #111111);
     background: var(--bg-raised, #ECE6D8);
+  }
+
+  body.dark-mode .mobile-search-item:active {
+    background: #252522;
+  }
+
+  .mobile-search-item-main {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .mobile-search-item-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin-bottom: 1px;
+  }
+
+  .mobile-search-cat-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    display: inline-block;
   }
 
   .mobile-search-item-title {
     font-family: 'League Spartan', sans-serif;
-    font-weight: 800;
-    font-size: 13px;
-    line-height: 1.2;
+    font-weight: 900;
+    font-size: 15px;
+    line-height: 1.25;
     text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: #111111;
+    word-break: break-word;
+  }
+
+  body.dark-mode .mobile-search-item-title {
+    color: #FFFFFF;
   }
 
   .mobile-search-item-sub {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
-    color: var(--fg-dim);
-    margin-top: 2px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 5px;
+    font-family: 'Inter', sans-serif;
+    font-size: 11.5px;
+    line-height: 1.45;
+    color: #333333;
+    margin-top: 1px;
   }
 
-  .mobile-search-item-meta {
-    font-family: 'JetBrains Mono', monospace !important;
-    font-size: 10px !important;
-    font-weight: 700 !important;
-    color: var(--accent, #E95C0C) !important;
-    background: var(--bg-raised, #ECE6D8);
-    padding: 3px 6px;
-    border: 1px solid var(--border-strong, #141411);
-    border-radius: 0 !important;
-    flex-shrink: 0;
-    margin-left: 8px;
-    letter-spacing: 0.04em;
-    white-space: nowrap;
-    text-transform: uppercase;
+  body.dark-mode .mobile-search-item-sub {
+    color: #C5C5BE;
   }
 
-  body.dark-mode .mobile-search-item-meta {
-    background: #252522 !important;
-    color: #FF7A33 !important;
-    border-color: #444 !important;
+  .mobile-search-meta-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 11.5px;
+    font-weight: 500;
+    color: #333333;
+    word-break: break-word;
+  }
+
+  body.dark-mode .mobile-search-meta-text {
+    color: #C5C5BE;
   }
 
   /* Controles Flotantes Derechos (Móvil) */
