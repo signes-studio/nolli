@@ -2,7 +2,7 @@
    MODALSUI.JS — Modal de login de administrador y modal de alta de edificio
    ========================================================================= */
 
-import { state, separarArquitectos, normalizarCategoria, esRolAdmin } from './state.js';
+import { state, clearAuthState, separarArquitectos, normalizarCategoria, esRolAdmin } from './state.js';
 import { loginAdmin, registerUser, refreshUserSession, requestPasswordReset, fetchUserRole, fetchCurrentUser, fetchCurrentProfile, fetchBuildingStatuses, upsertCurrentProfile, createBuildingReport, createBuilding, createPrivateBuilding, updateBuilding, updateUserPresence } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
@@ -300,28 +300,19 @@ async function initLoginModal() {
   });
 
   logoutButton.addEventListener('click', () => {
-    localStorage.removeItem(ADMIN_SESSION_KEY);
-    sessionStorage.removeItem(ADMIN_SESSION_KEY);
-    state.sessionToken = null;
-    state.userRole = null;
-    state.adminMode = false;
-    adminModeControl.classList.add('hidden');
-    adminModeToggle.checked = false;
-    state.userId = null;
-    state.userEmail = null;
-    state.userProfile = null;
-    state.buildingStatuses = new Map();
-    state.userCollections = [];
-    state.userCollectionItems = [];
-    state.userPrivateLabels = [];
+    clearAuthState();
+    if (adminModeControl) adminModeControl.classList.add('hidden');
+    if (adminModeToggle) adminModeToggle.checked = false;
     document.dispatchEvent(new CustomEvent('radar:user-status-ready'));
-    logoutButton.classList.add('hidden');
+    if (logoutButton) logoutButton.classList.add('hidden');
     loginEntryFields.forEach((field) => field.classList.remove('hidden'));
-    bLoginT.textContent = '[ INICIAR SESIÓN ]';
-    bLoginT.style.color = 'var(--accent)';
-    bLoginT.style.borderColor = 'var(--accent)';
-    bLoginT.style.background = 'rgba(233, 92, 12, 0.1)';
-    mLogin.classList.remove('open');
+    if (bLoginT) {
+      bLoginT.textContent = '[ INICIAR SESIÓN ]';
+      bLoginT.style.color = 'var(--accent)';
+      bLoginT.style.borderColor = 'var(--accent)';
+      bLoginT.style.background = 'rgba(233, 92, 12, 0.1)';
+    }
+    if (mLogin) mLogin.classList.remove('open');
     document.dispatchEvent(new CustomEvent('radar:logout'));
   });
 }

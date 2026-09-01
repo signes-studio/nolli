@@ -32,6 +32,7 @@ import {
 
 import {
   state,
+  clearAuthState,
   cargarZonaPersonalLocal,
   guardarZonaPersonalLocal,
   aplicarPreferenciasMapaColecciones,
@@ -88,16 +89,6 @@ const noteStatus = document.getElementById('note-modal-status');
 let activeTab = 'collections'; // 'collections' | 'favorite' | 'visited' | 'notes'
 let loginInitialized = false;
 
-function escapeHtml(value) {
-  return String(value ?? '').replace(/[&<>'"]/g, (character) => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    "'": '&#39;',
-    '"': '&quot;',
-  }[character]));
-}
-
 function getSessionToken() {
   const stored = localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY);
   if (!stored) return null;
@@ -142,11 +133,12 @@ function updateThemeIcon(isDark) {
 }
 
 function logout() {
-  localStorage.removeItem(SESSION_KEY);
-  sessionStorage.removeItem(SESSION_KEY);
-  localStorage.removeItem('nolli_cached_user');
-  localStorage.removeItem('nolli_cached_db_profile');
-  localStorage.removeItem('nolli_cached_statuses');
+  clearAuthState();
+  document.dispatchEvent(new CustomEvent('radar:logout'));
+  if (SESSION_KEY) {
+    localStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(SESSION_KEY);
+  }
   window.location.reload();
 }
 

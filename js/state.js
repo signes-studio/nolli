@@ -52,6 +52,36 @@ export const state = {
   userPrivateLabels: [],
 };
 
+export const AUTH_STORAGE_KEYS = [
+  'nolli_admin_session_token',
+  'nolli_cached_user',
+  'nolli_cached_db_profile',
+  'nolli_cached_statuses',
+  'nolli_cached_collections',
+  'nolli_cached_labels',
+];
+
+export function clearAuthState() {
+  AUTH_STORAGE_KEYS.forEach((key) => {
+    localStorage.removeItem(key);
+    sessionStorage.removeItem(key);
+  });
+
+  state.sessionToken = null;
+  state.userRole = null;
+  state.adminMode = false;
+  state.userId = null;
+  state.userEmail = null;
+  state.userProfile = null;
+  state.buildingStatuses = new Map();
+  state.userCollections = [];
+  state.userCollectionItems = [];
+  state.userFollowedCollections = [];
+  state.userPrivateLabels = [];
+  state.privateBuildings = [];
+  return true;
+}
+
 export function esRolAdmin(role = state.userRole) {
   return role === 'admin' || role === 'superadmin';
 }
