@@ -449,7 +449,6 @@ function initMobileSearchWidget() {
 
   if (btnSearch) {
     btnSearch.addEventListener('click', (e) => {
-      if (window.innerWidth > 768) return;
       e.preventDefault();
       e.stopPropagation();
       if (widget.classList.contains('expanded')) {
@@ -726,4 +725,3 @@ function initSheetTouchGestures() {
     });
   }
 }
-
