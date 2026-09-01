@@ -2,13 +2,41 @@
    MODALSUI.JS — Modal de login de administrador y modal de alta de edificio
    ========================================================================= */
 
-import { state, clearAuthState, separarArquitectos, normalizarCategoria, esRolAdmin } from './state.js';
+import { state, separarArquitectos, normalizarCategoria, esRolAdmin } from './state.js';
 import { loginAdmin, registerUser, refreshUserSession, requestPasswordReset, fetchUserRole, fetchCurrentUser, fetchCurrentProfile, fetchBuildingStatuses, upsertCurrentProfile, createBuildingReport, createBuilding, createPrivateBuilding, updateBuilding, updateUserPresence } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
 
 const ADMIN_SESSION_KEY = 'nolli_admin_session_token';
 let presenceTimer = null;
+
+function clearSessionAndUserCaches() {
+  [
+    'nolli_admin_session_token',
+    'nolli_cached_user',
+    'nolli_cached_db_profile',
+    'nolli_cached_statuses',
+    'nolli_cached_collections',
+    'nolli_cached_labels',
+    'nolli_cached_buildings',
+  ].forEach((key) => {
+    localStorage.removeItem(key);
+    sessionStorage.removeItem(key);
+  });
+
+  state.sessionToken = null;
+  state.userRole = null;
+  state.adminMode = false;
+  state.userId = null;
+  state.userEmail = null;
+  state.userProfile = null;
+  state.buildingStatuses = new Map();
+  state.userCollections = [];
+  state.userCollectionItems = [];
+  state.userFollowedCollections = [];
+  state.userPrivateLabels = [];
+  state.privateBuildings = [];
+}
 
 function iniciarLatidoPresencia() {
   if (presenceTimer) clearInterval(presenceTimer);
@@ -300,7 +328,7 @@ async function initLoginModal() {
   });
 
   logoutButton.addEventListener('click', () => {
-    clearAuthState();
+    clearSessionAndUserCaches();
     if (adminModeControl) adminModeControl.classList.add('hidden');
     if (adminModeToggle) adminModeToggle.checked = false;
     document.dispatchEvent(new CustomEvent('radar:user-status-ready'));

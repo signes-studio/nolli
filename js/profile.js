@@ -32,7 +32,6 @@ import {
 
 import {
   state,
-  clearAuthState,
   cargarZonaPersonalLocal,
   guardarZonaPersonalLocal,
   aplicarPreferenciasMapaColecciones,
@@ -132,8 +131,43 @@ function updateThemeIcon(isDark) {
   if (window.lucide) window.lucide.createIcons();
 }
 
+function clearSessionAndUserCaches() {
+  [
+    'nolli_admin_session_token',
+    'nolli_cached_user',
+    'nolli_cached_db_profile',
+    'nolli_cached_statuses',
+    'nolli_cached_collections',
+    'nolli_cached_labels',
+    'nolli_cached_buildings',
+  ].forEach((key) => {
+    localStorage.removeItem(key);
+    sessionStorage.removeItem(key);
+  });
+
+  profileState.user = null;
+  profileState.dbProfile = null;
+  profileState.statuses = new Map();
+  profileState.collections = [];
+  profileState.items = [];
+  profileState.followedCollections = [];
+  profileState.labels = [];
+
+  state.sessionToken = null;
+  state.userRole = null;
+  state.adminMode = false;
+  state.userId = null;
+  state.userEmail = null;
+  state.userProfile = null;
+  state.buildingStatuses = new Map();
+  state.userCollections = [];
+  state.userCollectionItems = [];
+  state.userFollowedCollections = [];
+  state.userPrivateLabels = [];
+}
+
 function logout() {
-  clearAuthState();
+  clearSessionAndUserCaches();
   document.dispatchEvent(new CustomEvent('radar:logout'));
   if (SESSION_KEY) {
     localStorage.removeItem(SESSION_KEY);
@@ -1292,6 +1326,7 @@ function setupEditProfileModal() {
 function setupLoginModal() {
   if (loginInitialized) return;
   loginInitialized = true;
+  let registerMode = false;
 
   const mLogin = document.getElementById('modal-login');
   const btnLoginCta = document.getElementById('btn-profile-login-cta');
@@ -1504,15 +1539,7 @@ function setupLoginModal() {
 
   if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
-      localStorage.removeItem(SESSION_KEY);
-      sessionStorage.removeItem(SESSION_KEY);
-      localStorage.removeItem('nolli_cached_user');
-      localStorage.removeItem('nolli_cached_db_profile');
-      localStorage.removeItem('nolli_cached_statuses');
-      profileState.user = null;
-      profileState.dbProfile = null;
-      profileState.statuses.clear();
-      init();
+      logout();
     });
   }
 }
@@ -1523,4 +1550,3 @@ if (document.readyState === 'loading') {
 } else {
   init();
 }
-
