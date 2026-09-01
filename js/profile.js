@@ -27,6 +27,7 @@ import {
   requestPasswordReset,
   refreshUserSession,
   updateUserPresence,
+  getBuildingsCatalog,
 } from './api.js';
 
 import {
@@ -35,7 +36,10 @@ import {
   guardarZonaPersonalLocal,
   aplicarPreferenciasMapaColecciones,
   transformarEdificio,
+  escapeHtml,
 } from './state.js';
+
+import { renderInChunks } from './renderUtils.js';
 
 const SESSION_KEY = 'nolli_admin_session_token';
 const content = document.getElementById('profile-content');
@@ -467,7 +471,10 @@ function renderBuildingsFeed(buildings, tabKey) {
     return;
   }
 
-  content.innerHTML = buildings.map((obra) => {
+  // CRÍTICO FIX #3: Usar renderInChunks para evitar jank en listas grandes
+  content.innerHTML = '';
+  
+  const htmlChunks = buildings.map((obra) => {
     const photo = obra.foto_miniatura || obra.foto_url || '';
     const title = obra.nombre_obra || 'Obra de arquitectura';
     const year = obra.año_construccion || 'S. XX';
@@ -503,7 +510,11 @@ function renderBuildingsFeed(buildings, tabKey) {
         </div>
       </div>
     `;
-  }).join('');
+  });
+  
+  renderInChunks(content, htmlChunks, 10, () => {
+    if (window.lucide) window.lucide.createIcons();
+  });
 }
 
 function renderCollectionsFeed() {
