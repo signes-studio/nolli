@@ -108,8 +108,22 @@ body.dark-mode .profile-logo span {
   text-decoration: none;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  gap: 6px;
   opacity: 0.85;
   transition: opacity 0.1s ease, color 0.1s ease;
+}
+
+.profile-minimal-btn i,
+.profile-minimal-btn svg,
+.mobile-nav-btn i,
+.mobile-nav-btn svg {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  stroke: currentColor;
+  fill: none;
 }
 
 body.dark-mode .profile-minimal-btn {

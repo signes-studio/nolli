@@ -166,6 +166,37 @@ function clearSessionAndUserCaches() {
   state.userPrivateLabels = [];
 }
 
+function bindProfileHeaderActions() {
+  if (logoutBtn) logoutBtn.onclick = logout;
+  if (mobileLogoutBtn) mobileLogoutBtn.onclick = logout;
+
+  if (settingsBtn && modalEditProfile) {
+    settingsBtn.onclick = () => {
+      const user = profileState.user || {};
+      const metadata = user.user_metadata || {};
+      const db = profileState.dbProfile || {};
+
+      const inFirstName = document.getElementById('edit-profile-firstname');
+      const inLastName = document.getElementById('edit-profile-lastname');
+      const inBio = document.getElementById('edit-profile-bio');
+      const inCity = document.getElementById('edit-profile-city');
+      const inCountry = document.getElementById('edit-profile-country');
+      const inWebsite = document.getElementById('edit-profile-website');
+
+      if (inFirstName) inFirstName.value = (db.first_name !== undefined && db.first_name !== null) ? db.first_name : (metadata.first_name || 'Luis Alberto');
+      if (inLastName) inLastName.value = (db.last_name !== undefined && db.last_name !== null) ? db.last_name : (metadata.last_name || 'Signes Sacristán');
+      if (inBio) inBio.value = (db.bio !== undefined && db.bio !== null) ? db.bio : (metadata.bio || 'Arquitecto & ArchViz | SIGNES.STUDIO');
+      if (inCity) inCity.value = (db.city !== undefined && db.city !== null) ? db.city : (metadata.city || 'Valencia');
+      if (inCountry) inCountry.value = (db.country !== undefined && db.country !== null) ? db.country : (metadata.country || 'España');
+      if (inWebsite) inWebsite.value = (db.website !== undefined && db.website !== null) ? db.website : (metadata.website || 'https://signes.studio');
+
+      if (editStatus) editStatus.classList.add('hidden');
+      modalEditProfile.classList.add('open');
+      if (window.lucide) window.lucide.createIcons();
+    };
+  }
+}
+
 function logout() {
   clearSessionAndUserCaches();
   document.dispatchEvent(new CustomEvent('radar:logout'));
@@ -216,6 +247,7 @@ async function asegurarObrasFaltantes(neededIds) {
 // -------------------------------------------------------------------------
 async function init() {
   initTheme();
+  bindProfileHeaderActions();
   setupNavTabs();
   setupEditProfileModal();
   setupCollectionModal();
