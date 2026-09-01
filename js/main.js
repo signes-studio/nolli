@@ -16,7 +16,7 @@ import { initAdminUI } from './adminUI.js';
 import { initMobileBottomNav } from './mobileBottomNav.js';
 import { initExploreUI } from './exploreUI.js';
 import { initRadarUI } from './radarUI.js';
-import { getViewportKey, throttle } from './renderUtils.js';
+import { getViewportKey } from './renderUtils.js';
 
 import { abrirFicha } from './sheetUI.js';
 
@@ -160,20 +160,11 @@ async function inicializarRadar() {
       verificarParametroObraURL();
     });
     
-    // CRÍTICO FIX #2: Reducir listeners de move/moveend
-    // Solo escuchamos moveend para cargas principales
-    // Los eventos 'move' se debounced para no hacer UI updates frecuentes
-    const debouncedLoad = throttle(() => {
-      programarCargaEdificiosVisibles();
-    }, 500);
-    
+    // La consulta y regeneración de GeoJSON se realizan al terminar el gesto;
+    // ejecutarlas durante `move` compite con el renderizado de Mapbox.
     state.map.on('moveend', () => {
       clearTimeout(publicLoadTimer);
       cargarEdificiosVisibles();
-    });
-    
-    state.map.on('move', () => {
-      debouncedLoad(); // Para updates visuales sin cargar datos
     });
     
     document.addEventListener('radar:filters-changed', () => {
