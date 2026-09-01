@@ -154,7 +154,7 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
   const isSaved = state.userCollectionItems.some((item) => String(item.building_id) === String(building.id));
   const hasTags = state.userPrivateLabels.some((item) => String(item.building_id) === String(building.id));
   const catKey = building.categoria || 'otro';
-  const catColor = CATEGORY_COLORS[catKey] || '#E95C0C';
+  const catColor = CATEGORY_META[catKey]?.color || '#E95C0C';
   const canDeletePrivate = Boolean(selected?.private && state.userId && String(selected.user_id) === String(state.userId));
 
   document.getElementById('sheet-title').textContent = building.nombre_obra;
@@ -189,6 +189,7 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
         <button type="button" class="sheet-hero-btn ${isSaved ? 'active saved' : ''}" data-save-collection>
           <i data-lucide="bookmark" width="15" height="15" ${isSaved ? 'fill="currentColor"' : ''}></i>
           <span>${isSaved ? 'GUARDADO' : 'GUARDAR'}</span>
+        </button>
       ` : ''}
       <button type="button" class="sheet-hero-btn" data-share-action="open">
         <i data-lucide="share-2" width="15" height="15"></i>
