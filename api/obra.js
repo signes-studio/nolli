@@ -99,13 +99,21 @@ function renderBuildingPage(building) {
 module.exports = async (request, response) => {
   try {
     const id = String(request.query?.id || '').trim();
-    if (!id) return response.status(400).type('text/plain').send('Falta el identificador de obra.');
+    if (!id) {
+      response.setHeader('Content-Type', 'text/plain; charset=utf-8');
+      return response.status(400).send('Falta el identificador de obra.');
+    }
     const building = await fetchPublicBuilding(id);
-    if (!building) return response.status(404).type('text/plain').send('Obra no encontrada.');
+    if (!building) {
+      response.setHeader('Content-Type', 'text/plain; charset=utf-8');
+      return response.status(404).send('Obra no encontrada.');
+    }
+    response.setHeader('Content-Type', 'text/html; charset=utf-8');
     response.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
-    return response.status(200).type('text/html').send(renderBuildingPage(building));
+    return response.status(200).send(renderBuildingPage(building));
   } catch (error) {
     console.error('No se pudo generar la ficha de obra:', error);
-    return response.status(500).type('text/plain').send('No se pudo cargar la ficha de obra.');
+    response.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    return response.status(500).send('No se pudo cargar la ficha de obra.');
   }
 };
