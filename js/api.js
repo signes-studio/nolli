@@ -5,6 +5,10 @@
 
 import { SUPABASE_URL, SUPABASE_KEY, MAPBOX_TOKEN } from './config.js';
 
+// Cache compartida para catálogo de obras (deduplication)
+let catalogCache = null;
+let catalogPromise = null;
+
 export async function searchPlaces(query) {
   const params = new URLSearchParams({
     access_token: MAPBOX_TOKEN,
@@ -164,6 +168,46 @@ export async function fetchBuildingFacets() {
     console.warn('Aviso al consultar catálogo global (se continuará con catálogo local):', err);
   }
   return facets;
+}
+
+/**
+ * getBuildingsCatalog() — Cache compartida de catálogo de obras
+ * Evita múltiples llamadas simultáneas a fetchBuildingFacets().
+ * Todas las partes de la app (searchUI, profile, mobileBottomNav, radarUI, etc.)
+ * usan esta función en lugar de llamar fetchBuildingFacets() directamente.
+ * 
+ * @returns {Promise<Array>} Catálogo de obras normalizadas
+ */
+export async function getBuildingsCatalog() {
+  // Si ya tenemos el resultado cacheado, devolverlo
+  if (catalogCache) {
+    return Promise.resolve(catalogCache);
+  }
+  
+  // Si hay una promesa en vuelo, reusarla (deduplication)
+  if (catalogPromise) {
+    return catalogPromise;
+  }
+  
+  // Crear nueva promesa y cachearla durante la resolución
+  catalogPromise = fetchBuildingFacets().then(result => {
+    catalogCache = result;
+    catalogPromise = null; // Limpiar la promesa en vuelo
+    return result;
+  }).catch(err => {
+    catalogPromise = null; // Limpiar en error para reintentar después
+    throw err;
+  });
+  
+  return catalogPromise;
+}
+
+/**
+ * Invalida el cache del catálogo (usar después de crear/actualizar edificios)
+ */
+export function invalidateCatalogCache() {
+  catalogCache = null;
+  catalogPromise = null;
 }
 
 export async function fetchUserPendingBuildings(userId, sessionToken) {

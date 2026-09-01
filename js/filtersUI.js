@@ -2,32 +2,16 @@
    FILTERSUI.JS — Panel de filtros por Categorías
    ========================================================================= */
 
-import { state, nombreCategoria, esRolAdmin } from './state.js';
+import { state, nombreCategoria, esRolAdmin, CATEGORY_META } from './state.js';
 
 const filterPanel = document.getElementById('filter-panel');
 const btnFilters = document.getElementById('btn-filters');
 
-const COLORES_CATEGORIA = {
-  'residencial': '#E95C0C',
-  'dotacional_equipamiento': '#4388C6',
-  'religioso_funerario': '#F2ACCD',
-  'comercial_terciario': '#EFBC02',
-  'espacio_publico_paisaje': '#0d682f',
-  'infraestructura_urbanismo': '#D6201D',
-  'industrial_logistico': '#691B14',
-  'otro': '#064773'
-};
-
-const CATEGORIAS_CONFIG = [
-  { key: 'residencial', label: 'Residencial' },
-  { key: 'dotacional_equipamiento', label: 'Dotacional / Equipamiento' },
-  { key: 'industrial_logistico', label: 'Industrial / Logístico' },
-  { key: 'religioso_funerario', label: 'Religioso / Funerario' },
-  { key: 'comercial_terciario', label: 'Comercial / Terciario' },
-  { key: 'espacio_publico_paisaje', label: 'Espacio Público / Paisaje' },
-  { key: 'infraestructura_urbanismo', label: 'Infraestructura / Urbanismo' },
-  { key: 'otro', label: 'Otros' },
-];
+// OPCIONAL FIX #1: Usar CATEGORY_META centralizado en lugar de duplicados
+const CATEGORIAS_CONFIG = Object.values(CATEGORY_META).map(meta => ({
+  key: meta.key,
+  label: meta.label
+}));
 
 function asegurarEstadoFiltros() {
   if (!state.activeCategorias || !(state.activeCategorias instanceof Set)) {
@@ -63,7 +47,8 @@ export function generarFiltrosUI() {
         <div class="filter-switches-list" id="switches-categories">
           ${CATEGORIAS_CONFIG.map(cat => {
             const checked = state.activeCategorias.has(cat.key) ? 'checked' : '';
-            const colorCat = COLORES_CATEGORIA[cat.key] || COLORES_CATEGORIA['otro'];
+            const metaColor = CATEGORY_META[cat.key];
+            const colorCat = metaColor?.color || '#555550';
             return `
               <div class="switch-row">
                 <div class="switch-label-wrap">

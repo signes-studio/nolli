@@ -56,16 +56,22 @@ export function actualizarFuenteMapa() {
       });
 
       // Mapeo de obras pertenecientes a listas con visualización en mapa activada
+      // RECOMENDADO FIX #2: Optimizar de O(n*m) a O(n) usando Map
       const coleccionesConIconoActivo = (state.userCollections || []).filter((col) => col.show_on_map !== false && col.icon);
       const coleccionPorObra = new Map();
+      
       if (coleccionesConIconoActivo.length > 0 && Array.isArray(state.userCollectionItems)) {
-        coleccionesConIconoActivo.forEach((col) => {
-          state.userCollectionItems.forEach((item) => {
-            if (String(item.collection_id) === String(col.id)) {
-              coleccionPorObra.set(String(item.building_id), col);
-            }
-          });
-        });
+       // Mapeo O(n): una sola pasada por items
+       state.userCollectionItems.forEach((item) => {
+         const buildingId = String(item.building_id);
+         // Si este item ya está mapeado, mantener la primera colección
+         if (!coleccionPorObra.has(buildingId)) {
+           const col = coleccionesConIconoActivo.find((c) => String(c.id) === String(item.collection_id));
+           if (col) {
+             coleccionPorObra.set(buildingId, col);
+           }
+         }
+       });
       }
 
       const masterFeatures = [];

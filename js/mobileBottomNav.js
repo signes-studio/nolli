@@ -7,8 +7,8 @@
    - Aceleración por hardware a 60 FPS estables
    ========================================================================= */
 
-import { state, esRolAdmin, separarArquitectos, normalizarCategoria, normalizarImportancia, nombreCategoria, CATEGORY_COLORS, escapeHtml } from './state.js';
-import { fetchBuildings } from './api.js';
+import { state, esRolAdmin, separarArquitectos, normalizarCategoria, normalizarImportancia, nombreCategoria, CATEGORY_COLORS, CATEGORY_META, escapeHtml } from './state.js';
+import { fetchBuildings, getBuildingsCatalog } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { renderExploreList } from './exploreUI.js';
 import { renderRadarUI } from './radarUI.js';

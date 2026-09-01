@@ -1,7 +1,8 @@
-import { state, separarArquitectos, transformarEdificio, normalizarCategoria, nombreCategoria, CATEGORY_COLORS, escapeHtml } from './state.js';
+import { state, separarArquitectos, transformarEdificio, normalizarCategoria, nombreCategoria, CATEGORY_COLORS, escapeHtml, CATEGORY_META } from './state.js';
 import { abrirFicha } from './sheetUI.js';
-import { searchPlaces, fetchBuildings } from './api.js';
+import { searchPlaces, fetchBuildings, getBuildingsCatalog } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
+import { renderInChunks } from './renderUtils.js';
 
 const searchPanel = document.getElementById('search-panel');
 const btnSearch = document.getElementById('btn-search');
@@ -199,7 +200,8 @@ async function obtenerObrasGlobales() {
   if (cacheObrasGlobales) return cacheObrasGlobales;
 
   try {
-    const filas = await fetchBuildings({ includeAllImportance: true });
+    // CRÍTICO FIX #1: Usar cache compartida en lugar de llamar directamente
+    const filas = await getBuildingsCatalog();
     cacheObrasGlobales = filas.map((fila, index) => ({
       id: fila.id,
       featureId: String(fila.id ?? `obra-${index}`),
@@ -272,14 +274,20 @@ async function ejecutarBusquedaGlobal() {
       </button>
     `;
 
-    const listHtml = obrasFiltradas.slice(0, 20).map((obra) => {
-      const distance = state.userLocation ? distanciaEnKm(state.userLocation, obra.coordenadas) : null;
-      return renderizarTarjetaObra(obra, distance);
-    }).join('');
+   searchResults.innerHTML = filterHeader;
 
-    searchResults.innerHTML = filterHeader + listHtml;
-    if (window.lucide) window.lucide.createIcons();
-    return;
+   // CRÍTICO FIX #3: Usar renderInChunks para listas grandes
+   const limit = 20;
+   const toRender = obrasFiltradas.slice(0, Math.min(limit, obrasFiltradas.length));
+   const htmlChunks = toRender.map((obra) => {
+     const distance = state.userLocation ? distanciaEnKm(state.userLocation, obra.coordenadas) : null;
+     return renderizarTarjetaObra(obra, distance);
+   });
+    
+   renderInChunks(searchResults, htmlChunks, 10, () => {
+     if (window.lucide) window.lucide.createIcons();
+   });
+   return;
   }
 
   // CASO 3: HAY TEXTO EN EL BUSCADOR DE ARQUITECTOS -> Mostrar lista de arquitectos coincidentes

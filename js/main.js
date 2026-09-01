@@ -5,7 +5,7 @@
    ========================================================================= */
 
 import { state, separarArquitectos, normalizarCategoria, normalizarImportancia, esRolAdmin, transformarEdificio } from './state.js';
-import { fetchBuildings, fetchBuildingFacets, fetchUserPendingBuildings, fetchPendingBuildings, fetchPrivateBuildings, fetchAllPrivateBuildings } from './api.js';
+import { fetchBuildings, fetchBuildingFacets, fetchUserPendingBuildings, fetchPendingBuildings, fetchPrivateBuildings, fetchAllPrivateBuildings, getBuildingsCatalog, invalidateCatalogCache } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
 import { cargarMapaMapbox, actualizarMarcadorUbicacion } from './mapController.js';
@@ -16,6 +16,7 @@ import { initAdminUI } from './adminUI.js';
 import { initMobileBottomNav } from './mobileBottomNav.js';
 import { initExploreUI } from './exploreUI.js';
 import { initRadarUI } from './radarUI.js';
+import { getViewportKey, throttle } from './renderUtils.js';
 
 import { abrirFicha } from './sheetUI.js';
 
@@ -23,6 +24,7 @@ let publicLoadRequest = 0;
 let publicLoadTimer = null;
 let publicLoadController = null;
 let urlObraChecked = false;
+let lastViewportKey = null;
 
 async function cargarEdificiosVisibles() {
   const requestId = ++publicLoadRequest;
@@ -36,14 +38,27 @@ async function cargarEdificiosVisibles() {
     const architect = habiaFiltroDeArquitectos && arquitectosActivosAnteriores.size === 1
       ? [...arquitectosActivosAnteriores][0]
       : null;
+    
+    // CRÍTICO FIX #2: Dedupe viewport para evitar múltiples fetchBuildings por move event
+    const currentViewportKey = getViewportKey(
+      state.map?.getBounds(),
+      state.map?.getZoom(),
+      state.activeCategorias
+    );
+    
+    if (lastViewportKey === currentViewportKey && state.OBRAS.length > 0) {
+      return; // Mismo viewport → no recargar
+    }
+    lastViewportKey = currentViewportKey;
+    
     const [datosDB, catalogo] = await Promise.all([
       fetchBuildings({
-        bounds: architect ? null : state.map.getBounds(),
-        zoom: state.map.getZoom(),
+        bounds: architect ? null : state.map?.getBounds(),
+        zoom: state.map?.getZoom(),
         architect,
         signal: publicLoadController.signal,
       }),
-      state.BUILDING_CATALOG.length ? Promise.resolve(state.BUILDING_CATALOG) : fetchBuildingFacets(),
+      state.BUILDING_CATALOG.length ? Promise.resolve(state.BUILDING_CATALOG) : getBuildingsCatalog(), // CRÍTICO FIX #1: Use cache
     ]);
     if (requestId !== publicLoadRequest) return;
     state.BUILDING_CATALOG = catalogo.map((fila) => ({ ...fila, categoria: normalizarCategoria(fila.categoria) }));
@@ -153,12 +168,27 @@ async function inicializarRadar() {
         );
       }
     });
-    state.map.on('move', programarCargaEdificiosVisibles);
+    
+    // CRÍTICO FIX #2: Reducir listeners de move/moveend
+    // Solo escuchamos moveend para cargas principales
+    // Los eventos 'move' se debounced para no hacer UI updates frecuentes
+    const debouncedLoad = throttle(() => {
+      programarCargaEdificiosVisibles();
+    }, 500);
+    
     state.map.on('moveend', () => {
       clearTimeout(publicLoadTimer);
       cargarEdificiosVisibles();
     });
-    document.addEventListener('radar:filters-changed', programarCargaEdificiosVisibles);
+    
+    state.map.on('move', () => {
+      debouncedLoad(); // Para updates visuales sin cargar datos
+    });
+    
+    document.addEventListener('radar:filters-changed', () => {
+      lastViewportKey = null; // Invalida cache al cambiar filtros
+      programarCargaEdificiosVisibles();
+    });
   } catch (error) {
     console.warn('Aviso de inicialización del mapa:', error);
   }

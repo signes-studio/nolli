@@ -119,6 +119,78 @@ export const CATEGORY_NAMES = {
   otro: 'OTRO'
 };
 
+/**
+ * CATEGORY_META — Fuente única de verdad para metadatos de categorías
+ * Consolidado de: filtersUI, mapController, searchUI, sheetUI, mobileBottomNav
+ * Evita duplicación y facilita cambios globales
+ */
+export const CATEGORY_META = {
+  residencial: {
+    key: 'residencial',
+    label: 'Residencial',
+    labelShort: 'RESIDENCIAL',
+    color: '#E84E1B',
+    emoji: '🏠',
+    icon: 'home'
+  },
+  dotacional_equipamiento: {
+    key: 'dotacional_equipamiento',
+    label: 'Dotacional / Equipamiento',
+    labelShort: 'DOTACIONAL Y EQUIPAMIENTO',
+    color: '#EFBC02',
+    emoji: '🏛️',
+    icon: 'building-2'
+  },
+  industrial_logistico: {
+    key: 'industrial_logistico',
+    label: 'Industrial / Logístico',
+    labelShort: 'INDUSTRIAL Y LOGÍSTICO',
+    color: '#0d682f',
+    emoji: '🏭',
+    icon: 'factory'
+  },
+  religioso_funerario: {
+    key: 'religioso_funerario',
+    label: 'Religioso / Funerario',
+    labelShort: 'RELIGIOSO Y FUNERARIO',
+    color: '#7c3aed',
+    emoji: '⛪',
+    icon: 'cross'
+  },
+  comercial_terciario: {
+    key: 'comercial_terciario',
+    label: 'Comercial / Terciario',
+    labelShort: 'COMERCIAL Y TERCIARIO',
+    color: '#0284c7',
+    emoji: '🏪',
+    icon: 'shopping-bag'
+  },
+  espacio_publico_paisaje: {
+    key: 'espacio_publico_paisaje',
+    label: 'Espacio Público / Paisaje',
+    labelShort: 'ESPACIO PÚBLICO Y PAISAJE',
+    color: '#10b981',
+    emoji: '🌳',
+    icon: 'trees'
+  },
+  infraestructura_urbanismo: {
+    key: 'infraestructura_urbanismo',
+    label: 'Infraestructura / Urbanismo',
+    labelShort: 'INFRAESTRUCTURA Y URBANISMO',
+    color: '#64748b',
+    emoji: '🌉',
+    icon: 'bridge'
+  },
+  otro: {
+    key: 'otro',
+    label: 'Otros',
+    labelShort: 'OTRO',
+    color: '#555550',
+    emoji: '📍',
+    icon: 'map-pin'
+  }
+};
+
 export function escapeHtml(str) {
   if (str == null) return '';
   return String(str)
