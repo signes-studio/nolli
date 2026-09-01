@@ -2,7 +2,7 @@
    SHEETUI.JS - Ficha tecnica y acciones personales de una obra
    ========================================================================= */
 
-import { state, separarArquitectos, normalizarCategoria, normalizarImportancia, nombreCategoria, esRolAdmin, guardarZonaPersonalLocal } from './state.js';
+import { state, separarArquitectos, normalizarCategoria, normalizarImportancia, nombreCategoria, esRolAdmin, guardarZonaPersonalLocal, CATEGORY_META } from './state.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { cerrarFiltros, generarFiltrosUI } from './filtersUI.js';
 import { fetchBuildings, saveBuildingStatus, deleteBuilding, deletePrivateBuilding, createUserCollection, addUserCollectionItem, createUserPrivateLabel, deleteUserPrivateLabel } from './api.js';
@@ -72,7 +72,8 @@ async function abrirFichaArquitecto(nombreArquitecto) {
 
   works.innerHTML = obras.length ? obras.map((obra) => {
     const catKey = obra.categoria || 'otro';
-    const catColor = CATEGORY_COLORS[catKey] || '#E95C0C';
+    const metaCat = CATEGORY_META[catKey] || CATEGORY_META['otro'];
+    const catColor = metaCat?.color || '#E95C0C';
     const yearText = obra.año_construccion || '----';
     const cityName = obra.ciudad || '';
     return `
@@ -122,17 +123,6 @@ export function cerrarFicha() {
     window.history.pushState(null, '', '/');
   }
 }
-
-const CATEGORY_COLORS = {
-  'residencial': '#E95C0C',
-  'dotacional_equipamiento': '#4388C6',
-  'religioso_funerario': '#F2ACCD',
-  'comercial_terciario': '#EFBC02',
-  'espacio_publico_paisaje': '#0d682f',
-  'infraestructura_urbanismo': '#D6201D',
-  'industrial_logistico': '#691B14',
-  'otro': '#064773',
-};
 
 export function abrirFicha(building, coordinates, featureId = building?.id || building?.featureId) {
   if (!building) return;

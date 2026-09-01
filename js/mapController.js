@@ -2,7 +2,7 @@
    MAPCONTROLLER.JS — Inicialización de mapa, capas e interacciones (Nolli)
    ========================================================================= */
 
-import { state } from './state.js';
+import { state, CATEGORY_META } from './state.js';
 import { MAPBOX_TOKEN, MAP_STYLES, DEFAULT_CENTER, DEFAULT_ZOOM } from './config.js';
 import { buildIcon, drawTargetIcon, drawPrivateSquareIcon, buildEmojiIcon } from './icons.js';
 import { actualizarFuenteMapa } from './mapData.js';
@@ -96,25 +96,20 @@ export function cargarMapaMapbox() {
   }, { passive: true });
 
   const configurarCapas = () => {
-    if (state.map.getSource('obras')) return;
-    aplicarTratamientoSatelite();
+  if (state.map.getSource('obras')) return;
+  aplicarTratamientoSatelite();
 
-    const CATEGORY_COLORS = {
-      'residencial': '#E95C0C',
-      'dotacional_equipamiento': '#4388C6',
-      'religioso_funerario': '#F2ACCD',
-      'comercial_terciario': '#EFBC02',
-      'espacio_publico_paisaje': '#0d682f',
-      'infraestructura_urbanismo': '#D6201D',
-      'industrial_logistico': '#691B14',
-      'otro': '#064773'
-    };
+  // OPCIONAL FIX #1: Usar CATEGORY_META centralizado
+  const categoryColors = {};
+  Object.entries(CATEGORY_META).forEach(([key, meta]) => {
+    categoryColors[key] = meta.color;
+  });
 
     const isDark = state.mapStyle === 'dark' || document.body.classList.contains('dark-mode');
     const selectedColor = isDark ? '#FFFFFF' : '#141411';
 
     [0, 1, 2, 3].forEach((importance) => {
-      Object.entries(CATEGORY_COLORS).forEach(([cat, color]) => {
+      Object.entries(categoryColors).forEach(([cat, color]) => {
         const prefix = `icon-l${importance}-${cat}`;
 
         try {

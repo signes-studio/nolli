@@ -1,4 +1,4 @@
-import { state, separarArquitectos, transformarEdificio, normalizarCategoria, nombreCategoria, CATEGORY_COLORS, escapeHtml, CATEGORY_META } from './state.js';
+import { state, separarArquitectos, transformarEdificio, normalizarCategoria, nombreCategoria, CATEGORY_META, escapeHtml } from './state.js';
 import { abrirFicha } from './sheetUI.js';
 import { searchPlaces, fetchBuildings, getBuildingsCatalog } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
@@ -22,7 +22,8 @@ let cacheObrasGlobales = null;
 function renderizarTarjetaObra(obra, distance = null) {
   const catClave = normalizarCategoria(obra.categoria);
   const catTexto = nombreCategoria(obra.categoria);
-  const catColor = CATEGORY_COLORS[catClave] || '#E84E1B';
+  const metaCat = CATEGORY_META[catClave] || CATEGORY_META['otro'];
+  const catColor = metaCat?.color || '#E84E1B';
 
   const titulo = escapeHtml(obra.nombre_obra || 'OBRA SIN TÍTULO').toUpperCase();
   const arq = escapeHtml(obra.arquitecto || 'Desconocido');

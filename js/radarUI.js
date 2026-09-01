@@ -1,5 +1,5 @@
 // js/radarUI.js
-import { state, CATEGORY_COLORS, escapeHtml, separarArquitectos, normalizarCategoria, normalizarImportancia } from './state.js';
+import { state, CATEGORY_META, escapeHtml, separarArquitectos, normalizarCategoria, normalizarImportancia } from './state.js';
 import { abrirFicha } from './sheetUI.js';
 import { calcularDistanciaMetros } from './exploreUI.js';
 import { actualizarFuenteMapa } from './mapData.js';
@@ -295,7 +295,8 @@ export function renderRadarList(works, container, countSpan) {
 
   container.innerHTML = works.slice(0, 50).map((obra) => {
     const catKey = obra.categoria || 'otro';
-    const catColor = CATEGORY_COLORS[catKey] || '#E84E1B';
+    const metaCat = CATEGORY_META[catKey] || CATEGORY_META['otro'];
+    const catColor = metaCat?.color || '#E84E1B';
     const distText = formatearDistanciaRadar(obra._dist);
     const photo = obra.foto_url || obra.foto_miniatura || '';
     const city = obra.place || obra.ciudad || '';
