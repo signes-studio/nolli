@@ -121,6 +121,36 @@ body.dark-mode .profile-minimal-btn {
   color: var(--accent, #E84E1B);
 }
 
+.profile-mobile-logout {
+  display: none !important;
+}
+
+@media (max-width: 819px) {
+  .profile-header {
+    height: auto;
+    min-height: 64px;
+    align-items: flex-start;
+    padding-bottom: 12px;
+  }
+
+  .profile-header-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+    max-width: calc(100vw - 120px);
+  }
+
+  .profile-mobile-logout {
+    display: inline-flex !important;
+    margin-top: 12px;
+    margin-left: auto;
+    padding: 8px 12px;
+    border: 1px solid var(--accent, #E84E1B);
+    color: var(--accent, #E84E1B);
+    background: transparent;
+  }
+}
+
 /* =========================================================================
    ESTADO: AUTENTICACIÓN REQUERIDA
    ========================================================================= */

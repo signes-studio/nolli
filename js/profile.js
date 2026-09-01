@@ -46,6 +46,7 @@ const content = document.getElementById('profile-content');
 const authRequired = document.getElementById('profile-auth-required');
 const app = document.getElementById('profile-app');
 const logoutBtn = document.getElementById('btn-profile-logout');
+const mobileLogoutBtn = document.getElementById('btn-profile-logout-mobile');
 const themeBtn = document.getElementById('btn-theme-toggle');
 const themeIcon = document.getElementById('theme-icon');
 const settingsBtn = document.getElementById('btn-profile-settings');
@@ -140,6 +141,15 @@ function updateThemeIcon(isDark) {
   if (window.lucide) window.lucide.createIcons();
 }
 
+function logout() {
+  localStorage.removeItem(SESSION_KEY);
+  sessionStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem('nolli_cached_user');
+  localStorage.removeItem('nolli_cached_db_profile');
+  localStorage.removeItem('nolli_cached_statuses');
+  window.location.reload();
+}
+
 // -------------------------------------------------------------------------
 // HELPERS DE ACCESO A OBRAS
 // -------------------------------------------------------------------------
@@ -194,6 +204,7 @@ async function init() {
     if (authRequired) authRequired.classList.remove('hidden');
     if (app) app.classList.add('hidden');
     if (logoutBtn) logoutBtn.classList.add('hidden');
+    if (mobileLogoutBtn) mobileLogoutBtn.classList.add('hidden');
     if (settingsBtn) settingsBtn.classList.add('hidden');
     if (window.lucide) window.lucide.createIcons();
     return;
@@ -203,6 +214,7 @@ async function init() {
   if (authRequired) authRequired.classList.add('hidden');
   if (app) app.classList.remove('hidden');
   if (logoutBtn) logoutBtn.classList.remove('hidden');
+  if (mobileLogoutBtn) mobileLogoutBtn.classList.remove('hidden');
   if (settingsBtn) settingsBtn.classList.remove('hidden');
   updateUserPresence(token);
 
@@ -304,14 +316,10 @@ async function init() {
     localStorage.setItem('nolli_cached_statuses', JSON.stringify(statuses));
 
     if (logoutBtn) {
-      logoutBtn.addEventListener('click', () => {
-        localStorage.removeItem(SESSION_KEY);
-        sessionStorage.removeItem(SESSION_KEY);
-        localStorage.removeItem('nolli_cached_user');
-        localStorage.removeItem('nolli_cached_db_profile');
-        localStorage.removeItem('nolli_cached_statuses');
-        window.location.reload();
-      });
+      logoutBtn.addEventListener('click', logout);
+    }
+    if (mobileLogoutBtn) {
+      mobileLogoutBtn.addEventListener('click', logout);
     }
 
     // Aseguramos que todas las obras con estados y en colecciones se carguen en memoria
@@ -333,9 +341,10 @@ async function init() {
       renderFeedContent();
     } else {
       if (authRequired) authRequired.classList.remove('hidden');
-      if (app) app.classList.add('hidden');
-      if (logoutBtn) logoutBtn.classList.add('hidden');
-      if (settingsBtn) settingsBtn.classList.add('hidden');
+    if (app) app.classList.add('hidden');
+    if (logoutBtn) logoutBtn.classList.add('hidden');
+    if (mobileLogoutBtn) mobileLogoutBtn.classList.add('hidden');
+    if (settingsBtn) settingsBtn.classList.add('hidden');
     }
   }
 
