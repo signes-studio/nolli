@@ -1,10 +1,5 @@
 -- Seguridad: public.profiles contiene email, rol y otros datos personales; la vista limita la exposicion anonima a la identidad publica minima.
 
-ALTER TABLE public."Buildings"
-  ADD COLUMN IF NOT EXISTS foto_credito TEXT,
-  ADD COLUMN IF NOT EXISTS foto_licencia TEXT,
-  ADD COLUMN IF NOT EXISTS foto_fuente_url TEXT;
-
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
 -- Instalaciones anteriores pueden no tener todavía los datos de identidad pública.
@@ -15,6 +10,7 @@ ALTER TABLE public.profiles
 DROP POLICY IF EXISTS "Public profiles are viewable by everyone" ON public.profiles;
 DROP POLICY IF EXISTS "Users can view own profile" ON public.profiles;
 DROP POLICY IF EXISTS "Admins can view all profiles" ON public.profiles;
+DROP POLICY IF EXISTS "Users can view own profile or admins all profiles" ON public.profiles;
 
 CREATE POLICY "Users can view own profile or admins all profiles"
   ON public.profiles FOR SELECT

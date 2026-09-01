@@ -686,9 +686,6 @@ function setupModalEvents() {
         categoria: document.getElementById('edit-categoria').value,
         estado_acceso: document.getElementById('edit-acceso').value,
         foto_url: document.getElementById('edit-foto').value.trim() || null,
-        foto_credito: document.getElementById('edit-foto-credito').value.trim() || null,
-        foto_licencia: document.getElementById('edit-foto-licencia').value || null,
-        foto_fuente_url: document.getElementById('edit-foto-fuente-url').value.trim() || null,
         enlace_url: document.getElementById('edit-enlace').value.trim() || null,
         place: document.getElementById('edit-place').value.trim() || null,
         estado_revision: document.getElementById('edit-estado-revision').value,
@@ -725,10 +722,6 @@ function openEditModal(id) {
   document.getElementById('edit-categoria').value = normalizarCategoria(obra.categoria);
   document.getElementById('edit-acceso').value = obra.estado_acceso || 'publico';
   document.getElementById('edit-foto').value = obra.foto_url || '';
-  document.getElementById('edit-foto-credito').value = obra.foto_credito || '';
-  document.getElementById('edit-foto-licencia').value = obra.foto_licencia || '';
-  document.getElementById('edit-foto-fuente-url').value = obra.foto_fuente_url || '';
-  document.getElementById('edit-image-rights').checked = false;
   document.getElementById('edit-enlace').value = obra.enlace_url || '';
   document.getElementById('edit-place').value = obra.place || '';
   document.getElementById('edit-estado-revision').value = obra.estado_revision || 'publicada';

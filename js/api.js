@@ -27,7 +27,7 @@ export async function fetchBuildingsByIds(ids) {
   const cleanIds = ids.map((id) => encodeURIComponent(String(id).trim())).filter(Boolean);
   if (cleanIds.length === 0) return [];
 
-  const publicFields = 'id,nombre_obra,foto_url,foto_credito,foto_licencia,foto_fuente_url,enlace_url,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,añadido_por,estado_revision,longitud,latitud,place';
+  const publicFields = 'id,nombre_obra,foto_url,enlace_url,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,añadido_por,estado_revision,longitud,latitud,place';
   const response = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?id=in.(${cleanIds.join(',')})&select=${publicFields}`, {
     headers: {
       'apikey': SUPABASE_KEY,
@@ -50,7 +50,7 @@ export async function fetchBuildingsInRadius({ lon, lat, radiusMeters = 10000, s
   const minLon = lon - deltaLon;
   const maxLon = lon + deltaLon;
 
-  const publicFields = 'id,nombre_obra,foto_url,foto_credito,foto_licencia,foto_fuente_url,enlace_url,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,añadido_por,estado_revision,longitud,latitud,place';
+  const publicFields = 'id,nombre_obra,foto_url,enlace_url,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,añadido_por,estado_revision,longitud,latitud,place';
   const pageSize = 1000;
   const results = [];
   let start = 0;
@@ -89,7 +89,7 @@ export async function fetchBuildings({ bounds, zoom, architect, includeAllImport
   const pageSize = 1000;
   const buildings = [];
   let start = 0;
-  const publicFields = 'id,nombre_obra,foto_url,foto_credito,foto_licencia,foto_fuente_url,enlace_url,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,añadido_por,estado_revision,longitud,latitud,place';
+  const publicFields = 'id,nombre_obra,foto_url,enlace_url,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,añadido_por,estado_revision,longitud,latitud,place';
   const params = new URLSearchParams({ select: publicFields, order: 'id.asc' });
   if (bounds) {
     const [[minLongitude, minLatitude], [maxLongitude, maxLatitude]] = bounds.toArray();
@@ -227,7 +227,7 @@ export async function fetchPendingBuildings(sessionToken) {
 }
 
 export async function fetchAllBuildingsForAdmin(sessionToken) {
-  const publicFields = 'id,nombre_obra,foto_url,foto_credito,foto_licencia,foto_fuente_url,enlace_url,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,añadido_por,propuesto_por,estado_revision,longitud,latitud,place';
+  const publicFields = 'id,nombre_obra,foto_url,enlace_url,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,añadido_por,propuesto_por,estado_revision,longitud,latitud,place';
   const response = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?select=${publicFields}&order=created_at.desc.nullslast,id.desc&limit=1000`, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
   });

@@ -204,7 +204,6 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
           <img class="sheet-photo" src="${escapeHtml(building.foto_url)}" alt="Fotografía de ${escapeHtml(building.nombre_obra)}" loading="lazy">
           <span class="photo-zoom-badge"><i data-lucide="maximize-2" width="12" height="12"></i> AMPLIAR</span>
         </button>
-        ${building.foto_credito ? `<p class="sheet-photo-credit">© ${escapeHtml(building.foto_credito)}</p>` : ''}
       </div>
     ` : ''}
 
