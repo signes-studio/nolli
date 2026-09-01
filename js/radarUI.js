@@ -269,11 +269,8 @@ function getRadarCenter() {
   ) {
     return [state.userLocation.lng, state.userLocation.lat];
   }
-  if (state.map) {
-    const center = state.map.getCenter();
-    return [center.lng, center.lat];
-  }
-  return [-0.3763, 39.4699]; // Valencia centro
+  // El radar debe responder a la ubicación del usuario, no al centro visible del mapa.
+  return [-0.3763, 39.4699];
 }
 
 function iniciarGeolocalizacionEnSegundoPlano() {

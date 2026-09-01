@@ -11,6 +11,7 @@ import {
   separarArquitectos,
   normalizarCategoria,
   normalizarImportancia,
+  upsertBuilding,
 } from './state.js';
 import { abrirFicha } from './sheetUI.js';
 import { registrarIconosColecciones, actualizarVisibilidadIconosLista } from './mapController.js';
@@ -214,10 +215,30 @@ export async function handleListHashRoute() {
       items = items.filter((i) => String(i.collection_id) === String(listId));
     }
 
-    const buildingIds = items.map((i) => String(i.building_id));
+    const buildingIds = [...new Set(items.map((i) => String(i.building_id)).filter(Boolean))];
     if (buildingIds.length === 0) {
       alert(`La lista "${col.name}" aún no tiene obras añadidas.`);
       return;
+    }
+
+    // Cargar los edificios que no esten ya en memoria para garantizar que la lista funcione
+    // aunque la vista actual esté situada en otro punto del mapa o en otra zona geográfica.
+    const missingIds = buildingIds.filter((id) => !(state.OBRAS || []).some((work) => String(work.id) === String(id)));
+    if (missingIds.length > 0) {
+      const fetchedWorks = await fetchBuildingsByIds(missingIds).catch(() => []);
+      (fetchedWorks || []).forEach((work) => {
+        const enriched = {
+          ...work,
+          id: work.id,
+          featureId: String(work.id),
+          categoria: normalizarCategoria(work.categoria),
+          coordenadas: [Number(work.longitud), Number(work.latitud)],
+          arquitectos: Array.isArray(work.arquitectos) ? work.arquitectos : separarArquitectos(work.arquitecto),
+          ciudad: work.place || work.ciudad || null,
+          place: work.place || work.ciudad || null,
+        };
+        state.OBRAS = upsertBuilding(state.OBRAS, enriched);
+      });
     }
 
     // Aislar en mapa
@@ -242,15 +263,17 @@ export async function handleListHashRoute() {
       if (window.lucide) window.lucide.createIcons();
     }
 
-    // Encuadre geográfico
+    // Encuadre geográfico para que todas las obras de la lista queden visibles, aunque estén en otro país.
     const colWorks = (state.OBRAS || []).filter((w) => buildingIds.includes(String(w.id)));
     if (colWorks.length > 0 && state.map) {
-      const coords = colWorks.filter((w) => w.coordenadas && w.coordenadas.length === 2).map((w) => w.coordenadas);
+      const coords = colWorks
+        .filter((w) => w.coordenadas && w.coordenadas.length === 2 && Number.isFinite(w.coordenadas[0]) && Number.isFinite(w.coordenadas[1]))
+        .map((w) => w.coordenadas);
       if (coords.length === 1) {
-        state.map.flyTo({ center: coords[0], zoom: 16, duration: 800 });
+        state.map.flyTo({ center: coords[0], zoom: 12, duration: 900 });
       } else if (coords.length > 1) {
         const bounds = coords.reduce((b, c) => b.extend(c), new mapboxgl.LngLatBounds(coords[0], coords[0]));
-        state.map.fitBounds(bounds, { padding: 80, maxZoom: 16, duration: 1000 });
+        state.map.fitBounds(bounds, { padding: 80, maxZoom: 12, duration: 1000 });
       }
     }
   } catch (err) {
