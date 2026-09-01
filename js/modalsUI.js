@@ -428,6 +428,10 @@ function initAddBuildingModal() {
     document.getElementById('add-coords').textContent = `${obra.coordenadas[0].toFixed(5)}, ${obra.coordenadas[1].toFixed(5)}`;
     document.getElementById('add-nombre').value = obra.nombre_obra || '';
     document.getElementById('add-foto').value = obra.foto_url || '';
+    document.getElementById('add-foto-credito').value = obra.foto_credito || '';
+    document.getElementById('add-foto-licencia').value = obra.foto_licencia || '';
+    document.getElementById('add-foto-fuente-url').value = obra.foto_fuente_url || '';
+    document.getElementById('add-image-rights').checked = false;
     document.getElementById('add-enlace').value = obra.enlace_url || '';
     document.getElementById('add-arquitecto').value = obra.arquitecto || '';
     document.getElementById('add-ano').value = obra.año_construccion || '';
@@ -445,6 +449,10 @@ function initAddBuildingModal() {
 
     const nombre = document.getElementById('add-nombre').value.trim();
     const fotoUrl = document.getElementById('add-foto').value.trim();
+    const fotoCredito = document.getElementById('add-foto-credito').value.trim();
+    const fotoLicencia = document.getElementById('add-foto-licencia').value;
+    const fotoFuenteUrl = document.getElementById('add-foto-fuente-url').value.trim();
+    const imageRightsAccepted = document.getElementById('add-image-rights').checked;
     const enlaceUrl = document.getElementById('add-enlace').value.trim();
     const arq = document.getElementById('add-arquitecto').value.trim();
     const ano = parseInt(document.getElementById('add-ano').value, 10);
@@ -457,6 +465,12 @@ function initAddBuildingModal() {
       err.textContent = visibility === 'private'
         ? 'Introduce el nombre de tu etiqueta/obra privada.'
         : 'Faltan datos obligatorios (Nombre y Arquitecto).';
+      err.classList.remove('hidden');
+      return;
+    }
+
+    if (!imageRightsAccepted) {
+      err.textContent = 'Debes declarar los derechos de uso de la fotografía o plano.';
       err.classList.remove('hidden');
       return;
     }
@@ -476,6 +490,9 @@ function initAddBuildingModal() {
     const edificio = {
       nombre_obra: nombre,
       foto_url: fotoUrl || null,
+      foto_credito: fotoCredito || null,
+      foto_licencia: fotoLicencia || null,
+      foto_fuente_url: fotoFuenteUrl || null,
       enlace_url: enlaceUrl || null,
       arquitecto: finalArq,
       año_construccion: Number.isNaN(ano) ? null : ano,

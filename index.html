@@ -18,6 +18,9 @@
 <meta name="color-scheme" content="light dark">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/icon.svg">
+<link rel="stylesheet" href="/css/legal-components.css">
+<script src="/js/cookieConsent.js" defer></script>
+<script src="/js/siteFooter.js" defer></script>
 
 <script>
   // Restauración de URL limpia tras redirección 404 en GitHub Pages (ej. /obra/CTAV2386)
@@ -49,11 +52,6 @@
 
 <!-- Lucide Icons -->
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-
-<!-- Tipografías: Inter para textos y League Spartan para títulos -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=League+Spartan:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
 
 <!-- Estilos propios (orden: variables/base → layout → paneles → componentes) -->
 <link rel="stylesheet" href="/css/base.css">
@@ -803,6 +801,22 @@
       <div id="wrap-add-foto">
         <label for="add-foto" class="tech-label">URL DE LA FOTOGRAFÍA_</label>
         <input type="url" id="add-foto" class="tech-input" placeholder="https://...">
+      </div>
+
+      <div id="wrap-add-image-rights" class="flex flex-col gap-2">
+        <label class="image-rights-declaration" for="add-image-rights">
+          <input type="checkbox" id="add-image-rights" required>
+          <span>Declaro que la fotografía/plano aportado es de mi autoría, cuento con autorización expresa del titular de los derechos, o su uso está amparado por la libertad de panorama (art. 35.2 TRLPI) para obras situadas permanentemente en la vía pública.</span>
+        </label>
+        <input type="text" id="add-foto-credito" class="tech-input" placeholder="Crédito / autor de la fotografía">
+        <select id="add-foto-licencia" class="tech-input" aria-label="Licencia de la fotografía">
+          <option value="">LICENCIA DE LA FOTOGRAFÍA_</option>
+          <option value="Propia">Propia</option>
+          <option value="Autorizada por el titular">Autorizada por el titular</option>
+          <option value="Libertad de panorama (Art. 35.2 TRLPI)">Libertad de panorama (Art. 35.2 TRLPI)</option>
+          <option value="Pendiente de verificar">Pendiente de verificar</option>
+        </select>
+        <input type="url" id="add-foto-fuente-url" class="tech-input" placeholder="URL de origen de la fotografía (opcional)">
       </div>
 
       <div id="wrap-add-enlace">

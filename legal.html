@@ -10,6 +10,8 @@
 <title>nolli. | legal</title>
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="./icon.svg">
+<link rel="stylesheet" href="css/legal-components.css">
+<script src="js/cookieConsent.js" defer></script>
 
 <script>
   if (window.location.pathname.endsWith('.html')) {
@@ -23,11 +25,6 @@
 
 <!-- Lucide Icons -->
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-
-<!-- Tipografías: Inter para textos y League Spartan para títulos -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=League+Spartan:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
 
 <!-- Estilos propios (orden idéntico al index.html y perfil) -->
 <link rel="stylesheet" href="css/base.css">
@@ -92,6 +89,7 @@
       <a href="#privacidad" class="filter-action" style="text-decoration: none; padding: 10px; text-align: center; border: 1px solid var(--border-strong, #141411); font-size: 11px; background: var(--bg-panel, #F8F1DF);">02 / PRIVACIDAD</a>
       <a href="#cookies" class="filter-action" style="text-decoration: none; padding: 10px; text-align: center; border: 1px solid var(--border-strong, #141411); font-size: 11px; background: var(--bg-panel, #F8F1DF);">03 / COOKIES</a>
       <a href="#terminos" class="filter-action" style="text-decoration: none; padding: 10px; text-align: center; border: 1px solid var(--border-strong, #141411); font-size: 11px; background: var(--bg-panel, #F8F1DF);">04 / TÉRMINOS</a>
+      <a href="#propiedad-intelectual" class="filter-action" style="text-decoration: none; padding: 10px; text-align: center; border: 1px solid var(--border-strong, #141411); font-size: 11px; background: var(--bg-panel, #F8F1DF);">05 / PROPIEDAD INTELECTUAL</a>
     </nav>
 
     <!-- Contenido legal estructurado en tarjetas de panel -->
@@ -211,6 +209,24 @@
             <p style="margin: 0; line-height: 1.4;">El titular se reserva el derecho de efectuar sin previo aviso las modificaciones que considere oportunas en la web, pudiendo suspender, modificar o cancelar el acceso a los servicios en cualquier.</p>
             <p style="margin: 0; line-height: 1.4; margin-top: 4px;"><strong>Última actualización jurídica:</strong> [PENDIENTE: Fecha de entrada en vigor].</p>
           </div>
+        </div>
+      </section>
+
+      <section id="propiedad-intelectual" class="legal-section my-collection-card" style="background: var(--bg-panel, #F8F1DF); border: 1px solid var(--border-strong, #141411); padding: 20px; display: grid; grid-template-columns: 40px 1fr; gap: 14px;">
+        <div class="legal-section-number" style="font-size: 14px; color: var(--accent); font-weight: bold;">05</div>
+        <div style="display: grid; gap: 12px; font-size: 11px; color: var(--fg);">
+          <h3 class="font-display" style="font-size: 16px; margin: 0; color: var(--fg);">PROPIEDAD INTELECTUAL Y NOTIFICACIÓN DE CONTENIDOS</h3>
+          <p style="margin: 0; line-height: 1.4;">NOLLI actúa como prestador de servicios de alojamiento respecto de contenidos aportados por terceros. Conforme al artículo 16 de la LSSI-CE, no responde por estos contenidos cuando no tenga conocimiento efectivo de su ilicitud o, al conocerla, actúe con diligencia para retirarlos o impedir el acceso. Las imágenes de obras permanentemente situadas en vías públicas pueden estar amparadas por la libertad de panorama del artículo 35.2 del TRLPI, sin perjuicio de los derechos que procedan en cada caso.</p>
+          <div style="display: grid; gap: 4px;">
+            <strong style="color: var(--accent);">PROCEDIMIENTO DE NOTIFICACIÓN Y RETIRADA</strong>
+            <ol style="margin: 0; padding-left: 16px; line-height: 1.4; display: grid; gap: 4px;">
+              <li>Identificación precisa del contenido presuntamente infractor y su URL en NOLLI.</li>
+              <li>Descripción del derecho de propiedad intelectual presuntamente infringido.</li>
+              <li>Datos de contacto de la persona notificante para responder a la solicitud.</li>
+              <li>Declaración de buena fe sobre la inexactitud o falta de autorización del uso comunicado.</li>
+            </ol>
+          </div>
+          <p style="margin: 0; line-height: 1.4;">Las notificaciones deben enviarse a <a href="mailto:nolli@signes.studio" style="color: var(--accent); text-decoration: underline;">nolli@signes.studio</a>. Se analizarán con diligencia y, cuando proceda, se retirará o deshabilitará el contenido afectado.</p>
         </div>
       </section>
 

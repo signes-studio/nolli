@@ -65,6 +65,9 @@ export function actualizarVisibilidadIconosLista() {
 
 /** Crea el mapa, añade la capa de obras y arranca el HUD de coordenadas. */
 export function cargarMapaMapbox() {
+  if (typeof mapboxgl.setTelemetryEnabled === 'function') {
+    mapboxgl.setTelemetryEnabled(Boolean(window.nolliHasConsent?.('mapa_terceros')));
+  }
   const savedStyle = localStorage.getItem('nolli_map_style');
   const savedTheme = localStorage.getItem('nolli_theme');
   if (savedStyle && MAP_STYLES[savedStyle]) {

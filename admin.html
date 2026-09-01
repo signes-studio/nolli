@@ -9,6 +9,8 @@
   <title>nolli. | consola de administración</title>
   <link rel="icon" type="image/svg+xml" href="./icon.svg">
   <meta name="theme-color" content="#F4F1EA">
+  <link rel="stylesheet" href="./css/legal-components.css">
+  <script src="./js/cookieConsent.js" defer></script>
 
   <script>
     if (window.location.pathname.endsWith('.html')) {
@@ -16,11 +18,6 @@
       window.history.replaceState(null, '', clean + window.location.search + window.location.hash);
     }
   </script>
-
-  <!-- Google Fonts Neo-Bauhaus -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&family=League+Spartan:wght@700;800;900&display=swap" rel="stylesheet">
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -252,6 +249,31 @@
           <div class="admin-form-full">
             <label for="edit-foto" class="admin-form-label">URL de Fotografía Principal:</label>
             <input type="url" id="edit-foto" class="admin-input">
+          </div>
+
+          <div class="admin-form-full">
+            <label class="image-rights-declaration" for="edit-image-rights">
+              <input type="checkbox" id="edit-image-rights" required>
+              <span>Declaro que la fotografía/plano aportado es de mi autoría, cuento con autorización expresa del titular de los derechos, o su uso está amparado por la libertad de panorama (art. 35.2 TRLPI) para obras situadas permanentemente en la vía pública.</span>
+            </label>
+          </div>
+          <div>
+            <label for="edit-foto-credito" class="admin-form-label">Crédito de la fotografía:</label>
+            <input type="text" id="edit-foto-credito" class="admin-input" placeholder="Crédito / autor de la fotografía">
+          </div>
+          <div>
+            <label for="edit-foto-licencia" class="admin-form-label">Licencia de la fotografía:</label>
+            <select id="edit-foto-licencia" class="admin-input">
+              <option value="">Sin indicar</option>
+              <option value="Propia">Propia</option>
+              <option value="Autorizada por el titular">Autorizada por el titular</option>
+              <option value="Libertad de panorama (Art. 35.2 TRLPI)">Libertad de panorama (Art. 35.2 TRLPI)</option>
+              <option value="Pendiente de verificar">Pendiente de verificar</option>
+            </select>
+          </div>
+          <div class="admin-form-full">
+            <label for="edit-foto-fuente-url" class="admin-form-label">URL de origen de la fotografía:</label>
+            <input type="url" id="edit-foto-fuente-url" class="admin-input" placeholder="https://...">
           </div>
 
           <div class="admin-form-full">

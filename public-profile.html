@@ -10,6 +10,9 @@
   <title>nolli. | perfil de usuario</title>
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./icon.svg">
+  <link rel="stylesheet" href="css/legal-components.css">
+  <script src="js/cookieConsent.js" defer></script>
+  <script src="js/siteFooter.js" defer></script>
 
   <script>
     if (window.location.pathname.endsWith('.html')) {
@@ -23,11 +26,6 @@
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-
-  <!-- Tipografías: Inter para textos y League Spartan para títulos -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=League+Spartan:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
 
   <!-- Estilos propios (orden idéntico al index.html) -->
   <link rel="stylesheet" href="css/base.css">
@@ -148,21 +146,22 @@
     }
 
     function renderUserInfo(user) {
-      const firstName = user.first_name || '';
-      const lastName = user.last_name || '';
-      const fullName = (firstName + ' ' + lastName).trim() || 'Usuario de Nolli';
+      const fullName = user.nick || 'Usuario de Nolli';
       const nick = user.nick ? `@${user.nick}` : '@anónimo';
-      const city = user.city || '';
-      const country = user.country || '';
-      const location = [city, country].filter(Boolean).join(', ') || 'Ubicación no especificada';
 
       document.getElementById('user-display-name').textContent = fullName;
       document.getElementById('user-nick-handle').textContent = nick;
-      document.getElementById('user-location').textContent = location;
-      document.getElementById('user-bio').textContent = user.bio || 'Sin biografía especificada.';
+      document.getElementById('user-location').textContent = 'PERFIL PÚBLICO NOLLI';
+      document.getElementById('user-bio').textContent = 'Este perfil muestra únicamente la información que su titular ha hecho pública.';
       
-      const initial = (firstName || user.nick || 'U')[0].toUpperCase();
-      document.getElementById('user-avatar').textContent = initial;
+      const avatar = document.getElementById('user-avatar');
+      avatar.textContent = (user.nick || 'U')[0].toUpperCase();
+      if (user.avatar_url) {
+        avatar.style.backgroundImage = `url(${JSON.stringify(user.avatar_url)})`;
+        avatar.style.backgroundSize = 'cover';
+        avatar.style.backgroundPosition = 'center';
+        avatar.textContent = '';
+      }
       document.getElementById('profile-header-title').textContent = `nolli. (${nick})`;
     }
 
