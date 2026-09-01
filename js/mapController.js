@@ -823,9 +823,34 @@ function mostrarToastUbicacion(mensaje) {
   }, 2800);
 }
 
-async function solicitarUbicacionUsuario() {
+function gestionarErrorUbicacion(error) {
+  if (!error) {
+    mostrarToastUbicacion('NO SE PUDO OBTENER TU UBICACIÓN');
+    return;
+  }
+  switch (error.code) {
+    case 1: // PERMISSION_DENIED
+      mostrarToastUbicacion('PERMISO DENEGADO. ACTÍVALO EN TU NAVEGADOR');
+      break;
+    case 2: // POSITION_UNAVAILABLE
+      mostrarToastUbicacion('UBICACIÓN NO DISPONIBLE EN ESTE MOMENTO');
+      break;
+    case 3: // TIMEOUT
+      mostrarToastUbicacion('TIEMPO DE ESPERA AGOTADO AL BUSCAR UBICACIÓN');
+      break;
+    default:
+      mostrarToastUbicacion(error.message || 'NO SE PUDO OBTENER TU UBICACIÓN');
+  }
+}
+
+export function solicitarUbicacionUsuario() {
+  if (typeof window !== 'undefined' && !window.isSecureContext && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    mostrarToastUbicacion('LA GEOLOCALIZACIÓN REQUIERE CONEXIÓN SEGURA (HTTPS)');
+    return;
+  }
+
   if (!navigator.geolocation) {
-    mostrarToastUbicacion('GEOLOCALIZACI�N NO DISPONIBLE');
+    mostrarToastUbicacion('GEOLOCALIZACIÓN NO DISPONIBLE EN ESTE NAVEGADOR');
     return;
   }
 
@@ -839,48 +864,57 @@ async function solicitarUbicacionUsuario() {
     buttonMobile?.classList.remove('active-state');
   };
 
-  const lanzarRequest = () => {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        finalizar();
-        const coordinates = [position.coords.longitude, position.coords.latitude];
-        actualizarMarcadorUbicacion(coordinates);
-        state.map.flyTo({ center: coordinates, zoom: Math.max(state.map.getZoom(), 15), duration: 800 });
-      },
-      (error) => {
-        finalizar();
-        const messages = {
-          1: 'PERMISO DE UBICACI�N DENEGADO',
-          2: 'NO SE PUDO DETERMINAR TU UBICACI�N',
-          3: 'LA B�SQUEDA DE UBICACI�N HA TARDADO DEMASIADO',
-        };
-        mostrarToastUbicacion(messages[error.code] || 'NO SE PUDO OBTENER TU UBICACI�N');
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 },
-    );
+  const highAccuracyOptions = { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 };
+  const fallbackOptions = { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 };
+
+  const onSuccess = (position) => {
+    finalizar();
+    const coordinates = [position.coords.longitude, position.coords.latitude];
+    actualizarMarcadorUbicacion(coordinates);
+    if (state.map) {
+      const zoomActual = (typeof state.map.getZoom === 'function') ? state.map.getZoom() : 14;
+      state.map.flyTo({
+        center: coordinates,
+        zoom: Math.max(zoomActual, 15),
+        duration: 800
+      });
+    }
   };
 
-  if (!navigator.permissions || !navigator.permissions.query) {
-    lanzarRequest();
-    return;
-  }
-
-  try {
-    const permission = await navigator.permissions.query({ name: 'geolocation' });
-    if (permission.state === 'denied') {
-      // No abortamos aquí: en algunos navegadores/escenarios el permiso puede
-      // repreguntarse solo al ejecutar getCurrentPosition tras gesto explícito.
-      mostrarToastUbicacion('REVISA EL PERMISO DE UBICACIÓN EN TU NAVEGADOR');
+  const onError = (error) => {
+    // Si falla por timeout o posición inaccesible con GPS de alta precisión, intentar con precisión estándar (IP / red WiFi)
+    if (error && (error.code === 3 || error.code === 2)) {
+      try {
+        navigator.geolocation.getCurrentPosition(
+          onSuccess,
+          (fallbackError) => {
+            finalizar();
+            gestionarErrorUbicacion(fallbackError);
+          },
+          fallbackOptions
+        );
+        return;
+      } catch (e) {
+        // En caso de fallo en fallback, proceder con gestión estándar
+      }
     }
-  } catch (error) {
-    // Si Permissions API falla, seguimos con la solicitud directa.
+    finalizar();
+    gestionarErrorUbicacion(error);
+  };
+
+  // IMPORTANTE: Llamada síncrona directa dentro del gesto de usuario (click) para que Safari/iOS y navegadores estrictos muestren el diálogo nativo de permisos.
+  try {
+    navigator.geolocation.getCurrentPosition(onSuccess, onError, highAccuracyOptions);
+  } catch (err) {
+    finalizar();
+    mostrarToastUbicacion('ERROR AL SOLICITAR UBICACIÓN');
   }
-  lanzarRequest();
 }
 
 export function localizarDispositivo() {
   solicitarUbicacionUsuario();
 }
+
 function initHudReadout() {
   const hL = document.getElementById('hud-lng');
   const hLa = document.getElementById('hud-lat');
