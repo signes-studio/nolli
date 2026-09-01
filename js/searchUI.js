@@ -53,27 +53,6 @@ function renderizarTarjetaObra(obra, distance = null) {
 }
 
 export function initSearchUI() {
-  if (btnSearch) {
-    btnSearch.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const widget = document.getElementById('mobile-search-widget');
-      const mobileInput = document.getElementById('mobile-search-input');
-      if (widget) {
-        const isCollapsed = widget.classList.contains('collapsed');
-        if (isCollapsed) {
-          widget.classList.remove('collapsed');
-          widget.classList.add('expanded');
-          btnSearch.classList.add('active-state');
-          setTimeout(() => mobileInput?.focus(), 100);
-        } else {
-          widget.classList.remove('expanded');
-          widget.classList.add('collapsed');
-          btnSearch.classList.remove('active-state');
-        }
-      }
-    });
-  }
-
   document.addEventListener('click', (event) => {
     if (event.target.closest('#btn-search-close')) {
       searchPanel?.classList.remove('open');
