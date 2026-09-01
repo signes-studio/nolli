@@ -868,14 +868,14 @@ async function solicitarUbicacionUsuario() {
   try {
     const permission = await navigator.permissions.query({ name: 'geolocation' });
     if (permission.state === 'denied') {
-      finalizar();
-      mostrarToastUbicacion('PERMISO DE UBICACI�N DENEGADO');
-      return;
+      // No abortamos aquí: en algunos navegadores/escenarios el permiso puede
+      // repreguntarse solo al ejecutar getCurrentPosition tras gesto explícito.
+      mostrarToastUbicacion('REVISA EL PERMISO DE UBICACIÓN EN TU NAVEGADOR');
     }
-    lanzarRequest();
   } catch (error) {
-    lanzarRequest();
+    // Si Permissions API falla, seguimos con la solicitud directa.
   }
+  lanzarRequest();
 }
 
 export function localizarDispositivo() {
@@ -998,4 +998,3 @@ function iniciarInteraccionesMapa() {
 function dispatchLongPress(lngLat) {
   document.dispatchEvent(new CustomEvent('radar:map-longpress', { detail: { lngLat } }));
 }
-

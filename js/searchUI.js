@@ -53,6 +53,21 @@ function renderizarTarjetaObra(obra, distance = null) {
 }
 
 export function initSearchUI() {
+  if (btnSearch) {
+    btnSearch.addEventListener('click', (event) => {
+      if (window.innerWidth <= 768) return; // móvil lo gestiona mobileBottomNav
+      event.preventDefault();
+      event.stopPropagation();
+      const willOpen = !searchPanel?.classList.contains('open');
+      searchPanel?.classList.toggle('open', willOpen);
+      btnSearch?.classList.toggle('active-state', willOpen);
+      if (willOpen) {
+        ejecutarBusquedaGlobal();
+        setTimeout(() => searchInput?.focus(), 60);
+      }
+    });
+  }
+
   document.addEventListener('click', (event) => {
     if (event.target.closest('#btn-search-close')) {
       searchPanel?.classList.remove('open');
