@@ -8,7 +8,7 @@ import { state, separarArquitectos, normalizarCategoria, normalizarImportancia, 
 import { fetchBuildings, fetchBuildingFacets, fetchUserPendingBuildings, fetchPendingBuildings, fetchPrivateBuildings, fetchAllPrivateBuildings, getBuildingsCatalog, invalidateCatalogCache } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
-import { cargarMapaMapbox, actualizarMarcadorUbicacion } from './mapController.js';
+import { cargarMapaMapbox } from './mapController.js';
 import { initModalsUI } from './modalsUI.js';
 import { initSearchUI } from './searchUI.js';
 import { initMyPlacesUI } from './myPlacesUI.js';
@@ -158,15 +158,6 @@ async function inicializarRadar() {
     state.map.once('load', async () => {
       await cargarEdificiosVisibles();
       verificarParametroObraURL();
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            actualizarMarcadorUbicacion([pos.coords.longitude, pos.coords.latitude]);
-          },
-          () => {},
-          { enableHighAccuracy: true, timeout: 6000, maximumAge: 60000 }
-        );
-      }
     });
     
     // CRÍTICO FIX #2: Reducir listeners de move/moveend

@@ -10,6 +10,7 @@ let radarRadius = 1000; // 1000m por defecto (1km)
 let radarAbortController = null;
 let radarCacheKey = '';
 let radarCachedData = [];
+let locationWatchId = null;
 const CURATED_PROXIMITY_METERS = 15000; // radio para considerar una colección "cercana" al usuario
 
 export const CURATED_ROUTES = [
@@ -258,14 +259,45 @@ export function renderCuratedCarousel() {
 
 
 function getRadarCenter() {
-  if (state.userLocation && state.userLocation.length === 2) {
+  if (Array.isArray(state.userLocation) && state.userLocation.length === 2) {
     return state.userLocation;
+  }
+  if (
+    state.userLocation
+    && Number.isFinite(state.userLocation.lng)
+    && Number.isFinite(state.userLocation.lat)
+  ) {
+    return [state.userLocation.lng, state.userLocation.lat];
   }
   if (state.map) {
     const center = state.map.getCenter();
     return [center.lng, center.lat];
   }
   return [-0.3763, 39.4699]; // Valencia centro
+}
+
+function iniciarGeolocalizacionEnSegundoPlano() {
+  if (!navigator.geolocation || locationWatchId != null) return;
+  locationWatchId = navigator.geolocation.watchPosition(
+    (pos) => {
+      const coords = [pos.coords.longitude, pos.coords.latitude];
+      actualizarMarcadorUbicacion(coords);
+      const panel = document.getElementById('radar-panel');
+      if (panel && panel.classList.contains('open')) {
+        renderRadarUI();
+        renderCuratedCarousel();
+      }
+    },
+    (err) => {
+      if (err.code === 1 && locationWatchId != null) {
+        navigator.geolocation.clearWatch(locationWatchId);
+        locationWatchId = null;
+        return;
+      }
+      console.warn('Geolocalización en background:', err.message);
+    },
+    { enableHighAccuracy: true, maximumAge: 10000, timeout: 6000 }
+  );
 }
 
 export function formatearDistanciaRadar(metros) {
@@ -557,21 +589,14 @@ export function initRadarUI() {
     });
   }
 
-  // Geolocalización continua en campo
-  if (navigator.geolocation) {
-    navigator.geolocation.watchPosition(
-      (pos) => {
-        const coords = [pos.coords.longitude, pos.coords.latitude];
-        actualizarMarcadorUbicacion(coords);
-        if (panel && panel.classList.contains('open')) {
-          renderRadarUI();
-          renderCuratedCarousel();
-        }
-      },
-      (err) => console.warn('Geolocalización en background:', err.message),
-      { enableHighAccuracy: true, maximumAge: 10000, timeout: 6000 }
-    );
-  }
+  if (state.userLocation) iniciarGeolocalizacionEnSegundoPlano();
+  document.addEventListener('radar:user-location-updated', () => {
+    iniciarGeolocalizacionEnSegundoPlano();
+    if (panel && panel.classList.contains('open')) {
+      renderRadarUI();
+      renderCuratedCarousel();
+    }
+  });
 
   document.addEventListener('radar:data-ready', () => {
     if (panel && panel.classList.contains('open')) {

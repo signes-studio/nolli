@@ -728,6 +728,7 @@ export function actualizarMarcadorUbicacion(coordinates) {
   if (!Number.isFinite(lngLat[0]) || !Number.isFinite(lngLat[1])) return;
 
   state.userLocation = { lng: lngLat[0], lat: lngLat[1] };
+  document.dispatchEvent(new CustomEvent('radar:user-location-updated', { detail: { lng: lngLat[0], lat: lngLat[1] } }));
 
   if (!state.locationMarker) {
     const markerElement = document.createElement('div');
@@ -755,9 +756,47 @@ export function actualizarMarcadorUbicacion(coordinates) {
   if (hudLat) hudLat.textContent = lngLat[1].toFixed(5);
 }
 
+function mostrarToastUbicacion(mensaje) {
+  let toast = document.getElementById('nolli-location-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'nolli-location-toast';
+    toast.style.cssText = `
+      position: fixed;
+      left: 50%;
+      bottom: 88px;
+      transform: translateX(-50%);
+      z-index: 2200;
+      background: rgba(17, 17, 17, 0.96);
+      color: #F4F1EA;
+      border: 2px solid #E84E1B;
+      box-shadow: 4px 4px 0px rgba(17, 17, 17, 0.9);
+      padding: 10px 14px;
+      max-width: min(88vw, 360px);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      line-height: 1.4;
+      opacity: 0;
+      transition: opacity 0.18s ease;
+      pointer-events: none;
+    `;
+    document.body.appendChild(toast);
+  }
+
+  toast.textContent = mensaje;
+  toast.style.opacity = '1';
+  clearTimeout(toast._nolliToastTimer);
+  toast._nolliToastTimer = setTimeout(() => {
+    toast.style.opacity = '0';
+  }, 2800);
+}
+
 export function localizarDispositivo() {
   if (!navigator.geolocation) {
-    alert('Este dispositivo no admite geolocalización.');
+    mostrarToastUbicacion('GEOLOCALIZACIÓN NO DISPONIBLE');
     return;
   }
 
@@ -778,11 +817,11 @@ export function localizarDispositivo() {
       buttonDesktop?.classList.remove('location-active');
       buttonMobile?.classList.remove('active-state');
       const messages = {
-        1: 'Permiso de ubicación denegado.',
-        2: 'No se pudo determinar tu ubicación.',
-        3: 'La búsqueda de ubicación ha tardado demasiado.',
+        1: 'PERMISO DE UBICACIÓN DENEGADO',
+        2: 'NO SE PUDO DETERMINAR TU UBICACIÓN',
+        3: 'LA BÚSQUEDA DE UBICACIÓN HA TARDADO DEMASIADO',
       };
-      alert(messages[error.code] || 'No se pudo obtener tu ubicación.');
+      mostrarToastUbicacion(messages[error.code] || 'NO SE PUDO OBTENER TU UBICACIÓN');
     },
     { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 },
   );
@@ -809,6 +848,23 @@ function initHudReadout() {
   state.map.on('load', () => actualizarHud(state.map.getCenter()));
 }
 
+function resolveMapFeatureTarget(feature) {
+  if (!feature || !feature.properties) return null;
+
+  const props = feature.properties;
+  const rawTargetId = props.id ?? props.featureId ?? props.building_id ?? props.obra_id ?? feature.id ?? null;
+  const targetId = rawTargetId == null ? null : String(rawTargetId);
+
+  const obra = state.OBRAS.find((item) => {
+    const itemId = String(item.id ?? '');
+    const featureId = String(item.featureId ?? '');
+    return itemId === targetId || featureId === targetId || itemId === String(props.id ?? '') || featureId === String(props.featureId ?? '');
+  });
+
+  const coords = (obra && Array.isArray(obra.coordenadas)) ? obra.coordenadas : (Array.isArray(feature.geometry?.coordinates) ? feature.geometry.coordinates : [0, 0]);
+  return { obra, targetId, coords };
+}
+
 function iniciarInteraccionesMapa() {
   const allLayerIds = [];
   [0, 1, 2, 3].forEach((imp) => {
@@ -818,17 +874,25 @@ function iniciarInteraccionesMapa() {
     allLayerIds.push(`obras-labels-l${imp}`);
   });
 
+  const handleFeatureClick = (e) => {
+    if (state.addingBuilding) return;
+    const feature = e.features && e.features[0];
+    const fallbackFeature = !feature && state.map
+      ? state.map.queryRenderedFeatures(e.point, { layers: ['obras-clusters', 'obras-clusters-core', ...allLayerIds] })[0]
+      : null;
+    const targetFeature = feature || fallbackFeature;
+    if (!targetFeature) return;
+
+    const resolved = resolveMapFeatureTarget(targetFeature);
+    if (!resolved) return;
+
+    const { obra, targetId, coords } = resolved;
+    abrirFicha(obra || targetFeature.properties, coords, targetId || obra?.featureId || obra?.id || targetFeature.id);
+  };
+
   allLayerIds.forEach((layerId) => {
     if (state.map.getLayer(layerId)) {
-      state.map.on('click', layerId, (e) => {
-        if (state.addingBuilding) return;
-        const feature = e.features && e.features[0];
-        if (!feature) return;
-        const targetId = feature.properties?.id ?? feature.properties?.featureId ?? feature.id;
-        const obra = state.OBRAS.find((item) => String(item.id) === String(targetId) || String(item.featureId) === String(targetId));
-        const coords = (obra && obra.coordenadas) ? obra.coordenadas : (feature.geometry?.coordinates || [0, 0]);
-        abrirFicha(obra || feature.properties, coords, targetId);
-      });
+      state.map.on('click', layerId, handleFeatureClick);
     }
   });
 
