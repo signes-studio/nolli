@@ -4,7 +4,7 @@ import { abrirFicha } from './sheetUI.js';
 import { calcularDistanciaMetros } from './exploreUI.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { actualizarMarcadorUbicacion, actualizarVisibilidadIconosLista } from './mapController.js';
-import { fetchBuildingsInRadius } from './api.js';
+import { fetchBuildingsInRadius, fetchBuildings } from './api.js';
 
 let radarRadius = 1000; // 1000m por defecto (1km)
 let radarAbortController = null;
@@ -436,7 +436,7 @@ export async function renderRadarUI() {
   }
 }
 
-export function activarRutaEnMapa(routeId) {
+export async function activarRutaEnMapa(routeId) {
   const route = CURATED_ROUTES.find((r) => r.id === routeId);
   if (!route || !state.map) return;
 
@@ -445,52 +445,87 @@ export function activarRutaEnMapa(routeId) {
   const backdrop = document.getElementById('panel-backdrop');
   if (backdrop) backdrop.classList.remove('active');
 
-  let matchingWorks = matchWorksForRoute(route);
-
-  if (matchingWorks.length === 0) {
-    matchingWorks = (state.OBRAS || []).slice(0, route.stops || 6);
-  }
-
-  // 1. Establecer estado de aislamiento del itinerario
-  state.activeItinerary = {
-    id: route.id,
-    title: route.title,
-    workIds: new Set(matchingWorks.map((w) => String(w.id))),
-  };
-
-  // 2. Renderizar exclusivamente las obras del itinerario en el mapa
-  actualizarFuenteMapa();
-
-  // 3. Mostrar etiqueta flotante de filtro en la parte superior central del mapa
+  // Mostrar badge de carga mientras se obtienen todas las obras
   const itineraryBadge = document.getElementById('itinerary-filter-badge');
   const titleEl = document.getElementById('itinerary-badge-title');
   const countEl = document.getElementById('itinerary-badge-count');
-
   if (itineraryBadge && titleEl) {
-    titleEl.textContent = `RUTA: ${route.title.toUpperCase()}`;
-    if (countEl) countEl.textContent = `${matchingWorks.length} OBRAS`;
+    titleEl.textContent = `CARGANDO: ${route.title.toUpperCase()}…`;
+    if (countEl) countEl.textContent = '';
     itineraryBadge.classList.remove('hidden');
     if (window.lucide) window.lucide.createIcons();
   }
 
-  // 4. Transicionar a la pestaña Mapa en la navegación inferior
+  // 1. Determinar qué obras ya tenemos en local
+  let matchingWorks = matchWorksForRoute(route);
+
+  // 2. Si el itinerario filtra por arquitecto, intentar cargar obras que falten en la BD completa.
+  //    Los filtros por bbox/año se aplican en la query para no saturar memoria.
+  try {
+    if (route.architectsFilter && route.architectsFilter.length > 0) {
+      for (const architect of route.architectsFilter) {
+        const dbRows = await fetchBuildings({ architect, includeAllImportance: true });
+        (dbRows || []).forEach((fila, idx) => {
+          const enriched = {
+            ...fila,
+            id: fila.id,
+            featureId: String(fila.id ?? `obra-${idx}`),
+            categoria: normalizarCategoria(fila.categoria),
+            coordenadas: [Number(fila.longitud), Number(fila.latitud)],
+            arquitectos: Array.isArray(fila.arquitectos) ? fila.arquitectos.join(', ') : (fila.arquitecto || ''),
+            ciudad: fila.place || fila.ciudad || null,
+            place: fila.place || fila.ciudad || null,
+          };
+          state.OBRAS = upsertBuilding(state.OBRAS, enriched);
+        });
+      }
+      // Recalcular con el estado enriquecido
+      matchingWorks = matchWorksForRoute(route);
+    }
+  } catch (err) {
+    console.warn('Error cargando obras adicionales del itinerario:', err);
+  }
+
+  if (matchingWorks.length === 0) {
+    if (itineraryBadge) itineraryBadge.classList.add('hidden');
+    return;
+  }
+
+  // 3. Establecer itinerario — marcarlo como colección para que se suprima el minzoom en todas las capas
+  state.activeItinerary = {
+    id: route.id,
+    title: route.title,
+    isCollectionItinerary: true,
+    workIds: new Set(matchingWorks.map((w) => String(w.id))),
+  };
+
+  // 4. Actualizar fuente del mapa y suprimir restricciones de zoom para este itinerario
+  actualizarFuenteMapa();
+  actualizarVisibilidadIconosLista();
+
+  // 5. Actualizar badge con conteo definitivo
+  if (itineraryBadge && titleEl) {
+    titleEl.textContent = `RUTA: ${route.title.toUpperCase()}`;
+    if (countEl) countEl.textContent = `${matchingWorks.length} OBRAS`;
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  // 6. Transicionar a pestaña Mapa
   const mapNavBtn = document.getElementById('mobile-nav-map');
   if (mapNavBtn) {
     document.querySelectorAll('.mobile-nav-btn').forEach((b) => b.classList.remove('active'));
     mapNavBtn.classList.add('active');
   }
 
-  // 5. Encuadre geográfico fluido en Mapbox
-  if (matchingWorks.length > 0) {
-    const validCoords = matchingWorks.filter((w) => w.coordenadas && w.coordenadas.length === 2).map((w) => w.coordenadas);
-    if (validCoords.length > 0) {
-      if (validCoords.length === 1) {
-        state.map.flyTo({ center: validCoords[0], zoom: 16, duration: 800 });
-      } else {
-        const bounds = validCoords.reduce((b, coord) => b.extend(coord), new mapboxgl.LngLatBounds(validCoords[0], validCoords[0]));
-        state.map.fitBounds(bounds, { padding: 80, maxZoom: 16, duration: 1000 });
-      }
-    }
+  // 7. Encuadre geográfico abarcando todas las obras del itinerario
+  const validCoords = matchingWorks
+    .filter((w) => w.coordenadas && w.coordenadas.length === 2 && Number.isFinite(w.coordenadas[0]) && Number.isFinite(w.coordenadas[1]))
+    .map((w) => w.coordenadas);
+  if (validCoords.length === 1) {
+    state.map.flyTo({ center: validCoords[0], zoom: 12, duration: 900 });
+  } else if (validCoords.length > 1) {
+    const bounds = validCoords.reduce((b, coord) => b.extend(coord), new mapboxgl.LngLatBounds(validCoords[0], validCoords[0]));
+    state.map.fitBounds(bounds, { padding: 80, maxZoom: 12, duration: 1000 });
   }
 }
 

@@ -36,10 +36,10 @@ export function registrarIconosColecciones() {
 }
 
 const ICON_LAYER_MINZOOMS = {
-  0: 0,
-  1: 0,
-  2: 12.0,
-  3: 14.0,
+  0: 0,    // importancia mÃ¡xima: siempre visible
+  1: 0,    // importante: siempre visible
+  2: 9.0,  // notable: a partir de zoom 9
+  3: 12.0, // estÃ¡ndar: a partir de zoom 12
 };
 
 function ajustarZoomCapa(layerId, minzoom, maxzoom = 24) {
@@ -825,7 +825,7 @@ function mostrarToastUbicacion(mensaje) {
 
 async function solicitarUbicacionUsuario() {
   if (!navigator.geolocation) {
-    mostrarToastUbicacion('GEOLOCALIZACIÓN NO DISPONIBLE');
+    mostrarToastUbicacion('GEOLOCALIZACIï¿½N NO DISPONIBLE');
     return;
   }
 
@@ -850,11 +850,11 @@ async function solicitarUbicacionUsuario() {
       (error) => {
         finalizar();
         const messages = {
-          1: 'PERMISO DE UBICACIÓN DENEGADO',
-          2: 'NO SE PUDO DETERMINAR TU UBICACIÓN',
-          3: 'LA BÚSQUEDA DE UBICACIÓN HA TARDADO DEMASIADO',
+          1: 'PERMISO DE UBICACIï¿½N DENEGADO',
+          2: 'NO SE PUDO DETERMINAR TU UBICACIï¿½N',
+          3: 'LA Bï¿½SQUEDA DE UBICACIï¿½N HA TARDADO DEMASIADO',
         };
-        mostrarToastUbicacion(messages[error.code] || 'NO SE PUDO OBTENER TU UBICACIÓN');
+        mostrarToastUbicacion(messages[error.code] || 'NO SE PUDO OBTENER TU UBICACIï¿½N');
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 },
     );
@@ -869,7 +869,7 @@ async function solicitarUbicacionUsuario() {
     const permission = await navigator.permissions.query({ name: 'geolocation' });
     if (permission.state === 'denied') {
       finalizar();
-      mostrarToastUbicacion('PERMISO DE UBICACIÓN DENEGADO');
+      mostrarToastUbicacion('PERMISO DE UBICACIï¿½N DENEGADO');
       return;
     }
     lanzarRequest();
