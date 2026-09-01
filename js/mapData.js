@@ -4,6 +4,64 @@
 
 import { state, esRolAdmin } from './state.js';
 
+/**
+ * Agrupa edificios en clusters por proximidad geográfica cuando zoom < 9
+ * Para evitar renderizar cientos de marcadores simultáneamente.
+ * 
+ * @param {Array} features - Array de features GeoJSON a potencialmente agrupar
+ * @param {number} zoom - Nivel de zoom actual
+ * @returns {Array} Features agrupadas (clusters + individuales) o features originales si zoom >= 9
+ */
+function clusterFeaturesByProximity(features, zoom) {
+  if (zoom >= 9 || !features || features.length === 0) {
+    return features; // Sin clustering a zoom alto
+  }
+
+  // Crear cuadrícula geográfica: dividir mapa en celdas
+  const gridSize = Math.pow(2, 8 - Math.floor(zoom)); // Ajusta tamaño de celda según zoom
+  const clusters = new Map();
+  const clusteredIndices = new Set();
+
+  features.forEach((feature, idx) => {
+    const [lon, lat] = feature.geometry.coordinates;
+    const cellKey = `${Math.floor(lon / gridSize)},${Math.floor(lat / gridSize)}`;
+    
+    if (!clusters.has(cellKey)) {
+      clusters.set(cellKey, []);
+    }
+    clusters.get(cellKey).push({ feature, idx, lon, lat });
+  });
+
+  // Convertir clusters con múltiples elementos en puntos de cluster
+  const result = [];
+  clusters.forEach((cellFeatures) => {
+    if (cellFeatures.length === 1) {
+      // Si hay solo un edificio en la celda, incluirlo normalmente
+      result.push(cellFeatures[0].feature);
+    } else {
+      // Crear cluster punto en el centroide de los edificios
+      const avgLon = cellFeatures.reduce((sum, f) => sum + f.lon, 0) / cellFeatures.length;
+      const avgLat = cellFeatures.reduce((sum, f) => sum + f.lat, 0) / cellFeatures.length;
+      
+      result.push({
+        type: 'Feature',
+        id: `cluster-${cellFeatures.map(f => f.idx).join('-')}`,
+        geometry: { type: 'Point', coordinates: [avgLon, avgLat] },
+        properties: {
+          ...cellFeatures[0].feature.properties,
+          is_cluster: true,
+          cluster_count: cellFeatures.length,
+          cluster_ids: cellFeatures.map(f => f.feature.id),
+        },
+      });
+      
+      cellFeatures.forEach(f => clusteredIndices.add(f.idx));
+    }
+  });
+
+  return result;
+}
+
 function coordenadasVisuales(obra) {
   if (!obra || !Array.isArray(obra.coordenadas) || !Number.isFinite(obra.coordenadas[0]) || !Number.isFinite(obra.coordenadas[1])) {
     return [0, 0];
@@ -111,13 +169,18 @@ export function actualizarFuenteMapa() {
       const publicSource = state.map.getSource('obras');
       const masterpieceSource = state.map.getSource('obras-maestras');
 
+      // Aplicar clustering a zoom bajo (< 9)
+      const currentZoom = state.map?.getZoom?.() || 10;
+      const clusteringEnabled = currentZoom < 9;
+      const clusteredStandardFeatures = clusteringEnabled ? clusterFeaturesByProximity(standardFeatures, currentZoom) : standardFeatures;
+
       if (publicSource) {
         publicSource.setData({
           type: 'FeatureCollection',
-          features: standardFeatures,
+          features: clusteredStandardFeatures,
         });
       }
-      
+       
       if (masterpieceSource) {
         masterpieceSource.setData({
           type: 'FeatureCollection',
