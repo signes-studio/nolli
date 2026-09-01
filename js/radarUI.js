@@ -1,9 +1,9 @@
 // js/radarUI.js
-import { state, CATEGORY_META, escapeHtml, separarArquitectos, normalizarCategoria, normalizarImportancia } from './state.js';
+import { state, CATEGORY_META, escapeHtml, separarArquitectos, normalizarCategoria, normalizarImportancia, upsertBuilding } from './state.js';
 import { abrirFicha } from './sheetUI.js';
 import { calcularDistanciaMetros } from './exploreUI.js';
 import { actualizarFuenteMapa } from './mapData.js';
-import { actualizarMarcadorUbicacion } from './mapController.js';
+import { actualizarMarcadorUbicacion, actualizarVisibilidadIconosLista } from './mapController.js';
 import { fetchBuildingsInRadius } from './api.js';
 
 let radarRadius = 1000; // 1000m por defecto (1km)
@@ -507,8 +507,8 @@ export function restaurarMapaGeneral() {
     window.history.replaceState(null, '', window.location.pathname + window.location.search);
   }
   actualizarFuenteMapa();
+  actualizarVisibilidadIconosLista();
 }
-
 export const desactivarRutaEnMapa = restaurarMapaGeneral;
 
 export function initRadarUI() {
@@ -557,7 +557,7 @@ export function initRadarUI() {
       if (!obra && radarCachedData.length) {
         obra = radarCachedData.find((o) => String(o.featureId) === String(featureId) || String(o.id) === String(featureId));
         if (obra) {
-          state.OBRAS.push(obra);
+          state.OBRAS = upsertBuilding(state.OBRAS, obra);
           actualizarFuenteMapa();
         }
       }
@@ -617,3 +617,4 @@ export function initRadarUI() {
     panelObserver.observe(panel, { attributes: true, attributeFilter: ['class'] });
   }
 }
+

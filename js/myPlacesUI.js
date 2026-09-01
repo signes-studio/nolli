@@ -13,7 +13,7 @@ import {
   normalizarImportancia,
 } from './state.js';
 import { abrirFicha } from './sheetUI.js';
-import { registrarIconosColecciones } from './mapController.js';
+import { registrarIconosColecciones, actualizarVisibilidadIconosLista } from './mapController.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import {
   fetchUserCollections,
@@ -196,6 +196,7 @@ export async function handleListHashRoute() {
       const itineraryBadge = document.getElementById('itinerary-filter-badge');
       if (itineraryBadge) itineraryBadge.classList.add('hidden');
       actualizarFuenteMapa();
+      actualizarVisibilidadIconosLista();
     }
     return;
   }
@@ -228,6 +229,7 @@ export async function handleListHashRoute() {
     };
 
     actualizarFuenteMapa();
+    actualizarVisibilidadIconosLista();
 
     const itineraryBadge = document.getElementById('itinerary-filter-badge');
     const titleEl = document.getElementById('itinerary-badge-title');
@@ -781,3 +783,4 @@ function renderCollections() {
   `;
   if (window.lucide) window.lucide.createIcons();
 }
+

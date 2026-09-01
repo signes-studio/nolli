@@ -11,7 +11,7 @@ import { state, esRolAdmin, separarArquitectos, normalizarCategoria, normalizarI
 import { fetchBuildings, getBuildingsCatalog } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { renderExploreList } from './exploreUI.js';
-import { renderRadarUI } from './radarUI.js';
+import { renderRadarUI, restaurarMapaGeneral } from './radarUI.js';
 import { activarFiltroBusquedaEnMapa } from './searchUI.js';
 import { localizarDispositivo } from './mapController.js';
 
@@ -113,6 +113,7 @@ export function initMobileBottomNav() {
     btnMap.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
+      restaurarMapaGeneral();
       closeAllPanels();
       if (panelBackdrop) panelBackdrop.classList.remove('active');
       syncNavButtons();
@@ -724,3 +725,5 @@ function initSheetTouchGestures() {
     });
   }
 }
+
+

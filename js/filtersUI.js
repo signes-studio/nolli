@@ -167,6 +167,8 @@ function initFiltersUI() {
 
 export function aplicarFiltrosMapa() {
   actualizarResumenFiltros();
+  state.activeItinerary = null;
+  document.getElementById('itinerary-filter-badge')?.classList.add('hidden');
   if (!state.map) return;
 
   asegurarEstadoFiltros();

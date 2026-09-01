@@ -4,7 +4,7 @@
    <script type="module"> por lo que se ejecuta en modo defer de forma nativa.
    ========================================================================= */
 
-import { state, separarArquitectos, normalizarCategoria, normalizarImportancia, esRolAdmin, transformarEdificio } from './state.js';
+import { state, separarArquitectos, normalizarCategoria, normalizarImportancia, esRolAdmin, transformarEdificio, dedupeBuildings } from './state.js';
 import { fetchBuildings, fetchBuildingFacets, fetchUserPendingBuildings, fetchPendingBuildings, fetchPrivateBuildings, fetchAllPrivateBuildings, getBuildingsCatalog, invalidateCatalogCache } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
@@ -75,7 +75,7 @@ async function cargarEdificiosVisibles() {
     });
     const datosPrivados = state.OBRAS.filter((obra) => obra.private || obra.estado_revision === 'pendiente');
     datosPrivados.forEach((obra) => mapaObras.set(String(obra.id), obra));
-    state.OBRAS = Array.from(mapaObras.values());
+    state.OBRAS = dedupeBuildings(Array.from(mapaObras.values()));
 
     state.activeArquitectos = habiaFiltroDeArquitectos
       ? new Set([...arquitectosActivosAnteriores].filter((arquitecto) => state.ARQUITECTOS.includes(arquitecto)))

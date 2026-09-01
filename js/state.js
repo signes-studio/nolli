@@ -82,6 +82,46 @@ export function clearAuthState() {
   return true;
 }
 
+export function normalizeBuildingIdentity(building = null) {
+  if (!building) return '';
+  return String(building.id ?? building.featureId ?? building.building_id ?? building.obra_id ?? '').trim();
+}
+
+export function upsertBuilding(list = [], building = null) {
+  if (!building) return list;
+  const nextList = Array.isArray(list) ? [...list] : [];
+  const identity = normalizeBuildingIdentity(building);
+  if (!identity) {
+    nextList.push(building);
+    return nextList;
+  }
+
+  const idx = nextList.findIndex((item) => normalizeBuildingIdentity(item) === identity);
+  if (idx >= 0) {
+    nextList[idx] = { ...nextList[idx], ...building };
+    return nextList;
+  }
+
+  nextList.push(building);
+  return nextList;
+}
+
+export function dedupeBuildings(list = []) {
+  const byId = new Map();
+  for (const building of list || []) {
+    if (!building) continue;
+    const identity = normalizeBuildingIdentity(building);
+    if (!identity) continue;
+    const existing = byId.get(identity);
+    if (existing) {
+      byId.set(identity, { ...existing, ...building });
+    } else {
+      byId.set(identity, building);
+    }
+  }
+  return [...byId.values()];
+}
+
 export function esRolAdmin(role = state.userRole) {
   return role === 'admin' || role === 'superadmin';
 }
@@ -128,15 +168,15 @@ export function nombreCategoria(valor) {
 }
 
 export const CATEGORY_COLORS = {
-  residencial: '#E84E1B',
+  residencial: '#E95C0C',
   dotacional_equipamiento: '#EFBC02',
-  industrial_logistico: '#0d682f',
-  religioso_funerario: '#7c3aed',
-  comercial_terciario: '#0284c7',
-  espacio_publico_paisaje: '#10b981',
-  infraestructura_urbanismo: '#64748b',
-  otro: '#555550'
-};
+  industrial_logistico: '#064773',
+  religioso_funerario: '#F2ACCD',
+  comercial_terciario: '#4388C6',
+  espacio_publico_paisaje: '#0D682F',
+  infraestructura_urbanismo: '#E41F23',
+  otro: '#691B14'
+};                                   
 
 export const CATEGORY_NAMES = {
   residencial: 'RESIDENCIAL',

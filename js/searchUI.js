@@ -1,4 +1,4 @@
-import { state, separarArquitectos, transformarEdificio, normalizarCategoria, nombreCategoria, CATEGORY_META, escapeHtml } from './state.js';
+import { state, separarArquitectos, transformarEdificio, normalizarCategoria, nombreCategoria, CATEGORY_META, escapeHtml, upsertBuilding } from './state.js';
 import { abrirFicha } from './sheetUI.js';
 import { searchPlaces, fetchBuildings, getBuildingsCatalog } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
@@ -403,7 +403,7 @@ document.addEventListener('click', (event) => {
   if (!obra && cacheObrasGlobales) {
     obra = cacheObrasGlobales.find((candidate) => String(candidate.featureId) === String(featureId));
     if (obra) {
-      state.OBRAS.push(obra);
+    state.OBRAS = upsertBuilding(state.OBRAS, obra);
     }
   }
 
@@ -414,7 +414,7 @@ document.addEventListener('click', (event) => {
       nombre_obra: item.querySelector('.nearby-name')?.textContent,
       coordenadas: [parseFloat(item.dataset.lng), parseFloat(item.dataset.lat)]
     };
-    state.OBRAS.push(obra);
+  state.OBRAS = upsertBuilding(state.OBRAS, obra);
   }
 
   if (!obra || !state.map) return;
@@ -512,7 +512,7 @@ export async function activarFiltroBusquedaEnMapa(queryText, providedMatches = n
       const transformed = (m.coordenadas && m.coordenadas.length === 2)
         ? m
         : transformarEdificio(m, state.OBRAS.length + idx);
-      state.OBRAS.push(transformed);
+      state.OBRAS = upsertBuilding(state.OBRAS, transformed);
       existingIds.add(String(m.id));
     }
   });

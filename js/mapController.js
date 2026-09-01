@@ -35,6 +35,34 @@ export function registrarIconosColecciones() {
   }
 }
 
+const ICON_LAYER_MINZOOMS = {
+  0: 0,
+  1: 0,
+  2: 12.0,
+  3: 14.0,
+};
+
+function ajustarZoomCapa(layerId, minzoom, maxzoom = 24) {
+  if (!state.map || !state.map.getLayer(layerId) || typeof state.map.setLayerZoomRange !== 'function') return;
+  try {
+    state.map.setLayerZoomRange(layerId, minzoom, maxzoom);
+  } catch (error) {
+    console.warn(`No se pudo ajustar el zoom de la capa ${layerId}:`, error);
+  }
+}
+
+export function actualizarVisibilidadIconosLista() {
+  if (!state.map) return;
+  const listaActiva = Boolean(state.activeItinerary && state.activeItinerary.isCollectionItinerary);
+
+  [0, 1, 2, 3].forEach((importance) => {
+    const baseMinZoom = listaActiva ? 0 : ICON_LAYER_MINZOOMS[importance];
+    [`obras-l${importance}`, `obras-l${importance}-visited`, `obras-l${importance}-selected`, `obras-l${importance}-pending`, `obras-l${importance}-private`].forEach((layerId) => {
+      ajustarZoomCapa(layerId, baseMinZoom);
+    });
+  });
+}
+
 /** Crea el mapa, aÃ±ade la capa de obras y arranca el HUD de coordenadas. */
 export function cargarMapaMapbox() {
   const savedStyle = localStorage.getItem('nolli_map_style');
@@ -570,6 +598,7 @@ export function cargarMapaMapbox() {
     });
 
     iniciarInteraccionesMapa();
+    actualizarVisibilidadIconosLista();
 
     if (state.userLocation) {
       actualizarMarcadorUbicacion(state.userLocation);
@@ -794,9 +823,9 @@ function mostrarToastUbicacion(mensaje) {
   }, 2800);
 }
 
-export function localizarDispositivo() {
+async function solicitarUbicacionUsuario() {
   if (!navigator.geolocation) {
-    mostrarToastUbicacion('GEOLOCALIZACIÃ“N NO DISPONIBLE');
+    mostrarToastUbicacion('GEOLOCALIZACIÓN NO DISPONIBLE');
     return;
   }
 
@@ -805,28 +834,53 @@ export function localizarDispositivo() {
   buttonDesktop?.classList.add('location-active');
   buttonMobile?.classList.add('active-state');
 
-  navigator.geolocation.getCurrentPosition(
-    (position) => {
-      buttonDesktop?.classList.remove('location-active');
-      buttonMobile?.classList.remove('active-state');
-      const coordinates = [position.coords.longitude, position.coords.latitude];
-      actualizarMarcadorUbicacion(coordinates);
-      state.map.flyTo({ center: coordinates, zoom: Math.max(state.map.getZoom(), 15), duration: 800 });
-    },
-    (error) => {
-      buttonDesktop?.classList.remove('location-active');
-      buttonMobile?.classList.remove('active-state');
-      const messages = {
-        1: 'PERMISO DE UBICACIÃ“N DENEGADO',
-        2: 'NO SE PUDO DETERMINAR TU UBICACIÃ“N',
-        3: 'LA BÃšSQUEDA DE UBICACIÃ“N HA TARDADO DEMASIADO',
-      };
-      mostrarToastUbicacion(messages[error.code] || 'NO SE PUDO OBTENER TU UBICACIÃ“N');
-    },
-    { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 },
-  );
+  const finalizar = () => {
+    buttonDesktop?.classList.remove('location-active');
+    buttonMobile?.classList.remove('active-state');
+  };
+
+  const lanzarRequest = () => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        finalizar();
+        const coordinates = [position.coords.longitude, position.coords.latitude];
+        actualizarMarcadorUbicacion(coordinates);
+        state.map.flyTo({ center: coordinates, zoom: Math.max(state.map.getZoom(), 15), duration: 800 });
+      },
+      (error) => {
+        finalizar();
+        const messages = {
+          1: 'PERMISO DE UBICACIÓN DENEGADO',
+          2: 'NO SE PUDO DETERMINAR TU UBICACIÓN',
+          3: 'LA BÚSQUEDA DE UBICACIÓN HA TARDADO DEMASIADO',
+        };
+        mostrarToastUbicacion(messages[error.code] || 'NO SE PUDO OBTENER TU UBICACIÓN');
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 },
+    );
+  };
+
+  if (!navigator.permissions || !navigator.permissions.query) {
+    lanzarRequest();
+    return;
+  }
+
+  try {
+    const permission = await navigator.permissions.query({ name: 'geolocation' });
+    if (permission.state === 'denied') {
+      finalizar();
+      mostrarToastUbicacion('PERMISO DE UBICACIÓN DENEGADO');
+      return;
+    }
+    lanzarRequest();
+  } catch (error) {
+    lanzarRequest();
+  }
 }
 
+export function localizarDispositivo() {
+  solicitarUbicacionUsuario();
+}
 function initHudReadout() {
   const hL = document.getElementById('hud-lng');
   const hLa = document.getElementById('hud-lat');
@@ -944,3 +998,4 @@ function iniciarInteraccionesMapa() {
 function dispatchLongPress(lngLat) {
   document.dispatchEvent(new CustomEvent('radar:map-longpress', { detail: { lngLat } }));
 }
+
