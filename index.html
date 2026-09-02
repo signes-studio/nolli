@@ -281,9 +281,6 @@
         <circle cx="12" cy="12" r="3"></circle>
       </svg>
     </button>
-    <button id="btn-search" type="button" class="fab" title="Buscar edificios" aria-label="Buscar edificios">
-      <i data-lucide="search" width="20" height="20"></i>
-    </button>
     <button id="btn-map-style" type="button" class="fab" title="Tipo de mapa" aria-label="Cambiar tipo de mapa">
       <i data-lucide="layers-2" width="20" height="20"></i>
     </button>
@@ -403,23 +400,6 @@
         <span class="map-style-label">SATÉLITE</span>
       </button>
     </div>
-  </section>
-
-  <section id="search-panel" class="search-panel" aria-label="Buscar edificios">
-    <div class="filter-head">
-      <span style="color:var(--fg-dim)">[ BUSCAR // EDIFICIOS ]</span>
-      <button type="button" id="btn-search-close" class="sheet-close-button" aria-label="Cerrar búsqueda">
-        <i data-lucide="x" width="14" height="14"></i>
-      </button>
-    </div>
-    <div class="search-controls">
-      <input id="location-search" class="tech-input" type="search" placeholder="CIUDAD O UBICACIÓN..." aria-label="Buscar una ciudad o ubicación">
-      <input id="building-search" class="tech-input" type="search" placeholder="NOMBRE DEL EDIFICIO..." aria-label="Buscar por nombre">
-      <input id="building-architect" class="tech-input" type="search" placeholder="BUSCAR ARQUITECTO..." aria-label="Buscar por arquitecto" autocomplete="off">
-      <div id="architect-suggestions" class="architect-suggestions" hidden></div>
-    </div>
-    <div id="location-results" class="nearby-buildings"></div>
-    <div id="nearby-buildings" class="nearby-buildings"></div>
   </section>
 
   <!-- Sheet de ficha técnica -->

@@ -419,7 +419,7 @@ async function cargarTodasObrasMobile() {
       }));
       return cacheObrasMobileSearch;
     } catch (err) {
-      console.warn('Error al precargar obras completas para buscador móvil:', err);
+      console.warn('Error al precargar obras completas para buscador:', err);
       return state.OBRAS || [];
     } finally {
       mobileSearchPromise = null;
@@ -442,12 +442,9 @@ function initMobileSearchWidget() {
 
   if (!widget || !btnToggle || !input) return;
 
-  const btnSearch = document.getElementById('btn-search');
-
   function openSearch() {
     widget.classList.remove('collapsed');
     widget.classList.add('expanded');
-    btnSearch?.classList.add('active-state');
     setTimeout(() => input.focus(), 100);
     cargarTodasObrasMobile();
   }
@@ -456,7 +453,6 @@ function initMobileSearchWidget() {
     widget.classList.remove('expanded');
     widget.classList.add('collapsed');
     input.value = '';
-    btnSearch?.classList.remove('active-state');
     if (dropdown) dropdown.hidden = true;
     if (resultsContainer) resultsContainer.innerHTML = '';
   }
@@ -465,18 +461,6 @@ function initMobileSearchWidget() {
     e.stopPropagation();
     openSearch();
   });
-
-  if (btnSearch) {
-    btnSearch.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (widget.classList.contains('expanded')) {
-        closeSearch();
-      } else {
-        openSearch();
-      }
-    });
-  }
 
   if (btnClose) {
     btnClose.addEventListener('click', (e) => {
@@ -489,7 +473,8 @@ function initMobileSearchWidget() {
     return (str || '')
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase();
+      .toLowerCase()
+      .trim();
   }
 
   let searchDebounce = null;
@@ -498,8 +483,9 @@ function initMobileSearchWidget() {
   input.addEventListener('input', () => {
     clearTimeout(searchDebounce);
     searchDebounce = setTimeout(async () => {
-      const q = normalize(input.value.trim());
-      if (!q || q.length < 2) {
+      const rawVal = input.value.trim();
+      const q = normalize(rawVal);
+      if (!q || q.length < 1) {
         if (dropdown) dropdown.hidden = true;
         if (resultsContainer) resultsContainer.innerHTML = '';
         currentMobileMatches = [];
@@ -510,16 +496,20 @@ function initMobileSearchWidget() {
       const todasLasObras = await cargarTodasObrasMobile();
       const catalogo = todasLasObras && todasLasObras.length ? todasLasObras : (state.OBRAS || []);
 
-      const matches = catalogo
-        .filter((obra) => {
-          const name = normalize(obra.nombre_obra);
-          const arq = normalize(Array.isArray(obra.arquitectos) ? obra.arquitectos.join(' ') : obra.arquitecto);
-          const city = normalize(obra.ciudad || obra.place);
-          const style = normalize(obra.estilo);
-          const cat = normalize(obra.categoria);
-          const tags = normalize(Array.isArray(obra.tags) ? obra.tags.join(' ') : obra.tags);
-          return name.includes(q) || arq.includes(q) || city.includes(q) || style.includes(q) || cat.includes(q) || tags.includes(q);
-        });
+      const tokens = q.split(/\s+/).filter(Boolean);
+
+      const matches = catalogo.filter((obra) => {
+        const name = normalize(obra.nombre_obra);
+        const arq = normalize(Array.isArray(obra.arquitectos) ? obra.arquitectos.join(' ') : obra.arquitecto);
+        const city = normalize(obra.ciudad || obra.place);
+        const style = normalize(obra.estilo);
+        const cat = normalize(obra.categoria);
+        const tags = normalize(Array.isArray(obra.tags) ? obra.tags.join(' ') : obra.tags);
+        const year = String(obra.año_construccion || '');
+
+        const allHaystack = `${name} ${arq} ${city} ${style} ${cat} ${tags} ${year}`;
+        return allHaystack.includes(q) || tokens.every((token) => allHaystack.includes(token));
+      });
 
       currentMobileMatches = matches;
 
@@ -536,14 +526,15 @@ function initMobileSearchWidget() {
       const headerActionHtml = `
         <button type="button" class="mobile-search-filter-action" data-action="filter-all-matches">
           <i data-lucide="filter" width="13" height="13"></i>
-          <span>[ VER TODAS LAS ${matches.length} OBRAS EN EL MAPA ]</span>
+          <span>[ VER Y FILTRAR LAS ${matches.length} OBRAS EN EL MAPA ]</span>
         </button>
       `;
 
-      const listHtml = matches.slice(0, 25).map((obra) => {
+      const listHtml = matches.slice(0, 40).map((obra) => {
         const catClave = normalizarCategoria(obra.categoria);
         const catTexto = nombreCategoria(obra.categoria);
-        const catColor = CATEGORY_COLORS[catClave] || '#E84E1B';
+        const metaCat = CATEGORY_META[catClave] || CATEGORY_META['otro'];
+        const catColor = metaCat?.color || '#E84E1B';
 
         const titulo = escapeHtml(obra.nombre_obra || 'OBRA SIN TÍTULO').toUpperCase();
         const arq = escapeHtml(obra.arquitecto || 'Arquitecto no indicado');
@@ -570,9 +561,9 @@ function initMobileSearchWidget() {
       }).join('');
 
       resultsContainer.innerHTML = headerActionHtml + listHtml;
-      window.lucide?.createIcons({ context: results });
+      if (window.lucide) window.lucide.createIcons({ context: resultsContainer });
       dropdown.hidden = false;
-    }, 120);
+    }, 90);
   });
 
   input.addEventListener('keydown', (e) => {
@@ -630,7 +621,7 @@ function initMobileSearchWidget() {
   });
 
   document.addEventListener('click', (e) => {
-    if (widget.classList.contains('expanded') && !widget.contains(e.target) && !e.target.closest('#btn-search')) {
+    if (widget.classList.contains('expanded') && !widget.contains(e.target)) {
       closeSearch();
     }
   });

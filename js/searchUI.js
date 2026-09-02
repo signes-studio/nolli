@@ -554,14 +554,15 @@ export async function activarFiltroBusquedaEnMapa(queryText, providedMatches = n
 
 export function abrirBusquedaConQuery(query) {
   if (!query) return;
-  if (searchInput) {
-    searchInput.value = query;
+  const widget = document.getElementById('mobile-search-widget');
+  const input = document.getElementById('mobile-search-input');
+  if (widget) {
+    widget.classList.remove('collapsed');
+    widget.classList.add('expanded');
   }
-  if (searchPanel && !searchPanel.classList.contains('open')) {
-    searchPanel.classList.add('open');
-    btnSearch?.classList.add('active-state');
-    const backdrop = document.getElementById('panel-backdrop');
-    if (backdrop) backdrop.classList.add('active');
+  if (input) {
+    input.value = query;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    setTimeout(() => input.focus(), 100);
   }
-  ejecutarBusquedaGlobal();
 }
