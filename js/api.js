@@ -8,6 +8,8 @@ import { SUPABASE_URL, SUPABASE_KEY, MAPBOX_TOKEN } from './config.js';
 // Cache compartida para catálogo de obras (deduplication)
 let catalogCache = null;
 let catalogPromise = null;
+const CATALOG_CACHE_KEY = 'nolli:buildings-catalog:v1';
+const CATALOG_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 export async function searchPlaces(query) {
   const params = new URLSearchParams({
@@ -144,7 +146,7 @@ export async function fetchBuildingFacets() {
   const facets = [];
   let start = 0;
   const params = new URLSearchParams({
-    select: 'arquitecto,año_construccion,categoria,estado_acceso,visitable',
+    select: 'id,nombre_obra,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,longitud,latitud,place',
     order: 'id.asc',
   });
 
@@ -183,6 +185,16 @@ export async function getBuildingsCatalog() {
   if (catalogCache) {
     return Promise.resolve(catalogCache);
   }
+
+  try {
+    const cached = JSON.parse(localStorage.getItem(CATALOG_CACHE_KEY));
+    if (cached?.expiresAt > Date.now() && Array.isArray(cached.rows)) {
+      catalogCache = cached.rows;
+      return catalogCache;
+    }
+  } catch {
+    localStorage.removeItem(CATALOG_CACHE_KEY);
+  }
   
   // Si hay una promesa en vuelo, reusarla (deduplication)
   if (catalogPromise) {
@@ -192,6 +204,14 @@ export async function getBuildingsCatalog() {
   // Crear nueva promesa y cachearla durante la resolución
   catalogPromise = fetchBuildingFacets().then(result => {
     catalogCache = result;
+    try {
+      localStorage.setItem(CATALOG_CACHE_KEY, JSON.stringify({
+        expiresAt: Date.now() + CATALOG_CACHE_TTL_MS,
+        rows: result,
+      }));
+    } catch {
+      // El catálogo sigue disponible en memoria si el almacenamiento está lleno o bloqueado.
+    }
     catalogPromise = null; // Limpiar la promesa en vuelo
     return result;
   }).catch(err => {
@@ -208,6 +228,7 @@ export async function getBuildingsCatalog() {
 export function invalidateCatalogCache() {
   catalogCache = null;
   catalogPromise = null;
+  localStorage.removeItem(CATALOG_CACHE_KEY);
 }
 
 export async function fetchUserPendingBuildings(userId, sessionToken) {

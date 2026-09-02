@@ -5,7 +5,6 @@
    ========================================================================= */
 
 import {
-  fetchBuildings,
   fetchBuildingsByIds,
   fetchCurrentUser,
   fetchBuildingStatuses,
@@ -319,7 +318,7 @@ async function init() {
 
   // Carga del catálogo
   try {
-    const buildings = await fetchBuildings({ includeAllImportance: true });
+    const buildings = await getBuildingsCatalog();
     profileState.buildings = buildings || [];
     if (buildings && buildings.length) {
       localStorage.setItem('nolli_cached_buildings', JSON.stringify(buildings.slice(0, 50)));

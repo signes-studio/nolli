@@ -8,7 +8,7 @@
    ========================================================================= */
 
 import { state, esRolAdmin, separarArquitectos, normalizarCategoria, normalizarImportancia, nombreCategoria, CATEGORY_COLORS, CATEGORY_META, escapeHtml } from './state.js';
-import { fetchBuildings, getBuildingsCatalog } from './api.js';
+import { getBuildingsCatalog } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { renderExploreList } from './exploreUI.js';
 import { renderRadarUI, restaurarMapaGeneral } from './radarUI.js';
@@ -381,7 +381,7 @@ async function cargarTodasObrasMobile() {
 
   mobileSearchPromise = (async () => {
     try {
-      const filas = await fetchBuildings({ includeAllImportance: true });
+      const filas = await getBuildingsCatalog();
       cacheObrasMobileSearch = (filas || []).map((fila, index) => ({
         id: fila.id,
         featureId: String(fila.id ?? `obra-${index}`),

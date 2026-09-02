@@ -79,7 +79,7 @@ module.exports = async (request, response) => {
     ].join('\n');
 
     response.setHeader('Content-Type', 'application/xml; charset=utf-8');
-    response.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+    response.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
     response.status(200).send(sitemap);
   } catch (error) {
     console.error('No se pudo generar el sitemap:', error);

@@ -1,6 +1,6 @@
 import { state, separarArquitectos, transformarEdificio, normalizarCategoria, nombreCategoria, CATEGORY_META, escapeHtml, upsertBuilding } from './state.js';
 import { abrirFicha } from './sheetUI.js';
-import { searchPlaces, fetchBuildings, getBuildingsCatalog } from './api.js';
+import { searchPlaces, getBuildingsCatalog } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { renderInChunks } from './renderUtils.js';
 
@@ -466,7 +466,7 @@ export async function activarFiltroBusquedaEnMapa(queryText, providedMatches = n
   if (!matches || !matches.length) {
     let catalogo = [];
     try {
-      const dbRows = await fetchBuildings({ includeAllImportance: true });
+      const dbRows = await getBuildingsCatalog();
       catalogo = (dbRows || []).map((row, idx) => transformarEdificio(row, idx));
     } catch (e) {
       catalogo = state.OBRAS || [];
