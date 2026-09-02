@@ -3,33 +3,10 @@ import { fetchAllPublicCollections, followCollection, unfollowCollection, fetchF
 import { actualizarFuenteMapa } from './mapData.js';
 import { CURATED_ROUTES, getCuratedRoutes, activarRutaEnMapa } from './radarUI.js';
 import { activarFiltroBusquedaEnMapa } from './searchUI.js';
+import { calcularDistanciaMetros, formatearDistancia } from './renderUtils.js';
 
 let publicCollectionsCache = [];
 let activeExploreTab = 'all'; // 'all' | 'curated' | 'public'
-
-export function calcularDistanciaMetros(lon1, lat1, lon2, lat2) {
-  if (lon1 == null || lat1 == null || lon2 == null || lat2 == null) return Infinity;
-  const R = 6371e3; // Radio de la Tierra en metros
-  const phi1 = (lat1 * Math.PI) / 180;
-  const phi2 = (lat2 * Math.PI) / 180;
-  const deltaPhi = ((lat2 - lat1) * Math.PI) / 180;
-  const deltaLambda = ((lon2 - lon1) * Math.PI) / 180;
-
-  const a = Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
-            Math.cos(phi1) * Math.cos(phi2) *
-            Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-  return R * c;
-}
-
-export function formatearDistancia(metros) {
-  if (!isFinite(metros) || metros == null) return '';
-  if (metros < 1000) {
-    return `${Math.round(metros)} M`;
-  }
-  return `${(metros / 1000).toFixed(1)} KM`;
-}
 
 export async function renderPublicCollections(query = '') {
   const curatedSection = document.getElementById('explore-curated-section');

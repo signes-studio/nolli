@@ -93,7 +93,7 @@ export async function fetchBuildings({ bounds, zoom, architect, includeAllImport
   let start = 0;
   const publicFields = 'id,nombre_obra,foto_url,enlace_url,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,añadido_por,estado_revision,longitud,latitud,place';
   const params = new URLSearchParams({ select: publicFields, order: 'id.asc' });
-  if (bounds) {
+  if (bounds && typeof bounds.toArray === 'function') {
     const [[minLongitude, minLatitude], [maxLongitude, maxLatitude]] = bounds.toArray();
     // Expandir el bounding box en un 75% para precargar la zona colindante y lograr desplazamiento 60 FPS sin lag
     const lonDelta = (maxLongitude - minLongitude) * bufferRatio;
@@ -1150,9 +1150,10 @@ export async function fetchItineraries(sessionToken = null, includeInactive = fa
     if (response.ok) {
       const data = await response.json();
       if (Array.isArray(data) && data.length > 0) {
-        // Formatear propiedades normalizadas
         return data.map((item) => ({
           ...item,
+          work_ids: item.work_ids || item.workIds || [],
+          workIds: item.work_ids || item.workIds || [],
           yearRange: item.year_range || item.yearRange || null,
           decadeFilter: item.decade_filter || item.decadeFilter || null,
           architectsFilter: item.architects_filter || item.architectsFilter || null,
@@ -1167,7 +1168,7 @@ export async function fetchItineraries(sessionToken = null, includeInactive = fa
     console.warn('Supabase itineraries fetch warning:', err);
   }
 
-  // Fallback a localStorage para desarrollo o cuando aún no se ha ejecutado la migración
+  // Fallback a localStorage
   try {
     const raw = localStorage.getItem(LOCAL_ITINERARIES_KEY);
     if (raw) {
@@ -1178,30 +1179,23 @@ export async function fetchItineraries(sessionToken = null, includeInactive = fa
     }
   } catch (e) {}
 
-  return null; // Si devuelve null, el consumidor usará CURATED_ROUTES por defecto
+  return null;
 }
 
 export async function createItinerary(itinerary, sessionToken) {
+  const workIds = (itinerary.work_ids || itinerary.workIds || []).map(String);
   const payload = {
     id: itinerary.id || `route-${Date.now().toString(36)}`,
     title: itinerary.title,
     subtitle: itinerary.subtitle || '',
     tag: itinerary.tag || 'MOVIMIENTO MODERNO',
     color: itinerary.color || '#E84E1B',
-    stops: itinerary.stops || 'CATÁLOGO',
-    year_range: itinerary.yearRange || null,
-    decade_filter: itinerary.decadeFilter ? Number(itinerary.decadeFilter) : null,
-    architects_filter: itinerary.architectsFilter || null,
-    architect_filter: itinerary.architectFilter || null,
-    category_filter: itinerary.categoryFilter || null,
-    added_by_filter: itinerary.addedByFilter || null,
-    keywords: itinerary.keywords || null,
-    bbox_filter: itinerary.bboxFilter || null,
+    stops: itinerary.stops || `${workIds.length} OBRAS`,
+    work_ids: workIds,
     active: itinerary.active !== false,
     order_num: Number(itinerary.order_num || 0),
   };
 
-  let createdInDb = false;
   try {
     const response = await fetch(`${SUPABASE_URL}/rest/v1/itineraries`, {
       method: 'POST',
@@ -1216,14 +1210,12 @@ export async function createItinerary(itinerary, sessionToken) {
 
     if (response.ok) {
       const result = await response.json();
-      createdInDb = true;
       return result[0] || payload;
     }
   } catch (err) {
     console.warn('Error al guardar itinerario en Supabase:', err);
   }
 
-  // Siempre mantener sincronizado en localStorage
   try {
     const raw = localStorage.getItem(LOCAL_ITINERARIES_KEY) || '[]';
     const list = JSON.parse(raw);
@@ -1235,20 +1227,14 @@ export async function createItinerary(itinerary, sessionToken) {
 }
 
 export async function updateItinerary(id, itinerary, sessionToken) {
+  const workIds = (itinerary.work_ids || itinerary.workIds || []).map(String);
   const payload = {
     title: itinerary.title,
     subtitle: itinerary.subtitle || '',
     tag: itinerary.tag || 'MOVIMIENTO MODERNO',
     color: itinerary.color || '#E84E1B',
-    stops: itinerary.stops || 'CATÁLOGO',
-    year_range: itinerary.yearRange || null,
-    decade_filter: itinerary.decadeFilter ? Number(itinerary.decadeFilter) : null,
-    architects_filter: itinerary.architectsFilter || null,
-    architect_filter: itinerary.architectFilter || null,
-    category_filter: itinerary.categoryFilter || null,
-    added_by_filter: itinerary.addedByFilter || null,
-    keywords: itinerary.keywords || null,
-    bbox_filter: itinerary.bboxFilter || null,
+    stops: itinerary.stops || `${workIds.length} OBRAS`,
+    work_ids: workIds,
     active: itinerary.active !== false,
     order_num: Number(itinerary.order_num || 0),
     updated_at: new Date().toISOString(),
@@ -1274,7 +1260,6 @@ export async function updateItinerary(id, itinerary, sessionToken) {
     console.warn('Error al actualizar itinerario en Supabase:', err);
   }
 
-  // Local storage update
   try {
     const raw = localStorage.getItem(LOCAL_ITINERARIES_KEY) || '[]';
     const list = JSON.parse(raw);

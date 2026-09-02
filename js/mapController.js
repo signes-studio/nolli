@@ -339,11 +339,7 @@ export function cargarMapaMapbox() {
       const sourceId = (importance === 0 || importance === 1) ? 'obras-maestras' : 'obras';
       const iconSize = importance === 0 ? 0.92 : importance === 1 ? 0.70 : importance === 2 ? 0.56 : 0.52;
       const catExpr = ['coalesce', ['get', 'categoria'], 'otro'];
-      const permitirSolapamiento = (importance === 0 || importance === 1)
-        ? ['step', ['zoom'], false, 11, true] // Colisiones activas en zoom lejano (< 11); sin restricción en zoom cercano (>= 11)
-        : importance === 2
-          ? true
-          : false;
+      const permitirSolapamiento = false; // Colisiones activas entre iconos; Mapbox requiere un valor booleano estricto
       const sortKeyExpr = (importance === 0 || importance === 1)
         ? ['coalesce', ['get', 'alpha_rank'], importance]
         : importance;
@@ -666,8 +662,12 @@ export function cargarMapaMapbox() {
     if (state.userLocation) {
       actualizarMarcadorUbicacion(state.userLocation);
     }
+    document.dispatchEvent(new CustomEvent('radar:map-ready'));
   };
 
+  if (state.map.isStyleLoaded && state.map.isStyleLoaded()) {
+    configurarCapas();
+  }
   state.map.on('load', configurarCapas);
   state.map.on('style.load', configurarCapas);
 

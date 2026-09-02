@@ -1,10 +1,9 @@
-// js/radarUI.js
 import { state, CATEGORY_META, escapeHtml, separarArquitectos, normalizarCategoria, normalizarImportancia, upsertBuilding, dedupeBuildings } from './state.js';
 import { abrirFicha } from './sheetUI.js';
-import { calcularDistanciaMetros } from './exploreUI.js';
+import { calcularDistanciaMetros, formatearDistancia } from './renderUtils.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { actualizarMarcadorUbicacion, actualizarVisibilidadIconosLista } from './mapController.js';
-import { fetchBuildingsInRadius, fetchBuildings, getBuildingsCatalog, fetchItineraries } from './api.js';
+import { fetchBuildingsInRadius, fetchBuildings, getBuildingsCatalog, fetchItineraries, fetchBuildingsByIds } from './api.js';
 import { getOptimizedPhotoUrl } from './imageProxy.js';
 
 let radarRadius = 1000; // 1000m por defecto (1km)
@@ -161,6 +160,20 @@ export const CURATED_ROUTES = [
 export function matchWorksForRoute(route, sourceList = null) {
   const list = sourceList || (state.BUILDING_CATALOG && state.BUILDING_CATALOG.length ? state.BUILDING_CATALOG : state.OBRAS);
   if (!list || !list.length) return [];
+
+  // Si la ruta tiene obras añadidas a mano explícitamente (work_ids), devolverlas respetando el orden manual
+  const manualIds = route.work_ids || route.workIds;
+  if (Array.isArray(manualIds) && manualIds.length > 0) {
+    const idSet = new Set(manualIds.map(String));
+    const matched = list.filter((o) => idSet.has(String(o.id)));
+    const mapById = new Map(matched.map((o) => [String(o.id), o]));
+    const ordered = [];
+    manualIds.forEach((id) => {
+      const item = mapById.get(String(id));
+      if (item) ordered.push(item);
+    });
+    return ordered.length > 0 ? ordered : matched;
+  }
 
   if (route.addedByFilter) {
     return list.filter((o) => {
@@ -485,7 +498,31 @@ export async function activarRutaEnMapa(routeId) {
     state.BUILDING_CATALOG = catalog;
   }
 
-  // 2. Si el itinerario filtra por arquitecto, intentar enriquecer aún más con obras específicas
+  // 2. Si el itinerario tiene IDs manuales y algunos faltan en memoria, descargarlos directamente
+  const manualIds = route.work_ids || route.workIds;
+  if (Array.isArray(manualIds) && manualIds.length > 0) {
+    const missingIds = manualIds.filter((id) => !(state.OBRAS || []).some((w) => String(w.id) === String(id)));
+    if (missingIds.length > 0) {
+      const fetched = await fetchBuildingsByIds(missingIds).catch(() => []);
+      (fetched || []).forEach((fila, idx) => {
+        const enriched = {
+          ...fila,
+          id: fila.id,
+          featureId: String(fila.id ?? `obra-${idx}`),
+          categoria: normalizarCategoria(fila.categoria),
+          coordenadas: (Array.isArray(fila.coordenadas) && fila.coordenadas.length === 2 && Number.isFinite(fila.coordenadas[0])) ? fila.coordenadas : [Number(fila.longitud), Number(fila.latitud)],
+          arquitectos: Array.isArray(fila.arquitectos) ? fila.arquitectos.join(', ') : (fila.arquitecto || ''),
+          ciudad: fila.place || fila.ciudad || null,
+          place: fila.place || fila.ciudad || null,
+          importancia: normalizarImportancia(fila.importancia),
+          selected: false,
+        };
+        state.OBRAS = upsertBuilding(state.OBRAS, enriched);
+      });
+    }
+  }
+
+  // 3. Si el itinerario filtra por arquitecto, intentar enriquecer aún más con obras específicas
   if (route.architectsFilter && route.architectsFilter.length > 0) {
     try {
       for (const architect of route.architectsFilter) {
@@ -511,7 +548,7 @@ export async function activarRutaEnMapa(routeId) {
     }
   }
 
-  // 3. Obtener todas las obras coincidentes en toda la base de datos
+  // 4. Obtener todas las obras coincidentes en toda la base de datos
   const allPool = dedupeBuildings([...state.OBRAS, ...(state.BUILDING_CATALOG || []), ...(state.privateBuildings || [])]);
   const matchingWorks = matchWorksForRoute(route, allPool);
 

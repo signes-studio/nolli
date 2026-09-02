@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nolli-shell-v43';
+const CACHE_NAME = 'nolli-shell-v48';
 const APP_SHELL = [
   './',
   './index.html',

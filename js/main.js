@@ -72,11 +72,12 @@ async function cargarEdificiosVisibles() {
       }),
       state.BUILDING_CATALOG.length ? Promise.resolve(state.BUILDING_CATALOG) : getBuildingsCatalog(), // CRÍTICO FIX #1: Use cache
     ]);
-    if (requestId !== publicLoadRequest) return;
-    state.BUILDING_CATALOG = catalogo.map((fila) => ({ ...fila, categoria: normalizarCategoria(fila.categoria) }));
+    const rawDatosDB = Array.isArray(datosDB) ? datosDB : [];
+    const rawCatalogo = Array.isArray(catalogo) ? catalogo : [];
+    state.BUILDING_CATALOG = rawCatalogo.map((fila) => ({ ...fila, categoria: normalizarCategoria(fila.categoria) }));
     state.ARQUITECTOS = [...new Set(state.BUILDING_CATALOG.flatMap((fila) => separarArquitectos(fila.arquitecto)))];
     const mapaObras = new Map(state.OBRAS.map((obra) => [String(obra.id), obra]));
-    datosDB.forEach((fila, index) => {
+    rawDatosDB.forEach((fila, index) => {
       const idStr = String(fila.id);
       const anterior = mapaObras.get(idStr);
       const edificio = transformarEdificio(fila, index);
@@ -207,10 +208,22 @@ async function inicializarRadar() {
   try {
     await esperarMapbox();
     cargarMapaMapbox();
-    state.map.once('load', async () => {
+
+    let mapReadyTriggered = false;
+    const onMapReady = async () => {
+      if (mapReadyTriggered) return;
+      mapReadyTriggered = true;
       await cargarEdificiosVisibles();
       verificarParametrosURL();
-    });
+    };
+
+    document.addEventListener('radar:map-ready', onMapReady, { once: true });
+    if (state.map?.loaded?.() || state.map?.isStyleLoaded?.()) {
+      onMapReady();
+    } else {
+      state.map?.once('load', onMapReady);
+      state.map?.once('style.load', onMapReady);
+    }
     
     // La consulta y regeneración de GeoJSON se realizan al terminar el gesto;
     // ejecutarlas durante `move` compite con el renderizado de Mapbox.

@@ -1,19 +1,19 @@
 /* =========================================================================
-   ITINERARIOS.JS — Consola de Administración y Gestión de Itinerarios Nolli
-   Acceso Restringido a Administradores (Auth Supabase)
+   ITINERARIOS.JS — Consola de Administración y Selección Manual de Obras
+   Gestor de Itinerarios Nolli con Selección Directa Obra a Obra
    ========================================================================= */
 
-import { SUPABASE_URL, SUPABASE_KEY } from './config.js';
 import {
   fetchCurrentUser,
   fetchUserRole,
+  loginAdmin,
   getBuildingsCatalog,
   fetchItineraries,
   createItinerary,
   updateItinerary,
   deleteItinerary,
 } from './api.js';
-import { escapeHtml, normalizarCategoria } from './state.js';
+import { escapeHtml, normalizarCategoria, CATEGORY_META } from './state.js';
 import { CURATED_ROUTES, matchWorksForRoute } from './radarUI.js';
 
 const SESSION_KEY = 'nolli_admin_session_token';
@@ -24,8 +24,10 @@ const itineraryAdminState = {
   role: null,
   itineraries: [],
   catalog: [],
+  catalogMap: new Map(),
   activeFilter: '',
   editingId: null,
+  currentFormSelectedWorks: [], // Array de objetos de obras añadidas al formulario actual
 };
 
 // =========================================================================
@@ -33,6 +35,7 @@ const itineraryAdminState = {
 // =========================================================================
 document.addEventListener('DOMContentLoaded', async () => {
   initTheme();
+  setupLoginForm();
   await checkAccessAndInit();
 });
 
@@ -53,6 +56,44 @@ function initTheme() {
   }
 }
 
+function setupLoginForm() {
+  const loginForm = document.getElementById('form-inline-login');
+  if (!loginForm) return;
+
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    const errorMsg = document.getElementById('login-error-msg');
+    const submitBtn = document.getElementById('btn-submit-login');
+
+    if (errorMsg) errorMsg.classList.add('hidden');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'VERIFICANDO...';
+    }
+
+    try {
+      const session = await loginAdmin(email, password);
+      const token = session.access_token || session;
+      localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+      itineraryAdminState.token = token;
+      await checkAccessAndInit();
+    } catch (err) {
+      if (errorMsg) {
+        errorMsg.textContent = `Error: ${err.message || 'Credenciales incorrectas.'}`;
+        errorMsg.classList.remove('hidden');
+      }
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i data-lucide="log-in" width="14" height="14"></i><span>INICIAR SESIÓN</span>';
+        if (window.lucide) window.lucide.createIcons();
+      }
+    }
+  });
+}
+
 async function checkAccessAndInit() {
   const lockScreen = document.getElementById('admin-lock-screen');
   const mainApp = document.getElementById('admin-main-app');
@@ -63,14 +104,14 @@ async function checkAccessAndInit() {
   try {
     const rawSession = localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY);
     if (!rawSession) {
-      showLockScreen('AUTENTICACIÓN REQUERIDA', 'Debes iniciar sesión con una cuenta autorizada de administrador para gestionar itinerarios.');
+      showLockScreen();
       return;
     }
 
     let parsed = JSON.parse(rawSession);
     const token = parsed.access_token || parsed;
     if (!token) {
-      showLockScreen('SESIÓN INVÁLIDA', 'No se encontró un token de autenticación válido.');
+      showLockScreen();
       return;
     }
 
@@ -89,7 +130,7 @@ async function checkAccessAndInit() {
     const isAuthorized = role === 'admin' || role === 'superadmin' || isMasterFounder;
 
     if (!isAuthorized) {
-      showLockScreen('PRIVILEGIOS INSUFICIENTES', `Tu cuenta (${userEmail}) no tiene permisos de administrador.`);
+      showLockScreen(`Tu cuenta (${userEmail}) no tiene permisos de administrador.`);
       return;
     }
 
@@ -109,29 +150,20 @@ async function checkAccessAndInit() {
 
   } catch (error) {
     console.error('Error de autenticación:', error);
-    showLockScreen('ERROR DE CONEXIÓN', 'No se pudo verificar la sesión. Inicia sesión nuevamente.');
+    showLockScreen('No se pudo verificar la sesión. Inicia sesión con tus credenciales.');
   }
 }
 
-function showLockScreen(title, desc) {
+function showLockScreen(desc = null) {
   const loadingIndicator = document.getElementById('admin-loading');
   const lockScreen = document.getElementById('admin-lock-screen');
   const mainApp = document.getElementById('admin-main-app');
-  const titleEl = document.getElementById('lock-screen-title');
   const descEl = document.getElementById('lock-screen-desc');
 
   if (loadingIndicator) loadingIndicator.classList.add('hidden');
   if (mainApp) mainApp.classList.add('hidden');
   if (lockScreen) lockScreen.classList.remove('hidden');
-  if (titleEl) titleEl.textContent = `[ 403 // ${title.toUpperCase()} ]`;
-  if (descEl) descEl.textContent = desc;
-
-  const btnLogin = document.getElementById('btn-lock-login');
-  if (btnLogin) {
-    btnLogin.onclick = () => {
-      window.location.href = './admin.html';
-    };
-  }
+  if (desc && descEl) descEl.textContent = desc;
 
   if (window.lucide) window.lucide.createIcons();
 }
@@ -144,38 +176,52 @@ async function loadInitialData() {
   if (container) {
     container.innerHTML = `
       <div style="text-align: center; padding: 40px 20px; font-family: 'JetBrains Mono', monospace; color: var(--admin-fg-dim);">
-        Cargando catálogo de edificios e itinerarios...
+        Cargando catálogo completo de obras e itinerarios...
       </div>
     `;
   }
 
   try {
-    // 1. Cargar catálogo de obras para cálculo en tiempo real
+    // 1. Cargar catálogo de obras completo
     const catalog = await getBuildingsCatalog().catch(() => []);
-    itineraryAdminState.catalog = catalog.map((f) => ({ ...f, categoria: normalizarCategoria(f.categoria) }));
+    itineraryAdminState.catalog = catalog.map((f, idx) => ({
+      ...f,
+      id: String(f.id ?? `obra-${idx}`),
+      categoria: normalizarCategoria(f.categoria),
+      coordenadas: [Number(f.longitud), Number(f.latitud)],
+      arquitectos: f.arquitecto || '',
+    }));
+    
+    // Mapeo rápido O(1) por ID
+    itineraryAdminState.catalogMap = new Map(itineraryAdminState.catalog.map((b) => [String(b.id), b]));
 
     // 2. Cargar itinerarios de Supabase / localStorage / CURATED_ROUTES
     const remoteItineraries = await fetchItineraries(itineraryAdminState.token, true);
     if (remoteItineraries && remoteItineraries.length > 0) {
       itineraryAdminState.itineraries = remoteItineraries;
     } else {
-      // Usar CURATED_ROUTES iniciales
-      itineraryAdminState.itineraries = CURATED_ROUTES.map((r, idx) => ({
-        ...r,
-        active: true,
-        order_num: idx,
-      }));
+      // Pre-poblar los itinerarios base convirtiendo sus filtros iniciales en work_ids explícitos
+      itineraryAdminState.itineraries = CURATED_ROUTES.map((r, idx) => {
+        const matched = matchWorksForRoute(r, itineraryAdminState.catalog);
+        return {
+          ...r,
+          work_ids: matched.map((w) => String(w.id)),
+          stops: `${matched.length} OBRAS`,
+          active: true,
+          order_num: idx,
+        };
+      });
     }
 
     renderItinerariesList();
     updateStats();
 
   } catch (err) {
-    console.error('Error cargando itinerarios:', err);
+    console.error('Error cargando datos:', err);
     if (container) {
       container.innerHTML = `
         <div style="text-align: center; padding: 40px 20px; font-family: 'JetBrains Mono', monospace; color: var(--admin-red);">
-          Error al cargar los itinerarios. Intenta recargar la página.
+          Error al cargar los datos. Intenta recargar la página.
         </div>
       `;
     }
@@ -190,7 +236,7 @@ function updateStats() {
 }
 
 // =========================================================================
-// 3. RENDERIZADO DEL LISTADO
+// 3. RENDERIZADO DEL LISTADO DE ITINERARIOS
 // =========================================================================
 function renderItinerariesList() {
   const container = document.getElementById('itineraries-list-container');
@@ -199,14 +245,14 @@ function renderItinerariesList() {
   const filterText = (itineraryAdminState.activeFilter || '').toLowerCase().trim();
   const list = itineraryAdminState.itineraries.filter((item) => {
     if (!filterText) return true;
-    const searchTarget = `${item.title} ${item.subtitle} ${item.tag} ${item.architectFilter || ''} ${(item.architectsFilter || []).join(' ')} ${item.addedByFilter || ''}`.toLowerCase();
+    const searchTarget = `${item.title} ${item.subtitle || ''} ${item.tag || ''}`.toLowerCase();
     return searchTarget.includes(filterText);
   });
 
   if (list.length === 0) {
     container.innerHTML = `
       <div style="text-align: center; padding: 60px 20px; font-family: 'JetBrains Mono', monospace; color: var(--admin-fg-dim); background: var(--admin-bg-surface); border: 2px dashed var(--admin-border);">
-        No se encontraron itinerarios que coincidan con la búsqueda.
+        No se encontraron itinerarios. ¡Crea uno nuevo con el botón superior!
       </div>
     `;
     return;
@@ -214,18 +260,15 @@ function renderItinerariesList() {
 
   container.innerHTML = list.map((item) => {
     const isInactive = item.active === false;
-    const matchCount = calculateMatchesCount(item);
-    
-    // Reglas formateadas
-    const rules = [];
-    if (item.categoryFilter) rules.push(`<div class="itinerary-rule-item"><span class="itinerary-rule-label">Categoría:</span><span class="itinerary-rule-val">${escapeHtml(item.categoryFilter)}</span></div>`);
-    if (item.addedByFilter) rules.push(`<div class="itinerary-rule-item"><span class="itinerary-rule-label">Añadido por:</span><span class="itinerary-rule-val">${escapeHtml(item.addedByFilter)}</span></div>`);
-    if (item.yearRange && Array.isArray(item.yearRange)) rules.push(`<div class="itinerary-rule-item"><span class="itinerary-rule-label">Periodo:</span><span class="itinerary-rule-val">${item.yearRange[0]} – ${item.yearRange[1]}</span></div>`);
-    if (item.decadeFilter) rules.push(`<div class="itinerary-rule-item"><span class="itinerary-rule-label">Década:</span><span class="itinerary-rule-val">${item.decadeFilter}s</span></div>`);
-    if (item.architectFilter) rules.push(`<div class="itinerary-rule-item"><span class="itinerary-rule-label">Arquitecto:</span><span class="itinerary-rule-val">${escapeHtml(item.architectFilter)}</span></div>`);
-    if (item.architectsFilter && item.architectsFilter.length) rules.push(`<div class="itinerary-rule-item"><span class="itinerary-rule-label">Autores:</span><span class="itinerary-rule-val">${escapeHtml(item.architectsFilter.join(', '))}</span></div>`);
-    if (item.bboxFilter) rules.push(`<div class="itinerary-rule-item"><span class="itinerary-rule-label">Bbox Geo:</span><span class="itinerary-rule-val">[${item.bboxFilter.latMin}..${item.bboxFilter.latMax}, ${item.bboxFilter.lonMin}..${item.bboxFilter.lonMax}]</span></div>`);
-    if (item.keywords && item.keywords.length) rules.push(`<div class="itinerary-rule-item"><span class="itinerary-rule-label">Keywords:</span><span class="itinerary-rule-val">${escapeHtml(item.keywords.join(', '))}</span></div>`);
+    const workIds = getItineraryWorkIds(item);
+    const count = workIds.length;
+
+    // Vista previa de las primeras obras
+    const sampleWorks = workIds.slice(0, 8).map((id) => {
+      const obra = itineraryAdminState.catalogMap.get(String(id));
+      if (!obra) return `<span class="itinerary-work-chip">#${id}</span>`;
+      return `<span class="itinerary-work-chip" title="${escapeHtml(obra.arquitecto || '')}">📍 ${escapeHtml(obra.nombre_obra || 'Sin nombre')} (${obra.año_construccion || 's/f'})</span>`;
+    });
 
     return `
       <article class="itinerary-card ${isInactive ? 'inactive' : ''}" data-id="${escapeHtml(item.id)}">
@@ -243,12 +286,14 @@ function renderItinerariesList() {
           
           <div class="itinerary-match-pill" style="border-color: ${escapeHtml(item.color || '#E84E1B')};">
             <i data-lucide="compass" width="13" height="13" style="color: ${escapeHtml(item.color || '#E84E1B')};"></i>
-            <span>${matchCount} OBRAS</span>
+            <span>${count} OBRAS SELECCIONADAS</span>
           </div>
         </div>
 
-        <div class="itinerary-rules-box">
-          ${rules.length > 0 ? rules.join('') : '<div style="color: var(--admin-fg-dim);">Sin filtros restrictivos definidos</div>'}
+        <div class="itinerary-works-preview">
+          <div style="font-size: 10px; color: var(--admin-fg-dim); margin-bottom: 6px; font-weight: 700;">OBRAS INCLUIDAS EN LA RUTA:</div>
+          ${sampleWorks.length > 0 ? sampleWorks.join('') : '<span style="color: var(--admin-fg-dim);">Ninguna obra seleccionada aún. Haz clic en "EDITAR OBRAS" para añadir paradas.</span>'}
+          ${count > 8 ? `<span class="itinerary-work-chip" style="font-weight: 800; background: var(--admin-bg-raised);">+ ${count - 8} obras más...</span>` : ''}
         </div>
 
         <div class="itinerary-card-footer">
@@ -258,9 +303,9 @@ function renderItinerariesList() {
               <span>VER EN MAPA</span>
             </a>
 
-            <button type="button" class="admin-btn btn-edit-itinerary" data-id="${escapeHtml(item.id)}">
+            <button type="button" class="admin-btn btn-edit-itinerary" data-id="${escapeHtml(item.id)}" style="background: var(--admin-accent); color: #fff; font-weight: 800;">
               <i data-lucide="edit-3" width="12" height="12"></i>
-              <span>EDITAR REGLAS</span>
+              <span>EDITAR / AÑADIR OBRAS (${count})</span>
             </button>
 
             <button type="button" class="admin-btn btn-toggle-active" data-id="${escapeHtml(item.id)}" data-active="${!isInactive}">
@@ -281,19 +326,26 @@ function renderItinerariesList() {
   if (window.lucide) window.lucide.createIcons();
 }
 
-function calculateMatchesCount(itinerary) {
-  if (!itineraryAdminState.catalog || itineraryAdminState.catalog.length === 0) {
-    return itinerary.stops || '~';
+function getItineraryWorkIds(item) {
+  if (Array.isArray(item.work_ids) && item.work_ids.length > 0) {
+    return item.work_ids.map(String);
   }
-  const matches = matchWorksForRoute(itinerary, itineraryAdminState.catalog);
-  return matches.length;
+  if (Array.isArray(item.workIds) && item.workIds.length > 0) {
+    return item.workIds.map(String);
+  }
+  // Si no tiene work_ids explícitos aún, resolver por filtros de catálogo
+  if (itineraryAdminState.catalog && itineraryAdminState.catalog.length > 0) {
+    const matched = matchWorksForRoute(item, itineraryAdminState.catalog);
+    return matched.map((w) => String(w.id));
+  }
+  return [];
 }
 
 // =========================================================================
-// 4. EVENTOS Y FORMULARIO MODAL
+// 4. EVENTOS Y FORMULARIO MODAL (SELECCIÓN MANUAL)
 // =========================================================================
 function initAppEvents() {
-  // Búsqueda
+  // Búsqueda en el listado
   const searchInput = document.getElementById('search-itineraries');
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
@@ -302,7 +354,7 @@ function initAppEvents() {
     });
   }
 
-  // Botón Nuevo Itinerario
+  // Botón Crear Nuevo Itinerario
   const btnNew = document.getElementById('btn-new-itinerary');
   if (btnNew) {
     btnNew.addEventListener('click', () => {
@@ -310,13 +362,13 @@ function initAppEvents() {
     });
   }
 
-  // Cerrar / Cancelar Modal
+  // Cerrar Modal
   const btnCloseModal = document.getElementById('btn-close-modal');
   const btnCancelModal = document.getElementById('btn-cancel-modal');
   if (btnCloseModal) btnCloseModal.addEventListener('click', closeItineraryModal);
   if (btnCancelModal) btnCancelModal.addEventListener('click', closeItineraryModal);
 
-  // Delegación de eventos en listado (Editar, Toggle, Eliminar)
+  // Delegación de clics en listado (Editar, Toggle, Eliminar)
   const container = document.getElementById('itineraries-list-container');
   if (container) {
     container.addEventListener('click', async (e) => {
@@ -344,19 +396,16 @@ function initAppEvents() {
     });
   }
 
-  // Formulario de edición / guardado
+  // Buscador predictivo de obras dentro del modal
+  const buildingSearchInput = document.getElementById('input-search-buildings-to-add');
+  if (buildingSearchInput) {
+    buildingSearchInput.addEventListener('input', handleSearchBuildingsToSelect);
+  }
+
+  // Guardar formulario
   const form = document.getElementById('itinerary-edit-form');
   if (form) {
     form.addEventListener('submit', handleSaveItinerary);
-
-    // Eventos en vivo para cálculo de coincidencias instantáneo
-    ['form-category', 'form-addedby', 'form-year-min', 'form-year-max', 'form-decade', 'form-architects', 'form-lat-min', 'form-lat-max', 'form-lon-min', 'form-lon-max', 'form-keywords'].forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) {
-        el.addEventListener('input', updateLiveMatchPreview);
-        el.addEventListener('change', updateLiveMatchPreview);
-      }
-    });
 
     // Swatches de color
     document.querySelectorAll('.color-swatch-btn').forEach((btn) => {
@@ -378,31 +427,6 @@ function initAppEvents() {
         if (colorInput) colorInput.value = e.target.value;
       });
     }
-
-    // Presets de Bounding Box
-    document.querySelectorAll('.preset-pill').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const bboxStr = btn.dataset.bbox;
-        const latMinEl = document.getElementById('form-lat-min');
-        const latMaxEl = document.getElementById('form-lat-max');
-        const lonMinEl = document.getElementById('form-lon-min');
-        const lonMaxEl = document.getElementById('form-lon-max');
-
-        if (!bboxStr) {
-          if (latMinEl) latMinEl.value = '';
-          if (latMaxEl) latMaxEl.value = '';
-          if (lonMinEl) lonMinEl.value = '';
-          if (lonMaxEl) lonMaxEl.value = '';
-        } else {
-          const [latMin, latMax, lonMin, lonMax] = bboxStr.split(',');
-          if (latMinEl) latMinEl.value = latMin;
-          if (latMaxEl) latMaxEl.value = latMax;
-          if (lonMinEl) lonMinEl.value = lonMin;
-          if (lonMaxEl) lonMaxEl.value = lonMax;
-        }
-        updateLiveMatchPreview();
-      });
-    });
   }
 }
 
@@ -414,9 +438,18 @@ function openItineraryModal(item = null) {
 
   if (!modal) return;
 
+  // Limpiar buscador de obras
+  const buildingSearchInput = document.getElementById('input-search-buildings-to-add');
+  if (buildingSearchInput) buildingSearchInput.value = '';
+  const searchResultsBox = document.getElementById('building-search-results');
+  if (searchResultsBox) {
+    searchResultsBox.innerHTML = '';
+    searchResultsBox.classList.add('hidden');
+  }
+
   if (item) {
     itineraryAdminState.editingId = item.id;
-    if (titleEl) titleEl.textContent = `[ EDITAR ITINERARIO // ${item.id.toUpperCase()} ]`;
+    if (titleEl) titleEl.textContent = `[ EDITAR ITINERARIO // ${item.title.toUpperCase()} ]`;
     if (isEditEl) isEditEl.value = 'true';
     if (idInput) {
       idInput.value = item.id;
@@ -431,31 +464,15 @@ function openItineraryModal(item = null) {
     document.getElementById('form-order').value = item.order_num || 0;
     document.getElementById('form-active').checked = item.active !== false;
 
-    // Reglas
-    document.getElementById('form-category').value = item.categoryFilter || '';
-    document.getElementById('form-addedby').value = item.addedByFilter || '';
-    document.getElementById('form-year-min').value = item.yearRange ? item.yearRange[0] : '';
-    document.getElementById('form-year-max').value = item.yearRange ? item.yearRange[1] : '';
-    document.getElementById('form-decade').value = item.decadeFilter || '';
-    document.getElementById('form-architects').value = item.architectsFilter ? item.architectsFilter.join(', ') : (item.architectFilter || '');
-
-    if (item.bboxFilter) {
-      document.getElementById('form-lat-min').value = item.bboxFilter.latMin ?? '';
-      document.getElementById('form-lat-max').value = item.bboxFilter.latMax ?? '';
-      document.getElementById('form-lon-min').value = item.bboxFilter.lonMin ?? '';
-      document.getElementById('form-lon-max').value = item.bboxFilter.lonMax ?? '';
-    } else {
-      document.getElementById('form-lat-min').value = '';
-      document.getElementById('form-lat-max').value = '';
-      document.getElementById('form-lon-min').value = '';
-      document.getElementById('form-lon-max').value = '';
-    }
-
-    document.getElementById('form-keywords').value = item.keywords ? item.keywords.join(', ') : '';
+    // Cargar obras seleccionadas
+    const workIds = getItineraryWorkIds(item);
+    itineraryAdminState.currentFormSelectedWorks = workIds
+      .map((id) => itineraryAdminState.catalogMap.get(String(id)))
+      .filter(Boolean);
 
   } else {
     itineraryAdminState.editingId = null;
-    if (titleEl) titleEl.textContent = '[ NUEVO ITINERARIO // EXPLORA ]';
+    if (titleEl) titleEl.textContent = '[ NUEVO ITINERARIO // SELECCIÓN MANUAL ]';
     if (isEditEl) isEditEl.value = 'false';
     if (idInput) {
       idInput.value = `route-${Date.now().toString(36)}`;
@@ -470,21 +487,11 @@ function openItineraryModal(item = null) {
     document.getElementById('form-order').value = itineraryAdminState.itineraries.length + 1;
     document.getElementById('form-active').checked = true;
 
-    document.getElementById('form-category').value = '';
-    document.getElementById('form-addedby').value = '';
-    document.getElementById('form-year-min').value = '';
-    document.getElementById('form-year-max').value = '';
-    document.getElementById('form-decade').value = '';
-    document.getElementById('form-architects').value = '';
-    document.getElementById('form-lat-min').value = '';
-    document.getElementById('form-lat-max').value = '';
-    document.getElementById('form-lon-min').value = '';
-    document.getElementById('form-lon-max').value = '';
-    document.getElementById('form-keywords').value = '';
+    itineraryAdminState.currentFormSelectedWorks = [];
   }
 
+  renderFormSelectedWorksList();
   modal.classList.remove('hidden');
-  updateLiveMatchPreview();
   if (window.lucide) window.lucide.createIcons();
 }
 
@@ -493,87 +500,155 @@ function closeItineraryModal() {
   if (modal) modal.classList.add('hidden');
 }
 
-function getFormData() {
-  const id = document.getElementById('form-id').value.trim();
-  const title = document.getElementById('form-title').value.trim();
-  const subtitle = document.getElementById('form-subtitle').value.trim();
-  const tag = document.getElementById('form-tag').value.trim() || 'MOVIMIENTO MODERNO';
-  const color = document.getElementById('form-color').value.trim() || '#E84E1B';
-  const order_num = Number(document.getElementById('form-order').value || 0);
-  const active = document.getElementById('form-active').checked;
+// =========================================================================
+// 5. GESTIÓN MANUAL DE OBRAS EN EL FORMULARIO (UNA A UNA)
+// =========================================================================
+function handleSearchBuildingsToSelect(e) {
+  const query = (e.target.value || '').trim().toLowerCase();
+  const resultsBox = document.getElementById('building-search-results');
+  if (!resultsBox) return;
 
-  const categoryFilter = document.getElementById('form-category').value.trim() || null;
-  const addedByFilter = document.getElementById('form-addedby').value.trim() || null;
-
-  const yearMin = document.getElementById('form-year-min').value.trim();
-  const yearMax = document.getElementById('form-year-max').value.trim();
-  const yearRange = (yearMin && yearMax) ? [Number(yearMin), Number(yearMax)] : null;
-
-  const decadeVal = document.getElementById('form-decade').value.trim();
-  const decadeFilter = decadeVal ? Number(decadeVal) : null;
-
-  const arqRaw = document.getElementById('form-architects').value.trim();
-  const architectsFilter = arqRaw ? arqRaw.split(',').map((s) => s.trim()).filter(Boolean) : null;
-
-  const latMin = document.getElementById('form-lat-min').value.trim();
-  const latMax = document.getElementById('form-lat-max').value.trim();
-  const lonMin = document.getElementById('form-lon-min').value.trim();
-  const lonMax = document.getElementById('form-lon-max').value.trim();
-  const bboxFilter = (latMin && latMax && lonMin && lonMax) ? {
-    latMin: Number(latMin),
-    latMax: Number(latMax),
-    lonMin: Number(lonMin),
-    lonMax: Number(lonMax),
-  } : null;
-
-  const kwRaw = document.getElementById('form-keywords').value.trim();
-  const keywords = kwRaw ? kwRaw.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean) : null;
-
-  return {
-    id,
-    title,
-    subtitle,
-    tag,
-    color,
-    order_num,
-    active,
-    categoryFilter,
-    addedByFilter,
-    yearRange,
-    decadeFilter,
-    architectsFilter,
-    bboxFilter,
-    keywords,
-  };
-}
-
-function updateLiveMatchPreview() {
-  const currentConfig = getFormData();
-  const countEl = document.getElementById('form-live-count');
-  const sampleEl = document.getElementById('form-live-sample');
-
-  if (!itineraryAdminState.catalog || itineraryAdminState.catalog.length === 0) {
-    if (countEl) countEl.textContent = 'CARGANDO CATÁLOGO...';
+  if (query.length < 2) {
+    resultsBox.innerHTML = '';
+    resultsBox.classList.add('hidden');
     return;
   }
 
-  const matches = matchWorksForRoute(currentConfig, itineraryAdminState.catalog);
+  const selectedIds = new Set(itineraryAdminState.currentFormSelectedWorks.map((w) => String(w.id)));
 
-  if (countEl) {
-    countEl.textContent = `${matches.length} OBRAS COINCIDENTES`;
-    countEl.style.color = matches.length > 0 ? 'var(--admin-green)' : 'var(--admin-red)';
+  // Búsqueda en catálogo
+  const matches = itineraryAdminState.catalog.filter((b) => {
+    if (selectedIds.has(String(b.id))) return false; // No mostrar las ya añadidas
+    const fullText = `${b.nombre_obra} ${b.arquitectos || b.arquitecto || ''} ${b.ciudad || b.place || ''} ${b.id}`.toLowerCase();
+    return fullText.includes(query);
+  }).slice(0, 20);
+
+  if (matches.length === 0) {
+    resultsBox.innerHTML = `
+      <div style="padding: 12px; font-family: 'JetBrains Mono'; font-size: 11px; color: var(--admin-fg-dim); text-align: center;">
+        No se encontraron obras coincidentes para "${escapeHtml(query)}".
+      </div>
+    `;
+    resultsBox.classList.remove('hidden');
+    return;
   }
 
-  if (sampleEl) {
-    if (matches.length === 0) {
-      sampleEl.textContent = 'Ninguna obra del catálogo coincide con la combinación de filtros actual.';
-    } else {
-      const sample = matches.slice(0, 5).map((w) => `• ${w.nombre_obra || 'Sin título'} (${w.año_construccion || 's/f'}) — ${w.arquitecto || 'Autor desc.'} [${w.place || w.ciudad || 'VLC'}]`).join('\n');
-      sampleEl.textContent = `${sample}${matches.length > 5 ? `\n... y ${matches.length - 5} obras más.` : ''}`;
-    }
-  }
+  resultsBox.innerHTML = matches.map((obra) => {
+    const catColor = CATEGORY_META[obra.categoria]?.color || '#E84E1B';
+    return `
+      <div class="building-search-item" data-id="${escapeHtml(obra.id)}">
+        <div style="flex: 1; min-width: 0; padding-right: 12px;">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="width: 8px; height: 8px; background: ${catColor}; border: 1px solid #111; display: inline-block;"></span>
+            <strong style="font-size: 13px;">${escapeHtml(obra.nombre_obra || 'Sin título')}</strong>
+            <span style="font-size: 11px; color: var(--admin-fg-dim);">(${obra.año_construccion || 's/f'})</span>
+          </div>
+          <div style="font-size: 11px; color: var(--admin-fg-dim); font-family: 'JetBrains Mono'; margin-top: 2px;">
+            ${escapeHtml(obra.arquitecto || 'Autor desconocido')} • ${escapeHtml(obra.place || obra.ciudad || 'VLC')}
+          </div>
+        </div>
+        <button type="button" class="admin-btn admin-btn-approve btn-add-building-to-route" data-id="${escapeHtml(obra.id)}" style="padding: 4px 10px; font-weight: 800; font-size: 11px;">
+          + AÑADIR
+        </button>
+      </div>
+    `;
+  }).join('');
+
+  resultsBox.classList.remove('hidden');
+
+  // Event listener para añadir al hacer clic
+  resultsBox.querySelectorAll('.btn-add-building-to-route').forEach((btn) => {
+    btn.onclick = (event) => {
+      event.stopPropagation();
+      const obraId = btn.dataset.id;
+      const obra = itineraryAdminState.catalogMap.get(String(obraId));
+      if (obra) {
+        itineraryAdminState.currentFormSelectedWorks.push(obra);
+        renderFormSelectedWorksList();
+        btn.parentElement.remove();
+        if (resultsBox.children.length === 0) resultsBox.classList.add('hidden');
+      }
+    };
+  });
 }
 
+function renderFormSelectedWorksList() {
+  const container = document.getElementById('form-selected-works-container');
+  const countBadge = document.getElementById('form-selected-count-badge');
+  const list = itineraryAdminState.currentFormSelectedWorks;
+
+  if (countBadge) countBadge.textContent = `${list.length} OBRAS AÑADIDAS`;
+
+  if (!container) return;
+
+  if (list.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 24px 12px; font-family: 'JetBrains Mono'; font-size: 11px; color: var(--admin-fg-dim);">
+        Aún no has añadido obras. Busca arriba por nombre, arquitecto o ciudad para añadirlas una a una.
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = list.map((obra, index) => {
+    const catColor = CATEGORY_META[obra.categoria]?.color || '#E84E1B';
+    return `
+      <div class="selected-work-row" data-id="${escapeHtml(obra.id)}" data-index="${index}">
+        <span class="selected-work-num">${index + 1}.</span>
+        <div class="selected-work-info">
+          <div class="selected-work-title">
+            <span style="width: 8px; height: 8px; background: ${catColor}; border: 1px solid #111; display: inline-block; margin-right: 4px;"></span>
+            ${escapeHtml(obra.nombre_obra || 'Sin título')} <span style="font-weight: 400; color: var(--admin-fg-dim);">(${obra.año_construccion || 's/f'})</span>
+          </div>
+          <div class="selected-work-sub">
+            ${escapeHtml(obra.arquitecto || 'Autor desconocido')} • ${escapeHtml(obra.place || obra.ciudad || 'VLC')}
+          </div>
+        </div>
+
+        <div class="selected-work-btns">
+          <button type="button" class="btn-icon-small btn-move-up" data-index="${index}" title="Subir parada" ${index === 0 ? 'disabled style="opacity:0.3;cursor:default;"' : ''}>▲</button>
+          <button type="button" class="btn-icon-small btn-move-down" data-index="${index}" title="Bajar parada" ${index === list.length - 1 ? 'disabled style="opacity:0.3;cursor:default;"' : ''}>▼</button>
+          <button type="button" class="btn-icon-small btn-remove-work" data-index="${index}" title="Quitar obra del itinerario" style="color: var(--admin-red); font-weight: 800;">✕</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Event listeners de reordenación y eliminación
+  container.querySelectorAll('.btn-move-up').forEach((btn) => {
+    btn.onclick = () => {
+      const idx = Number(btn.dataset.index);
+      if (idx > 0) {
+        const item = list.splice(idx, 1)[0];
+        list.splice(idx - 1, 0, item);
+        renderFormSelectedWorksList();
+      }
+    };
+  });
+
+  container.querySelectorAll('.btn-move-down').forEach((btn) => {
+    btn.onclick = () => {
+      const idx = Number(btn.dataset.index);
+      if (idx < list.length - 1) {
+        const item = list.splice(idx, 1)[0];
+        list.splice(idx + 1, 0, item);
+        renderFormSelectedWorksList();
+      }
+    };
+  });
+
+  container.querySelectorAll('.btn-remove-work').forEach((btn) => {
+    btn.onclick = () => {
+      const idx = Number(btn.dataset.index);
+      list.splice(idx, 1);
+      renderFormSelectedWorksList();
+    };
+  });
+}
+
+// =========================================================================
+// 6. GUARDADO DE ITINERARIO
+// =========================================================================
 async function handleSaveItinerary(e) {
   e.preventDefault();
   const saveBtn = document.getElementById('btn-save-itinerary');
@@ -583,16 +658,34 @@ async function handleSaveItinerary(e) {
   }
 
   try {
-    const data = getFormData();
+    const id = document.getElementById('form-id').value.trim();
+    const title = document.getElementById('form-title').value.trim();
+    const subtitle = document.getElementById('form-subtitle').value.trim();
+    const tag = document.getElementById('form-tag').value.trim() || 'MOVIMIENTO MODERNO';
+    const color = document.getElementById('form-color').value.trim() || '#E84E1B';
+    const order_num = Number(document.getElementById('form-order').value || 0);
+    const active = document.getElementById('form-active').checked;
     const isEdit = document.getElementById('form-is-edit').value === 'true';
 
-    // Calcular stops estimados
-    const matchCount = calculateMatchesCount(data);
-    data.stops = matchCount > 0 ? `~${matchCount} OBRAS` : 'CATÁLOGO';
+    const workIds = itineraryAdminState.currentFormSelectedWorks.map((w) => String(w.id));
+    const stops = `${workIds.length} OBRAS`;
+
+    const data = {
+      id,
+      title,
+      subtitle,
+      tag,
+      color,
+      stops,
+      work_ids: workIds,
+      workIds: workIds,
+      order_num,
+      active,
+    };
 
     if (isEdit) {
-      await updateItinerary(data.id, data, itineraryAdminState.token);
-      itineraryAdminState.itineraries = itineraryAdminState.itineraries.map((r) => (r.id === data.id ? { ...r, ...data } : r));
+      await updateItinerary(id, data, itineraryAdminState.token);
+      itineraryAdminState.itineraries = itineraryAdminState.itineraries.map((r) => (r.id === id ? { ...r, ...data } : r));
     } else {
       const created = await createItinerary(data, itineraryAdminState.token);
       itineraryAdminState.itineraries.push(created || data);
@@ -601,7 +694,7 @@ async function handleSaveItinerary(e) {
     closeItineraryModal();
     renderItinerariesList();
     updateStats();
-    alert(`Itinerario "${data.title}" guardado con éxito.`);
+    alert(`Itinerario "${data.title}" con ${workIds.length} obras guardado con éxito.`);
 
   } catch (err) {
     console.error('Error al guardar itinerario:', err);
@@ -647,4 +740,3 @@ async function handleDeleteItinerary(id) {
     alert(`Error al eliminar: ${err.message}`);
   }
 }
-

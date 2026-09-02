@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS public.itineraries (
   tag TEXT DEFAULT 'MOVIMIENTO MODERNO',
   color TEXT DEFAULT '#E84E1B',
   stops TEXT,
+  work_ids JSONB DEFAULT '[]'::jsonb,
   year_range JSONB,
   decade_filter INTEGER,
   architects_filter JSONB,

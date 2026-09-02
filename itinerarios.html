@@ -1,32 +1,19 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <base href="/">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https: http:; connect-src 'self' https://*.supabase.co https://nominatim.openstreetmap.org; object-src 'none'; base-uri 'self';">
-  <link rel="preconnect" href="https://ldtfvpjigzvcagtciipn.supabase.co" crossorigin>
-  <link rel="dns-prefetch" href="https://ldtfvpjigzvcagtciipn.supabase.co">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https: http:; connect-src 'self' https://*.supabase.co https://nominatim.openstreetmap.org; object-src 'none';">
   
-  <title>nolli. | gestión de itinerarios</title>
+  <title>nolli. | gestor de itinerarios</title>
   <link rel="icon" type="image/svg+xml" href="./icon.svg">
   <meta name="theme-color" content="#F4F1EA">
-  <link rel="stylesheet" href="./css/legal-components.css">
-  <script src="./js/cookieConsent.js" defer></script>
-
-  <script>
-    if (window.location.pathname.endsWith('.html')) {
-      const clean = window.location.pathname.replace(/\/index\.html$/, '/').replace(/\.html$/, '') || '/';
-      window.history.replaceState(null, '', clean + window.location.search + window.location.hash);
-    }
-  </script>
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest" defer></script>
 
   <link rel="stylesheet" href="./css/admin.css">
   <style>
-    /* Estilos específicos para la consola de itinerarios */
     .itinerary-card {
       background: var(--admin-bg-surface);
       border: 2px solid var(--admin-border);
@@ -43,7 +30,7 @@
       transform: translate(-1px, -1px);
     }
     .itinerary-card.inactive {
-      opacity: 0.65;
+      opacity: 0.6;
       border-style: dashed;
     }
     .itinerary-card-header {
@@ -88,28 +75,24 @@
       margin: 0;
       line-height: 1.4;
     }
-    .itinerary-rules-box {
+    .itinerary-works-preview {
       background: var(--admin-bg-raised);
       border: 1px solid var(--admin-border-light);
       padding: 12px 14px;
       font-family: 'JetBrains Mono', monospace;
       font-size: 11px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 8px 16px;
+      max-height: 140px;
+      overflow-y: auto;
     }
-    .itinerary-rule-item {
-      display: flex;
+    .itinerary-work-chip {
+      display: inline-flex;
+      align-items: center;
       gap: 6px;
-    }
-    .itinerary-rule-label {
-      color: var(--admin-fg-dim);
-      font-weight: 700;
-    }
-    .itinerary-rule-val {
-      color: var(--admin-fg);
-      font-weight: 600;
-      word-break: break-word;
+      background: var(--admin-bg-surface);
+      border: 1px solid var(--admin-border);
+      padding: 3px 8px;
+      margin: 3px;
+      font-size: 11px;
     }
     .itinerary-card-footer {
       display: flex;
@@ -123,6 +106,7 @@
       display: flex;
       gap: 8px;
       align-items: center;
+      flex-wrap: wrap;
     }
     .itinerary-match-pill {
       display: inline-flex;
@@ -156,36 +140,86 @@
       outline: 2px solid var(--admin-accent);
       outline-offset: 2px;
     }
-    .preset-pill {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 4px 8px;
-      background: var(--admin-bg);
-      border: 1px solid var(--admin-border);
-      cursor: pointer;
-      margin-right: 6px;
-      margin-bottom: 6px;
-      display: inline-block;
+
+    /* Manual building picker styles */
+    .building-search-results-box {
+      background: var(--admin-bg-surface);
+      border: 2px solid var(--admin-border);
+      max-height: 220px;
+      overflow-y: auto;
+      margin-top: 6px;
     }
-    .preset-pill:hover {
-      background: var(--admin-accent);
-      color: #fff;
-    }
-    .live-match-box {
-      background: rgba(0, 170, 85, 0.08);
-      border: 2px solid var(--admin-green);
-      padding: 14px;
-      margin-top: 14px;
-    }
-    .live-match-header {
+    .building-search-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--admin-border-light);
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    .building-search-item:hover {
+      background: var(--admin-bg-raised);
+    }
+    .selected-works-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 320px;
+      overflow-y: auto;
+      background: var(--admin-bg-raised);
+      border: 2px solid var(--admin-border);
+      padding: 10px;
+      margin-top: 10px;
+    }
+    .selected-work-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--admin-bg-surface);
+      border: 1px solid var(--admin-border);
+      padding: 8px 12px;
+      gap: 10px;
+    }
+    .selected-work-num {
       font-family: 'JetBrains Mono', monospace;
+      font-weight: 900;
       font-size: 12px;
-      font-weight: 800;
-      color: var(--admin-green);
+      color: var(--admin-accent);
+      min-width: 24px;
+    }
+    .selected-work-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .selected-work-title {
+      font-weight: 700;
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .selected-work-sub {
+      font-size: 11px;
+      color: var(--admin-fg-dim);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .selected-work-btns {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+    .btn-icon-small {
+      padding: 4px 6px;
+      font-size: 11px;
+      background: var(--admin-bg);
+      border: 1px solid var(--admin-border);
+      cursor: pointer;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .btn-icon-small:hover {
+      background: var(--admin-border);
+      color: #fff;
     }
   </style>
 </head>
@@ -198,7 +232,7 @@
     <div class="admin-header-inner">
       <div class="admin-brand-group">
         <a href="./" class="admin-logo">nolli<span>.</span></a>
-        <span class="admin-tagline">[ CONSOLA DE ADMINISTRACIÓN // ITINERARIOS ]</span>
+        <span class="admin-tagline">[ GESTOR MANUAL DE ITINERARIOS // EXPLORA ]</span>
       </div>
 
       <div class="admin-header-actions">
@@ -233,22 +267,36 @@
   </div>
 
   <!-- =========================================================================
-       PANTALLA DE BLOQUEO // ACCESO DENEGADO
+       PANTALLA DE LOGIN DIRECTO DE ADMINISTRADOR
        ========================================================================= -->
   <section id="admin-lock-screen" class="admin-lock-screen hidden">
     <div class="admin-lock-icon">🔐</div>
-    <h2 id="lock-screen-title" class="admin-lock-title">[ 403 // ACCESO DENEGADO ]</h2>
+    <h2 id="lock-screen-title" class="admin-lock-title">[ ACCESO RESTRINGIDO A ADMINISTRADORES ]</h2>
     <p id="lock-screen-desc" class="admin-lock-desc">
-      Esta sección está restringida exclusivamente a los administradores y curadores de Nolli.
+      Inicia sesión con tu cuenta de administrador de Nolli para gestionar los itinerarios y seleccionar las obras.
     </p>
-    <div class="admin-lock-actions">
-      <button type="button" id="btn-lock-login" class="admin-btn admin-btn-approve">
+
+    <!-- Formulario de Login Directo -->
+    <form id="form-inline-login" style="max-width: 360px; margin: 20px auto; display: flex; flex-direction: column; gap: 12px; text-align: left;">
+      <div>
+        <label class="admin-label" for="login-email">CORREO ELECTRÓNICO</label>
+        <input type="email" id="login-email" class="admin-input" placeholder="admin@signes.studio" required>
+      </div>
+      <div>
+        <label class="admin-label" for="login-password">CONTRASEÑA</label>
+        <input type="password" id="login-password" class="admin-input" placeholder="••••••••" required>
+      </div>
+      <button type="submit" id="btn-submit-login" class="admin-btn admin-btn-approve" style="justify-content: center; font-weight: 900; margin-top: 6px;">
         <i data-lucide="log-in" width="14" height="14"></i>
-        <span>INICIAR SESIÓN COMO ADMIN</span>
+        <span>INICIAR SESIÓN</span>
       </button>
+      <div id="login-error-msg" style="color: var(--admin-red); font-family: 'JetBrains Mono'; font-size: 11px; text-align: center;" class="hidden"></div>
+    </form>
+
+    <div class="admin-lock-actions">
       <a href="./" class="admin-btn">
         <i data-lucide="map" width="14" height="14"></i>
-        <span>IR AL MAPA PÚBLICO</span>
+        <span>VOLVER AL MAPA PÚBLICO</span>
       </a>
     </div>
   </section>
@@ -263,7 +311,7 @@
       <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
         <div class="admin-search-wrapper" style="min-width: 280px; max-width: 440px;">
           <i data-lucide="search" width="14" height="14" style="color:var(--admin-fg-dim);"></i>
-          <input type="text" id="search-itineraries" class="admin-input" placeholder="Buscar itinerario por título, etiqueta, arquitectos...">
+          <input type="text" id="search-itineraries" class="admin-input" placeholder="Buscar itinerario por título o etiqueta...">
         </div>
 
         <div class="itinerary-match-pill">
@@ -280,7 +328,7 @@
       <div style="display: flex; gap: 10px;">
         <button type="button" id="btn-new-itinerary" class="admin-btn admin-btn-approve" style="font-weight: 800;">
           <i data-lucide="plus" width="14" height="14"></i>
-          <span>+ NUEVO ITINERARIO</span>
+          <span>+ CREAR NUEVO ITINERARIO</span>
         </button>
       </div>
     </div>
@@ -288,20 +336,20 @@
     <!-- Contenedor del Listado de Itinerarios -->
     <div id="itineraries-list-container">
       <div style="text-align: center; padding: 40px 20px; font-family: 'JetBrains Mono', monospace; color: var(--admin-fg-dim);">
-        Cargando catálogo de itinerarios...
+        Cargando catálogo de itinerarios y obras...
       </div>
     </div>
 
   </main>
 
   <!-- =========================================================================
-       MODAL DE CREACIÓN / EDICIÓN DE ITINERARIO
+       MODAL DE CREACIÓN / EDICIÓN MANUAL DE ITINERARIO
        ========================================================================= -->
-  <div id="modal-itinerary-form" class="admin-modal-backdrop hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px;">
-    <div style="background: var(--admin-bg-surface); border: 2px solid var(--admin-border); box-shadow: var(--admin-shadow); width: 100%; max-width: 780px; max-height: 90vh; overflow-y: auto; padding: 28px;">
+  <div id="modal-itinerary-form" class="admin-modal-backdrop hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: var(--admin-bg-surface); border: 2px solid var(--admin-border); box-shadow: var(--admin-shadow); width: 100%; max-width: 860px; max-height: 92vh; overflow-y: auto; padding: 28px;">
       
       <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--admin-border); padding-bottom: 14px; margin-bottom: 20px;">
-        <h3 id="modal-form-title" style="margin: 0; font-size: 20px; font-weight: 900; text-transform: uppercase;">[ NUEVO ITINERARIO // EXPLORA ]</h3>
+        <h3 id="modal-form-title" style="margin: 0; font-size: 20px; font-weight: 900; text-transform: uppercase;">[ NUEVO ITINERARIO // SELECCIÓN MANUAL ]</h3>
         <button type="button" id="btn-close-modal" class="admin-btn" style="padding: 4px 8px;">✕</button>
       </div>
 
@@ -311,7 +359,7 @@
         <!-- ID y Título -->
         <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 14px;">
           <div>
-            <label class="admin-label" for="form-id">ID ÚNICO (SLUG)</label>
+            <label class="admin-label" for="form-id">ID / CÓDIGO ÚNICO</label>
             <input type="text" id="form-id" class="admin-input" placeholder="route-racionalismo" required>
             <small style="font-size: 10px; color: var(--admin-fg-dim); font-family: 'JetBrains Mono';">Prefijo 'route-' recomendado</small>
           </div>
@@ -324,7 +372,7 @@
         <!-- Subtítulo / Descripción -->
         <div>
           <label class="admin-label" for="form-subtitle">SUBTÍTULO / DESCRIPCIÓN CURATORIAL</label>
-          <input type="text" id="form-subtitle" class="admin-input" placeholder="Arquitectura moderna en la Comunitat Valenciana, 1925-1936">
+          <input type="text" id="form-subtitle" class="admin-input" placeholder="Obras maestras del Movimiento Moderno en Valencia...">
         </div>
 
         <!-- Etiqueta, Color y Orden -->
@@ -354,7 +402,7 @@
           </div>
 
           <div>
-            <label class="admin-label" for="form-order">ORDEN NUMÉRICO</label>
+            <label class="admin-label" for="form-order">ORDEN</label>
             <input type="number" id="form-order" class="admin-input" value="0">
           </div>
         </div>
@@ -366,95 +414,39 @@
           </label>
         </div>
 
-        <!-- SECCIÓN DE REGLAS DE FILTRADO -->
-        <div style="border-top: 2px solid var(--admin-border); padding-top: 16px; margin-top: 8px;">
-          <h4 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 900; letter-spacing: 0.05em; text-transform: uppercase;">
-            [ REGLAS DE FILTRADO ARQUITECTÓNICO ]
-          </h4>
-
-          <!-- Filtro Categoría y Añadido por -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 12px;">
-            <div>
-              <label class="admin-label" for="form-category">CATEGORÍA ARQUITECTÓNICA</label>
-              <select id="form-category" class="admin-input">
-                <option value="">-- Todas las categorías --</option>
-                <option value="residencial">Residencial</option>
-                <option value="dotacional">Dotacional</option>
-                <option value="comercial">Comercial</option>
-                <option value="infraestructura">Infraestructura</option>
-                <option value="religioso">Religioso</option>
-                <option value="paisaje">Paisaje</option>
-                <option value="industrial">Industrial</option>
-                <option value="oficinas">Oficinas</option>
-              </select>
-            </div>
-
-            <div>
-              <label class="admin-label" for="form-addedby">AÑADIDO POR / REGISTRO</label>
-              <input type="text" id="form-addedby" class="admin-input" placeholder="ej. DOCOMOMO">
-            </div>
+        <!-- ===================================================================
+             SECCIÓN CRÍTICA: SELECCIÓN MANUAL DE OBRAS UNA A UNA
+             =================================================================== -->
+        <div style="border-top: 2px solid var(--admin-border); padding-top: 18px; margin-top: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h4 style="margin: 0; font-size: 15px; font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase;">
+              [ SELECCIÓN MANUAL DE OBRAS ]
+            </h4>
+            <span id="form-selected-count-badge" style="font-family: 'JetBrains Mono'; font-weight: 800; font-size: 12px; color: var(--admin-accent); background: var(--admin-bg-raised); padding: 4px 10px; border: 1px solid var(--admin-border);">
+              0 OBRAS AÑADIDAS
+            </span>
           </div>
 
-          <!-- Filtro Años y Década -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 12px;">
-            <div>
-              <label class="admin-label" for="form-year-min">AÑO INICIAL</label>
-              <input type="number" id="form-year-min" class="admin-input" placeholder="ej. 1925">
-            </div>
-            <div>
-              <label class="admin-label" for="form-year-max">AÑO FINAL</label>
-              <input type="number" id="form-year-max" class="admin-input" placeholder="ej. 1936">
-            </div>
-            <div>
-              <label class="admin-label" for="form-decade">O DÉCADA ESPECÍFICA</label>
-              <input type="number" id="form-decade" class="admin-input" placeholder="ej. 1950" step="10">
-            </div>
-          </div>
-
-          <!-- Filtro Arquitectos -->
-          <div style="margin-bottom: 12px;">
-            <label class="admin-label" for="form-architects">ARQUITECTOS (Separados por coma)</label>
-            <input type="text" id="form-architects" class="admin-input" placeholder="Sáenz de Oiza, Corrales, Molezún, Fisac, Sota">
-            <small style="font-size: 10px; color: var(--admin-fg-dim); font-family: 'JetBrains Mono';">Búsqueda flexible por subcadena</small>
-          </div>
-
-          <!-- Filtro Geográfico Bounding Box -->
-          <div style="margin-bottom: 12px;">
-            <label class="admin-label">DELIMITACIÓN GEOGRÁFICA (BOUNDING BOX)</label>
-            <div style="margin-bottom: 8px;">
-              <span style="font-size: 11px; font-weight: 700; color: var(--admin-fg-dim); margin-right: 6px;">Presets:</span>
-              <button type="button" class="preset-pill" data-bbox="37.85,40.75,-1.55,0.75">Comunitat Valenciana</button>
-              <button type="button" class="preset-pill" data-bbox="40.5,42.9,0.15,3.35">Cataluña</button>
-              <button type="button" class="preset-pill" data-bbox="39.8,41.2,-4.5,-3.0">Madrid</button>
-              <button type="button" class="preset-pill" data-bbox="42.85,43.45,-3.5,-1.7">País Vasco</button>
-              <button type="button" class="preset-pill" data-bbox="27.6,29.5,-18.2,-13.4">Canarias</button>
-              <button type="button" class="preset-pill" data-bbox="36.9,42.2,-9.6,-6.1">Portugal</button>
-              <button type="button" class="preset-pill" data-bbox="41.3,51.1,-5.1,9.6">Francia</button>
-              <button type="button" class="preset-pill" data-bbox="">Sin filtro geo</button>
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px;">
-              <input type="number" step="any" id="form-lat-min" class="admin-input" placeholder="Lat Mín (ej. 37.85)">
-              <input type="number" step="any" id="form-lat-max" class="admin-input" placeholder="Lat Máx (ej. 40.75)">
-              <input type="number" step="any" id="form-lon-min" class="admin-input" placeholder="Lon Mín (ej. -1.55)">
-              <input type="number" step="any" id="form-lon-max" class="admin-input" placeholder="Lon Máx (ej. 0.75)">
-            </div>
-          </div>
-
-          <!-- Palabras Clave -->
+          <!-- Buscador de obras para añadir -->
           <div>
-            <label class="admin-label" for="form-keywords">PALABRAS CLAVE (Keywords)</label>
-            <input type="text" id="form-keywords" class="admin-input" placeholder="brutalismo, hormigon, pabellon">
-          </div>
-        </div>
+            <label class="admin-label" for="input-search-buildings-to-add">BUSCAR Y AÑADIR OBRA AL ITINERARIO</label>
+            <div class="admin-search-wrapper">
+              <i data-lucide="search" width="14" height="14" style="color:var(--admin-fg-dim);"></i>
+              <input type="text" id="input-search-buildings-to-add" class="admin-input" placeholder="Escribe el nombre de la obra, arquitecto, ciudad o ID...">
+            </div>
 
-        <!-- COINCIDENCIAS EN TIEMPO REAL -->
-        <div id="form-live-match-box" class="live-match-box">
-          <div class="live-match-header">
-            <span>[ SIMULACIÓN DE COINCIDENCIAS EN VIVO ]</span>
-            <span id="form-live-count">0 OBRAS COINCIDENTES</span>
+            <!-- Resultados desplegables de búsqueda -->
+            <div id="building-search-results" class="building-search-results-box hidden"></div>
           </div>
-          <div id="form-live-sample" style="margin-top: 8px; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--admin-fg-dim); max-height: 80px; overflow-y: auto;">
-            Configura las reglas para ver la vista previa.
+
+          <!-- Listado de Obras Añadidas al Itinerario con reordenación -->
+          <div style="margin-top: 14px;">
+            <label class="admin-label">OBRAS SELECCIONADAS EN ESTE ITINERARIO (PARADAS EN ORDEN)</label>
+            <div id="form-selected-works-container" class="selected-works-list">
+              <div style="text-align: center; padding: 20px; font-family: 'JetBrains Mono'; font-size: 11px; color: var(--admin-fg-dim);">
+                Aún no has añadido obras. Busca arriba por nombre o arquitecto para añadirlas una a una.
+              </div>
+            </div>
           </div>
         </div>
 
@@ -474,4 +466,3 @@
   <script type="module" src="./js/itinerarios.js"></script>
 </body>
 </html>
-
