@@ -1,4 +1,4 @@
-﻿-- =========================================================================
+-- =========================================================================
 -- Migration: 004_add_updated_at.sql
 -- Description: Columna updated_at, trigger automático y default para estado_revision
 -- =========================================================================
@@ -11,12 +11,12 @@ ALTER TABLE public."Buildings"
 CREATE OR REPLACE FUNCTION public.set_buildings_updated_at()
 RETURNS TRIGGER
 LANGUAGE plpgsql
-AS 
+AS $$
 BEGIN
   NEW.updated_at = NOW();
   RETURN NEW;
 END;
-;
+$$;
 
 -- 3. Trigger BEFORE UPDATE en public."Buildings"
 DROP TRIGGER IF EXISTS trg_buildings_updated_at ON public."Buildings";
