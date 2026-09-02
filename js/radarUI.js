@@ -5,6 +5,7 @@ import { calcularDistanciaMetros } from './exploreUI.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { actualizarMarcadorUbicacion, actualizarVisibilidadIconosLista } from './mapController.js';
 import { fetchBuildingsInRadius, fetchBuildings } from './api.js';
+import { getOptimizedPhotoUrl } from './imageProxy.js';
 
 let radarRadius = 1000; // 1000m por defecto (1km)
 let radarAbortController = null;
@@ -233,7 +234,7 @@ export function renderCuratedCarousel() {
         <p class="text-xs text-dim">Desplázate por el mapa para descubrir selecciones curatoriales de otras zonas.</p>
       </div>
     `;
-    if (window.lucide) window.lucide.createIcons();
+    window.lucide?.createIcons({ context: container });
     return;
   }
 
@@ -254,7 +255,7 @@ export function renderCuratedCarousel() {
     `;
   }).join('');
 
-  if (window.lucide) window.lucide.createIcons();
+  window.lucide?.createIcons({ context: document.getElementById('radar-panel') });
 }
 
 
@@ -318,7 +319,7 @@ export function renderRadarList(works, container, countSpan) {
         <p class="text-xs text-dim">Amplía el radio de búsqueda o desplázate por el mapa.</p>
       </div>
     `;
-    if (window.lucide) window.lucide.createIcons();
+    window.lucide?.createIcons({ context: container });
     return;
   }
 
@@ -327,7 +328,7 @@ export function renderRadarList(works, container, countSpan) {
     const metaCat = CATEGORY_META[catKey] || CATEGORY_META['otro'];
     const catColor = metaCat?.color || '#E84E1B';
     const distText = formatearDistanciaRadar(obra._dist);
-    const photo = obra.foto_url || obra.foto_miniatura || '';
+    const photo = getOptimizedPhotoUrl(obra.foto_url || obra.foto_miniatura || '', { width: 160 });
     const city = obra.place || obra.ciudad || '';
     const architects = obra.arquitectos || 'AUTOR NO IDENTIFICADO';
     const year = obra.año_construccion ? ` · ${escapeHtml(obra.año_construccion)}` : '';
@@ -357,7 +358,7 @@ export function renderRadarList(works, container, countSpan) {
     `;
   }).join('');
 
-  if (window.lucide) window.lucide.createIcons();
+  window.lucide?.createIcons({ context: document.getElementById('itinerary-filter-badge') });
 }
 
 export async function renderRadarUI() {
@@ -453,7 +454,7 @@ export async function activarRutaEnMapa(routeId) {
     titleEl.textContent = `CARGANDO: ${route.title.toUpperCase()}…`;
     if (countEl) countEl.textContent = '';
     itineraryBadge.classList.remove('hidden');
-    if (window.lucide) window.lucide.createIcons();
+    window.lucide?.createIcons({ context: document.getElementById('radar-followed-list') });
   }
 
   // 1. Determinar qué obras ya tenemos en local
@@ -507,7 +508,7 @@ export async function activarRutaEnMapa(routeId) {
   if (itineraryBadge && titleEl) {
     titleEl.textContent = `RUTA: ${route.title.toUpperCase()}`;
     if (countEl) countEl.textContent = `${matchingWorks.length} OBRAS`;
-    if (window.lucide) window.lucide.createIcons();
+    window.lucide?.createIcons({ context: document.getElementById('radar-search-results') });
   }
 
   // 6. Transicionar a pestaña Mapa

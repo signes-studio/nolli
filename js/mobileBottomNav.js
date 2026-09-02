@@ -10,8 +10,6 @@
 import { state, esRolAdmin, separarArquitectos, normalizarCategoria, normalizarImportancia, nombreCategoria, CATEGORY_COLORS, CATEGORY_META, escapeHtml } from './state.js';
 import { getBuildingsCatalog } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
-import { renderExploreList } from './exploreUI.js';
-import { renderRadarUI, restaurarMapaGeneral } from './radarUI.js';
 import { activarFiltroBusquedaEnMapa } from './searchUI.js';
 import { localizarDispositivo } from './mapController.js';
 
@@ -108,12 +106,27 @@ export function initMobileBottomNav() {
     syncNavButtons();
   }
 
+  async function cargarPanel(nombreModulo, nombreExportInit, targetPanel) {
+    const loading = document.createElement('div');
+    loading.className = 'panel-loading-status';
+    loading.textContent = '[ CARGANDO PANEL... ]';
+    targetPanel?.prepend(loading);
+    targetPanel?.setAttribute('aria-busy', 'true');
+    try {
+      await window.nolliCargarPanelBajoDemanda(nombreModulo, nombreExportInit);
+      return window.nolliPanelModules.get(nombreModulo);
+    } finally {
+      loading.remove();
+      targetPanel?.removeAttribute('aria-busy');
+    }
+  }
+
   // 1. [ MAPA ] - Vista principal: Cierra paneles y vuelve al mapa
   if (btnMap) {
     btnMap.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      restaurarMapaGeneral();
+      window.nolliPanelModules.get('radarUI')?.restaurarMapaGeneral?.();
       closeAllPanels();
       if (panelBackdrop) panelBackdrop.classList.remove('active');
       syncNavButtons();
@@ -122,34 +135,38 @@ export function initMobileBottomNav() {
 
   // 2. [ EXPLORA ] - Feed vertical / proximidad de obras cercanas
   if (btnExplore) {
-    btnExplore.addEventListener('click', (e) => {
+    btnExplore.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       toggleMobilePanel(explorePanel);
       if (explorePanel?.classList.contains('open')) {
-        renderExploreList();
+        const modulo = await cargarPanel('exploreUI', 'initExploreUI', explorePanel);
+        if (explorePanel?.classList.contains('open')) modulo?.renderExploreList();
       }
     });
   }
 
   // 3. [ MI RADAR ] - Botón central destacado para radar en vivo y rutas
   if (btnRadar) {
-    btnRadar.addEventListener('click', (e) => {
+    btnRadar.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       toggleMobilePanel(radarPanel);
       if (radarPanel?.classList.contains('open')) {
-        renderRadarUI();
+        const modulo = await cargarPanel('radarUI', 'initRadarUI', radarPanel);
+        if (radarPanel?.classList.contains('open')) modulo?.renderRadarUI();
       }
     });
   }
 
   // 4. [ LISTAS ] - Colecciones personales, favoritos y notas
   if (btnPlaces) {
-    btnPlaces.addEventListener('click', (e) => {
+    btnPlaces.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       toggleMobilePanel(myPlacesPanel);
+      await cargarPanel('myPlacesUI', 'initMyPlacesUI', myPlacesPanel);
+      if (!myPlacesPanel?.classList.contains('open')) return;
       const colTab = myPlacesPanel?.querySelector('[data-place-tab="collections"]');
       if (colTab) colTab.click();
     });
@@ -196,24 +213,26 @@ export function initMobileBottomNav() {
 
   const btnExploreFloat = document.getElementById('btn-explore-float');
   if (btnExploreFloat) {
-    btnExploreFloat.addEventListener('click', (e) => {
+    btnExploreFloat.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       toggleMobilePanel(explorePanel);
       if (explorePanel?.classList.contains('open')) {
-        renderExploreList();
+        const modulo = await cargarPanel('exploreUI', 'initExploreUI', explorePanel);
+        if (explorePanel?.classList.contains('open')) modulo?.renderExploreList();
       }
     });
   }
 
   const btnRadarFloat = document.getElementById('btn-radar-float');
   if (btnRadarFloat) {
-    btnRadarFloat.addEventListener('click', (e) => {
+    btnRadarFloat.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
       toggleMobilePanel(radarPanel);
       if (radarPanel?.classList.contains('open')) {
-        renderRadarUI();
+        const modulo = await cargarPanel('radarUI', 'initRadarUI', radarPanel);
+        if (radarPanel?.classList.contains('open')) modulo?.renderRadarUI();
       }
     });
   }
@@ -251,7 +270,7 @@ export function initMobileBottomNav() {
   initSheetTouchGestures();
   initMobileSplashScreen();
 
-  if (window.lucide) window.lucide.createIcons();
+  window.lucide?.createIcons({ context: document.querySelector('main') });
 }
 
 /* =========================================================================
@@ -551,7 +570,7 @@ function initMobileSearchWidget() {
       }).join('');
 
       resultsContainer.innerHTML = headerActionHtml + listHtml;
-      if (window.lucide) window.lucide.createIcons();
+      window.lucide?.createIcons({ context: results });
       dropdown.hidden = false;
     }, 120);
   });

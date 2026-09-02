@@ -11,11 +11,7 @@ import { generarFiltrosUI } from './filtersUI.js';
 import { cargarMapaMapbox } from './mapController.js';
 import { initModalsUI } from './modalsUI.js';
 import { initSearchUI } from './searchUI.js';
-import { initMyPlacesUI } from './myPlacesUI.js';
-import { initAdminUI } from './adminUI.js';
 import { initMobileBottomNav } from './mobileBottomNav.js';
-import { initExploreUI } from './exploreUI.js';
-import { initRadarUI } from './radarUI.js';
 import { getViewportKey } from './renderUtils.js';
 
 import { abrirFicha } from './sheetUI.js';
@@ -25,6 +21,22 @@ let publicLoadTimer = null;
 let publicLoadController = null;
 let urlObraChecked = false;
 let lastViewportKey = null;
+const panelModules = new Map();
+const panelInitializations = new Map();
+
+async function cargarPanelBajoDemanda(nombreModulo, nombreExportInit, ...args) {
+  if (!panelInitializations.has(nombreModulo)) {
+    panelInitializations.set(nombreModulo, (async () => {
+      const modulo = await import(`./${nombreModulo}.js`);
+      panelModules.set(nombreModulo, modulo);
+      return modulo[nombreExportInit](...args);
+    })());
+  }
+  return panelInitializations.get(nombreModulo);
+}
+
+window.nolliCargarPanelBajoDemanda = cargarPanelBajoDemanda;
+window.nolliPanelModules = panelModules;
 
 async function cargarEdificiosVisibles() {
   const requestId = ++publicLoadRequest;
@@ -130,7 +142,7 @@ async function cargarYMostrarObra(obraId) {
 
   if (obra && state.map) {
     state.map.flyTo({ center: obra.coordenadas, zoom: Math.max(state.map.getZoom(), 15) });
-    abrirFicha(obra, obra.coordenadas, obra.featureId || obra.id);
+    abrirFicha(obra, obra.coordenadas, obra.featureId || obra.id, true);
   }
 }
 
@@ -152,8 +164,19 @@ window.addEventListener('popstate', (e) => {
   }
 });
 
+async function esperarMapbox() {
+  if (window.mapboxgl) return;
+  const script = document.getElementById('mapbox-gl-js');
+  if (!script) throw new Error('No se encontró el script de Mapbox.');
+  await new Promise((resolve, reject) => {
+    script.addEventListener('load', resolve, { once: true });
+    script.addEventListener('error', () => reject(new Error('No se pudo cargar Mapbox.')), { once: true });
+  });
+}
+
 async function inicializarRadar() {
   try {
+    await esperarMapbox();
     cargarMapaMapbox();
     state.map.once('load', async () => {
       await cargarEdificiosVisibles();
@@ -236,6 +259,11 @@ async function cargarContenidoPrivado() {
 }
 
 document.addEventListener('radar:user-session-ready', cargarContenidoPrivado);
+document.addEventListener('radar:user-session-ready', () => {
+  if (esRolAdmin(state.userRole)) {
+    cargarPanelBajoDemanda('adminUI', 'initAdminUI').catch((err) => console.warn('Init AdminUI:', err));
+  }
+});
 
 // 1. Iniciar mapa inmediatamente
 inicializarRadar();
@@ -243,14 +271,22 @@ inicializarRadar();
 // 2. Iniciar módulos de interfaz de forma desacoplada y protegida
 try { initModalsUI(); } catch (err) { console.warn('Init ModalsUI:', err); }
 try { initSearchUI(); } catch (err) { console.warn('Init SearchUI:', err); }
-try { initMyPlacesUI(); } catch (err) { console.warn('Init MyPlacesUI:', err); }
-try { initAdminUI(); } catch (err) { console.warn('Init AdminUI:', err); }
 try { initMobileBottomNav(); } catch (err) { console.warn('Init MobileBottomNav:', err); }
-try { initExploreUI(); } catch (err) { console.warn('Init ExploreUI:', err); }
-try { initRadarUI(); } catch (err) { console.warn('Init RadarUI:', err); }
+
+const adminPanelButton = document.getElementById('btn-admin-panel');
+adminPanelButton?.addEventListener('click', async (event) => {
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  try {
+    await cargarPanelBajoDemanda('adminUI', 'initAdminUI');
+    adminPanelButton.click();
+  } catch (err) {
+    console.warn('Init AdminUI:', err);
+  }
+}, { once: true });
 
 try {
-  if (window.lucide) window.lucide.createIcons();
+  window.lucide?.createIcons({ context: document.querySelector('main') });
 } catch (err) {
   console.warn('Lucide icons:', err);
 }

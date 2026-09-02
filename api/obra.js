@@ -27,6 +27,18 @@ function categoryClass(category) {
   }[category] || 'other';
 }
 
+function categoryLabel(category) {
+  return {
+    residencial: 'Residencial',
+    dotacional_equipamiento: 'Dotacional / Equipamiento',
+    industrial_logistico: 'Industrial / Logístico',
+    religioso_funerario: 'Religioso / Funerario',
+    comercial_terciario: 'Comercial / Terciario',
+    espacio_publico_paisaje: 'Espacio Público / Paisaje',
+    infraestructura_urbanismo: 'Infraestructura / Urbanismo',
+  }[category] || 'Otros';
+}
+
 async function fetchPublicBuilding(id) {
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -34,7 +46,7 @@ async function fetchPublicBuilding(id) {
     throw new Error('Faltan SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en Vercel.');
   }
 
-  const fields = 'id,nombre_obra,arquitecto,año_construccion,categoria,place,foto_url,enlace_url,latitud,longitud,estado_revision';
+  const fields = 'id,nombre_obra,arquitecto,año_construccion,categoria,place,foto_url,foto_credito,foto_licencia,enlace_url,latitud,longitud,estado_revision';
   const params = new URLSearchParams({
     select: fields,
     id: `eq.${id}`,
@@ -57,27 +69,84 @@ function renderBuildingPage(building) {
   const title = `${building.nombre_obra} | nolli.`;
   const description = buildingDescription(building) || 'Ficha de obra en nolli, radar arquitectónico.';
   const image = building.foto_url || `${SITE_URL}/icon.svg`;
+  const categoriaSlug = building.categoria || 'otro';
+  const categoriaText = categoryLabel(building.categoria);
+
+  const architectHtml = building.arquitecto
+    ? `<a class="architect-link" href="${SITE_URL}/arquitecto/${encodeURIComponent(building.arquitecto)}">${escapeHtml(building.arquitecto)}</a>`
+    : '';
+
   const details = [
-    building.arquitecto && ['Arquitectura', building.arquitecto],
-    building.año_construccion && ['Año', building.año_construccion],
-    building.categoria && ['Categoría', building.categoria, `detail-category category-${categoryClass(building.categoria)}`],
-    building.place && ['Lugar', building.place],
+    building.arquitecto && ['Arquitectura', architectHtml, ''],
+    building.año_construccion && ['Año', escapeHtml(building.año_construccion), ''],
+    building.categoria && ['Categoría', escapeHtml(categoriaText), `detail-category category-${categoryClass(building.categoria)}`],
+    building.place && ['Lugar', escapeHtml(building.place), ''],
   ].filter(Boolean).map(([label, value, className = '']) => (
-    `<div class="detail-row"><dt>${escapeHtml(label)}</dt><dd class="${className}">${escapeHtml(value)}</dd></div>`
+    `<div class="detail-row"><dt>${escapeHtml(label)}</dt><dd class="${className}">${value}</dd></div>`
   )).join('');
-  const schema = {
+
+  const placeSchema = {
     '@context': 'https://schema.org',
-    '@type': 'Place',
+    '@type': ['Place', 'LandmarksOrHistoricalBuildings'],
     name: building.nombre_obra,
-    url: canonicalUrl,
     description,
-    image,
-    ...(building.arquitecto ? { architect: { '@type': 'Person', name: building.arquitecto } } : {}),
+    url: canonicalUrl,
+    image: {
+      '@type': 'ImageObject',
+      url: image,
+      ...(building.foto_credito ? { creditText: building.foto_credito } : {}),
+      ...(building.foto_licencia ? { license: building.foto_licencia } : {}),
+    },
     ...(building.latitud && building.longitud ? {
-      geo: { '@type': 'GeoCoordinates', latitude: building.latitud, longitude: building.longitud },
+      geo: {
+        '@type': 'GeoCoordinates',
+        latitude: building.latitud,
+        longitude: building.longitud,
+      },
+    } : {}),
+    ...(building.arquitecto || building.año_construccion ? {
+      subjectOf: {
+        '@type': 'CreativeWork',
+        ...(building.arquitecto ? {
+          creator: {
+            '@type': 'Person',
+            name: building.arquitecto,
+          },
+        } : {}),
+        ...(building.año_construccion ? {
+          dateCreated: String(building.año_construccion),
+        } : {}),
+      },
     } : {}),
   };
-  const schemaJson = JSON.stringify(schema).replace(/</g, '\\u003c');
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'nolli.',
+        item: `${SITE_URL}/`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: categoriaText,
+        item: `${SITE_URL}/categoria/${encodeURIComponent(categoriaSlug)}`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: building.nombre_obra,
+        item: canonicalUrl,
+      },
+    ],
+  };
+
+  const schemaJson = JSON.stringify(placeSchema).replace(/</g, '\\u003c');
+  const breadcrumbJson = JSON.stringify(breadcrumbSchema).replace(/</g, '\\u003c');
 
   return `<!doctype html>
 <html lang="es">
@@ -99,6 +168,7 @@ function renderBuildingPage(building) {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=League+Spartan:wght@700;800;900&display=swap" rel="stylesheet">
   <script type="application/ld+json">${schemaJson}</script>
+  <script type="application/ld+json">${breadcrumbJson}</script>
   <style>
     :root {
       --bg: #F8F1DF;
@@ -136,6 +206,14 @@ function renderBuildingPage(building) {
     .page { width: min(100% - var(--space-4), 960px); margin: 0 auto; padding: var(--space-4) 0 var(--space-8); }
     .site-header { display: flex; align-items: baseline; gap: var(--space-1); padding-bottom: var(--space-2); border-bottom: var(--border-width-strong) solid var(--border-strong); color: var(--ink-dim); font-size: 12px; text-transform: uppercase; }
     .site-header a { color: var(--brand); font-family: var(--font-display); font-size: 24px; font-weight: 900; letter-spacing: -0.02em; text-decoration: none; text-transform: lowercase; }
+    .breadcrumb-nav { margin-top: var(--space-2); }
+    .breadcrumb-list { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); list-style: none; margin: 0; padding: 0; font-family: var(--font-display); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-dim); }
+    .breadcrumb-item a { color: var(--ink-dim); text-decoration: none; border-bottom: 1px solid transparent; }
+    .breadcrumb-item a:hover { color: var(--brand); border-bottom-color: var(--brand); }
+    .breadcrumb-separator { color: var(--border-strong); user-select: none; }
+    .breadcrumb-item.active { color: var(--ink); }
+    .architect-link { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+    .architect-link:hover { color: var(--brand); }
     .work-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(220px, 1fr); gap: var(--space-4); padding-top: var(--space-6); }
     .work-title { margin: 0; font-family: var(--font-display); font-size: clamp(42px, 7vw, 76px); font-weight: 900; letter-spacing: -0.03em; line-height: .9; text-transform: uppercase; }
     .work-intro { max-width: 68ch; margin: var(--space-3) 0 0; color: var(--ink-dim); }
@@ -162,6 +240,15 @@ function renderBuildingPage(building) {
 </head>
 <body><main class="page">
   <header class="site-header"><a href="${SITE_URL}/">nolli.</a><span>/ radar arquitectónico</span></header>
+  <nav aria-label="breadcrumb" class="breadcrumb-nav">
+    <ol class="breadcrumb-list">
+      <li class="breadcrumb-item"><a href="${SITE_URL}/">nolli.</a></li>
+      <li class="breadcrumb-separator" aria-hidden="true">/</li>
+      <li class="breadcrumb-item"><a href="${SITE_URL}/categoria/${encodeURIComponent(categoriaSlug)}">${escapeHtml(categoriaText)}</a></li>
+      <li class="breadcrumb-separator" aria-hidden="true">/</li>
+      <li class="breadcrumb-item active" aria-current="page">${escapeHtml(building.nombre_obra)}</li>
+    </ol>
+  </nav>
   <div class="work-grid">
     <section>
       <h1 class="work-title">${escapeHtml(building.nombre_obra)}</h1>

@@ -330,6 +330,7 @@ export function cargarMapaMapbox() {
       const sourceId = importance === 0 ? 'obras-maestras' : 'obras';
       const iconSize = importance === 0 ? 0.92 : importance === 1 ? 0.70 : importance === 2 ? 0.56 : 0.52;
       const catExpr = ['coalesce', ['get', 'categoria'], 'otro'];
+      const permitirSolapamiento = importance !== 3;
 
       // Capa normal
       state.map.addLayer({
@@ -349,8 +350,8 @@ export function cargarMapaMapbox() {
             ['has', 'collection_emoji'], 0.75,
             iconSize
           ],
-          'icon-allow-overlap': true,
-          'icon-ignore-placement': true,
+          'icon-allow-overlap': permitirSolapamiento,
+          'icon-ignore-placement': permitirSolapamiento,
           'icon-optional': false,
         },
       });
@@ -373,8 +374,8 @@ export function cargarMapaMapbox() {
             ['has', 'collection_emoji'], 0.75,
             iconSize
           ],
-          'icon-allow-overlap': true,
-          'icon-ignore-placement': true,
+          'icon-allow-overlap': permitirSolapamiento,
+          'icon-ignore-placement': permitirSolapamiento,
           'icon-optional': false,
         },
       });
@@ -422,8 +423,8 @@ export function cargarMapaMapbox() {
             ['has', 'collection_emoji'], 0.75,
             iconSize
           ],
-          'icon-allow-overlap': true,
-          'icon-ignore-placement': true,
+          'icon-allow-overlap': permitirSolapamiento,
+          'icon-ignore-placement': permitirSolapamiento,
           'icon-optional': false,
         },
       });
@@ -446,8 +447,8 @@ export function cargarMapaMapbox() {
             ['has', 'collection_emoji'], 0.75,
             iconSize
           ],
-          'icon-allow-overlap': true,
-          'icon-ignore-placement': true,
+          'icon-allow-overlap': permitirSolapamiento,
+          'icon-ignore-placement': permitirSolapamiento,
           'icon-optional': false,
         },
       });

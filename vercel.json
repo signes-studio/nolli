@@ -7,6 +7,14 @@
       "destination": "/api/sitemap"
     },
     {
+      "source": "/sitemap-static.xml",
+      "destination": "/api/sitemap-static"
+    },
+    {
+      "source": "/sitemap-buildings-:n.xml",
+      "destination": "/api/sitemap-buildings?page=:n"
+    },
+    {
       "source": "/obra/:id",
       "destination": "/api/obra?id=:id"
     }

@@ -13,8 +13,6 @@ Allow: /legal
 # Bloquear panel de administración y directorios internos
 Disallow: /admin
 Disallow: /admin.html
-Disallow: /js/
-Disallow: /scratch/
 Disallow: /supabase/
 
 # Archivo de mapa del sitio

@@ -4,8 +4,20 @@
 <base href="/">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://*.mapbox.com https://api.mapbox.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://*.mapbox.com https://api.mapbox.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.mapbox.com https://api.mapbox.com https://events.mapbox.com https://nominatim.openstreetmap.org; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://*.mapbox.com https://api.mapbox.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://*.mapbox.com https://api.mapbox.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.mapbox.com https://api.mapbox.com https://events.mapbox.com https://nominatim.openstreetmap.org; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
+<link rel="preconnect" href="https://api.mapbox.com" crossorigin>
+<link rel="preconnect" href="https://ldtfvpjigzvcagtciipn.supabase.co" crossorigin>
+<link rel="dns-prefetch" href="https://api.mapbox.com">
+<link rel="dns-prefetch" href="https://ldtfvpjigzvcagtciipn.supabase.co">
 <meta name="description" content="Nolli: atlas de obra construida. Cataloga, mide y sitúa arquitectura sobre un mapa en vivo.">
+<link rel="canonical" href="https://nollimap.app/landing">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="nolli.">
+<meta property="og:title" content="nolli. | atlas de arquitectura">
+<meta property="og:description" content="Nolli: atlas de obra construida. Cataloga, mide y sitúa arquitectura sobre un mapa en vivo.">
+<meta property="og:url" content="https://nollimap.app/landing">
+<meta property="og:image" content="https://nollimap.app/icons/logo.png">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="color-scheme" content="light">
 <title>nolli. | atlas de arquitectura</title>
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
@@ -20,6 +32,7 @@
   }
 </script>
 
+<link rel="stylesheet" href="css/utilities.css">
 <link rel="stylesheet" href="css/base.css">
 <meta name="theme-color" content="#F4F1EA">
 

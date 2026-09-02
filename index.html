@@ -4,7 +4,11 @@
 <base href="/">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://*.mapbox.com https://api.mapbox.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://*.mapbox.com https://api.mapbox.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.mapbox.com https://api.mapbox.com https://events.mapbox.com https://nominatim.openstreetmap.org; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://*.mapbox.com https://api.mapbox.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://*.mapbox.com https://api.mapbox.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.mapbox.com https://api.mapbox.com https://events.mapbox.com https://nominatim.openstreetmap.org; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
+<link rel="preconnect" href="https://api.mapbox.com" crossorigin>
+<link rel="preconnect" href="https://ldtfvpjigzvcagtciipn.supabase.co" crossorigin>
+<link rel="dns-prefetch" href="https://api.mapbox.com">
+<link rel="dns-prefetch" href="https://ldtfvpjigzvcagtciipn.supabase.co">
 <title>nolli. | radar arquitectónico</title>
 <meta name="description" content="Radar arquitectónico interactivo: explora y registra obras de arquitectura sobre un mapa en vivo.">
 <link rel="canonical" href="https://nollimap.app/">
@@ -13,7 +17,7 @@
 <meta property="og:title" content="nolli. | radar arquitectónico">
 <meta property="og:description" content="Explora y registra obras de arquitectura sobre un mapa en vivo.">
 <meta property="og:url" content="https://nollimap.app/">
-<meta property="og:image" content="https://nollimap.app/icon.svg">
+<meta property="og:image" content="https://nollimap.app/icons/logo.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="color-scheme" content="light dark">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
@@ -43,17 +47,15 @@
   }(window.location));
 </script>
 
-<!-- Tailwind (CDN, utilidades de layout puntuales) -->
-<script src="https://cdn.tailwindcss.com"></script>
-
 <!-- Mapbox GL JS -->
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css" rel="stylesheet">
-<script src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js"></script>
+<script id="mapbox-gl-js" src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js" defer></script>
 
 <!-- Lucide Icons -->
-<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js" defer></script>
 
 <!-- Estilos propios (orden: variables/base → layout → paneles → componentes) -->
+<link rel="stylesheet" href="/css/utilities.css">
 <link rel="stylesheet" href="/css/base.css">
 <link rel="stylesheet" href="/css/map-hud.css">
 <link rel="stylesheet" href="/css/panels.css">
@@ -102,6 +104,19 @@
     }
   } catch(e) {}
 </script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "nolli.",
+  "url": "https://nollimap.app/",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://nollimap.app/?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
 </head>
 <body>
 
@@ -143,7 +158,8 @@
   <header class="topbar">
     <div class="topbar-inner">
       <div style="flex: 1;">
-        <h1 class="font-display text-2xl leading-none tracking-tight" style="color: var(--accent); margin: 0; text-transform: lowercase; font-weight: 800;">nolli<span style="color:var(--fg)">.</span></h1>
+        <h1 class="sr-only">Radar arquitectónico: mapa interactivo de obras de arquitectura</h1>
+        <span class="font-display text-2xl leading-none tracking-tight block" style="color: var(--accent); margin: 0; text-transform: lowercase; font-weight: 800;">nolli<span style="color:var(--fg)">.</span></span>
         <p class="text-[10px] tracking-widest mt-1" style="color:var(--fg-dim); margin:0;">radar arquitectónico</p>
         <button id="btn-login-trigger" type="button" class="mt-2 text-[10px] font-bold px-2 py-1 cursor-pointer transition-colors" style="border: 1px solid var(--accent); color: var(--accent); background: rgba(233, 92, 12, 0.1);">[ INICIAR SESIÓN ]</button>
         <a href="./perfil.html" class="profile-page-link mt-2" aria-label="Abrir perfil personal">[ PERFIL PERSONAL ]</a>
@@ -376,25 +392,25 @@
     <div class="map-style-options">
       <button type="button" class="map-style-option active" data-map-style="abstract" aria-label="Mapa estilo claro">
         <div class="map-style-preview" aria-hidden="true">
-          <img src="img/Light.png" alt="Mapa Claro" class="map-style-thumb" loading="lazy">
+          <img src="img/light-thumb.webp" alt="Mapa Claro" class="map-style-thumb" loading="lazy">
         </div>
         <span class="map-style-label">CLARO</span>
       </button>
       <button type="button" class="map-style-option" data-map-style="dark" aria-label="Mapa estilo oscuro">
         <div class="map-style-preview" aria-hidden="true">
-          <img src="img/Dark.png" alt="Mapa Oscuro" class="map-style-thumb" loading="lazy">
+          <img src="img/dark-thumb.webp" alt="Mapa Oscuro" class="map-style-thumb" loading="lazy">
         </div>
         <span class="map-style-label">OSCURO</span>
       </button>
       <button type="button" class="map-style-option" data-map-style="hybrid" aria-label="Mapa estilo híbrido / estándar">
         <div class="map-style-preview" aria-hidden="true">
-          <img src="img/Hybrid.png" alt="Mapa Híbrido" class="map-style-thumb" loading="lazy">
+          <img src="img/hybrid-thumb.webp" alt="Mapa Híbrido" class="map-style-thumb" loading="lazy">
         </div>
         <span class="map-style-label">HÍBRIDO</span>
       </button>
       <button type="button" class="map-style-option" data-map-style="satellite" aria-label="Mapa estilo satélite">
         <div class="map-style-preview" aria-hidden="true">
-          <img src="img/Satellite.png" alt="Mapa Satélite" class="map-style-thumb" loading="lazy">
+          <img src="img/satellite-thumb.webp" alt="Mapa Satélite" class="map-style-thumb" loading="lazy">
         </div>
         <span class="map-style-label">SATÉLITE</span>
       </button>

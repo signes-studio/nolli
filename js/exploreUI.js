@@ -173,7 +173,7 @@ export async function renderPublicCollections(query = '') {
     }
   }
 
-  if (window.lucide) window.lucide.createIcons();
+  window.lucide?.createIcons({ context: document.getElementById('explore-panel') });
 }
 
 // Alias de compatibilidad

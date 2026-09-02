@@ -6,6 +6,7 @@ import { state, separarArquitectos, normalizarCategoria, normalizarImportancia, 
 import { actualizarFuenteMapa } from './mapData.js';
 import { cerrarFiltros, generarFiltrosUI } from './filtersUI.js';
 import { fetchBuildings, saveBuildingStatus, deleteBuilding, deletePrivateBuilding, createUserCollection, addUserCollectionItem, createUserPrivateLabel, deleteUserPrivateLabel } from './api.js';
+import { getOptimizedPhotoUrl } from './imageProxy.js';
 
 const sheet = document.getElementById('sheet');
 let organizerMode = 'collections';
@@ -92,14 +93,14 @@ async function abrirFichaArquitecto(nombreArquitecto) {
         </div>
         ${obra.foto_url && isValidHttpsUrl(obra.foto_url) ? `
           <div class="architect-work-thumb-wrap">
-            <img src="${escapeHtml(obra.foto_url)}" alt="${escapeHtml(obra.nombre_obra)}" class="architect-work-thumb" loading="lazy">
+            <img src="${escapeHtml(getOptimizedPhotoUrl(obra.foto_url, { width: 96 }))}" alt="${escapeHtml(obra.nombre_obra)}" class="architect-work-thumb" loading="lazy">
           </div>
         ` : ''}
       </button>
     `;
   }).join('') : '<p class="architect-profile-empty">[ NO HAY OBRAS REGISTRADAS PARA ESTE ARQUITECTO ]</p>';
 
-  if (window.lucide) window.lucide.createIcons();
+  window.lucide?.createIcons({ context: modal });
 }
 
 function cerrarFichaArquitecto() {
@@ -124,7 +125,7 @@ export function cerrarFicha() {
   }
 }
 
-export function abrirFicha(building, coordinates, featureId = building?.id || building?.featureId) {
+export function abrirFicha(building, coordinates, featureId = building?.id || building?.featureId, openedFromUrl = false) {
   if (!building) return;
   const targetId = featureId || building.id || building.featureId;
   if (state.selectedFeatureId !== null) {
@@ -201,7 +202,7 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
     ${building.foto_url && isValidHttpsUrl(building.foto_url) ? `
       <div class="sheet-gallery-wrap">
         <button type="button" class="photo-thumb sheet-photo-banner" data-photo-url="${escapeHtml(building.foto_url)}" aria-label="Ampliar fotografía de la obra">
-          <img class="sheet-photo" src="${escapeHtml(building.foto_url)}" alt="Fotografía de ${escapeHtml(building.nombre_obra)}" loading="lazy">
+          <img class="sheet-photo" src="${escapeHtml(getOptimizedPhotoUrl(building.foto_url, { width: 1000 }))}" alt="Fotografía de ${escapeHtml(building.nombre_obra)}" loading="lazy"${openedFromUrl ? ' fetchpriority="high"' : ''}>
           <span class="photo-zoom-badge"><i data-lucide="maximize-2" width="12" height="12"></i> AMPLIAR</span>
         </button>
       </div>
@@ -292,7 +293,7 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
     </div>
   `;
 
-  if (window.lucide) window.lucide.createIcons();
+  window.lucide?.createIcons({ context: sheet });
 
   // Listeners para botones de reporte
   document.querySelectorAll('[data-open-report]').forEach((btn) => {
@@ -599,7 +600,7 @@ function openShareModal() {
   if (copyText) copyText.textContent = '[ COPIAR ENLACE ]';
 
   modal.classList.add('open');
-  if (window.lucide) window.lucide.createIcons();
+  window.lucide?.createIcons({ context: sheet });
 }
 
 function handleShareAction(choice) {

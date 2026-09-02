@@ -39,6 +39,7 @@ import {
 } from './state.js';
 
 import { renderInChunks } from './renderUtils.js';
+import { getOptimizedPhotoUrl } from './imageProxy.js';
 
 const SESSION_KEY = 'nolli_admin_session_token';
 const content = document.getElementById('profile-content');
@@ -541,7 +542,7 @@ function renderBuildingsFeed(buildings, tabKey) {
   content.innerHTML = '';
   
   const htmlChunks = buildings.map((obra) => {
-    const photo = obra.foto_miniatura || obra.foto_url || '';
+    const photo = getOptimizedPhotoUrl(obra.foto_miniatura || obra.foto_url || '', { width: 160 });
     const title = obra.nombre_obra || 'Obra de arquitectura';
     const year = obra.año_construccion || 'S. XX';
     const architect = obra.arquitectos ? (Array.isArray(obra.arquitectos) ? obra.arquitectos.join(', ') : obra.arquitectos) : (obra.arquitecto || 'Arquitecto');
@@ -625,7 +626,7 @@ function renderCollectionsFeed() {
           </div>
         `;
       }
-      const photo = obra.foto_miniatura || obra.foto_url || '';
+      const photo = getOptimizedPhotoUrl(obra.foto_miniatura || obra.foto_url || '', { width: 160 });
       const title = obra.nombre_obra || 'Obra';
       const architect = obra.arquitecto || obra.arquitectos || '';
       const year = obra.año_construccion ? ` · ${obra.año_construccion}` : '';
@@ -743,7 +744,7 @@ function renderNotesFeed() {
   content.innerHTML = buildingsWithNotes.map((obra) => {
     const status = profileState.statuses.get(String(obra.id)) || {};
     const noteText = status.notas || '';
-    const photo = obra.foto_miniatura || obra.foto_url || '';
+    const photo = getOptimizedPhotoUrl(obra.foto_miniatura || obra.foto_url || '', { width: 160 });
     const title = obra.nombre_obra || 'Obra';
     const year = obra.año_construccion ? ` · ${obra.año_construccion}` : '';
     const architect = obra.arquitecto || obra.arquitectos || '';
