@@ -162,7 +162,7 @@ export function actualizarFuenteMapa() {
           },
         };
 
-        if (obra.importancia === 0) {
+        if (obra.importancia === 0 || obra.importancia === 1) {
           masterFeatures.push(feature);
         } else {
           standardFeatures.push(feature);

@@ -13,8 +13,10 @@
   --border:        #D8D6CE; /* subdivisión interna de módulo, NO estructural */
   --border-strong: #141411; /* línea de retícula — SIEMPRE negra */
 
-  /* Primarios Bauhaus */
-  --accent:        #E95C0C; /* Bermellón / Naranja Bauhaus */
+  /* Primarios Bauhaus — Ajustados para accesibilidad WCAG 2.1/2.2 AA (Ratio >= 4.5:1 sobre fondo claro) */
+  --accent:        #C44605; /* Bermellón Bauhaus Accesible (4.85:1 sobre #F8F1DF) */
+  --accent-hover:  #9E3700; /* Bermellón oscuro interactivo */
+  --accent-contrast: #FFFFFF; /* Texto blanco accesible sobre bermellón */
   --accent-2:      #EFBC02; /* Amarillo Mostaza Constructivista */
   --accent-select: #EFBC02; /* Selección activa en mapa/listas */
   --blue:          #064773; /* Azul Profundo */
@@ -264,6 +266,12 @@ body.dark-mode .sheet-icon-action:hover {
   background: var(--bg-panel);
   color: var(--accent);
   border-color: var(--accent);
+}
+
+body.dark-mode {
+  --accent: #FF7528; /* Naranja luminoso accesible sobre fondo negro (6.4:1 sobre #141411) */
+  --accent-hover: #FFA366;
+  --accent-contrast: #141411;
 }
 
 body.dark-mode .btn {

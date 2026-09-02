@@ -3,7 +3,7 @@
 <head>
 <base href="/">
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.mapbox.com https://api.mapbox.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://*.mapbox.com https://api.mapbox.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.mapbox.com https://api.mapbox.com https://events.mapbox.com https://nominatim.openstreetmap.org; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
 <link rel="preconnect" href="https://api.mapbox.com" crossorigin>
 <link rel="preconnect" href="https://ldtfvpjigzvcagtciipn.supabase.co" crossorigin>
@@ -22,9 +22,34 @@
 <meta name="color-scheme" content="light dark">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/icon.svg">
-<link rel="stylesheet" href="/css/legal-components.css">
+
+<!-- Scripts auxiliares diferidos -->
 <script src="/js/cookieConsent.js" defer></script>
 <script src="/js/siteFooter.js" defer></script>
+
+<!-- Lucide Icons diferido -->
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js" defer></script>
+
+<!-- Hojas de estilo no bloqueantes (Asynchronous Preload) -->
+<link rel="preload" href="/css/legal-components.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<link rel="preload" href="/css/utilities.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<link rel="preload" href="/css/base.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<link rel="preload" href="/css/map-hud.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<link rel="preload" href="/css/panels.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<link rel="preload" href="/css/components.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript>
+  <link rel="stylesheet" href="/css/legal-components.css">
+  <link rel="stylesheet" href="/css/utilities.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/map-hud.css">
+  <link rel="stylesheet" href="/css/panels.css">
+  <link rel="stylesheet" href="/css/components.css">
+</noscript>
+
+<link rel="prefetch" href="/perfil.html">
+<link rel="prefetch" href="/css/profile.css">
+<link rel="prefetch" href="/js/profile.js">
+<link rel="manifest" href="/manifest.webmanifest">
 
 <script>
   (function(l) {
@@ -32,59 +57,77 @@
       var cleanPath = l.pathname.replace(/\/index\.html$/, '/').replace(/\.html$/, '') || '/';
       window.history.replaceState(null, '', cleanPath + l.search + l.hash);
     }
-  }(window.location));
-</script>
-
-<!-- Mapbox GL JS -->
-<link href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css" rel="stylesheet">
-<script id="mapbox-gl-js" src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js"></script>
-
-<!-- Lucide Icons -->
-<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js" defer></script>
-
-<!-- Estilos propios (orden: variables/base → layout → paneles → componentes) -->
-<link rel="stylesheet" href="/css/utilities.css">
-<link rel="stylesheet" href="/css/base.css">
-<link rel="stylesheet" href="/css/map-hud.css">
-<link rel="stylesheet" href="/css/panels.css">
-<link rel="stylesheet" href="/css/components.css">
-<link rel="prefetch" href="/perfil.html">
-<link rel="prefetch" href="/css/profile.css">
-<link rel="prefetch" href="/js/profile.js">
-<link rel="manifest" href="/manifest.webmanifest">
-
-<script>
-  (function() {
     const saved = localStorage.getItem('nolli_theme') || localStorage.getItem('nolli_map_style');
     if (saved === 'dark') {
       document.documentElement.classList.add('dark-mode');
       const applyDark = () => document.body && document.body.classList.add('dark-mode');
-      if (document.body) {
-        applyDark();
-      } else {
-        document.addEventListener('DOMContentLoaded', applyDark);
-      }
+      if (document.body) applyDark();
+      else document.addEventListener('DOMContentLoaded', applyDark);
     }
-  })();
+  }(window.location));
 </script>
 
+<!-- CSS Crítico Inlined para renderizado inmediato FCP < 400ms -->
 <style>
+  :root {
+    --bg: #F8F1DF;
+    --bg-panel: #F8F1DF;
+    --bg-raised: #F0E9D2;
+    --fg: #141411;
+    --fg-dim: #6B6B6B;
+    --border: #D8D6CE;
+    --border-strong: #141411;
+    --accent: #C44605;
+    --accent-contrast: #FFFFFF;
+  }
+  body.dark-mode {
+    --bg: #141411;
+    --bg-panel: #1C1C1A;
+    --bg-raised: #252522;
+    --fg: #F8F1DF;
+    --fg-dim: #9A9A9A;
+    --border-strong: #4E4E48;
+    --accent: #FF7528;
+    --accent-contrast: #141411;
+  }
+  * { box-sizing: border-box; border-radius: 0 !important; }
   html, body {
-    background-color: var(--bg, #F8F1DF) !important;
-    color: var(--fg, #141411) !important;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg);
+    color: var(--fg);
+    overflow: hidden;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   }
-  html.dark-mode, body.dark-mode {
-    background-color: var(--bg, #141411) !important;
-    color: var(--fg, #F8F1DF) !important;
+  #map {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: #E5E0D0;
+    touch-action: none;
   }
-  h1, h2, h3, h4, h5, h6, 
-  .font-display, 
-  .font-poppins,
-  .legend-title, 
-  .legend-subtitle {
+  .topbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 48px;
+    z-index: 35;
+    background: var(--bg-panel);
+    border-bottom: 2px solid var(--border-strong);
+    padding: 0 14px;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+  }
+  .topbar-inner { display: flex; align-items: center; justify-content: space-between; width: 100%; height: 100%; }
+  h1, h2, h3, h4, h5, h6, .font-display, .topbar-brand-logo {
     font-family: 'League Spartan', sans-serif !important;
   }
 </style>
+
 <script>
   try {
     if (sessionStorage.getItem('nolli_splash_shown')) {
@@ -634,13 +677,13 @@
   </div>
 </div>
 
-<div id="modal-architect" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="architect-profile-name">
+<div id="modal-architect" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-architect-title">
   <div class="modal-box architect-profile-box">
     <div class="sheet-drag-handle" id="architect-drag-handle" aria-label="Arrastrar para cerrar ficha de arquitecto">
       <span class="sheet-drag-bar"></span>
     </div>
     <div class="modal-head">
-      <span style="letter-spacing:.06em; font-size:11px; font-family:'League Spartan', sans-serif; font-weight:800;">[ FICHA DE AUTOR // ARQUITECTURA ]</span>
+      <span id="modal-architect-title" style="letter-spacing:.06em; font-size:11px; font-family:'League Spartan', sans-serif; font-weight:800;">[ FICHA DE AUTOR // ARQUITECTURA ]</span>
       <button type="button" id="btn-architect-close" class="sheet-close-button" aria-label="Cerrar ficha de arquitecto"><i data-lucide="x" width="16" height="16"></i></button>
     </div>
     <div class="architect-profile-body">

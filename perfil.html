@@ -3,7 +3,7 @@
 <head>
 <base href="/">
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://*.mapbox.com https://api.mapbox.com https://unpkg.com https://storage.ko-fi.com https://ko-fi.com; style-src 'self' 'unsafe-inline' https://*.mapbox.com https://api.mapbox.com https://fonts.googleapis.com https://storage.ko-fi.com https://ko-fi.com; font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.mapbox.com https://api.mapbox.com https://events.mapbox.com https://nominatim.openstreetmap.org https://storage.ko-fi.com https://ko-fi.com; frame-src 'self' https://ko-fi.com https://storage.ko-fi.com; worker-src 'self' blob:; child-src 'self' blob: https://ko-fi.com https://storage.ko-fi.com; object-src 'none'; base-uri 'self';">
 <link rel="preconnect" href="https://api.mapbox.com" crossorigin>
 <link rel="preconnect" href="https://ldtfvpjigzvcagtciipn.supabase.co" crossorigin>
@@ -22,32 +22,38 @@
 <title>nolli. | perfil</title>
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="./icon.svg">
-<link rel="stylesheet" href="css/legal-components.css">
+<!-- Scripts auxiliares diferidos -->
 <script src="js/cookieConsent.js" defer></script>
 <script src="js/siteFooter.js" defer></script>
-
-<script>
-  if (window.location.pathname.endsWith('.html')) {
-    const clean = window.location.pathname.replace(/\/index\.html$/, '/').replace(/\.html$/, '') || '/';
-    window.history.replaceState(null, '', clean + window.location.search + window.location.hash);
-  }
-</script>
-
-<!-- Lucide Icons -->
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js" defer></script>
 
-<!-- Estilos base y de perfil -->
-<link rel="stylesheet" href="css/utilities.css">
-<link rel="stylesheet" href="css/base.css">
-<link rel="stylesheet" href="css/panels.css">
-<link rel="stylesheet" href="css/components.css">
-<link rel="stylesheet" href="css/map-hud.css">
-<link rel="stylesheet" href="css/profile.css">
+<!-- Hojas de estilo no bloqueantes (Asynchronous Preload) -->
+<link rel="preload" href="css/legal-components.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<link rel="preload" href="css/utilities.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<link rel="preload" href="css/base.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<link rel="preload" href="css/panels.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<link rel="preload" href="css/components.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<link rel="preload" href="css/map-hud.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<link rel="preload" href="css/profile.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript>
+  <link rel="stylesheet" href="css/legal-components.css">
+  <link rel="stylesheet" href="css/utilities.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/panels.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/map-hud.css">
+  <link rel="stylesheet" href="css/profile.css">
+</noscript>
+
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#F8F1DF" id="meta-theme-color">
 
 <script>
   (function() {
+    if (window.location.pathname.endsWith('.html')) {
+      const clean = window.location.pathname.replace(/\/index\.html$/, '/').replace(/\.html$/, '') || '/';
+      window.history.replaceState(null, '', clean + window.location.search + window.location.hash);
+    }
     const saved = localStorage.getItem('nolli_theme') || localStorage.getItem('nolli_map_style');
     if (saved === 'dark') {
       document.documentElement.classList.add('dark-mode');
@@ -56,14 +62,52 @@
         const meta = document.getElementById('meta-theme-color');
         if (meta) meta.setAttribute('content', '#141411');
       };
-      if (document.body) {
-        applyDark();
-      } else {
-        document.addEventListener('DOMContentLoaded', applyDark);
-      }
+      if (document.body) applyDark();
+      else document.addEventListener('DOMContentLoaded', applyDark);
     }
   })();
 </script>
+
+<style>
+  :root {
+    --bg: #F8F1DF;
+    --bg-panel: #F8F1DF;
+    --bg-raised: #F0E9D2;
+    --fg: #141411;
+    --fg-dim: #6B6B6B;
+    --border-strong: #141411;
+    --accent: #C44605;
+  }
+  body.dark-mode {
+    --bg: #141411;
+    --bg-panel: #1C1C1A;
+    --bg-raised: #252522;
+    --fg: #F8F1DF;
+    --fg-dim: #9A9A9A;
+    --border-strong: #4E4E48;
+    --accent: #FF7528;
+  }
+  * { box-sizing: border-box; border-radius: 0 !important; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg);
+    color: var(--fg);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  .profile-header {
+    height: 48px;
+    border-bottom: 2px solid var(--border-strong);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    background: var(--bg-panel);
+  }
+  h1, h2, h3, .profile-logo, .profile-hero-name {
+    font-family: 'League Spartan', sans-serif !important;
+  }
+</style>
 </head>
 <body class="profile-body">
 
@@ -103,15 +147,15 @@
 
       <!-- 3. Métricas (Grid Invisible) -->
       <section id="profile-stats" class="profile-metrics-row" aria-label="Métricas personales">
-        <div class="profile-metric-item" data-metric-tab="visited" role="button" tabindex="0">
+        <div class="profile-metric-item" data-metric-tab="visited" role="button" tabindex="0" aria-label="Ver obras visitadas">
           <span class="profile-metric-num" id="stat-visited-num">0</span>
           <span class="profile-metric-label">VISITADOS</span>
         </div>
-        <div class="profile-metric-item" data-metric-tab="favorite" role="button" tabindex="0">
+        <div class="profile-metric-item" data-metric-tab="favorite" role="button" tabindex="0" aria-label="Ver obras favoritas">
           <span class="profile-metric-num" id="stat-favorite-num">0</span>
           <span class="profile-metric-label">FAVORITOS</span>
         </div>
-        <div class="profile-metric-item" data-metric-tab="notes" role="button" tabindex="0">
+        <div class="profile-metric-item" data-metric-tab="notes" role="button" tabindex="0" aria-label="Ver notas privadas">
           <span class="profile-metric-num" id="stat-notes-num">0</span>
           <span class="profile-metric-label">NOTAS</span>
         </div>

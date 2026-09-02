@@ -176,11 +176,29 @@ window.addEventListener('popstate', (e) => {
 });
 
 async function esperarMapbox() {
-  if (window.mapboxgl) return;
-  const script = document.getElementById('mapbox-gl-js');
-  if (!script) throw new Error('No se encontró el script de Mapbox.');
-  await new Promise((resolve, reject) => {
-    script.addEventListener('load', resolve, { once: true });
+  if (window.mapboxgl) return window.mapboxgl;
+
+  // 1. Inyectar hoja de estilos de Mapbox sin bloquear renderizado
+  if (!document.getElementById('mapbox-gl-css')) {
+    const link = document.createElement('link');
+    link.id = 'mapbox-gl-css';
+    link.rel = 'stylesheet';
+    link.href = 'https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css';
+    document.head.appendChild(link);
+  }
+
+  // 2. Inyectar script de Mapbox GL JS de forma asíncrona
+  return new Promise((resolve, reject) => {
+    let script = document.getElementById('mapbox-gl-js');
+    if (!script) {
+      script = document.createElement('script');
+      script.id = 'mapbox-gl-js';
+      script.src = 'https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js';
+      script.async = true;
+      document.head.appendChild(script);
+    }
+    if (window.mapboxgl) return resolve(window.mapboxgl);
+    script.addEventListener('load', () => resolve(window.mapboxgl), { once: true });
     script.addEventListener('error', () => reject(new Error('No se pudo cargar Mapbox.')), { once: true });
   });
 }

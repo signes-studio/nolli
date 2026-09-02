@@ -334,7 +334,7 @@ export function cargarMapaMapbox() {
       // Importancia 0 y 1 visibles siempre (minzoom: 0); Importancia 2 a partir de zoom 12; Importancia 3 a partir de zoom 14
       const minzoom = (importance === 0 || importance === 1) ? 0 : importance === 2 ? 12.0 : 14.0;
       const baseFilter = ['==', ['get', 'importancia'], importance];
-      const sourceId = importance === 0 ? 'obras-maestras' : 'obras';
+      const sourceId = (importance === 0 || importance === 1) ? 'obras-maestras' : 'obras';
       const iconSize = importance === 0 ? 0.92 : importance === 1 ? 0.70 : importance === 2 ? 0.56 : 0.52;
       const catExpr = ['coalesce', ['get', 'categoria'], 'otro'];
       const permitirSolapamiento = importance !== 3;
@@ -504,13 +504,13 @@ export function cargarMapaMapbox() {
       0: {
         font: ['Inter Bold', 'Open Sans Bold', 'Arial Unicode MS Bold'],
         size: 12.5,
-        minzoom: 11.5,
+        minzoom: 8.0, // Textos visibles a partir de zoom 8
         sortKey: 0,
       },
       1: {
         font: ['Inter Medium', 'Open Sans Semibold', 'Arial Unicode MS Bold'],
         size: 11.5,
-        minzoom: 13.0,
+        minzoom: 8.0, // Textos visibles a partir de zoom 8
         sortKey: 1,
       },
       2: {
@@ -530,7 +530,7 @@ export function cargarMapaMapbox() {
     [3, 2, 1, 0].forEach((importance) => {
       const cfg = IMPORTANCE_LABEL_CONFIG[importance];
       const labelLayerId = `obras-labels-l${importance}`;
-      const sourceId = importance === 0 ? 'obras-maestras' : 'obras';
+      const sourceId = (importance === 0 || importance === 1) ? 'obras-maestras' : 'obras';
       state.map.addLayer({
         id: labelLayerId,
         type: 'symbol',
