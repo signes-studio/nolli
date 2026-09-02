@@ -357,6 +357,7 @@ export function cargarMapaMapbox() {
             ['has', 'collection_emoji'], 0.75,
             iconSize
           ],
+          'symbol-sort-key': importance,
           'icon-allow-overlap': permitirSolapamiento,
           'icon-ignore-placement': permitirSolapamiento,
           'icon-optional': false,
@@ -381,6 +382,7 @@ export function cargarMapaMapbox() {
             ['has', 'collection_emoji'], 0.75,
             iconSize
           ],
+          'symbol-sort-key': importance,
           'icon-allow-overlap': permitirSolapamiento,
           'icon-ignore-placement': permitirSolapamiento,
           'icon-optional': false,
@@ -464,6 +466,7 @@ export function cargarMapaMapbox() {
             ['has', 'collection_emoji'], 0.75,
             iconSize
           ],
+          'symbol-sort-key': importance,
           'icon-allow-overlap': permitirSolapamiento,
           'icon-ignore-placement': permitirSolapamiento,
           'icon-optional': false,
@@ -488,6 +491,7 @@ export function cargarMapaMapbox() {
             ['has', 'collection_emoji'], 0.75,
             iconSize
           ],
+          'symbol-sort-key': importance,
           'icon-allow-overlap': permitirSolapamiento,
           'icon-ignore-placement': permitirSolapamiento,
           'icon-optional': false,
@@ -505,25 +509,25 @@ export function cargarMapaMapbox() {
         font: ['Inter Bold', 'Open Sans Bold', 'Arial Unicode MS Bold'],
         size: 12.5,
         minzoom: 8.0, // Textos visibles a partir de zoom 8
-        sortKey: 0,
+        sortKey: 100,
       },
       1: {
         font: ['Inter Medium', 'Open Sans Semibold', 'Arial Unicode MS Bold'],
         size: 11.5,
         minzoom: 8.0, // Textos visibles a partir de zoom 8
-        sortKey: 1,
+        sortKey: 101,
       },
       2: {
         font: ['Inter Regular', 'Open Sans Regular', 'Arial Unicode MS Regular'],
         size: 11,
         minzoom: 14.5,
-        sortKey: 2,
+        sortKey: 102,
       },
       3: {
         font: ['Inter Light', 'Open Sans Light', 'Arial Unicode MS Regular'],
         size: 10,
         minzoom: 17.0,
-        sortKey: 3,
+        sortKey: 103,
       },
     };
 
@@ -541,13 +545,13 @@ export function cargarMapaMapbox() {
           'text-field': ['get', 'nombre_obra'],
           'text-font': cfg.font,
           'text-size': cfg.size,
-          'text-offset': [1.05, 0],
+          'text-offset': [1.25, 0],
           'text-anchor': 'left',
           'text-justify': 'left',
           'text-max-width': 11,
-          'text-padding': 4,
+          'text-padding': 2,
           'text-allow-overlap': false,
-          'text-ignore-placement': false,
+          'text-ignore-placement': true, // El texto nunca bloqueará ni ocultará el icono/cruz
           'text-optional': true,
           'symbol-avoid-edges': false,
           'text-pitch-alignment': 'viewport',
