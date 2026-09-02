@@ -524,6 +524,7 @@ function initAddBuildingModal() {
           featureId: obra.featureId,
           selected: obra.selected,
         });
+      } else {
         const isPrivate = visibility === 'private';
         const isDirect = visibility === 'direct' && esRolAdmin(state.userRole);
         const nuevoId = generarIdAlfanumerico(8);
@@ -559,6 +560,7 @@ function initAddBuildingModal() {
         state.OBRAS.push(savedItem);
         if (isPrivate) state.privateBuildings.push(savedItem);
       }
+
       invalidateCatalogCache();
       document.dispatchEvent(new CustomEvent('radar:catalog-invalidated'));
       actualizarFuenteMapa();

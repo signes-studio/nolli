@@ -943,16 +943,17 @@ export async function fetchRatingAverages(sessionToken) {
   }]));
 }
 
-/** Inserta un nuevo edificio en la base de datos. Requiere token de sesión. */
-export async function createBuilding(nuevoEdificio, sessionToken) {
+/** Inserta un nuevo edificio en la base de datos. */
+export async function createBuilding(nuevoEdificio, sessionToken = null) {
+  const headers = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${sessionToken || SUPABASE_KEY}`,
+    'Content-Type': 'application/json',
+    'Prefer': 'return=representation',
+  };
   const res = await fetch(`${SUPABASE_URL}/rest/v1/Buildings`, {
     method: 'POST',
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${sessionToken}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=representation',
-    },
+    headers,
     body: JSON.stringify(nuevoEdificio),
   });
   if (!res.ok) {
