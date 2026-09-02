@@ -167,9 +167,6 @@ export function cargarMapaMapbox() {
       type: 'geojson',
       data: { type: 'FeatureCollection', features: [] },
       promoteId: 'featureId',
-      cluster: true,
-      clusterMaxZoom: 4,
-      clusterRadius: 45,
       buffer: 512, // Pre-renderiza un buffer del 400% alrededor de la pantalla para desplazamiento sin lag
       tolerance: 0.25,
     });
@@ -187,7 +184,7 @@ export function cargarMapaMapbox() {
       id: 'obras-favorites-contour',
       type: 'circle',
       source: 'obras',
-      filter: ['all', ['!', ['has', 'point_count']], ['==', ['get', 'favorite'], 1]],
+      filter: ['==', ['get', 'favorite'], 1],
       paint: {
         'circle-radius': 13.5,
         'circle-color': 'transparent',
@@ -212,29 +209,6 @@ export function cargarMapaMapbox() {
         'circle-stroke-opacity': 0.9,
         'circle-blur': 0,
         'circle-opacity': 1,
-      },
-    });
-
-    state.map.addLayer({
-      id: 'obras-clusters',
-      type: 'circle',
-      source: 'obras',
-      filter: ['has', 'point_count'],
-      paint: {
-        'circle-color': '#005AC1',
-        'circle-radius': 12,
-        'circle-opacity': 0.94,
-      },
-    });
-    state.map.addLayer({
-      id: 'obras-clusters-core',
-      type: 'circle',
-      source: 'obras',
-      filter: ['has', 'point_count'],
-      paint: {
-        'circle-color': '#000000',
-        'circle-radius': 4,
-        'circle-opacity': 0.92,
       },
     });
 
@@ -330,6 +304,29 @@ export function cargarMapaMapbox() {
       },
     });
 
+    const IMPORTANCE_LABEL_CONFIG = {
+      0: {
+        font: ['Inter Bold', 'Open Sans Bold', 'Arial Unicode MS Bold'],
+        size: 12.5,
+        minzoom: 8.0, // Textos visibles a partir de zoom 8
+      },
+      1: {
+        font: ['Inter Medium', 'Open Sans Semibold', 'Arial Unicode MS Bold'],
+        size: 11.5,
+        minzoom: 8.0, // Textos visibles a partir de zoom 8
+      },
+      2: {
+        font: ['Inter Regular', 'Open Sans Regular', 'Arial Unicode MS Regular'],
+        size: 11,
+        minzoom: 14.5,
+      },
+      3: {
+        font: ['Inter Light', 'Open Sans Light', 'Arial Unicode MS Regular'],
+        size: 10,
+        minzoom: 17.0,
+      },
+    };
+
     [3, 2, 1, 0].forEach((importance) => {
       // Importancia 0 y 1 visibles siempre (minzoom: 0); Importancia 2 a partir de zoom 12; Importancia 3 a partir de zoom 14
       const minzoom = (importance === 0 || importance === 1) ? 0 : importance === 2 ? 12.0 : 14.0;
@@ -337,7 +334,38 @@ export function cargarMapaMapbox() {
       const sourceId = (importance === 0 || importance === 1) ? 'obras-maestras' : 'obras';
       const iconSize = importance === 0 ? 0.92 : importance === 1 ? 0.70 : importance === 2 ? 0.56 : 0.52;
       const catExpr = ['coalesce', ['get', 'categoria'], 'otro'];
-      const permitirSolapamiento = importance !== 3;
+      const permitirSolapamiento = (importance === 0 || importance === 1)
+        ? ['step', ['zoom'], false, 11, true] // Colisiones activas en zoom lejano (< 11); sin restricción en zoom cercano (>= 11)
+        : importance === 2
+          ? true
+          : false;
+      const sortKeyExpr = (importance === 0 || importance === 1)
+        ? ['coalesce', ['get', 'alpha_rank'], importance]
+        : importance;
+
+      const labelCfg = IMPORTANCE_LABEL_CONFIG[importance];
+      const textFieldExpr = ['step', ['zoom'], '', labelCfg.minzoom, ['get', 'nombre_obra']];
+      const textPaint = {
+        'text-color': isDark ? '#FFFFFF' : '#04070B',
+        'text-halo-color': isDark ? 'rgba(18, 18, 18, 0.95)' : 'rgba(248, 241, 223, 0.95)',
+        'text-halo-width': 1.5,
+        'text-halo-blur': 0.5,
+      };
+      const textLayout = {
+        'text-field': textFieldExpr,
+        'text-font': labelCfg.font,
+        'text-size': labelCfg.size,
+        'text-offset': [1.25, 0],
+        'text-anchor': 'left',
+        'text-justify': 'left',
+        'text-max-width': 11,
+        'text-padding': 4,
+        'text-allow-overlap': false,
+        'text-ignore-placement': false,
+        'text-optional': true,
+        'symbol-avoid-edges': false,
+        'text-pitch-alignment': 'viewport',
+      };
 
       // Capa normal
       state.map.addLayer({
@@ -357,11 +385,13 @@ export function cargarMapaMapbox() {
             ['has', 'collection_emoji'], 0.75,
             iconSize
           ],
-          'symbol-sort-key': importance,
+          'symbol-sort-key': sortKeyExpr,
           'icon-allow-overlap': permitirSolapamiento,
           'icon-ignore-placement': permitirSolapamiento,
           'icon-optional': false,
+          ...textLayout,
         },
+        paint: textPaint,
       });
 
       // Capa visitada
@@ -382,11 +412,13 @@ export function cargarMapaMapbox() {
             ['has', 'collection_emoji'], 0.75,
             iconSize
           ],
-          'symbol-sort-key': importance,
+          'symbol-sort-key': sortKeyExpr,
           'icon-allow-overlap': permitirSolapamiento,
           'icon-ignore-placement': permitirSolapamiento,
           'icon-optional': false,
+          ...textLayout,
         },
+        paint: textPaint,
       });
 
       // Capa seleccionada (Escalada 1.25x y con prioridad z-index 100, visible a cualquier zoom)
@@ -466,11 +498,13 @@ export function cargarMapaMapbox() {
             ['has', 'collection_emoji'], 0.75,
             iconSize
           ],
-          'symbol-sort-key': importance,
+          'symbol-sort-key': sortKeyExpr,
           'icon-allow-overlap': permitirSolapamiento,
           'icon-ignore-placement': permitirSolapamiento,
           'icon-optional': false,
+          ...textLayout,
         },
+        paint: textPaint,
       });
 
       // Capa privada
@@ -491,82 +525,19 @@ export function cargarMapaMapbox() {
             ['has', 'collection_emoji'], 0.75,
             iconSize
           ],
-          'symbol-sort-key': importance,
+          'symbol-sort-key': sortKeyExpr,
           'icon-allow-overlap': permitirSolapamiento,
           'icon-ignore-placement': permitirSolapamiento,
           'icon-optional': false,
+          ...textLayout,
         },
+        paint: textPaint,
       });
 
       [`obras-l${importance}`, `obras-l${importance}-visited`, `obras-l${importance}-selected`, `obras-l${importance}-search`, `obras-l${importance}-search-selected`, `obras-l${importance}-pending`, `obras-l${importance}-private`].forEach((layerId) => {
         state.map.on('mouseenter', layerId, () => { state.map.getCanvas().style.cursor = 'pointer'; });
         state.map.on('mouseleave', layerId, () => { state.map.getCanvas().style.cursor = ''; });
       });
-    });
-
-    const IMPORTANCE_LABEL_CONFIG = {
-      0: {
-        font: ['Inter Bold', 'Open Sans Bold', 'Arial Unicode MS Bold'],
-        size: 12.5,
-        minzoom: 8.0, // Textos visibles a partir de zoom 8
-        sortKey: 100,
-      },
-      1: {
-        font: ['Inter Medium', 'Open Sans Semibold', 'Arial Unicode MS Bold'],
-        size: 11.5,
-        minzoom: 8.0, // Textos visibles a partir de zoom 8
-        sortKey: 101,
-      },
-      2: {
-        font: ['Inter Regular', 'Open Sans Regular', 'Arial Unicode MS Regular'],
-        size: 11,
-        minzoom: 14.5,
-        sortKey: 102,
-      },
-      3: {
-        font: ['Inter Light', 'Open Sans Light', 'Arial Unicode MS Regular'],
-        size: 10,
-        minzoom: 17.0,
-        sortKey: 103,
-      },
-    };
-
-    [3, 2, 1, 0].forEach((importance) => {
-      const cfg = IMPORTANCE_LABEL_CONFIG[importance];
-      const labelLayerId = `obras-labels-l${importance}`;
-      const sourceId = (importance === 0 || importance === 1) ? 'obras-maestras' : 'obras';
-      state.map.addLayer({
-        id: labelLayerId,
-        type: 'symbol',
-        source: sourceId,
-        minzoom: cfg.minzoom,
-        filter: ['all', ['==', ['get', 'importancia'], importance], ['!=', ['get', 'estado_revision'], 'rechazada'], ['!=', ['get', 'selected'], 1]],
-        layout: {
-          'text-field': ['get', 'nombre_obra'],
-          'text-font': cfg.font,
-          'text-size': cfg.size,
-          'text-offset': [1.25, 0],
-          'text-anchor': 'left',
-          'text-justify': 'left',
-          'text-max-width': 11,
-          'text-padding': 2,
-          'text-allow-overlap': false,
-          'text-ignore-placement': true, // El texto nunca bloqueará ni ocultará el icono/cruz
-          'text-optional': true,
-          'symbol-avoid-edges': false,
-          'text-pitch-alignment': 'viewport',
-          'symbol-sort-key': cfg.sortKey,
-        },
-        paint: {
-          'text-color': isDark ? '#FFFFFF' : '#04070B',
-          'text-halo-color': isDark ? 'rgba(18, 18, 18, 0.95)' : 'rgba(248, 241, 223, 0.95)',
-          'text-halo-width': 1.5,
-          'text-halo-blur': 0.5,
-          'text-opacity-transition': { duration: 0 },
-        },
-      });
-      state.map.on('mouseenter', labelLayerId, () => { state.map.getCanvas().style.cursor = 'pointer'; });
-      state.map.on('mouseleave', labelLayerId, () => { state.map.getCanvas().style.cursor = ''; });
     });
 
     // Capa de etiqueta de la obra seleccionada (siempre visible y destacada)
@@ -1008,14 +979,19 @@ function iniciarInteraccionesMapa() {
     ['', '-visited', '-selected', '-search', '-search-selected', '-pending', '-private'].forEach((suf) => {
       allLayerIds.push(`obras-l${imp}${suf}`);
     });
-    allLayerIds.push(`obras-labels-l${imp}`);
   });
+  ['obras-labels-selected', 'obras-maestras-labels-selected'].forEach((id) => {
+    allLayerIds.push(id);
+  });
+
+  const getActiveLayers = () => allLayerIds.filter((id) => Boolean(state.map?.getLayer(id)));
 
   const handleFeatureClick = (e) => {
     if (state.addingBuilding) return;
     const feature = e.features && e.features[0];
+    const activeLayers = getActiveLayers();
     const fallbackFeature = !feature && state.map
-      ? state.map.queryRenderedFeatures(e.point, { layers: ['obras-clusters', 'obras-clusters-core', ...allLayerIds] })[0]
+      ? state.map.queryRenderedFeatures(e.point, { layers: activeLayers })[0]
       : null;
     const targetFeature = feature || fallbackFeature;
     if (!targetFeature) return;
@@ -1033,35 +1009,16 @@ function iniciarInteraccionesMapa() {
     }
   });
 
-  state.map.on('click', 'obras-clusters', (e) => {
-    const cluster = e.features[0];
-    state.map.getSource('obras').getClusterExpansionZoom(cluster.properties.cluster_id, (error, zoom) => {
-      if (error) return;
-      state.map.easeTo({ center: cluster.geometry.coordinates, zoom });
-    });
-  });
-  state.map.on('click', 'obras-clusters-core', (e) => {
-    const cluster = e.features[0];
-    state.map.getSource('obras').getClusterExpansionZoom(cluster.properties.cluster_id, (error, zoom) => {
-      if (error) return;
-      state.map.easeTo({ center: cluster.geometry.coordinates, zoom });
-    });
-  });
-  state.map.on('mouseenter', 'obras-clusters', () => { state.map.getCanvas().style.cursor = 'pointer'; });
-  state.map.on('mouseleave', 'obras-clusters', () => { state.map.getCanvas().style.cursor = ''; });
-  state.map.on('mouseenter', 'obras-clusters-core', () => { state.map.getCanvas().style.cursor = 'pointer'; });
-  state.map.on('mouseleave', 'obras-clusters-core', () => { state.map.getCanvas().style.cursor = ''; });
-
   state.map.on('click', (e) => {
     if (state.addingBuilding) {
       state.addingBuilding = false;
-      document.getElementById('btn-add-project').classList.remove('active-state');
-      document.getElementById('btn-add-project').title = 'Añadir obra';
+      document.getElementById('btn-add-project')?.classList.remove('active-state');
       state.map.getCanvas().style.cursor = '';
       dispatchLongPress(e.lngLat);
       return;
     }
-    const isObra = state.map.queryRenderedFeatures(e.point, { layers: ['obras-clusters', 'obras-clusters-core', ...allLayerIds] });
+    const activeLayers = getActiveLayers();
+    const isObra = state.map.queryRenderedFeatures(e.point, { layers: activeLayers });
     if (!isObra.length) cerrarFicha();
   });
 
