@@ -12,7 +12,8 @@ import {
   fetchUserDirectory, 
   updateBuildingReport, 
   fetchAllBuildingsForAdmin,
-  fetchUserRole
+  fetchUserRole,
+  updateUserRole
 } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
@@ -242,7 +243,7 @@ function checkAdminVisibility() {
   const isAdmin = esRolAdmin(state.userRole);
   const buttons = getAdminButtons();
   buttons.forEach((btn) => {
-    btn.classList.toggle('hidden', !isAdmin || state.adminMode === false);
+    btn.classList.toggle('hidden', !isAdmin);
   });
 }
 
@@ -539,6 +540,7 @@ async function renderUsers() {
   }
 
   if (userList) {
+    const isSuper = state.userRole === 'superadmin' || String(state.userEmail).toLowerCase().trim() === 'studio.signes@gmail.com';
     userList.innerHTML = filtered.map((user) => {
       const safeFirstName = escapeHtml(user.first_name || '');
       const safeLastName = escapeHtml(user.last_name || '');
@@ -546,7 +548,8 @@ async function renderUsers() {
       const safeEmail = escapeHtml(user.email || 'Email no disponible');
       const safeCity = escapeHtml(user.city || 'Ciudad');
       const safeCountry = escapeHtml(user.country || 'País');
-      const safeRole = escapeHtml((user.role || 'user').toUpperCase());
+      const userRole = String(user.role || 'user').toLowerCase();
+      const safeRole = escapeHtml(userRole.toUpperCase());
       const presence = calcularEstadoPresencia(user.last_seen_at);
       const safePresenceLabel = escapeHtml(presence.label);
 
@@ -562,10 +565,36 @@ async function renderUsers() {
             <span>${safeCity} · ${safeCountry}</span>
             <small class="admin-user-presence ${presence.isOnline ? 'online' : ''}">${safePresenceLabel}</small>
           </div>
-          <span class="admin-user-role" style="border: 1px solid var(--accent-2); padding: 2px 6px; font-size: 8.5px;">${safeRole}</span>
+          ${isSuper ? `
+            <select class="admin-user-role-select tech-input" data-user-id="${escapeHtml(user.id)}" style="font-size: 10px; font-weight: 700; padding: 3px 6px; border: 1.5px solid var(--accent-2); background: #111; color: var(--accent-2); width: auto; max-width: 120px;">
+              <option value="user" ${userRole === 'user' ? 'selected' : ''}>USER</option>
+              <option value="tester" ${userRole === 'tester' ? 'selected' : ''}>TESTER</option>
+              <option value="admin" ${userRole === 'admin' ? 'selected' : ''}>ADMIN</option>
+              <option value="superadmin" ${userRole === 'superadmin' ? 'selected' : ''}>SUPERADMIN</option>
+            </select>
+          ` : `
+            <span class="admin-user-role" style="border: 1px solid var(--accent-2); padding: 2px 6px; font-size: 8.5px;">${safeRole}</span>
+          `}
         </article>
       `;
     }).join('');
+
+    if (isSuper) {
+      userList.querySelectorAll('.admin-user-role-select').forEach((select) => {
+        select.addEventListener('change', async () => {
+          const targetId = select.dataset.userId;
+          const nextRole = select.value;
+          try {
+            await updateUserRole(targetId, nextRole, state.sessionToken);
+            const found = cachedUsers.find((u) => String(u.id) === String(targetId));
+            if (found) found.role = nextRole;
+          } catch (err) {
+            alert(`Error al actualizar rol: ${err.message}`);
+            renderUsers();
+          }
+        });
+      });
+    }
   }
 }
 

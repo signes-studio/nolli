@@ -367,14 +367,14 @@ try { initMobileBottomNav(); } catch (err) { console.warn('Init MobileBottomNav:
 const adminPanelButton = document.getElementById('btn-admin-panel');
 adminPanelButton?.addEventListener('click', async (event) => {
   event.preventDefault();
-  event.stopImmediatePropagation();
   try {
     await cargarPanelBajoDemanda('adminUI', 'initAdminUI');
-    adminPanelButton.click();
+    const { toggleAdminPanel } = await import('./adminUI.js');
+    toggleAdminPanel(true);
   } catch (err) {
     console.warn('Init AdminUI:', err);
   }
-}, { once: true });
+});
 
 try {
   window.lucide?.createIcons({ context: document.querySelector('main') });

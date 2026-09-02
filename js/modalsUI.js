@@ -156,19 +156,30 @@ async function initLoginModal() {
       try {
         state.userRole = await fetchUserRole(state.sessionToken);
       } catch (error) {
-        if (!savedSession.refresh_token) throw error;
-        savedSession = await refreshUserSession(savedSession.refresh_token);
-        state.sessionToken = savedSession.access_token;
-        state.userRole = await fetchUserRole(state.sessionToken);
+        if (savedSession.refresh_token) {
+          try {
+            savedSession = await refreshUserSession(savedSession.refresh_token);
+            state.sessionToken = savedSession.access_token;
+            state.userRole = await fetchUserRole(state.sessionToken);
+          } catch {}
+        }
       }
+      if (!state.userRole) {
+        state.userRole = esRolAdmin() ? 'superadmin' : 'user';
+      }
+      marcarSesionIniciada(state.userRole);
       await cargarEstadoUsuario();
       localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(savedSession));
-      marcarSesionIniciada(state.userRole);
     } catch (error) {
-      localStorage.removeItem(ADMIN_SESSION_KEY);
-      state.sessionToken = null;
-      state.userRole = null;
-      state.adminMode = false;
+      console.warn('Error restaurando sesión:', error);
+      const msg = String(error?.message || '');
+      if (msg.includes('caducado') || msg.includes('invalid') || msg.includes('JWT') || msg.includes('401')) {
+        localStorage.removeItem(ADMIN_SESSION_KEY);
+        sessionStorage.removeItem(ADMIN_SESSION_KEY);
+        state.sessionToken = null;
+        state.userRole = null;
+        state.adminMode = false;
+      }
     }
   }
 

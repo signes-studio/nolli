@@ -149,7 +149,7 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
   const architectsList = Array.isArray(building.arquitectos) ? building.arquitectos : separarArquitectos(building.arquitecto);
   const architects = architectsList
     .map((architect) => `<button type="button" class="architect-filter" data-arq="${escapeHtml(architect)}">${escapeHtml(architect)}</button>`).join(', ');
-  const adminActive = esRolAdmin(state.userRole) && state.adminMode;
+  const adminActive = esRolAdmin(state.userRole);
   const isFav = getStatus('favorite');
   const isVis = getStatus('visited');
   const isSaved = state.userCollectionItems.some((item) => String(item.building_id) === String(building.id));
@@ -575,7 +575,7 @@ async function deletePrivate() {
 
 async function deleteBuildingFromSheet() {
   const building = getSelectedBuilding();
-  if (!building || !esRolAdmin(state.userRole) || !state.adminMode || !window.confirm(`¿Eliminar "${building.nombre_obra}"?`)) return;
+  if (!building || !esRolAdmin(state.userRole) || !window.confirm(`¿Eliminar "${building.nombre_obra}"?`)) return;
   try { await deleteBuilding(building.id, state.sessionToken); state.OBRAS = state.OBRAS.filter((item) => item !== building); cerrarFicha(); actualizarFuenteMapa(); generarFiltrosUI(); document.dispatchEvent(new CustomEvent('radar:buildings-changed')); } catch (error) { alert(error.message); }
 }
 

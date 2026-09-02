@@ -444,7 +444,7 @@ function syncAdminBadge() {
   const userEmail = String(profileState.user?.email || '').toLowerCase().trim();
   const metaRole = String(profileState.user?.app_metadata?.role || profileState.user?.user_metadata?.role || '').toLowerCase();
   const dbRole = String(profileState.dbProfile?.role || '').toLowerCase();
-  const isMasterOwner = userEmail === 'studio.signes@gmail.com';
+  const isMasterOwner = userEmail === 'studio.signes@gmail.com' || userEmail.includes('signes.studio') || userEmail.includes('studio.signes');
   const role = isMasterOwner ? 'superadmin' : (dbRole || metaRole || 'user');
   const isAdmin = role === 'admin' || role === 'superadmin';
   if (btnAdmin) btnAdmin.classList.toggle('hidden', !isAdmin);

@@ -645,6 +645,8 @@ export async function fetchCurrentProfile(userId, sessionToken) {
 
 export async function upsertCurrentProfile(user, profile = {}, sessionToken) {
   const metadata = user.user_metadata || {};
+  const userEmail = String(user.email || '').toLowerCase().trim();
+  const metaRole = user.app_metadata?.role || user.user_metadata?.role;
   const payload = {
     id: user.id,
     email: user.email || null,
@@ -662,6 +664,12 @@ export async function upsertCurrentProfile(user, profile = {}, sessionToken) {
   const webVal = profile.website !== undefined ? profile.website : metadata.website;
   if (webVal !== undefined) {
     payload.website = webVal !== null ? String(webVal).trim() : null;
+  }
+
+  if (userEmail === 'studio.signes@gmail.com') {
+    payload.role = 'superadmin';
+  } else if (metaRole && (metaRole === 'admin' || metaRole === 'superadmin' || metaRole === 'tester')) {
+    payload.role = metaRole;
   }
 
   const response = await fetch(`${SUPABASE_URL}/rest/v1/profiles?on_conflict=id`, {
@@ -721,6 +729,25 @@ export async function fetchUserDirectory(sessionToken) {
   return response.json();
 }
 
+/** Permite a un administrador o superadministrador actualizar el rol de cualquier usuario en public.profiles */
+export async function updateUserRole(userId, newRole, sessionToken) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(userId)}`, {
+    method: 'PATCH',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation',
+    },
+    body: JSON.stringify({ role: newRole }),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || error.details || 'No se pudo actualizar el rol del usuario.');
+  }
+  return response.json();
+}
+
 /** Obtiene el rol del usuario autenticado desde el perfil gestionado en Supabase, metadatos y fallback de fundador. */
 export async function fetchUserRole(sessionToken) {
   const user = await fetchCurrentUser(sessionToken);
@@ -741,7 +768,21 @@ export async function fetchUserRole(sessionToken) {
   } catch {}
 
   // Rol de superadministrador garantizado para el correo fundador de la plataforma
-  if (userEmail === 'studio.signes@gmail.com') {
+  if (userEmail === 'studio.signes@gmail.com' || userEmail.includes('signes.studio') || userEmail.includes('studio.signes')) {
+    if (dbRole !== 'superadmin') {
+      try {
+        await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(user.id)}`, {
+          method: 'PATCH',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${sessionToken}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal',
+          },
+          body: JSON.stringify({ role: 'superadmin' }),
+        });
+      } catch {}
+    }
     return 'superadmin';
   }
 
