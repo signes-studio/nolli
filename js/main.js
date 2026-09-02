@@ -205,9 +205,58 @@ async function inicializarRadar() {
       lastViewportKey = null; // Invalida cache al cambiar filtros
       programarCargaEdificiosVisibles();
     });
+
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('#btn-close-itinerary, .itinerary-badge-close');
+      if (btn) {
+        e.preventDefault();
+        e.stopPropagation();
+        restaurarMapaGeneral();
+      }
+    });
   } catch (error) {
     console.warn('Aviso de inicialización del mapa:', error);
   }
+}
+
+export function restaurarMapaGeneral() {
+  state.activeItinerary = null;
+  const itineraryBadge = document.getElementById('itinerary-filter-badge');
+  if (itineraryBadge) {
+    itineraryBadge.classList.add('hidden');
+  }
+
+  // Limpiar campo de búsqueda y cerrar dropdown
+  const searchInput = document.getElementById('mobile-search-input');
+  if (searchInput) searchInput.value = '';
+  const searchDropdown = document.getElementById('mobile-search-dropdown');
+  if (searchDropdown) {
+    searchDropdown.hidden = true;
+    searchDropdown.style.display = 'none';
+  }
+  const searchResults = document.getElementById('mobile-search-results');
+  if (searchResults) searchResults.innerHTML = '';
+  const searchWidget = document.getElementById('mobile-search-widget');
+  if (searchWidget) {
+    searchWidget.classList.remove('expanded');
+    searchWidget.classList.add('collapsed');
+  }
+
+  // Limpiar parámetros de URL ?q= o #list=
+  try {
+    const url = new URL(window.location.href);
+    if (url.searchParams.has('q')) {
+      url.searchParams.delete('q');
+      window.history.replaceState(null, '', url.pathname + (url.searchParams.toString() ? '?' + url.searchParams.toString() : '') + url.hash);
+    }
+    if (window.location.hash.startsWith('#list=')) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+  } catch (e) {}
+
+  actualizarFuenteMapa();
+  lastViewportKey = null; // Invalida cache para recargar edificios normales
+  programarCargaEdificiosVisibles();
 }
 
 async function cargarContenidoPrivado() {

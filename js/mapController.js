@@ -4,7 +4,7 @@
 
 import { state, CATEGORY_META } from './state.js';
 import { MAPBOX_TOKEN, MAP_STYLES, DEFAULT_CENTER, DEFAULT_ZOOM } from './config.js';
-import { buildIcon, drawTargetIcon, drawPrivateSquareIcon, buildEmojiIcon } from './icons.js';
+import { buildIcon, drawTargetIcon, drawPrivateSquareIcon, drawSearchLupaIcon, buildEmojiIcon } from './icons.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { abrirFicha, cerrarFicha } from './sheetUI.js';
 
@@ -144,6 +144,7 @@ export function cargarMapaMapbox() {
     [0, 1, 2, 3].forEach((importance) => {
       Object.entries(categoryColors).forEach(([cat, color]) => {
         const prefix = `icon-l${importance}-${cat}`;
+        const searchPrefix = `icon-search-l${importance}-${cat}`;
 
         try {
           if (!state.map.hasImage(prefix)) state.map.addImage(prefix, buildIcon(drawTargetIcon, color, importance), { pixelRatio: 2 });
@@ -151,6 +152,10 @@ export function cargarMapaMapbox() {
           if (!state.map.hasImage(`${prefix}-pending`)) state.map.addImage(`${prefix}-pending`, buildIcon(drawTargetIcon, '#FFCC00', importance), { pixelRatio: 2 });
           if (!state.map.hasImage(`${prefix}-private`)) state.map.addImage(`${prefix}-private`, buildIcon(drawPrivateSquareIcon, color, importance), { pixelRatio: 2 });
           if (!state.map.hasImage(`${prefix}-selected`)) state.map.addImage(`${prefix}-selected`, buildIcon(drawTargetIcon, selectedColor, importance), { pixelRatio: 2 });
+
+          // Iconos de búsqueda (Lupa con color de categoría y tamaño por importancia)
+          if (!state.map.hasImage(searchPrefix)) state.map.addImage(searchPrefix, buildIcon(drawSearchLupaIcon, color, importance), { pixelRatio: 2 });
+          if (!state.map.hasImage(`${searchPrefix}-selected`)) state.map.addImage(`${searchPrefix}-selected`, buildIcon(drawSearchLupaIcon, selectedColor, importance), { pixelRatio: 2 });
         } catch (e) {}
       });
     });
@@ -340,7 +345,7 @@ export function cargarMapaMapbox() {
         type: 'symbol',
         source: sourceId,
         minzoom,
-        filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'publicada'], ['!=', ['get', 'selected'], 1], ['!=', ['get', 'visited'], 1]],
+        filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'publicada'], ['!=', ['get', 'selected'], 1], ['!=', ['get', 'visited'], 1], ['!=', ['get', 'is_search'], 1]],
         layout: {
           'icon-image': [
             'case',
@@ -364,7 +369,7 @@ export function cargarMapaMapbox() {
         type: 'symbol',
         source: sourceId,
         minzoom,
-        filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'publicada'], ['!=', ['get', 'selected'], 1], ['==', ['get', 'visited'], 1]],
+        filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'publicada'], ['!=', ['get', 'selected'], 1], ['==', ['get', 'visited'], 1], ['!=', ['get', 'is_search'], 1]],
         layout: {
           'icon-image': [
             'case',
@@ -388,7 +393,7 @@ export function cargarMapaMapbox() {
         type: 'symbol',
         source: sourceId,
         minzoom: 0,
-        filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'publicada'], ['==', ['get', 'selected'], 1]],
+        filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'publicada'], ['==', ['get', 'selected'], 1], ['!=', ['get', 'is_search'], 1]],
         layout: {
           'icon-image': [
             'case',
@@ -407,13 +412,47 @@ export function cargarMapaMapbox() {
         },
       });
 
+      // Capa de resultados de búsqueda (Icono de LUPA, SIN REGLA DE ZOOM, color de categoría y tamaño por importancia)
+      state.map.addLayer({
+        id: `obras-l${importance}-search`,
+        type: 'symbol',
+        source: sourceId,
+        minzoom: 0, // ¡Sin regla de zoom! Visible siempre a cualquier nivel de zoom
+        filter: ['all', baseFilter, ['==', ['get', 'is_search'], 1], ['!=', ['get', 'selected'], 1]],
+        layout: {
+          'icon-image': ['concat', `icon-search-l${importance}-`, catExpr],
+          'icon-size': iconSize * 1.15,
+          'symbol-sort-key': 80 - importance,
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+          'icon-optional': false,
+        },
+      });
+
+      // Capa de búsqueda seleccionada
+      state.map.addLayer({
+        id: `obras-l${importance}-search-selected`,
+        type: 'symbol',
+        source: sourceId,
+        minzoom: 0,
+        filter: ['all', baseFilter, ['==', ['get', 'is_search'], 1], ['==', ['get', 'selected'], 1]],
+        layout: {
+          'icon-image': ['concat', `icon-search-l${importance}-`, catExpr, '-selected'],
+          'icon-size': iconSize * 1.4,
+          'symbol-sort-key': 100,
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+          'icon-optional': false,
+        },
+      });
+
       // Capa pendiente
       state.map.addLayer({
         id: `obras-l${importance}-pending`,
         type: 'symbol',
         source: sourceId,
         minzoom,
-        filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'pendiente']],
+        filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'pendiente'], ['!=', ['get', 'is_search'], 1]],
         layout: {
           'icon-image': [
             'case',
@@ -437,7 +476,7 @@ export function cargarMapaMapbox() {
         type: 'symbol',
         source: sourceId,
         minzoom,
-        filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'privada']],
+        filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'privada'], ['!=', ['get', 'is_search'], 1]],
         layout: {
           'icon-image': [
             'case',
@@ -455,7 +494,7 @@ export function cargarMapaMapbox() {
         },
       });
 
-      [`obras-l${importance}`, `obras-l${importance}-visited`, `obras-l${importance}-selected`, `obras-l${importance}-pending`, `obras-l${importance}-private`].forEach((layerId) => {
+      [`obras-l${importance}`, `obras-l${importance}-visited`, `obras-l${importance}-selected`, `obras-l${importance}-search`, `obras-l${importance}-search-selected`, `obras-l${importance}-pending`, `obras-l${importance}-private`].forEach((layerId) => {
         state.map.on('mouseenter', layerId, () => { state.map.getCanvas().style.cursor = 'pointer'; });
         state.map.on('mouseleave', layerId, () => { state.map.getCanvas().style.cursor = ''; });
       });
@@ -962,7 +1001,7 @@ function resolveMapFeatureTarget(feature) {
 function iniciarInteraccionesMapa() {
   const allLayerIds = [];
   [0, 1, 2, 3].forEach((imp) => {
-    ['', '-visited', '-selected', '-pending', '-private'].forEach((suf) => {
+    ['', '-visited', '-selected', '-search', '-search-selected', '-pending', '-private'].forEach((suf) => {
       allLayerIds.push(`obras-l${imp}${suf}`);
     });
     allLayerIds.push(`obras-labels-l${imp}`);

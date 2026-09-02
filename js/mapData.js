@@ -132,6 +132,8 @@ export function actualizarFuenteMapa() {
        });
       }
 
+      const isSearchActive = Boolean(state.activeItinerary && (state.activeItinerary.isSearch || String(state.activeItinerary.id || '').startsWith('search-')));
+
       const masterFeatures = [];
       const standardFeatures = [];
 
@@ -152,6 +154,7 @@ export function actualizarFuenteMapa() {
             favorite: state.buildingStatuses?.get(String(obra.id))?.favorite ? 1 : 0,
             visited: state.buildingStatuses?.get(String(obra.id))?.visited ? 1 : 0,
             selected: obra.selected ? 1 : 0,
+            is_search: isSearchActive ? 1 : 0,
             ...(hasCustomEmoji ? {
               collection_emoji: activeCollection.icon,
               collection_id: activeCollection.id,
@@ -169,9 +172,9 @@ export function actualizarFuenteMapa() {
       const publicSource = state.map.getSource('obras');
       const masterpieceSource = state.map.getSource('obras-maestras');
 
-      // Aplicar clustering a zoom bajo (< 9)
+      // Aplicar clustering a zoom bajo (< 9) solo si NO estamos en modo búsqueda de resultados
       const currentZoom = state.map?.getZoom?.() || 10;
-      const clusteringEnabled = currentZoom < 9;
+      const clusteringEnabled = isSearchActive ? false : (currentZoom < 9);
       const clusteredStandardFeatures = clusteringEnabled ? clusterFeaturesByProximity(standardFeatures, currentZoom) : standardFeatures;
 
       if (publicSource) {

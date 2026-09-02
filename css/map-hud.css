@@ -37,16 +37,121 @@
 .hud-crosshair::before { top: 50%; left: 0; width: 100%; height: 1px; transform: translateY(-50%); }
 .hud-crosshair::after { left: 50%; top: 0; height: 100%; width: 1px; transform: translateX(-50%); }
 
-/* ---------- Barra superior: panel opaco, no degradado sobre el mapa ---------- */
+/* ---------- Barra superior: panel opaco reducido (Desktop) ---------- */
 .topbar {
-  position: absolute; top: 0; left: 0; right: 0; z-index: 30;
-  background: var(--bg-panel);
-  border-bottom: 1px solid var(--border-strong);
-  padding: 14px 14px 12px 14px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 48px;
+  z-index: 35;
+  background: var(--bg-panel, #F8F1DF);
+  border-bottom: 2px solid var(--border-strong, #141411);
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
 }
 .topbar-inner {
-  display: flex; align-items: flex-start; justify-content: space-between;
-  padding-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 100%;
+  gap: 12px;
+}
+.topbar-left {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.topbar-brand-link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  text-decoration: none;
+  color: inherit;
+}
+.topbar-brand-logo {
+  font-family: 'League Spartan', sans-serif;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--accent, #E95C0C);
+  text-transform: lowercase;
+  line-height: 1;
+}
+.topbar-brand-logo span {
+  color: var(--fg, #141411);
+}
+.topbar-brand-tagline {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--fg-dim, #6B6B6B);
+}
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 0;
+}
+.topbar-btn {
+  height: 32px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  border-radius: 0;
+  transition: background 0.12s ease, transform 0.08s ease, color 0.12s ease;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+.topbar-btn-login {
+  border: 1.5px solid var(--accent, #E95C0C);
+  color: var(--accent, #E95C0C);
+  background: rgba(233, 92, 12, 0.08);
+}
+.topbar-btn-login:hover {
+  background: var(--accent, #E95C0C);
+  color: #FFFFFF;
+}
+.topbar-btn-profile {
+  border: 1.5px solid var(--border-strong, #141411);
+  color: var(--fg, #141411);
+  background: var(--bg-panel, #F8F1DF);
+}
+.topbar-btn-profile:hover {
+  background: var(--border-strong, #141411);
+  color: var(--bg-panel, #F8F1DF);
+}
+body.dark-mode .topbar {
+  background: #1C1C1A;
+  border-color: #4E4E48;
+}
+body.dark-mode .topbar-brand-logo span {
+  color: #FFFFFF;
+}
+body.dark-mode .topbar-brand-tagline {
+  color: #A0A09A;
+}
+body.dark-mode .topbar-btn-profile {
+  border-color: #4E4E48;
+  color: #F8F1DF;
+  background: #252522;
+}
+body.dark-mode .topbar-btn-profile:hover {
+  background: #FFFFFF;
+  color: #141411;
 }
 /* Barra de navegación inferior móvil y widgets flotantes (Ocultos por defecto en Desktop) */
 .mobile-bottom-bar,
@@ -391,13 +496,14 @@
     background: var(--bg-raised);
     color: var(--accent);
   }
+}
 
-  /* Buscador Flotante y Expansivo (Desktop & Móvil) */
-  .mobile-search-widget {
-    display: flex !important;
-    z-index: 45;
-    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-  }
+/* Buscador Flotante y Expansivo (Desktop & Móvil) */
+.mobile-search-widget {
+  display: flex !important;
+  z-index: 45;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
 
   .mobile-search-trigger {
     display: inline-flex;
@@ -669,12 +775,23 @@
   @media (min-width: 769px) {
     .mobile-search-widget {
       position: absolute;
-      top: 12px;
-      right: 18px;
+      top: 60px;
+      right: 14px;
+      z-index: 45;
+    }
+    .mobile-search-trigger {
+      width: 44px;
+      height: 44px;
+    }
+    .mobile-search-bar {
+      height: 44px;
     }
     .mobile-search-widget.expanded {
       width: 440px;
       max-width: calc(100vw - 320px);
+    }
+    .mobile-search-dropdown {
+      top: calc(100% + 6px);
     }
   }
 
@@ -695,7 +812,6 @@
     .mobile-search-bar {
       height: 38px;
     }
-  }
 
   /* Controles Flotantes Derechos (Móvil) */
   .mobile-map-controls {

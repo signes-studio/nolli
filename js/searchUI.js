@@ -508,6 +508,7 @@ export async function activarFiltroBusquedaEnMapa(queryText, providedMatches = n
   // 2. Establecer filtro activo en el estado con TODAS las obras coincidentes
   state.activeItinerary = {
     id: `search-${qNorm}`,
+    isSearch: true,
     title: `FILTRO: ${q.toUpperCase()}`,
     workIds: matchIds,
   };

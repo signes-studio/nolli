@@ -536,11 +536,38 @@ export function restaurarMapaGeneral() {
   if (itineraryBadge) {
     itineraryBadge.classList.add('hidden');
   }
-  if (window.location.hash.startsWith('#list=')) {
-    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+
+  // Limpiar campo de búsqueda y cerrar dropdown
+  const searchInput = document.getElementById('mobile-search-input');
+  if (searchInput) searchInput.value = '';
+  const searchDropdown = document.getElementById('mobile-search-dropdown');
+  if (searchDropdown) {
+    searchDropdown.hidden = true;
+    searchDropdown.style.display = 'none';
   }
+  const searchResults = document.getElementById('mobile-search-results');
+  if (searchResults) searchResults.innerHTML = '';
+  const searchWidget = document.getElementById('mobile-search-widget');
+  if (searchWidget) {
+    searchWidget.classList.remove('expanded');
+    searchWidget.classList.add('collapsed');
+  }
+
+  // Limpiar parámetros de URL ?q= o #list=
+  try {
+    const url = new URL(window.location.href);
+    if (url.searchParams.has('q')) {
+      url.searchParams.delete('q');
+      window.history.replaceState(null, '', url.pathname + (url.searchParams.toString() ? '?' + url.searchParams.toString() : '') + url.hash);
+    }
+    if (window.location.hash.startsWith('#list=')) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+  } catch (e) {}
+
   actualizarFuenteMapa();
   actualizarVisibilidadIconosLista();
+  document.dispatchEvent(new CustomEvent('radar:filters-changed'));
 }
 export const desactivarRutaEnMapa = restaurarMapaGeneral;
 

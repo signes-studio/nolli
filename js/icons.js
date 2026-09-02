@@ -261,3 +261,108 @@ export function drawPrivateSquareIcon(ctx, color, importance, s) {
 
   ctx.restore();
 }
+
+/**
+ * Dibuja iconos de lupa para resultados de búsqueda, con jerarquía visual de tamaño
+ * según la importancia (0, 1, 2, 3) y color de la categoría arquitectónica (Neo-Bauhaus).
+ */
+export function drawSearchLupaIcon(ctx, color, importance, s) {
+  const c = s / 2;
+  const isLightSelection = color === '#FFFFFF' || color === '#ffffff' || color === '#F5F4F0' || color === '#f5f4f0';
+  const isDarkSelection = color === '#141411';
+  const strokeColor = isDarkSelection ? '#F8F1DF' : '#141411';
+  const haloColor = isDarkSelection ? '#141411' : '#F8F1DF';
+
+  let lensRadius, handleLen, handleWidth, ringWidth;
+
+  if (importance === 0) {
+    lensRadius = s * 0.25;
+    handleLen = s * 0.22;
+    handleWidth = 4.5;
+    ringWidth = 3.0;
+  } else if (importance === 1) {
+    lensRadius = s * 0.21;
+    handleLen = s * 0.19;
+    handleWidth = 3.8;
+    ringWidth = 2.5;
+  } else if (importance === 2) {
+    lensRadius = s * 0.17;
+    handleLen = s * 0.16;
+    handleWidth = 3.0;
+    ringWidth = 2.2;
+  } else {
+    lensRadius = s * 0.14;
+    handleLen = s * 0.13;
+    handleWidth = 2.4;
+    ringWidth = 1.8;
+  }
+
+  const lensX = c - s * 0.08;
+  const lensY = c - s * 0.08;
+
+  ctx.save();
+
+  // 1. Mango de la lupa (en ángulo de 45° hacia abajo-derecha)
+  const angle = Math.PI / 4;
+  const startX = lensX + Math.cos(angle) * (lensRadius * 0.85);
+  const startY = lensY + Math.sin(angle) * (lensRadius * 0.85);
+  const endX = startX + Math.cos(angle) * handleLen;
+  const endY = startY + Math.sin(angle) * handleLen;
+
+  // Sombra / contorno grueso del mango
+  ctx.beginPath();
+  ctx.moveTo(startX, startY);
+  ctx.lineTo(endX, endY);
+  ctx.strokeStyle = strokeColor;
+  ctx.lineWidth = handleWidth + 2.4;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+
+  // Color interior del mango
+  ctx.beginPath();
+  ctx.moveTo(startX, startY);
+  ctx.lineTo(endX, endY);
+  ctx.strokeStyle = isLightSelection ? '#FFFFFF' : color;
+  ctx.lineWidth = handleWidth;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+
+  // 2. Halo de contraste de la lente
+  ctx.beginPath();
+  ctx.arc(lensX, lensY, lensRadius + ringWidth, 0, Math.PI * 2);
+  ctx.fillStyle = haloColor;
+  ctx.fill();
+
+  // 3. Relleno de la lente con el color de la categoría
+  ctx.beginPath();
+  ctx.arc(lensX, lensY, lensRadius, 0, Math.PI * 2);
+  ctx.fillStyle = isLightSelection ? '#FFFFFF' : color;
+  ctx.fill();
+
+  // 4. Anillo de precisión perimetral
+  ctx.beginPath();
+  ctx.arc(lensX, lensY, lensRadius, 0, Math.PI * 2);
+  ctx.strokeStyle = strokeColor;
+  ctx.lineWidth = ringWidth;
+  ctx.stroke();
+
+  // 5. Detalle de reflejo luminoso en lente (para niveles 0, 1 y 2)
+  if (importance <= 2) {
+    ctx.beginPath();
+    ctx.arc(lensX - lensRadius * 0.32, lensY - lensRadius * 0.32, lensRadius * 0.38, Math.PI * 1.05, Math.PI * 1.55);
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+    ctx.lineWidth = Math.max(1.2, ringWidth * 0.65);
+    ctx.lineCap = 'round';
+    ctx.stroke();
+  }
+
+  // Núcleo central de contraste para Obra Maestra (importancia 0)
+  if (importance === 0) {
+    ctx.beginPath();
+    ctx.arc(lensX, lensY, lensRadius * 0.28, 0, Math.PI * 2);
+    ctx.fillStyle = strokeColor;
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
