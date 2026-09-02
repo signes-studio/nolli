@@ -1,8 +1,9 @@
-const CACHE_NAME = 'nolli-shell-v40';
+const CACHE_NAME = 'nolli-shell-v43';
 const APP_SHELL = [
   './',
   './index.html',
   './admin.html',
+  './itinerarios.html',
   './perfil.html',
   './public-profile.html',
   './landing.html',
@@ -17,6 +18,7 @@ const APP_SHELL = [
   './css/profile.css',
   './css/utilities.css',
   './js/admin.js',
+  './js/itinerarios.js',
   './js/api.js',
   './js/adminUI.js',
   './js/config.js',

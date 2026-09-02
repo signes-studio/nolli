@@ -366,3 +366,147 @@ export function drawSearchLupaIcon(ctx, color, importance, s) {
 
   ctx.restore();
 }
+
+/**
+ * Dibuja iconos de brújula / compass para itinerarios de la pestaña Explora,
+ * con jerarquía visual de tamaño según la importancia (0, 1, 2, 3) y color de categoría arquitectónica.
+ */
+export function drawExploreCompassIcon(ctx, color, importance, s) {
+  const c = s / 2;
+  const isLightSelection = color === '#FFFFFF' || color === '#ffffff' || color === '#F5F4F0' || color === '#f5f4f0';
+  const isDarkSelection = color === '#141411';
+  const strokeColor = isDarkSelection ? '#F8F1DF' : '#141411';
+  const haloColor = isDarkSelection ? '#141411' : '#F8F1DF';
+
+  let outerRadius, ringWidth, needleLen, needleWidth;
+
+  if (importance === 0) {
+    outerRadius = s * 0.36;
+    ringWidth = 2.8;
+    needleLen = s * 0.26;
+    needleWidth = 6.0;
+  } else if (importance === 1) {
+    outerRadius = s * 0.31;
+    ringWidth = 2.4;
+    needleLen = s * 0.22;
+    needleWidth = 5.0;
+  } else if (importance === 2) {
+    outerRadius = s * 0.26;
+    ringWidth = 2.0;
+    needleLen = s * 0.18;
+    needleWidth = 4.2;
+  } else {
+    outerRadius = s * 0.22;
+    ringWidth = 1.6;
+    needleLen = s * 0.15;
+    needleWidth = 3.5;
+  }
+
+  ctx.save();
+
+  // 1. Halo de contraste perimetral
+  ctx.beginPath();
+  ctx.arc(c, c, outerRadius + ringWidth + 1, 0, Math.PI * 2);
+  ctx.fillStyle = haloColor;
+  ctx.fill();
+
+  // 2. Fondo del cuadrante de la brújula CON EL COLOR DE LA CATEGORÍA
+  ctx.beginPath();
+  ctx.arc(c, c, outerRadius, 0, Math.PI * 2);
+  ctx.fillStyle = isLightSelection ? '#FFFFFF' : color;
+  ctx.fill();
+
+  // 3. Anillo perimetral exterior
+  ctx.beginPath();
+  ctx.arc(c, c, outerRadius, 0, Math.PI * 2);
+  ctx.strokeStyle = strokeColor;
+  ctx.lineWidth = ringWidth;
+  ctx.stroke();
+
+  // 4. Marcas cardinales (ticks N, S, E, O)
+  const tickLen = Math.max(2, outerRadius * 0.22);
+  ctx.lineWidth = Math.max(1.2, ringWidth * 0.7);
+  ctx.strokeStyle = '#FFFFFF';
+  ctx.lineCap = 'round';
+
+  // N
+  ctx.beginPath();
+  ctx.moveTo(c, c - outerRadius + 1);
+  ctx.lineTo(c, c - outerRadius + tickLen);
+  ctx.stroke();
+  // S
+  ctx.beginPath();
+  ctx.moveTo(c, c + outerRadius - 1);
+  ctx.lineTo(c, c + outerRadius - tickLen);
+  ctx.stroke();
+  // E
+  ctx.beginPath();
+  ctx.moveTo(c + outerRadius - 1, c);
+  ctx.lineTo(c + outerRadius - tickLen, c);
+  ctx.stroke();
+  // O
+  ctx.beginPath();
+  ctx.moveTo(c - outerRadius + 1, c);
+  ctx.lineTo(c - outerRadius + tickLen, c);
+  ctx.stroke();
+
+  // 5. Aguja de la brújula (rotada a 45° estilo icono Explora / Compass)
+  ctx.translate(c, c);
+  ctx.rotate(-Math.PI / 4);
+
+  // Mitad Norte (Blanco puro / Alto contraste)
+  ctx.beginPath();
+  ctx.moveTo(0, -needleLen);
+  ctx.lineTo(needleWidth, 0);
+  ctx.lineTo(0, 0);
+  ctx.closePath();
+  ctx.fillStyle = isLightSelection ? '#141411' : '#FFFFFF';
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(0, -needleLen);
+  ctx.lineTo(-needleWidth, 0);
+  ctx.lineTo(0, 0);
+  ctx.closePath();
+  ctx.fillStyle = isLightSelection ? '#333333' : '#F0EAD6';
+  ctx.fill();
+
+  // Mitad Sur (Negro sólido)
+  ctx.beginPath();
+  ctx.moveTo(0, needleLen);
+  ctx.lineTo(needleWidth, 0);
+  ctx.lineTo(0, 0);
+  ctx.closePath();
+  ctx.fillStyle = isLightSelection ? '#666666' : '#141411';
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(0, needleLen);
+  ctx.lineTo(-needleWidth, 0);
+  ctx.lineTo(0, 0);
+  ctx.closePath();
+  ctx.fillStyle = isLightSelection ? '#888888' : '#2A2A26';
+  ctx.fill();
+
+  // Contorno de la aguja
+  ctx.beginPath();
+  ctx.moveTo(0, -needleLen);
+  ctx.lineTo(needleWidth, 0);
+  ctx.lineTo(0, needleLen);
+  ctx.lineTo(-needleWidth, 0);
+  ctx.closePath();
+  ctx.strokeStyle = strokeColor;
+  ctx.lineWidth = 1.2;
+  ctx.stroke();
+
+  // Pivote central
+  ctx.beginPath();
+  ctx.arc(0, 0, Math.max(1.8, needleWidth * 0.4), 0, Math.PI * 2);
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fill();
+  ctx.lineWidth = 1.0;
+  ctx.strokeStyle = strokeColor;
+  ctx.stroke();
+
+  ctx.restore();
+}

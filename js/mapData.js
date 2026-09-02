@@ -77,6 +77,7 @@ export function actualizarFuenteMapa() {
       }
 
       const isSearchActive = Boolean(state.activeItinerary && (state.activeItinerary.isSearch || String(state.activeItinerary.id || '').startsWith('search-')));
+      const isExploreActive = Boolean(state.activeItinerary && (state.activeItinerary.isExplore || state.activeItinerary.isCurated || String(state.activeItinerary.id || '').startsWith('route-') || String(state.activeItinerary.id || '').startsWith('explore-')));
 
       const masterFeatures = [];
       const standardFeatures = [];
@@ -113,6 +114,7 @@ export function actualizarFuenteMapa() {
             visited: state.buildingStatuses?.get(String(obra.id))?.visited ? 1 : 0,
             selected: obra.selected ? 1 : 0,
             is_search: isSearchActive ? 1 : 0,
+            is_explore: isExploreActive ? 1 : 0,
             ...(hasCustomEmoji ? {
               collection_emoji: activeCollection.icon,
               collection_id: activeCollection.id,

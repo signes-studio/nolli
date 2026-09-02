@@ -1129,3 +1129,186 @@ export async function unfollowCollection(collectionId, userId, sessionToken) {
   }
   return response.json().catch(() => []);
 }
+
+/* =========================================================================
+   ITINERARIOS & RUTAS CURATORIALES (ADMIN & PÚBLICO)
+   ========================================================================= */
+
+const LOCAL_ITINERARIES_KEY = 'nolli_local_itineraries';
+
+export async function fetchItineraries(sessionToken = null, includeInactive = false) {
+  try {
+    const query = includeInactive ? '' : '?active=eq.true';
+    const sort = includeInactive ? '?order=order_num.asc,created_at.asc' : '&order=order_num.asc,created_at.asc';
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/itineraries${query}${sort}`, {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        ...(sessionToken ? { 'Authorization': `Bearer ${sessionToken}` } : {}),
+      },
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      if (Array.isArray(data) && data.length > 0) {
+        // Formatear propiedades normalizadas
+        return data.map((item) => ({
+          ...item,
+          yearRange: item.year_range || item.yearRange || null,
+          decadeFilter: item.decade_filter || item.decadeFilter || null,
+          architectsFilter: item.architects_filter || item.architectsFilter || null,
+          architectFilter: item.architect_filter || item.architectFilter || null,
+          categoryFilter: item.category_filter || item.categoryFilter || null,
+          addedByFilter: item.added_by_filter || item.addedByFilter || null,
+          bboxFilter: item.bbox_filter || item.bboxFilter || null,
+        }));
+      }
+    }
+  } catch (err) {
+    console.warn('Supabase itineraries fetch warning:', err);
+  }
+
+  // Fallback a localStorage para desarrollo o cuando aún no se ha ejecutado la migración
+  try {
+    const raw = localStorage.getItem(LOCAL_ITINERARIES_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return includeInactive ? parsed : parsed.filter((r) => r.active !== false);
+      }
+    }
+  } catch (e) {}
+
+  return null; // Si devuelve null, el consumidor usará CURATED_ROUTES por defecto
+}
+
+export async function createItinerary(itinerary, sessionToken) {
+  const payload = {
+    id: itinerary.id || `route-${Date.now().toString(36)}`,
+    title: itinerary.title,
+    subtitle: itinerary.subtitle || '',
+    tag: itinerary.tag || 'MOVIMIENTO MODERNO',
+    color: itinerary.color || '#E84E1B',
+    stops: itinerary.stops || 'CATÁLOGO',
+    year_range: itinerary.yearRange || null,
+    decade_filter: itinerary.decadeFilter ? Number(itinerary.decadeFilter) : null,
+    architects_filter: itinerary.architectsFilter || null,
+    architect_filter: itinerary.architectFilter || null,
+    category_filter: itinerary.categoryFilter || null,
+    added_by_filter: itinerary.addedByFilter || null,
+    keywords: itinerary.keywords || null,
+    bbox_filter: itinerary.bboxFilter || null,
+    active: itinerary.active !== false,
+    order_num: Number(itinerary.order_num || 0),
+  };
+
+  let createdInDb = false;
+  try {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/itineraries`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${sessionToken}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      createdInDb = true;
+      return result[0] || payload;
+    }
+  } catch (err) {
+    console.warn('Error al guardar itinerario en Supabase:', err);
+  }
+
+  // Siempre mantener sincronizado en localStorage
+  try {
+    const raw = localStorage.getItem(LOCAL_ITINERARIES_KEY) || '[]';
+    const list = JSON.parse(raw);
+    const updatedList = [...list.filter((r) => r.id !== payload.id), { ...payload, ...itinerary }];
+    localStorage.setItem(LOCAL_ITINERARIES_KEY, JSON.stringify(updatedList));
+  } catch (e) {}
+
+  return payload;
+}
+
+export async function updateItinerary(id, itinerary, sessionToken) {
+  const payload = {
+    title: itinerary.title,
+    subtitle: itinerary.subtitle || '',
+    tag: itinerary.tag || 'MOVIMIENTO MODERNO',
+    color: itinerary.color || '#E84E1B',
+    stops: itinerary.stops || 'CATÁLOGO',
+    year_range: itinerary.yearRange || null,
+    decade_filter: itinerary.decadeFilter ? Number(itinerary.decadeFilter) : null,
+    architects_filter: itinerary.architectsFilter || null,
+    architect_filter: itinerary.architectFilter || null,
+    category_filter: itinerary.categoryFilter || null,
+    added_by_filter: itinerary.addedByFilter || null,
+    keywords: itinerary.keywords || null,
+    bbox_filter: itinerary.bboxFilter || null,
+    active: itinerary.active !== false,
+    order_num: Number(itinerary.order_num || 0),
+    updated_at: new Date().toISOString(),
+  };
+
+  try {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/itineraries?id=eq.${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${sessionToken}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      return result[0] || { id, ...payload };
+    }
+  } catch (err) {
+    console.warn('Error al actualizar itinerario en Supabase:', err);
+  }
+
+  // Local storage update
+  try {
+    const raw = localStorage.getItem(LOCAL_ITINERARIES_KEY) || '[]';
+    const list = JSON.parse(raw);
+    const updatedList = list.map((r) => (r.id === id ? { ...r, ...payload, ...itinerary } : r));
+    localStorage.setItem(LOCAL_ITINERARIES_KEY, JSON.stringify(updatedList));
+  } catch (e) {}
+
+  return { id, ...payload };
+}
+
+export async function deleteItinerary(id, sessionToken) {
+  try {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/itineraries?id=eq.${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${sessionToken}`,
+        'Prefer': 'return=representation',
+      },
+    });
+
+    if (response.ok) {
+      return true;
+    }
+  } catch (err) {
+    console.warn('Error al eliminar itinerario en Supabase:', err);
+  }
+
+  try {
+    const raw = localStorage.getItem(LOCAL_ITINERARIES_KEY) || '[]';
+    const list = JSON.parse(raw);
+    const updatedList = list.filter((r) => r.id !== id);
+    localStorage.setItem(LOCAL_ITINERARIES_KEY, JSON.stringify(updatedList));
+  } catch (e) {}
+
+  return true;
+}

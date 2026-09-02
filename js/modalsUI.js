@@ -49,6 +49,20 @@ function iniciarLatidoPresencia() {
   }
 }
 
+function generarIdAlfanumerico(longitud = 8) {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    const bytes = new Uint8Array(longitud);
+    crypto.getRandomValues(bytes);
+    return Array.from(bytes, (b) => chars[b % chars.length]).join('');
+  }
+  let resultado = '';
+  for (let i = 0; i < longitud; i++) {
+    resultado += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return resultado;
+}
+
 /* -------------------------------------------------------------------------
    MÓDULO DE LOGIN
    ------------------------------------------------------------------------- */
@@ -499,19 +513,19 @@ function initAddBuildingModal() {
           featureId: obra.featureId,
           selected: obra.selected,
         });
-      } else {
         const isPrivate = visibility === 'private';
         const isDirect = visibility === 'direct' && esRolAdmin(state.userRole);
+        const nuevoId = generarIdAlfanumerico(8);
 
         const nuevoEdificio = {
           ...edificio,
-          id: 'VLC-' + Date.now(),
+          id: nuevoId,
           añadido_por: isDirect ? 'administrador' : (state.userEmail || 'usuario'),
           estado_revision: isDirect ? 'publicada' : 'pendiente',
         };
         const privateData = {
           ...edificio,
-          id: 'PRIV-' + Date.now(),
+          id: nuevoId,
           user_id: state.userId,
         };
 
@@ -524,8 +538,8 @@ function initAddBuildingModal() {
           arquitectos: separarArquitectos(finalArq),
           añadido_por: nuevoEdificio.añadido_por,
           estado_revision: isPrivate ? 'privada' : nuevoEdificio.estado_revision,
-          id: insertedData[0].id,
-          featureId: String(insertedData[0].id ?? `obra-${Date.now()}`),
+          id: insertedData?.[0]?.id || nuevoId,
+          featureId: String(insertedData?.[0]?.id ?? `obra-${nuevoId}`),
           private: isPrivate,
           coordenadas: [state.pendingLngLat.lng, state.pendingLngLat.lat],
           selected: false,

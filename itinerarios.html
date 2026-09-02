@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <base href="/">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https: http:; connect-src 'self' https://*.supabase.co https://nominatim.openstreetmap.org; object-src 'none'; base-uri 'self';">
+  <link rel="preconnect" href="https://ldtfvpjigzvcagtciipn.supabase.co" crossorigin>
+  <link rel="dns-prefetch" href="https://ldtfvpjigzvcagtciipn.supabase.co">
+  
+  <title>nolli. | gestión de itinerarios</title>
+  <link rel="icon" type="image/svg+xml" href="./icon.svg">
+  <meta name="theme-color" content="#F4F1EA">
+  <link rel="stylesheet" href="./css/legal-components.css">
+  <script src="./js/cookieConsent.js" defer></script>
+
+  <script>
+    if (window.location.pathname.endsWith('.html')) {
+      const clean = window.location.pathname.replace(/\/index\.html$/, '/').replace(/\.html$/, '') || '/';
+      window.history.replaceState(null, '', clean + window.location.search + window.location.hash);
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest" defer></script>
+
+  <link rel="stylesheet" href="./css/admin.css">
+  <style>
+    /* Estilos específicos para la consola de itinerarios */
+    .itinerary-card {
+      background: var(--admin-bg-surface);
+      border: 2px solid var(--admin-border);
+      box-shadow: var(--admin-shadow);
+      padding: 20px;
+      margin-bottom: 20px;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .itinerary-card:hover {
+      box-shadow: var(--admin-shadow-hover);
+      transform: translate(-1px, -1px);
+    }
+    .itinerary-card.inactive {
+      opacity: 0.65;
+      border-style: dashed;
+    }
+    .itinerary-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      border-bottom: 1px solid var(--admin-border-light);
+      padding-bottom: 12px;
+    }
+    .itinerary-badge-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .itinerary-color-chip {
+      width: 14px;
+      height: 14px;
+      display: inline-block;
+      border: 1px solid #111;
+    }
+    .itinerary-tag-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 3px 6px;
+      border: 1px solid var(--admin-border);
+      text-transform: uppercase;
+      background: var(--admin-bg-raised);
+    }
+    .itinerary-title {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      margin: 4px 0 2px 0;
+      color: var(--admin-fg);
+    }
+    .itinerary-subtitle {
+      font-size: 13px;
+      color: var(--admin-fg-dim);
+      margin: 0;
+      line-height: 1.4;
+    }
+    .itinerary-rules-box {
+      background: var(--admin-bg-raised);
+      border: 1px solid var(--admin-border-light);
+      padding: 12px 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 8px 16px;
+    }
+    .itinerary-rule-item {
+      display: flex;
+      gap: 6px;
+    }
+    .itinerary-rule-label {
+      color: var(--admin-fg-dim);
+      font-weight: 700;
+    }
+    .itinerary-rule-val {
+      color: var(--admin-fg);
+      font-weight: 600;
+      word-break: break-word;
+    }
+    .itinerary-card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding-top: 8px;
+    }
+    .itinerary-actions-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .itinerary-match-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 10px;
+      background: var(--admin-bg);
+      border: 1px solid var(--admin-border);
+    }
+    .color-swatches-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+    .color-swatch-btn {
+      width: 28px;
+      height: 28px;
+      border: 2px solid var(--admin-border);
+      cursor: pointer;
+      padding: 0;
+      transition: transform 0.1s;
+    }
+    .color-swatch-btn:hover {
+      transform: scale(1.15);
+    }
+    .color-swatch-btn.selected {
+      outline: 2px solid var(--admin-accent);
+      outline-offset: 2px;
+    }
+    .preset-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 4px 8px;
+      background: var(--admin-bg);
+      border: 1px solid var(--admin-border);
+      cursor: pointer;
+      margin-right: 6px;
+      margin-bottom: 6px;
+      display: inline-block;
+    }
+    .preset-pill:hover {
+      background: var(--admin-accent);
+      color: #fff;
+    }
+    .live-match-box {
+      background: rgba(0, 170, 85, 0.08);
+      border: 2px solid var(--admin-green);
+      padding: 14px;
+      margin-top: 14px;
+    }
+    .live-match-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--admin-green);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- =========================================================================
+       HEADER PRINCIPAL DE ADMINISTRACIÓN
+       ========================================================================= -->
+  <header class="admin-header">
+    <div class="admin-header-inner">
+      <div class="admin-brand-group">
+        <a href="./" class="admin-logo">nolli<span>.</span></a>
+        <span class="admin-tagline">[ CONSOLA DE ADMINISTRACIÓN // ITINERARIOS ]</span>
+      </div>
+
+      <div class="admin-header-actions">
+        <div class="admin-user-pill">
+          <span id="admin-user-email">Cargando...</span>
+          <span id="admin-user-role" class="admin-role-badge">[ ADMIN ]</span>
+        </div>
+
+        <button type="button" id="btn-theme-toggle" class="admin-header-btn" title="Alternar Modo Oscuro / Claro">
+          <i data-lucide="sun-moon" width="14" height="14"></i>
+        </button>
+
+        <a href="./admin.html" class="admin-header-btn">
+          <i data-lucide="shield" width="14" height="14"></i>
+          <span>OBRAS Y REPORTES</span>
+        </a>
+
+        <a href="./" class="admin-header-btn">
+          <i data-lucide="arrow-left" width="14" height="14"></i>
+          <span>VOLVER AL MAPA</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       PANTALLA DE CARGA INICIAL
+       ========================================================================= -->
+  <div id="admin-loading" style="padding: 80px 20px; text-align: center; font-family: 'JetBrains Mono', monospace;">
+    <div style="font-size: 36px; margin-bottom: 12px;">⏳</div>
+    <div style="font-size: 13px; font-weight: 800; color: var(--admin-fg);">[ VERIFICANDO CREDENCIALES DE ADMINISTRADOR... ]</div>
+  </div>
+
+  <!-- =========================================================================
+       PANTALLA DE BLOQUEO // ACCESO DENEGADO
+       ========================================================================= -->
+  <section id="admin-lock-screen" class="admin-lock-screen hidden">
+    <div class="admin-lock-icon">🔐</div>
+    <h2 id="lock-screen-title" class="admin-lock-title">[ 403 // ACCESO DENEGADO ]</h2>
+    <p id="lock-screen-desc" class="admin-lock-desc">
+      Esta sección está restringida exclusivamente a los administradores y curadores de Nolli.
+    </p>
+    <div class="admin-lock-actions">
+      <button type="button" id="btn-lock-login" class="admin-btn admin-btn-approve">
+        <i data-lucide="log-in" width="14" height="14"></i>
+        <span>INICIAR SESIÓN COMO ADMIN</span>
+      </button>
+      <a href="./" class="admin-btn">
+        <i data-lucide="map" width="14" height="14"></i>
+        <span>IR AL MAPA PÚBLICO</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       APLICACIÓN PRINCIPAL DE GESTIÓN DE ITINERARIOS
+       ========================================================================= -->
+  <main id="admin-main-app" class="admin-container hidden">
+
+    <!-- Barra de Métricas y Acciones Rápidas -->
+    <div class="admin-control-bar" style="margin-bottom: 24px;">
+      <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+        <div class="admin-search-wrapper" style="min-width: 280px; max-width: 440px;">
+          <i data-lucide="search" width="14" height="14" style="color:var(--admin-fg-dim);"></i>
+          <input type="text" id="search-itineraries" class="admin-input" placeholder="Buscar itinerario por título, etiqueta, arquitectos...">
+        </div>
+
+        <div class="itinerary-match-pill">
+          <span>TOTAL ITINERARIOS:</span>
+          <span id="stat-total-count" style="color: var(--admin-accent);">0</span>
+        </div>
+
+        <div class="itinerary-match-pill">
+          <span>ACTIVOS EN EXPLORA:</span>
+          <span id="stat-active-count" style="color: var(--admin-green);">0</span>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px;">
+        <button type="button" id="btn-new-itinerary" class="admin-btn admin-btn-approve" style="font-weight: 800;">
+          <i data-lucide="plus" width="14" height="14"></i>
+          <span>+ NUEVO ITINERARIO</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Contenedor del Listado de Itinerarios -->
+    <div id="itineraries-list-container">
+      <div style="text-align: center; padding: 40px 20px; font-family: 'JetBrains Mono', monospace; color: var(--admin-fg-dim);">
+        Cargando catálogo de itinerarios...
+      </div>
+    </div>
+
+  </main>
+
+  <!-- =========================================================================
+       MODAL DE CREACIÓN / EDICIÓN DE ITINERARIO
+       ========================================================================= -->
+  <div id="modal-itinerary-form" class="admin-modal-backdrop hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: var(--admin-bg-surface); border: 2px solid var(--admin-border); box-shadow: var(--admin-shadow); width: 100%; max-width: 780px; max-height: 90vh; overflow-y: auto; padding: 28px;">
+      
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--admin-border); padding-bottom: 14px; margin-bottom: 20px;">
+        <h3 id="modal-form-title" style="margin: 0; font-size: 20px; font-weight: 900; text-transform: uppercase;">[ NUEVO ITINERARIO // EXPLORA ]</h3>
+        <button type="button" id="btn-close-modal" class="admin-btn" style="padding: 4px 8px;">✕</button>
+      </div>
+
+      <form id="itinerary-edit-form" style="display: flex; flex-direction: column; gap: 16px;">
+        <input type="hidden" id="form-is-edit" value="false">
+
+        <!-- ID y Título -->
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 14px;">
+          <div>
+            <label class="admin-label" for="form-id">ID ÚNICO (SLUG)</label>
+            <input type="text" id="form-id" class="admin-input" placeholder="route-racionalismo" required>
+            <small style="font-size: 10px; color: var(--admin-fg-dim); font-family: 'JetBrains Mono';">Prefijo 'route-' recomendado</small>
+          </div>
+          <div>
+            <label class="admin-label" for="form-title">TÍTULO DEL ITINERARIO *</label>
+            <input type="text" id="form-title" class="admin-input" placeholder="RACIONALISMO VALENCIANO" required>
+          </div>
+        </div>
+
+        <!-- Subtítulo / Descripción -->
+        <div>
+          <label class="admin-label" for="form-subtitle">SUBTÍTULO / DESCRIPCIÓN CURATORIAL</label>
+          <input type="text" id="form-subtitle" class="admin-input" placeholder="Arquitectura moderna en la Comunitat Valenciana, 1925-1936">
+        </div>
+
+        <!-- Etiqueta, Color y Orden -->
+        <div style="display: grid; grid-template-columns: 1.5fr 1.5fr 1fr; gap: 14px;">
+          <div>
+            <label class="admin-label" for="form-tag">ETIQUETA (TAG)</label>
+            <input type="text" id="form-tag" class="admin-input" placeholder="MOVIMIENTO MODERNO" value="MOVIMIENTO MODERNO">
+          </div>
+
+          <div>
+            <label class="admin-label" for="form-color">COLOR TEMÁTICO</label>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <input type="color" id="form-color-picker" value="#E84E1B" style="width: 38px; height: 38px; border: 1px solid #111; cursor: pointer; padding: 0;">
+              <input type="text" id="form-color" class="admin-input" value="#E84E1B" style="font-family: 'JetBrains Mono';">
+            </div>
+            <div class="color-swatches-row">
+              <button type="button" class="color-swatch-btn" style="background:#E84E1B;" data-color="#E84E1B"></button>
+              <button type="button" class="color-swatch-btn" style="background:#C0392B;" data-color="#C0392B"></button>
+              <button type="button" class="color-swatch-btn" style="background:#D35400;" data-color="#D35400"></button>
+              <button type="button" class="color-swatch-btn" style="background:#8E44AD;" data-color="#8E44AD"></button>
+              <button type="button" class="color-swatch-btn" style="background:#2C3E50;" data-color="#2C3E50"></button>
+              <button type="button" class="color-swatch-btn" style="background:#16A085;" data-color="#16A085"></button>
+              <button type="button" class="color-swatch-btn" style="background:#7F8C8D;" data-color="#7F8C8D"></button>
+              <button type="button" class="color-swatch-btn" style="background:#2980B9;" data-color="#2980B9"></button>
+              <button type="button" class="color-swatch-btn" style="background:#F39C12;" data-color="#F39C12"></button>
+            </div>
+          </div>
+
+          <div>
+            <label class="admin-label" for="form-order">ORDEN NUMÉRICO</label>
+            <input type="number" id="form-order" class="admin-input" value="0">
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 20px; align-items: center; margin: 4px 0;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; font-weight: 700;">
+            <input type="checkbox" id="form-active" checked style="width: 18px; height: 18px;">
+            <span>Activo y visible en la pestaña Explora</span>
+          </label>
+        </div>
+
+        <!-- SECCIÓN DE REGLAS DE FILTRADO -->
+        <div style="border-top: 2px solid var(--admin-border); padding-top: 16px; margin-top: 8px;">
+          <h4 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 900; letter-spacing: 0.05em; text-transform: uppercase;">
+            [ REGLAS DE FILTRADO ARQUITECTÓNICO ]
+          </h4>
+
+          <!-- Filtro Categoría y Añadido por -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 12px;">
+            <div>
+              <label class="admin-label" for="form-category">CATEGORÍA ARQUITECTÓNICA</label>
+              <select id="form-category" class="admin-input">
+                <option value="">-- Todas las categorías --</option>
+                <option value="residencial">Residencial</option>
+                <option value="dotacional">Dotacional</option>
+                <option value="comercial">Comercial</option>
+                <option value="infraestructura">Infraestructura</option>
+                <option value="religioso">Religioso</option>
+                <option value="paisaje">Paisaje</option>
+                <option value="industrial">Industrial</option>
+                <option value="oficinas">Oficinas</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="admin-label" for="form-addedby">AÑADIDO POR / REGISTRO</label>
+              <input type="text" id="form-addedby" class="admin-input" placeholder="ej. DOCOMOMO">
+            </div>
+          </div>
+
+          <!-- Filtro Años y Década -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 12px;">
+            <div>
+              <label class="admin-label" for="form-year-min">AÑO INICIAL</label>
+              <input type="number" id="form-year-min" class="admin-input" placeholder="ej. 1925">
+            </div>
+            <div>
+              <label class="admin-label" for="form-year-max">AÑO FINAL</label>
+              <input type="number" id="form-year-max" class="admin-input" placeholder="ej. 1936">
+            </div>
+            <div>
+              <label class="admin-label" for="form-decade">O DÉCADA ESPECÍFICA</label>
+              <input type="number" id="form-decade" class="admin-input" placeholder="ej. 1950" step="10">
+            </div>
+          </div>
+
+          <!-- Filtro Arquitectos -->
+          <div style="margin-bottom: 12px;">
+            <label class="admin-label" for="form-architects">ARQUITECTOS (Separados por coma)</label>
+            <input type="text" id="form-architects" class="admin-input" placeholder="Sáenz de Oiza, Corrales, Molezún, Fisac, Sota">
+            <small style="font-size: 10px; color: var(--admin-fg-dim); font-family: 'JetBrains Mono';">Búsqueda flexible por subcadena</small>
+          </div>
+
+          <!-- Filtro Geográfico Bounding Box -->
+          <div style="margin-bottom: 12px;">
+            <label class="admin-label">DELIMITACIÓN GEOGRÁFICA (BOUNDING BOX)</label>
+            <div style="margin-bottom: 8px;">
+              <span style="font-size: 11px; font-weight: 700; color: var(--admin-fg-dim); margin-right: 6px;">Presets:</span>
+              <button type="button" class="preset-pill" data-bbox="37.85,40.75,-1.55,0.75">Comunitat Valenciana</button>
+              <button type="button" class="preset-pill" data-bbox="40.5,42.9,0.15,3.35">Cataluña</button>
+              <button type="button" class="preset-pill" data-bbox="39.8,41.2,-4.5,-3.0">Madrid</button>
+              <button type="button" class="preset-pill" data-bbox="42.85,43.45,-3.5,-1.7">País Vasco</button>
+              <button type="button" class="preset-pill" data-bbox="27.6,29.5,-18.2,-13.4">Canarias</button>
+              <button type="button" class="preset-pill" data-bbox="36.9,42.2,-9.6,-6.1">Portugal</button>
+              <button type="button" class="preset-pill" data-bbox="41.3,51.1,-5.1,9.6">Francia</button>
+              <button type="button" class="preset-pill" data-bbox="">Sin filtro geo</button>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px;">
+              <input type="number" step="any" id="form-lat-min" class="admin-input" placeholder="Lat Mín (ej. 37.85)">
+              <input type="number" step="any" id="form-lat-max" class="admin-input" placeholder="Lat Máx (ej. 40.75)">
+              <input type="number" step="any" id="form-lon-min" class="admin-input" placeholder="Lon Mín (ej. -1.55)">
+              <input type="number" step="any" id="form-lon-max" class="admin-input" placeholder="Lon Máx (ej. 0.75)">
+            </div>
+          </div>
+
+          <!-- Palabras Clave -->
+          <div>
+            <label class="admin-label" for="form-keywords">PALABRAS CLAVE (Keywords)</label>
+            <input type="text" id="form-keywords" class="admin-input" placeholder="brutalismo, hormigon, pabellon">
+          </div>
+        </div>
+
+        <!-- COINCIDENCIAS EN TIEMPO REAL -->
+        <div id="form-live-match-box" class="live-match-box">
+          <div class="live-match-header">
+            <span>[ SIMULACIÓN DE COINCIDENCIAS EN VIVO ]</span>
+            <span id="form-live-count">0 OBRAS COINCIDENTES</span>
+          </div>
+          <div id="form-live-sample" style="margin-top: 8px; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--admin-fg-dim); max-height: 80px; overflow-y: auto;">
+            Configura las reglas para ver la vista previa.
+          </div>
+        </div>
+
+        <!-- Botones de Acción del Formulario -->
+        <div style="display: flex; justify-content: flex-end; gap: 12px; border-top: 2px solid var(--admin-border); padding-top: 16px; margin-top: 8px;">
+          <button type="button" id="btn-cancel-modal" class="admin-btn">CANCELAR</button>
+          <button type="submit" id="btn-save-itinerary" class="admin-btn admin-btn-approve" style="font-weight: 900;">
+            <i data-lucide="save" width="14" height="14"></i>
+            <span>GUARDAR ITINERARIO</span>
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <script type="module" src="./js/itinerarios.js"></script>
+</body>
+</html>
+

@@ -4,7 +4,7 @@
 
 import { state, CATEGORY_META } from './state.js';
 import { MAPBOX_TOKEN, MAP_STYLES, DEFAULT_CENTER, DEFAULT_ZOOM } from './config.js';
-import { buildIcon, drawTargetIcon, drawPrivateSquareIcon, drawSearchLupaIcon, buildEmojiIcon } from './icons.js';
+import { buildIcon, drawTargetIcon, drawPrivateSquareIcon, drawSearchLupaIcon, drawExploreCompassIcon, buildEmojiIcon } from './icons.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { abrirFicha, cerrarFicha } from './sheetUI.js';
 
@@ -54,7 +54,7 @@ export function actualizarVisibilidadIconosLista() {
 
   [0, 1, 2, 3].forEach((importance) => {
     const baseMinZoom = listaActiva ? 0 : ICON_LAYER_MINZOOMS[importance];
-    [`obras-l${importance}`, `obras-l${importance}-visited`, `obras-l${importance}-selected`, `obras-l${importance}-pending`, `obras-l${importance}-private`].forEach((layerId) => {
+    [`obras-l${importance}`, `obras-l${importance}-visited`, `obras-l${importance}-selected`, `obras-l${importance}-explore`, `obras-l${importance}-explore-selected`, `obras-l${importance}-pending`, `obras-l${importance}-private`].forEach((layerId) => {
       ajustarZoomCapa(layerId, baseMinZoom);
     });
   });
@@ -145,6 +145,7 @@ export function cargarMapaMapbox() {
       Object.entries(categoryColors).forEach(([cat, color]) => {
         const prefix = `icon-l${importance}-${cat}`;
         const searchPrefix = `icon-search-l${importance}-${cat}`;
+        const explorePrefix = `icon-explore-l${importance}-${cat}`;
 
         try {
           if (!state.map.hasImage(prefix)) state.map.addImage(prefix, buildIcon(drawTargetIcon, color, importance), { pixelRatio: 2 });
@@ -156,6 +157,10 @@ export function cargarMapaMapbox() {
           // Iconos de búsqueda (Lupa con color de categoría y tamaño por importancia)
           if (!state.map.hasImage(searchPrefix)) state.map.addImage(searchPrefix, buildIcon(drawSearchLupaIcon, color, importance), { pixelRatio: 2 });
           if (!state.map.hasImage(`${searchPrefix}-selected`)) state.map.addImage(`${searchPrefix}-selected`, buildIcon(drawSearchLupaIcon, selectedColor, importance), { pixelRatio: 2 });
+
+          // Iconos de itinerario Explora (Brújula con color de categoría y tamaño por importancia)
+          if (!state.map.hasImage(explorePrefix)) state.map.addImage(explorePrefix, buildIcon(drawExploreCompassIcon, color, importance), { pixelRatio: 2 });
+          if (!state.map.hasImage(`${explorePrefix}-selected`)) state.map.addImage(`${explorePrefix}-selected`, buildIcon(drawExploreCompassIcon, selectedColor, importance), { pixelRatio: 2 });
         } catch (e) {}
       });
     });
@@ -373,7 +378,7 @@ export function cargarMapaMapbox() {
         type: 'symbol',
         source: sourceId,
         minzoom,
-        filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'publicada'], ['!=', ['get', 'selected'], 1], ['!=', ['get', 'visited'], 1], ['!=', ['get', 'is_search'], 1]],
+        filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'publicada'], ['!=', ['get', 'selected'], 1], ['!=', ['get', 'visited'], 1], ['!=', ['get', 'is_search'], 1], ['!=', ['get', 'is_explore'], 1]],
         layout: {
           'icon-image': [
             'case',
@@ -400,7 +405,7 @@ export function cargarMapaMapbox() {
         type: 'symbol',
         source: sourceId,
         minzoom,
-        filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'publicada'], ['!=', ['get', 'selected'], 1], ['==', ['get', 'visited'], 1], ['!=', ['get', 'is_search'], 1]],
+        filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'publicada'], ['!=', ['get', 'selected'], 1], ['==', ['get', 'visited'], 1], ['!=', ['get', 'is_search'], 1], ['!=', ['get', 'is_explore'], 1]],
         layout: {
           'icon-image': [
             'case',
@@ -427,7 +432,7 @@ export function cargarMapaMapbox() {
         type: 'symbol',
         source: sourceId,
         minzoom: 0,
-        filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'publicada'], ['==', ['get', 'selected'], 1], ['!=', ['get', 'is_search'], 1]],
+        filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'publicada'], ['==', ['get', 'selected'], 1], ['!=', ['get', 'is_search'], 1], ['!=', ['get', 'is_explore'], 1]],
         layout: {
           'icon-image': [
             'case',
@@ -460,7 +465,9 @@ export function cargarMapaMapbox() {
           'icon-allow-overlap': true,
           'icon-ignore-placement': true,
           'icon-optional': false,
+          ...textLayout,
         },
+        paint: textPaint,
       });
 
       // Capa de búsqueda seleccionada
@@ -480,13 +487,49 @@ export function cargarMapaMapbox() {
         },
       });
 
+      // Capa de itinerarios de Explora (Icono de BRÚJULA, SIN REGLA DE ZOOM, color de categoría y tamaño por importancia)
+      state.map.addLayer({
+        id: `obras-l${importance}-explore`,
+        type: 'symbol',
+        source: sourceId,
+        minzoom: 0, // ¡Sin regla de zoom! Visible siempre a cualquier nivel de zoom mientras esté el itinerario activo
+        filter: ['all', baseFilter, ['==', ['get', 'is_explore'], 1], ['!=', ['get', 'selected'], 1]],
+        layout: {
+          'icon-image': ['concat', `icon-explore-l${importance}-`, catExpr],
+          'icon-size': iconSize * 1.15,
+          'symbol-sort-key': 80 - importance,
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+          'icon-optional': false,
+          ...textLayout,
+        },
+        paint: textPaint,
+      });
+
+      // Capa de itinerario de Explora seleccionado
+      state.map.addLayer({
+        id: `obras-l${importance}-explore-selected`,
+        type: 'symbol',
+        source: sourceId,
+        minzoom: 0,
+        filter: ['all', baseFilter, ['==', ['get', 'is_explore'], 1], ['==', ['get', 'selected'], 1]],
+        layout: {
+          'icon-image': ['concat', `icon-explore-l${importance}-`, catExpr, '-selected'],
+          'icon-size': iconSize * 1.4,
+          'symbol-sort-key': 100,
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+          'icon-optional': false,
+        },
+      });
+
       // Capa pendiente
       state.map.addLayer({
         id: `obras-l${importance}-pending`,
         type: 'symbol',
         source: sourceId,
         minzoom,
-        filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'pendiente'], ['!=', ['get', 'is_search'], 1]],
+        filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'pendiente'], ['!=', ['get', 'is_search'], 1], ['!=', ['get', 'is_explore'], 1]],
         layout: {
           'icon-image': [
             'case',
@@ -513,7 +556,7 @@ export function cargarMapaMapbox() {
         type: 'symbol',
         source: sourceId,
         minzoom,
-        filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'privada'], ['!=', ['get', 'is_search'], 1]],
+        filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'privada'], ['!=', ['get', 'is_search'], 1], ['!=', ['get', 'is_explore'], 1]],
         layout: {
           'icon-image': [
             'case',
@@ -534,7 +577,7 @@ export function cargarMapaMapbox() {
         paint: textPaint,
       });
 
-      [`obras-l${importance}`, `obras-l${importance}-visited`, `obras-l${importance}-selected`, `obras-l${importance}-search`, `obras-l${importance}-search-selected`, `obras-l${importance}-pending`, `obras-l${importance}-private`].forEach((layerId) => {
+      [`obras-l${importance}`, `obras-l${importance}-visited`, `obras-l${importance}-selected`, `obras-l${importance}-search`, `obras-l${importance}-search-selected`, `obras-l${importance}-explore`, `obras-l${importance}-explore-selected`, `obras-l${importance}-pending`, `obras-l${importance}-private`].forEach((layerId) => {
         state.map.on('mouseenter', layerId, () => { state.map.getCanvas().style.cursor = 'pointer'; });
         state.map.on('mouseleave', layerId, () => { state.map.getCanvas().style.cursor = ''; });
       });
@@ -976,7 +1019,7 @@ function resolveMapFeatureTarget(feature) {
 function iniciarInteraccionesMapa() {
   const allLayerIds = [];
   [0, 1, 2, 3].forEach((imp) => {
-    ['', '-visited', '-selected', '-search', '-search-selected', '-pending', '-private'].forEach((suf) => {
+    ['', '-visited', '-selected', '-search', '-search-selected', '-explore', '-explore-selected', '-pending', '-private'].forEach((suf) => {
       allLayerIds.push(`obras-l${imp}${suf}`);
     });
   });

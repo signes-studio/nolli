@@ -1,8 +1,7 @@
-// js/exploreUI.js
 import { state, escapeHtml } from './state.js';
 import { fetchAllPublicCollections, followCollection, unfollowCollection, fetchFollowedCollections } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
-import { CURATED_ROUTES, activarRutaEnMapa } from './radarUI.js';
+import { CURATED_ROUTES, getCuratedRoutes, activarRutaEnMapa } from './radarUI.js';
 import { activarFiltroBusquedaEnMapa } from './searchUI.js';
 
 let publicCollectionsCache = [];
@@ -56,7 +55,8 @@ export async function renderPublicCollections(query = '') {
   if (publicSection) publicSection.style.display = (activeExploreTab === 'all' || activeExploreTab === 'public') ? 'block' : 'none';
 
   // 1. Filtrar y renderizar Selecciones Curatoriales
-  let curatedRoutes = CURATED_ROUTES;
+  const allCurated = await getCuratedRoutes();
+  let curatedRoutes = (allCurated || CURATED_ROUTES).filter((r) => r.active !== false);
   if (q) {
     curatedRoutes = curatedRoutes.filter((r) => {
       return (r.title || '').toLowerCase().includes(q) ||

@@ -1,10 +1,10 @@
 // js/radarUI.js
-import { state, CATEGORY_META, escapeHtml, separarArquitectos, normalizarCategoria, normalizarImportancia, upsertBuilding } from './state.js';
+import { state, CATEGORY_META, escapeHtml, separarArquitectos, normalizarCategoria, normalizarImportancia, upsertBuilding, dedupeBuildings } from './state.js';
 import { abrirFicha } from './sheetUI.js';
 import { calcularDistanciaMetros } from './exploreUI.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { actualizarMarcadorUbicacion, actualizarVisibilidadIconosLista } from './mapController.js';
-import { fetchBuildingsInRadius, fetchBuildings } from './api.js';
+import { fetchBuildingsInRadius, fetchBuildings, getBuildingsCatalog, fetchItineraries } from './api.js';
 import { getOptimizedPhotoUrl } from './imageProxy.js';
 
 let radarRadius = 1000; // 1000m por defecto (1km)
@@ -13,6 +13,19 @@ let radarCacheKey = '';
 let radarCachedData = [];
 let locationWatchId = null;
 const CURATED_PROXIMITY_METERS = 15000; // radio para considerar una colección "cercana" al usuario
+
+export async function getCuratedRoutes() {
+  if (state.curatedRoutes && state.curatedRoutes.length > 0) return state.curatedRoutes;
+  try {
+    const remote = await fetchItineraries(state.sessionToken, false);
+    if (remote && remote.length > 0) {
+      state.curatedRoutes = remote;
+      return remote;
+    }
+  } catch (e) {}
+  state.curatedRoutes = CURATED_ROUTES;
+  return CURATED_ROUTES;
+}
 
 export const CURATED_ROUTES = [
   {
@@ -145,49 +158,55 @@ export const CURATED_ROUTES = [
   }
 ];
 
-export function matchWorksForRoute(route) {
+export function matchWorksForRoute(route, sourceList = null) {
+  const list = sourceList || (state.BUILDING_CATALOG && state.BUILDING_CATALOG.length ? state.BUILDING_CATALOG : state.OBRAS);
+  if (!list || !list.length) return [];
+
   if (route.addedByFilter) {
-    return state.OBRAS.filter((o) => {
+    return list.filter((o) => {
       const addedBy = String(o.añadido_por || o.anadido_por || '').toUpperCase();
       return addedBy.includes(route.addedByFilter.toUpperCase());
     });
   }
   if (route.architectFilter) {
-    return state.OBRAS.filter((o) => (o.arquitectos || '').toLowerCase().includes(route.architectFilter.toLowerCase()));
+    return list.filter((o) => (o.arquitectos || o.arquitecto || '').toLowerCase().includes(route.architectFilter.toLowerCase()));
   }
   if (route.decadeFilter) {
-    return state.OBRAS.filter((o) => {
+    return list.filter((o) => {
       const y = Number(o.año_construccion);
       const dec = Number(route.decadeFilter);
       return y >= dec && y < dec + 10;
     });
   }
   if (route.categoryFilter) {
-    return state.OBRAS.filter((o) => String(o.categoria || '').toLowerCase() === route.categoryFilter.toLowerCase());
+    return list.filter((o) => String(o.categoria || '').toLowerCase() === route.categoryFilter.toLowerCase());
   }
   if (route.keywords) {
-    return state.OBRAS.filter((o) => {
-      const text = `${o.nombre_obra} ${o.arquitectos} ${o.categoria}`.toLowerCase();
+    return list.filter((o) => {
+      const text = `${o.nombre_obra} ${o.arquitectos || o.arquitecto || ''} ${o.categoria}`.toLowerCase();
       return route.keywords.some((kw) => text.includes(kw));
     });
   }
   if (route.yearRange || route.architectsFilter || route.bboxFilter) {
-    // Filtros "compuestos" para colecciones curatoriales (movimientos): se combinan con AND.
-    // Pensados para criterios de historiador de arquitectura: periodo + geografía y/o lista de autores.
-    return state.OBRAS.filter((o) => {
+    return list.filter((o) => {
       if (route.yearRange) {
         const y = Number(o.año_construccion);
         if (!Number.isFinite(y) || y < route.yearRange[0] || y > route.yearRange[1]) return false;
       }
-      if (route.bboxFilter && o.coordenadas && o.coordenadas.length === 2) {
-        const [lon, lat] = o.coordenadas;
-        const { latMin, latMax, lonMin, lonMax } = route.bboxFilter;
-        if (lat < latMin || lat > latMax || lon < lonMin || lon > lonMax) return false;
-      } else if (route.bboxFilter) {
-        return false; // sin coordenadas no se puede verificar el bbox
+      if (route.bboxFilter) {
+        const coords = (Array.isArray(o.coordenadas) && o.coordenadas.length === 2 && Number.isFinite(o.coordenadas[0]))
+          ? o.coordenadas
+          : [Number(o.longitud), Number(o.latitud)];
+        if (coords && coords.length === 2 && Number.isFinite(coords[0]) && Number.isFinite(coords[1])) {
+          const [lon, lat] = coords;
+          const { latMin, latMax, lonMin, lonMax } = route.bboxFilter;
+          if (lat < latMin || lat > latMax || lon < lonMin || lon > lonMax) return false;
+        } else {
+          return false;
+        }
       }
       if (route.architectsFilter) {
-        const arqText = String(o.arquitectos || '').toLowerCase();
+        const arqText = String(o.arquitectos || o.arquitecto || '').toLowerCase();
         const match = route.architectsFilter.some((name) => arqText.includes(name.toLowerCase()));
         if (!match) return false;
       }
@@ -438,10 +457,11 @@ export async function renderRadarUI() {
 }
 
 export async function activarRutaEnMapa(routeId) {
-  const route = CURATED_ROUTES.find((r) => r.id === routeId);
+  const routes = await getCuratedRoutes();
+  const route = (routes || []).find((r) => r.id === routeId) || CURATED_ROUTES.find((r) => r.id === routeId);
   if (!route || !state.map) return;
 
-  const panel = document.getElementById('radar-panel');
+  const panel = document.getElementById('radar-panel') || document.getElementById('explore-panel');
   if (panel) panel.classList.remove('open');
   const backdrop = document.getElementById('panel-backdrop');
   if (backdrop) backdrop.classList.remove('active');
@@ -454,18 +474,22 @@ export async function activarRutaEnMapa(routeId) {
     titleEl.textContent = `CARGANDO: ${route.title.toUpperCase()}…`;
     if (countEl) countEl.textContent = '';
     itineraryBadge.classList.remove('hidden');
-    window.lucide?.createIcons({ context: document.getElementById('radar-followed-list') });
+    window.lucide?.createIcons?.();
   }
 
-  // 1. Determinar qué obras ya tenemos en local
-  let matchingWorks = matchWorksForRoute(route);
+  // 1. Obtener catálogo completo para garantizar que se incluyan TODAS las obras del itinerario
+  const catalog = (state.BUILDING_CATALOG && state.BUILDING_CATALOG.length > 0)
+    ? state.BUILDING_CATALOG
+    : await getBuildingsCatalog().catch(() => []);
+  if (catalog && catalog.length > 0) {
+    state.BUILDING_CATALOG = catalog;
+  }
 
-  // 2. Si el itinerario filtra por arquitecto, intentar cargar obras que falten en la BD completa.
-  //    Los filtros por bbox/año se aplican en la query para no saturar memoria.
-  try {
-    if (route.architectsFilter && route.architectsFilter.length > 0) {
+  // 2. Si el itinerario filtra por arquitecto, intentar enriquecer aún más con obras específicas
+  if (route.architectsFilter && route.architectsFilter.length > 0) {
+    try {
       for (const architect of route.architectsFilter) {
-        const dbRows = await fetchBuildings({ architect, includeAllImportance: true });
+        const dbRows = await fetchBuildings({ architect, includeAllImportance: true }).catch(() => []);
         (dbRows || []).forEach((fila, idx) => {
           const enriched = {
             ...fila,
@@ -476,57 +500,83 @@ export async function activarRutaEnMapa(routeId) {
             arquitectos: Array.isArray(fila.arquitectos) ? fila.arquitectos.join(', ') : (fila.arquitecto || ''),
             ciudad: fila.place || fila.ciudad || null,
             place: fila.place || fila.ciudad || null,
+            importancia: normalizarImportancia(fila.importancia),
+            selected: false,
           };
           state.OBRAS = upsertBuilding(state.OBRAS, enriched);
         });
       }
-      // Recalcular con el estado enriquecido
-      matchingWorks = matchWorksForRoute(route);
+    } catch (err) {
+      console.warn('Error cargando obras adicionales del itinerario:', err);
     }
-  } catch (err) {
-    console.warn('Error cargando obras adicionales del itinerario:', err);
   }
+
+  // 3. Obtener todas las obras coincidentes en toda la base de datos
+  const allPool = dedupeBuildings([...state.OBRAS, ...(state.BUILDING_CATALOG || []), ...(state.privateBuildings || [])]);
+  const matchingWorks = matchWorksForRoute(route, allPool);
 
   if (matchingWorks.length === 0) {
     if (itineraryBadge) itineraryBadge.classList.add('hidden');
     return;
   }
 
-  // 3. Establecer itinerario — marcarlo como colección para que se suprima el minzoom en todas las capas
+  // 4. Asegurar que todas las obras del itinerario estén en state.OBRAS listas para pintar
+  matchingWorks.forEach((fila, idx) => {
+    const coords = (Array.isArray(fila.coordenadas) && fila.coordenadas.length === 2 && Number.isFinite(fila.coordenadas[0]))
+      ? fila.coordenadas
+      : [Number(fila.longitud), Number(fila.latitud)];
+    const enriched = {
+      ...fila,
+      id: fila.id,
+      featureId: String(fila.id ?? `obra-${idx}`),
+      categoria: normalizarCategoria(fila.categoria),
+      coordenadas: coords,
+      arquitectos: Array.isArray(fila.arquitectos) ? fila.arquitectos.join(', ') : (fila.arquitecto || ''),
+      ciudad: fila.place || fila.ciudad || null,
+      place: fila.place || fila.ciudad || null,
+      importancia: normalizarImportancia(fila.importancia),
+      selected: false,
+    };
+    state.OBRAS = upsertBuilding(state.OBRAS, enriched);
+  });
+
+  // 5. Establecer itinerario activo con modo Explora (icono de brújula y visible sin restricciones de zoom)
   state.activeItinerary = {
     id: route.id,
     title: route.title,
     isCollectionItinerary: true,
+    isExplore: true,
     workIds: new Set(matchingWorks.map((w) => String(w.id))),
   };
 
-  // 4. Actualizar fuente del mapa y suprimir restricciones de zoom para este itinerario
+  // 6. Actualizar fuentes de mapa
   actualizarFuenteMapa();
   actualizarVisibilidadIconosLista();
 
-  // 5. Actualizar badge con conteo definitivo
+  // 7. Actualizar badge con conteo definitivo
   if (itineraryBadge && titleEl) {
     titleEl.textContent = `RUTA: ${route.title.toUpperCase()}`;
     if (countEl) countEl.textContent = `${matchingWorks.length} OBRAS`;
-    window.lucide?.createIcons({ context: document.getElementById('radar-search-results') });
+    window.lucide?.createIcons?.();
   }
 
-  // 6. Transicionar a pestaña Mapa
+  // 8. Transicionar a pestaña Mapa
   const mapNavBtn = document.getElementById('mobile-nav-map');
   if (mapNavBtn) {
     document.querySelectorAll('.mobile-nav-btn').forEach((b) => b.classList.remove('active'));
     mapNavBtn.classList.add('active');
   }
 
-  // 7. Encuadre geográfico abarcando todas las obras del itinerario
+  // 9. Encuadre geográfico abarcando TODAS las obras del itinerario
   const validCoords = matchingWorks
-    .filter((w) => w.coordenadas && w.coordenadas.length === 2 && Number.isFinite(w.coordenadas[0]) && Number.isFinite(w.coordenadas[1]))
-    .map((w) => w.coordenadas);
+    .map((w) => (Array.isArray(w.coordenadas) && w.coordenadas.length === 2 && Number.isFinite(w.coordenadas[0])) ? w.coordenadas : [Number(w.longitud), Number(w.latitud)])
+    .filter((coords) => coords && coords.length === 2 && Number.isFinite(coords[0]) && Number.isFinite(coords[1]));
+
   if (validCoords.length === 1) {
     state.map.flyTo({ center: validCoords[0], zoom: 12, duration: 900 });
   } else if (validCoords.length > 1) {
     const bounds = validCoords.reduce((b, coord) => b.extend(coord), new mapboxgl.LngLatBounds(validCoords[0], validCoords[0]));
-    state.map.fitBounds(bounds, { padding: 80, maxZoom: 12, duration: 1000 });
+    state.map.fitBounds(bounds, { padding: 80, maxZoom: 14, duration: 1000 });
   }
 }
 
