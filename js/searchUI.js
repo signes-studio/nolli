@@ -551,3 +551,17 @@ export async function activarFiltroBusquedaEnMapa(queryText, providedMatches = n
     }
   }
 }
+
+export function abrirBusquedaConQuery(query) {
+  if (!query) return;
+  if (searchInput) {
+    searchInput.value = query;
+  }
+  if (searchPanel && !searchPanel.classList.contains('open')) {
+    searchPanel.classList.add('open');
+    btnSearch?.classList.add('active-state');
+    const backdrop = document.getElementById('panel-backdrop');
+    if (backdrop) backdrop.classList.add('active');
+  }
+  ejecutarBusquedaGlobal();
+}

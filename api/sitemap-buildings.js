@@ -1,5 +1,7 @@
 const SITE_URL = 'https://nollimap.app';
-const CHUNK_SIZE = 2000;
+const CHUNK_SIZE = 1000;
+const FALLBACK_SUPABASE_URL = 'https://ldtfvpjigzvcagtciipn.supabase.co';
+const FALLBACK_SUPABASE_KEY = 'sb_publishable_kYQ7Fa8nBsrkp1f8C4AuAg_4-5uBFm0';
 
 function escapeXml(value) {
   return String(value)
@@ -22,18 +24,14 @@ function urlEntry(location, lastModified, changeFrequency, priority) {
 }
 
 async function fetchBuildingPage(page) {
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error('Faltan SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en Vercel.');
-  }
+  const supabaseUrl = process.env.SUPABASE_URL || FALLBACK_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || FALLBACK_SUPABASE_KEY;
 
   const start = page * CHUNK_SIZE;
   const end = start + CHUNK_SIZE - 1;
 
   const params = new URLSearchParams({
-    select: 'id,updated_at,created_at',
+    select: 'id,updated_at',
     order: 'id.asc',
     or: '(estado_revision.eq.publicada,estado_revision.is.null)',
   });
@@ -61,7 +59,7 @@ module.exports = async (request, response) => {
     const today = new Date().toISOString().slice(0, 10);
 
     const buildingEntries = (buildings || []).map((building) => {
-      const rawDate = building.updated_at || building.created_at || today;
+      const rawDate = building.updated_at || today;
       const lastmod = String(rawDate).slice(0, 10);
       return urlEntry(`${SITE_URL}/obra/${encodeURIComponent(building.id)}`, lastmod, 'weekly', '0.8');
     });
@@ -78,6 +76,7 @@ module.exports = async (request, response) => {
     response.status(200).send(sitemap);
   } catch (error) {
     console.error('No se pudo generar el sitemap de obras:', error);
-    response.status(500).type('text/plain').send('No se pudo generar el sitemap de obras.');
+    response.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    response.status(500).send('No se pudo generar el sitemap de obras.');
   }
 };

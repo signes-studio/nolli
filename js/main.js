@@ -10,7 +10,7 @@ import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
 import { cargarMapaMapbox } from './mapController.js';
 import { initModalsUI } from './modalsUI.js';
-import { initSearchUI } from './searchUI.js';
+import { initSearchUI, abrirBusquedaConQuery } from './searchUI.js';
 import { initMobileBottomNav } from './mobileBottomNav.js';
 import { getViewportKey } from './renderUtils.js';
 
@@ -146,12 +146,23 @@ async function cargarYMostrarObra(obraId) {
   }
 }
 
-async function verificarParametroObraURL() {
+function extraerQueryBusquedaURL() {
+  const params = new URLSearchParams(window.location.search);
+  const q = params.get('q');
+  return q ? decodeURIComponent(q).trim() : null;
+}
+
+async function verificarParametrosURL() {
   if (urlObraChecked) return;
   urlObraChecked = true;
   const obraId = extraerObraIdDeURL();
   if (obraId) {
     await cargarYMostrarObra(obraId);
+    return;
+  }
+  const searchQuery = extraerQueryBusquedaURL();
+  if (searchQuery) {
+    abrirBusquedaConQuery(searchQuery);
   }
 }
 
@@ -180,7 +191,7 @@ async function inicializarRadar() {
     cargarMapaMapbox();
     state.map.once('load', async () => {
       await cargarEdificiosVisibles();
-      verificarParametroObraURL();
+      verificarParametrosURL();
     });
     
     // La consulta y regeneración de GeoJSON se realizan al terminar el gesto;

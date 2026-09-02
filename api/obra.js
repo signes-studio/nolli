@@ -1,4 +1,8 @@
+const { categoryClass, categoryLabel } = require('./_lib/categories.js');
+
 const SITE_URL = 'https://nollimap.app';
+const FALLBACK_SUPABASE_URL = 'https://ldtfvpjigzvcagtciipn.supabase.co';
+const FALLBACK_SUPABASE_KEY = 'sb_publishable_kYQ7Fa8nBsrkp1f8C4AuAg_4-5uBFm0';
 
 function escapeHtml(value) {
   return String(value || '')
@@ -15,36 +19,9 @@ function buildingDescription(building) {
     .join(' | ');
 }
 
-function categoryClass(category) {
-  return {
-    residencial: 'residential',
-    dotacional_equipamiento: 'institutional',
-    industrial_logistico: 'industrial',
-    religioso_funerario: 'religious',
-    comercial_terciario: 'commercial',
-    espacio_publico_paisaje: 'public-space',
-    infraestructura_urbanismo: 'infrastructure',
-  }[category] || 'other';
-}
-
-function categoryLabel(category) {
-  return {
-    residencial: 'Residencial',
-    dotacional_equipamiento: 'Dotacional / Equipamiento',
-    industrial_logistico: 'Industrial / Logístico',
-    religioso_funerario: 'Religioso / Funerario',
-    comercial_terciario: 'Comercial / Terciario',
-    espacio_publico_paisaje: 'Espacio Público / Paisaje',
-    infraestructura_urbanismo: 'Infraestructura / Urbanismo',
-  }[category] || 'Otros';
-}
-
 async function fetchPublicBuilding(id) {
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error('Faltan SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en Vercel.');
-  }
+  const supabaseUrl = process.env.SUPABASE_URL || FALLBACK_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || FALLBACK_SUPABASE_KEY;
 
   const fields = 'id,nombre_obra,arquitecto,año_construccion,categoria,place,foto_url,foto_credito,foto_licencia,enlace_url,latitud,longitud,estado_revision';
   const params = new URLSearchParams({

@@ -1,5 +1,7 @@
 const SITE_URL = 'https://nollimap.app';
-const CHUNK_SIZE = 2000;
+const CHUNK_SIZE = 1000;
+const FALLBACK_SUPABASE_URL = 'https://ldtfvpjigzvcagtciipn.supabase.co';
+const FALLBACK_SUPABASE_KEY = 'sb_publishable_kYQ7Fa8nBsrkp1f8C4AuAg_4-5uBFm0';
 
 function escapeXml(value) {
   return String(value)
@@ -11,12 +13,8 @@ function escapeXml(value) {
 }
 
 async function fetchTotalPublicBuildingsCount() {
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error('Faltan SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en Vercel.');
-  }
+  const supabaseUrl = process.env.SUPABASE_URL || FALLBACK_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || FALLBACK_SUPABASE_KEY;
 
   const params = new URLSearchParams({
     select: 'id',
@@ -97,6 +95,7 @@ module.exports = async (request, response) => {
     response.status(200).send(sitemapIndex);
   } catch (error) {
     console.error('No se pudo generar el índice de sitemaps:', error);
-    response.status(500).type('text/plain').send('No se pudo generar el índice de sitemaps.');
+    response.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    response.status(500).send('No se pudo generar el índice de sitemaps.');
   }
 };

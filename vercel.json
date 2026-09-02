@@ -17,6 +17,14 @@
     {
       "source": "/obra/:id",
       "destination": "/api/obra?id=:id"
+    },
+    {
+      "source": "/categoria/:slug",
+      "destination": "/api/categoria?slug=:slug"
+    },
+    {
+      "source": "/arquitecto/:nombre",
+      "destination": "/api/arquitecto?nombre=:nombre"
     }
   ]
 }

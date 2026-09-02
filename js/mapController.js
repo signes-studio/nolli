@@ -8,12 +8,9 @@ import { buildIcon, drawTargetIcon, drawPrivateSquareIcon, buildEmojiIcon } from
 import { actualizarFuenteMapa } from './mapData.js';
 import { abrirFicha, cerrarFicha } from './sheetUI.js';
 
-mapboxgl.accessToken = MAPBOX_TOKEN;
-
-/** Registra o actualiza los emojis de las listas del usuario en Mapbox */
 /** Registra o actualiza los emojis de las listas del usuario en Mapbox */
 export function registrarIconosColecciones() {
-  if (!state.map || !state.map.isStyleLoaded || !state.map.isStyleLoaded()) return;
+  if (typeof mapboxgl === 'undefined' || !state.map || !state.map.isStyleLoaded || !state.map.isStyleLoaded()) return;
   try {
     const isDark = state.mapStyle === 'dark' || document.body.classList.contains('dark-mode');
     if (state.userCollections && state.userCollections.length > 0) {
@@ -65,6 +62,11 @@ export function actualizarVisibilidadIconosLista() {
 
 /** Crea el mapa, añade la capa de obras y arranca el HUD de coordenadas. */
 export function cargarMapaMapbox() {
+  if (typeof mapboxgl === 'undefined') {
+    console.error('Mapbox GL JS no está disponible.');
+    return;
+  }
+  mapboxgl.accessToken = MAPBOX_TOKEN;
   if (typeof mapboxgl.setTelemetryEnabled === 'function') {
     mapboxgl.setTelemetryEnabled(Boolean(window.nolliHasConsent?.('mapa_terceros')));
   }

@@ -1,3 +1,5 @@
+const { getCategorySlugs } = require('./_lib/categories.js');
+
 const SITE_URL = 'https://nollimap.app';
 
 function escapeXml(value) {
@@ -29,6 +31,9 @@ module.exports = async (request, response) => {
       urlEntry(`${SITE_URL}/perfil`, lastModified, 'weekly', '0.8'),
       urlEntry(`${SITE_URL}/public-profile`, lastModified, 'weekly', '0.7'),
       urlEntry(`${SITE_URL}/legal`, lastModified, 'monthly', '0.3'),
+      ...getCategorySlugs().map((slug) => (
+        urlEntry(`${SITE_URL}/categoria/${encodeURIComponent(slug)}`, lastModified, 'weekly', '0.6')
+      )),
     ];
 
     const sitemap = [
@@ -43,6 +48,7 @@ module.exports = async (request, response) => {
     response.status(200).send(sitemap);
   } catch (error) {
     console.error('No se pudo generar el sitemap estático:', error);
-    response.status(500).type('text/plain').send('No se pudo generar el sitemap estático.');
+    response.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    response.status(500).send('No se pudo generar el sitemap estático.');
   }
 };
