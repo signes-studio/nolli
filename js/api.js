@@ -140,8 +140,22 @@ export async function fetchBuildings({ bounds, zoom, architect, includeAllImport
   }
 }
 
-/** Descarga solo los metadatos necesarios para construir filtros globales. */
+/** Descarga solo los metadatos necesarios para construir filtros globales y buscador (optimizado con CDN Edge de Vercel). */
 export async function fetchBuildingFacets() {
+  try {
+    // 1. Intentar descargar el catálogo comprimido (Brotli) y cacheado en CDN Edge de Vercel (0 egress de Supabase)
+    const edgeRes = await fetch('./api/catalog');
+    if (edgeRes.ok) {
+      const data = await edgeRes.json();
+      if (Array.isArray(data) && data.length > 0) {
+        return data;
+      }
+    }
+  } catch {
+    // Continuar con fallback directo si estamos en entorno local sin serverless
+  }
+
+  // 2. Fallback de emergencia a Supabase directo paginado
   const pageSize = 1000;
   const facets = [];
   let start = 0;

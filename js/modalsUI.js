@@ -3,7 +3,7 @@
    ========================================================================= */
 
 import { state, separarArquitectos, normalizarCategoria, esRolAdmin } from './state.js';
-import { loginAdmin, registerUser, refreshUserSession, requestPasswordReset, fetchUserRole, fetchCurrentUser, fetchCurrentProfile, fetchBuildingStatuses, upsertCurrentProfile, createBuildingReport, createBuilding, createPrivateBuilding, updateBuilding, updateUserPresence } from './api.js';
+import { loginAdmin, registerUser, refreshUserSession, requestPasswordReset, fetchUserRole, fetchCurrentUser, fetchCurrentProfile, fetchBuildingStatuses, upsertCurrentProfile, createBuildingReport, createBuilding, createPrivateBuilding, updateBuilding, updateUserPresence, invalidateCatalogCache } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
 
@@ -534,6 +534,8 @@ function initAddBuildingModal() {
         state.OBRAS.push(savedItem);
         if (isPrivate) state.privateBuildings.push(savedItem);
       }
+      invalidateCatalogCache();
+      document.dispatchEvent(new CustomEvent('radar:catalog-invalidated'));
       actualizarFuenteMapa();
 
       // Actualizar filtros si hay un arquitecto nuevo

@@ -392,6 +392,10 @@ function initMobileIdentityWidget() {
 let cacheObrasMobileSearch = null;
 let mobileSearchPromise = null;
 
+document.addEventListener('radar:catalog-invalidated', () => {
+  cacheObrasMobileSearch = null;
+});
+
 async function cargarTodasObrasMobile() {
   if (cacheObrasMobileSearch && cacheObrasMobileSearch.length > 0) {
     return cacheObrasMobileSearch;
@@ -492,9 +496,13 @@ function initMobileSearchWidget() {
         return;
       }
 
-      // Obtener todas las obras (base de datos completa + estado local)
+      // Obtener todas las obras (base de datos completa + estado local + obras privadas/recién añadidas)
       const todasLasObras = await cargarTodasObrasMobile();
-      const catalogo = todasLasObras && todasLasObras.length ? todasLasObras : (state.OBRAS || []);
+      const mapaObras = new Map();
+      (todasLasObras || []).forEach((o) => { if (o && o.id != null) mapaObras.set(String(o.id), o); });
+      (state.OBRAS || []).forEach((o) => { if (o && o.id != null) mapaObras.set(String(o.id), o); });
+      (state.privateBuildings || []).forEach((o) => { if (o && o.id != null) mapaObras.set(String(o.id), o); });
+      const catalogo = Array.from(mapaObras.values());
 
       const tokens = q.split(/\s+/).filter(Boolean);
 

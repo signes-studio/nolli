@@ -464,13 +464,17 @@ export async function activarFiltroBusquedaEnMapa(queryText, providedMatches = n
   let matches = Array.isArray(providedMatches) && providedMatches.length ? [...providedMatches] : null;
 
   if (!matches || !matches.length) {
-    let catalogo = [];
+    let dbCatalog = [];
     try {
       const dbRows = await getBuildingsCatalog();
-      catalogo = (dbRows || []).map((row, idx) => transformarEdificio(row, idx));
-    } catch (e) {
-      catalogo = state.OBRAS || [];
-    }
+      dbCatalog = (dbRows || []).map((row, idx) => transformarEdificio(row, idx));
+    } catch (e) {}
+
+    const mapaCatalogo = new Map();
+    dbCatalog.forEach((o) => { if (o && o.id != null) mapaCatalogo.set(String(o.id), o); });
+    (state.OBRAS || []).forEach((o) => { if (o && o.id != null) mapaCatalogo.set(String(o.id), o); });
+    (state.privateBuildings || []).forEach((o) => { if (o && o.id != null) mapaCatalogo.set(String(o.id), o); });
+    const catalogo = Array.from(mapaCatalogo.values());
 
     matches = catalogo.filter((obra) => {
       const name = normalize(obra.nombre_obra);
