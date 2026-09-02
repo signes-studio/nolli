@@ -1,7 +1,7 @@
 import { state, escapeHtml } from './state.js';
 import { fetchAllPublicCollections, followCollection, unfollowCollection, fetchFollowedCollections } from './api.js';
-import { actualizarFuenteMapa } from './mapData.js';
-import { CURATED_ROUTES, getCuratedRoutes, activarRutaEnMapa } from './radarUI.js';
+import { CURATED_ROUTES } from './itinerariesConfig.js';
+import { getCuratedRoutes, activarRutaEnMapa } from './radarUI.js';
 import { activarFiltroBusquedaEnMapa } from './searchUI.js';
 import { calcularDistanciaMetros, formatearDistancia } from './renderUtils.js';
 

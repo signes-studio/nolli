@@ -14,7 +14,7 @@ import {
   deleteItinerary,
 } from './api.js';
 import { escapeHtml, normalizarCategoria, CATEGORY_META } from './state.js';
-import { CURATED_ROUTES, matchWorksForRoute } from './radarUI.js';
+import { CURATED_ROUTES, matchWorksForRoute } from './itinerariesConfig.js';
 
 const SESSION_KEY = 'nolli_admin_session_token';
 
@@ -504,7 +504,7 @@ function closeItineraryModal() {
 // 5. GESTIÓN MANUAL DE OBRAS EN EL FORMULARIO (UNA A UNA)
 // =========================================================================
 function handleSearchBuildingsToSelect(e) {
-  const query = (e.target.value || '').trim().toLowerCase();
+  const query = (e.target.value || '').trim();
   const resultsBox = document.getElementById('building-search-results');
   if (!resultsBox) return;
 
@@ -514,14 +514,32 @@ function handleSearchBuildingsToSelect(e) {
     return;
   }
 
+  if (!itineraryAdminState.catalog || itineraryAdminState.catalog.length === 0) {
+    resultsBox.innerHTML = `
+      <div style="padding: 12px; font-family: 'JetBrains Mono'; font-size: 11px; color: var(--admin-fg-dim); text-align: center;">
+        ⏳ Cargando catálogo completo de obras (15.000+)...
+      </div>
+    `;
+    resultsBox.classList.remove('hidden');
+    return;
+  }
+
+  const cleanQuery = query
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+
   const selectedIds = new Set(itineraryAdminState.currentFormSelectedWorks.map((w) => String(w.id)));
 
-  // Búsqueda en catálogo
+  // Búsqueda en catálogo insensible a mayúsculas y acentos
   const matches = itineraryAdminState.catalog.filter((b) => {
-    if (selectedIds.has(String(b.id))) return false; // No mostrar las ya añadidas
-    const fullText = `${b.nombre_obra} ${b.arquitectos || b.arquitecto || ''} ${b.ciudad || b.place || ''} ${b.id}`.toLowerCase();
-    return fullText.includes(query);
-  }).slice(0, 20);
+    if (selectedIds.has(String(b.id))) return false;
+    const fullText = `${b.nombre_obra || ''} ${b.arquitectos || b.arquitecto || ''} ${b.ciudad || b.place || ''} ${b.id || ''}`
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
+    return fullText.includes(cleanQuery);
+  }).slice(0, 30);
 
   if (matches.length === 0) {
     resultsBox.innerHTML = `
@@ -544,7 +562,7 @@ function handleSearchBuildingsToSelect(e) {
             <span style="font-size: 11px; color: var(--admin-fg-dim);">(${obra.año_construccion || 's/f'})</span>
           </div>
           <div style="font-size: 11px; color: var(--admin-fg-dim); font-family: 'JetBrains Mono'; margin-top: 2px;">
-            ${escapeHtml(obra.arquitecto || 'Autor desconocido')} • ${escapeHtml(obra.place || obra.ciudad || 'VLC')}
+            ${escapeHtml(obra.arquitecto || obra.arquitectos || 'Autor desconocido')} • ${escapeHtml(obra.place || obra.ciudad || 'VLC')} • ID: ${escapeHtml(obra.id)}
           </div>
         </div>
         <button type="button" class="admin-btn admin-btn-approve btn-add-building-to-route" data-id="${escapeHtml(obra.id)}" style="padding: 4px 10px; font-weight: 800; font-size: 11px;">
@@ -565,7 +583,7 @@ function handleSearchBuildingsToSelect(e) {
       if (obra) {
         itineraryAdminState.currentFormSelectedWorks.push(obra);
         renderFormSelectedWorksList();
-        btn.parentElement.remove();
+        btn.closest('.building-search-item')?.remove();
         if (resultsBox.children.length === 0) resultsBox.classList.add('hidden');
       }
     };
