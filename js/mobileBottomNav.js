@@ -133,11 +133,22 @@ export function initMobileBottomNav() {
     });
   }
 
-  // 2. [ EXPLORA ] - Feed vertical / proximidad de obras cercanas
+  // 2. EXPLORA - Feed de itinerarios y colecciones públicas (Exclusivo usuarios registrados)
   if (btnExplore) {
     btnExplore.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
+
+      if (!state.sessionToken) {
+        const loginModal = document.getElementById('modal-login');
+        if (loginModal) {
+          loginModal.classList.add('open');
+          const title = document.getElementById('modal-login-title');
+          if (title) title.textContent = 'ACCESO A EXPLORA // REGISTRO REQUERIDO';
+        }
+        return;
+      }
+
       toggleMobilePanel(explorePanel);
       if (explorePanel?.classList.contains('open')) {
         const modulo = await cargarPanel('exploreUI', 'initExploreUI', explorePanel);
@@ -216,6 +227,17 @@ export function initMobileBottomNav() {
     btnExploreFloat.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
+
+      if (!state.sessionToken) {
+        const loginModal = document.getElementById('modal-login');
+        if (loginModal) {
+          loginModal.classList.add('open');
+          const title = document.getElementById('modal-login-title');
+          if (title) title.textContent = 'ACCESO A EXPLORA // REGISTRO REQUERIDO';
+        }
+        return;
+      }
+
       toggleMobilePanel(explorePanel);
       if (explorePanel?.classList.contains('open')) {
         const modulo = await cargarPanel('exploreUI', 'initExploreUI', explorePanel);

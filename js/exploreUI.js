@@ -14,6 +14,46 @@ export async function renderPublicCollections(query = '') {
   const curatedContainer = document.getElementById('explore-curated-container');
   const publicContainer = document.getElementById('explore-public-container');
   const countBadge = document.getElementById('explore-count-badge');
+  const exploreContainer = document.getElementById('explore-list-container');
+
+  if (!state.sessionToken) {
+    if (curatedSection) curatedSection.style.display = 'none';
+    if (publicSection) publicSection.style.display = 'none';
+    if (countBadge) countBadge.textContent = 'ACCESO EXCLUSIVO';
+    if (exploreContainer) {
+      exploreContainer.innerHTML = `
+        <div class="explore-restricted-gate" style="text-align: center; padding: 50px 20px; display: flex; flex-direction: column; align-items: center; gap: 16px;">
+          <div style="width: 52px; height: 52px; border: 2px solid var(--border-strong, #111111); display: flex; align-items: center; justify-content: center; background: var(--bg-raised, #EAE6DD); box-shadow: 3px 3px 0px #111111;">
+            <i data-lucide="lock" width="24" height="24" style="color: var(--accent, #E84E1B);"></i>
+          </div>
+          <div>
+            <h3 style="font-family: 'League Spartan', sans-serif; font-size: 19px; font-weight: 900; margin: 0 0 6px; text-transform: uppercase; color: var(--fg); letter-spacing: 0.04em;">
+              EXPLORA EXCLUSIVO PARA USUARIOS
+            </h3>
+            <p style="font-family: 'Inter', sans-serif; font-size: 12px; color: var(--fg-dim); max-width: 320px; margin: 0 auto; line-height: 1.5;">
+              Inicia sesión o crea tu cuenta gratuita en Nolli para acceder a los itinerarios curatoriales y explorar las listas públicas de la comunidad.
+            </p>
+          </div>
+          <button type="button" id="btn-explore-login-trigger" class="btn btn-accent" style="font-family: 'Inter', sans-serif; font-weight: 800; font-size: 11px; padding: 10px 24px; cursor: pointer; text-transform: uppercase; margin-top: 4px; border: 2px solid #111111; box-shadow: 3px 3px 0px #111111;">
+            INICIAR SESIÓN / CREAR CUENTA ↗
+          </button>
+        </div>
+      `;
+      const loginTrigger = document.getElementById('btn-explore-login-trigger');
+      if (loginTrigger) {
+        loginTrigger.addEventListener('click', () => {
+          const loginModal = document.getElementById('modal-login');
+          if (loginModal) {
+            loginModal.classList.add('open');
+            const title = document.getElementById('modal-login-title');
+            if (title) title.textContent = 'ACCESO A EXPLORA // REGISTRO REQUERIDO';
+          }
+        });
+      }
+      window.lucide?.createIcons({ context: exploreContainer });
+    }
+    return;
+  }
 
   if (!publicCollectionsCache.length && publicContainer) {
     publicContainer.innerHTML = `<div class="explore-loading">CONSULTANDO LISTAS PÚBLICAS DE LA COMUNIDAD...</div>`;
@@ -261,9 +301,17 @@ export function initExploreUI() {
       try {
         state.userFollowedCollections = await fetchFollowedCollections(state.userId, state.sessionToken);
       } catch {}
+    }
+    if (panel && panel.classList.contains('open')) {
+      renderPublicCollections(searchInput?.value || '');
+    }
+  });
+
+  ['radar:user-login', 'radar:logout', 'radar:admin-login'].forEach((evt) => {
+    document.addEventListener(evt, () => {
       if (panel && panel.classList.contains('open')) {
         renderPublicCollections(searchInput?.value || '');
       }
-    }
+    });
   });
 }

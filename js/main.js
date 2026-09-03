@@ -129,8 +129,8 @@ async function cargarYMostrarObra(obraId) {
   let obra = state.OBRAS.find((item) => String(item.id) === String(obraId) || String(item.featureId) === String(obraId));
   if (!obra) {
     try {
-      const dbRows = await fetchBuildings({ includeAllImportance: true });
-      const found = dbRows.find((item) => String(item.id) === String(obraId));
+      const catalog = await getBuildingsCatalog();
+      const found = catalog.find((item) => String(item.id) === String(obraId));
       if (found) {
         obra = transformarEdificio(found, state.OBRAS.length);
         state.OBRAS.push(obra);

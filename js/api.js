@@ -4,11 +4,12 @@
    ========================================================================= */
 
 import { SUPABASE_URL, SUPABASE_KEY, MAPBOX_TOKEN } from './config.js';
+import { calcularDistanciaMetros } from './renderUtils.js';
 
 // Cache compartida para catálogo de obras (deduplication)
 let catalogCache = null;
 let catalogPromise = null;
-const CATALOG_CACHE_KEY = 'nolli:buildings-catalog:v1';
+const CATALOG_CACHE_KEY = 'nolli:buildings-catalog:v2';
 const CATALOG_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 export async function searchPlaces(query) {
@@ -23,124 +24,111 @@ export async function searchPlaces(query) {
   return response.json();
 }
 
-/** Descarga obras específicas por su ID (para zona personal y colecciones). */
+/** Descarga obras específicas por su ID buscando primero en catálogo local (0 egress). */
 export async function fetchBuildingsByIds(ids) {
   if (!Array.isArray(ids) || ids.length === 0) return [];
-  const cleanIds = ids.map((id) => encodeURIComponent(String(id).trim())).filter(Boolean);
+  const cleanIds = ids.map((id) => String(id).trim()).filter(Boolean);
   if (cleanIds.length === 0) return [];
 
+  const found = [];
+  const missing = [];
+
+  try {
+    const catalog = await getBuildingsCatalog();
+    if (Array.isArray(catalog) && catalog.length > 0) {
+      const catalogMap = new Map(catalog.map((b) => [String(b.id), b]));
+      cleanIds.forEach((id) => {
+        const item = catalogMap.get(id);
+        if (item) found.push(item);
+        else missing.push(id);
+      });
+    } else {
+      missing.push(...cleanIds);
+    }
+  } catch {
+    missing.push(...cleanIds);
+  }
+
+  if (missing.length === 0) return found;
+
   const publicFields = 'id,nombre_obra,foto_url,enlace_url,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,añadido_por,estado_revision,longitud,latitud,place';
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?id=in.(${cleanIds.join(',')})&select=${publicFields}`, {
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${SUPABASE_KEY}`,
-    },
-  });
-  if (!response.ok) return [];
-  return response.json();
+  try {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?id=in.(${missing.map(encodeURIComponent).join(',')})&select=${publicFields}`, {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+      },
+    });
+    if (response.ok) {
+      const remote = await response.json();
+      if (Array.isArray(remote)) found.push(...remote);
+    }
+  } catch (e) {
+    console.warn('Error al buscar obras faltantes por ID en Supabase:', e);
+  }
+
+  return found;
 }
 
-/** Descarga todas las obras dentro de un radio geodésico directamente de la base de datos completa. */
+/** Descarga todas las obras dentro de un radio calculándolas en memoria desde el catálogo cacheado (0 egress). */
 export async function fetchBuildingsInRadius({ lon, lat, radiusMeters = 10000, signal } = {}) {
   if (!Number.isFinite(lon) || !Number.isFinite(lat)) return [];
-
-  const deltaLat = (radiusMeters + 500) / 111320;
-  const deltaLon = (radiusMeters + 500) / (111320 * Math.cos(lat * Math.PI / 180));
-
-  const minLat = lat - deltaLat;
-  const maxLat = lat + deltaLat;
-  const minLon = lon - deltaLon;
-  const maxLon = lon + deltaLon;
-
-  const publicFields = 'id,nombre_obra,foto_url,enlace_url,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,añadido_por,estado_revision,longitud,latitud,place';
-  const pageSize = 1000;
-  const results = [];
-  let start = 0;
-
-  while (true) {
-    try {
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?latitud=gte.${minLat}&latitud=lte.${maxLat}&longitud=gte.${minLon}&longitud=lte.${maxLon}&select=${publicFields}&order=id.asc`, {
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SUPABASE_KEY}`,
-          Range: `${start}-${start + pageSize - 1}`,
-        },
-        signal,
+  try {
+    const catalog = await getBuildingsCatalog();
+    if (Array.isArray(catalog) && catalog.length > 0) {
+      return catalog.filter((b) => {
+        const bLat = Number(b.latitud);
+        const bLon = Number(b.longitud);
+        if (!Number.isFinite(bLat) || !Number.isFinite(bLon)) return false;
+        const dist = calcularDistanciaMetros(lon, lat, bLon, bLat);
+        return dist <= radiusMeters;
       });
-      if (!response.ok) {
-        if (response.status === 416) return results;
-        break;
-      }
-      const page = await response.json();
-      if (!Array.isArray(page)) break;
-      results.push(...page);
-      if (page.length < pageSize) break;
-      start += pageSize;
-    } catch (err) {
-      if (err.name === 'AbortError' || signal?.aborted) throw err;
-      console.warn('Aviso en consulta de radar en base de datos:', err);
-      break;
     }
+  } catch (err) {
+    if (signal?.aborted) return [];
+    console.warn('Aviso calculando radio desde catálogo:', err);
   }
-
-  return results;
+  return [];
 }
 
-/** Descarga las obras públicas del encuadre y nivel de zoom actuales con precarga de buffer periférico. */
+/** Resuelve las obras del catálogo en memoria o caché Edge sin saturar Supabase con consultas continuas. */
 export async function fetchBuildings({ bounds, zoom, architect, includeAllImportance = true, bufferRatio = 0.75, signal } = {}) {
-  const pageSize = 1000;
-  const buildings = [];
-  let start = 0;
-  const publicFields = 'id,nombre_obra,foto_url,enlace_url,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,añadido_por,estado_revision,longitud,latitud,place';
-  const params = new URLSearchParams({ select: publicFields, order: 'id.asc' });
-  if (bounds && typeof bounds.toArray === 'function') {
-    const [[minLongitude, minLatitude], [maxLongitude, maxLatitude]] = bounds.toArray();
-    // Expandir el bounding box en un 75% para precargar la zona colindante y lograr desplazamiento 60 FPS sin lag
-    const lonDelta = (maxLongitude - minLongitude) * bufferRatio;
-    const latDelta = (maxLatitude - minLatitude) * bufferRatio;
-    const fetchMinLon = minLongitude - lonDelta;
-    const fetchMaxLon = maxLongitude + lonDelta;
-    const fetchMinLat = minLatitude - latDelta;
-    const fetchMaxLat = maxLatitude + latDelta;
-
-    params.append('longitud', `gte.${fetchMinLon}`);
-    params.append('latitud', `gte.${fetchMinLat}`);
-    params.append('longitud', `lte.${fetchMaxLon}`);
-    params.append('latitud', `lte.${fetchMaxLat}`);
-  }
-  if (architect) params.set('arquitecto', `ilike.*${architect}*`);
-  if (!includeAllImportance && Number(zoom) < 8) {
-    params.set('importancia', 'lte.2');
-  }
-
-  while (true) {
-    try {
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?${params.toString()}`, {
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SUPABASE_KEY}`,
-          Range: `${start}-${start + pageSize - 1}`,
-        },
-        signal,
-      });
-      if (!response.ok) {
-        if (response.status === 416) return buildings; // Rango excedido -> final de datos
-        throw new Error(`Error ${response.status}`);
+  try {
+    const catalog = await getBuildingsCatalog();
+    if (Array.isArray(catalog) && catalog.length > 0) {
+      let filtered = catalog;
+      if (architect) {
+        const arqLower = architect.toLowerCase();
+        filtered = filtered.filter((b) => (b.arquitectos || b.arquitecto || '').toLowerCase().includes(arqLower));
       }
-      const page = await response.json();
-      if (!Array.isArray(page)) return buildings;
-      buildings.push(...page);
-      if (page.length < pageSize) return buildings;
-      start += pageSize;
-    } catch (err) {
-      if (err.name === 'AbortError' || signal?.aborted) throw err;
-      console.warn('Aviso en consulta de obras:', err);
-      return buildings; // Devolver lo obtenido hasta el momento para evitar caídas
+      if (bounds && typeof bounds.toArray === 'function') {
+        const [[minLongitude, minLatitude], [maxLongitude, maxLatitude]] = bounds.toArray();
+        const lonDelta = (maxLongitude - minLongitude) * bufferRatio;
+        const latDelta = (maxLatitude - minLatitude) * bufferRatio;
+        const fetchMinLon = minLongitude - lonDelta;
+        const fetchMaxLon = maxLongitude + lonDelta;
+        const fetchMinLat = minLatitude - latDelta;
+        const fetchMaxLat = maxLatitude + latDelta;
+
+        filtered = filtered.filter((b) => {
+          const lat = Number(b.latitud);
+          const lon = Number(b.longitud);
+          return lat >= fetchMinLat && lat <= fetchMaxLat && lon >= fetchMinLon && lon <= fetchMaxLon;
+        });
+      }
+      if (!includeAllImportance && Number(zoom) < 8) {
+        filtered = filtered.filter((b) => Number(b.importancia || 1) <= 2);
+      }
+      return filtered;
     }
+  } catch (err) {
+    if (signal?.aborted) return [];
+    console.warn('Aviso resolviendo obras desde catálogo:', err);
   }
+  return [];
 }
 
-/** Descarga solo los metadatos necesarios para construir filtros globales y buscador (optimizado con CDN Edge de Vercel). */
+/** Descarga el catálogo completo optimizado con CDN Edge de Vercel (0 egress de Supabase). */
 export async function fetchBuildingFacets() {
   try {
     // 1. Intentar descargar el catálogo comprimido (Brotli) y cacheado en CDN Edge de Vercel (0 egress de Supabase)
@@ -160,8 +148,9 @@ export async function fetchBuildingFacets() {
   const facets = [];
   let start = 0;
   const params = new URLSearchParams({
-    select: 'id,nombre_obra,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,longitud,latitud,place',
+    select: 'id,nombre_obra,foto_url,enlace_url,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,añadido_por,longitud,latitud,place',
     order: 'id.asc',
+    or: '(estado_revision.eq.publicada,estado_revision.is.null)',
   });
 
   try {
@@ -195,41 +184,43 @@ export async function fetchBuildingFacets() {
  * @returns {Promise<Array>} Catálogo de obras normalizadas
  */
 export async function getBuildingsCatalog() {
-  // Si ya tenemos el resultado cacheado, devolverlo
-  if (catalogCache) {
-    return Promise.resolve(catalogCache);
+  if (catalogCache && catalogCache.length > 0) {
+    return catalogCache;
   }
 
   try {
-    const cached = JSON.parse(localStorage.getItem(CATALOG_CACHE_KEY));
-    if (cached?.expiresAt > Date.now() && Array.isArray(cached.rows)) {
-      catalogCache = cached.rows;
-      return catalogCache;
+    const raw = localStorage.getItem(CATALOG_CACHE_KEY);
+    if (raw) {
+      const cached = JSON.parse(raw);
+      if (cached?.expiresAt > Date.now() && Array.isArray(cached.rows) && cached.rows.length > 0) {
+        catalogCache = cached.rows;
+        return catalogCache;
+      }
     }
   } catch {
     localStorage.removeItem(CATALOG_CACHE_KEY);
   }
   
-  // Si hay una promesa en vuelo, reusarla (deduplication)
   if (catalogPromise) {
     return catalogPromise;
   }
   
-  // Crear nueva promesa y cachearla durante la resolución
-  catalogPromise = fetchBuildingFacets().then(result => {
-    catalogCache = result;
-    try {
-      localStorage.setItem(CATALOG_CACHE_KEY, JSON.stringify({
-        expiresAt: Date.now() + CATALOG_CACHE_TTL_MS,
-        rows: result,
-      }));
-    } catch {
-      // El catálogo sigue disponible en memoria si el almacenamiento está lleno o bloqueado.
+  catalogPromise = fetchBuildingFacets().then((result) => {
+    if (Array.isArray(result) && result.length > 0) {
+      catalogCache = result;
+      try {
+        localStorage.setItem(CATALOG_CACHE_KEY, JSON.stringify({
+          expiresAt: Date.now() + CATALOG_CACHE_TTL_MS,
+          rows: result,
+        }));
+      } catch {
+        // El catálogo sigue disponible en memoria si el almacenamiento está lleno o bloqueado.
+      }
     }
-    catalogPromise = null; // Limpiar la promesa en vuelo
-    return result;
-  }).catch(err => {
-    catalogPromise = null; // Limpiar en error para reintentar después
+    catalogPromise = null;
+    return catalogCache || result;
+  }).catch((err) => {
+    catalogPromise = null;
     throw err;
   });
   

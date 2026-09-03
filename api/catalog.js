@@ -1,4 +1,4 @@
-﻿const FALLBACK_SUPABASE_URL = 'https://ldtfvpjigzvcagtciipn.supabase.co';
+const FALLBACK_SUPABASE_URL = 'https://ldtfvpjigzvcagtciipn.supabase.co';
 const FALLBACK_SUPABASE_KEY = 'sb_publishable_kYQ7Fa8nBsrkp1f8C4AuAg_4-5uBFm0';
 
 module.exports = async function handler(req, res) {
@@ -6,7 +6,7 @@ module.exports = async function handler(req, res) {
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || FALLBACK_SUPABASE_KEY;
 
   const pageSize = 1000;
-  const fields = 'id,nombre_obra,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,longitud,latitud,place';
+  const fields = 'id,nombre_obra,foto_url,enlace_url,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,añadido_por,longitud,latitud,place';
   const params = new URLSearchParams({
     select: fields,
     order: 'id.asc',
