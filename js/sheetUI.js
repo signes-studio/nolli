@@ -199,14 +199,27 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
     </div>
 
     <!-- Fotografía Principal en Banner Panorámico -->
-    ${building.foto_url && isValidHttpsUrl(building.foto_url) ? `
-      <div class="sheet-gallery-wrap">
-        <button type="button" class="photo-thumb sheet-photo-banner" data-photo-url="${escapeHtml(building.foto_url)}" aria-label="Ampliar fotografía de la obra">
-          <img class="sheet-photo" src="${escapeHtml(getOptimizedPhotoUrl(building.foto_url, { width: 1000 }))}" alt="Fotografía de ${escapeHtml(building.nombre_obra)}" loading="lazy"${openedFromUrl ? ' fetchpriority="high"' : ''}>
-          <span class="photo-zoom-badge"><i data-lucide="maximize-2" width="12" height="12"></i> AMPLIAR</span>
-        </button>
-      </div>
-    ` : ''}
+    ${building.foto_url && isValidHttpsUrl(building.foto_url) ? (
+      state.sessionToken ? `
+        <div class="sheet-gallery-wrap">
+          <button type="button" class="photo-thumb sheet-photo-banner" data-photo-url="${escapeHtml(building.foto_url)}" aria-label="Ampliar fotografía de la obra">
+            <img class="sheet-photo" src="${escapeHtml(getOptimizedPhotoUrl(building.foto_url, { width: 1000 }))}" alt="Fotografía de ${escapeHtml(building.nombre_obra)}" loading="lazy"${openedFromUrl ? ' fetchpriority="high"' : ''}>
+            <span class="photo-zoom-badge"><i data-lucide="maximize-2" width="12" height="12"></i> AMPLIAR</span>
+          </button>
+        </div>
+      ` : `
+        <div class="sheet-gallery-wrap">
+          <div class="sheet-restricted-banner" data-trigger-login role="button" tabindex="0" title="Inicia sesión o regístrate gratis para ver la fotografía">
+            <div class="sheet-restricted-badge">
+              <i data-lucide="lock" width="12" height="12"></i>
+              <span>FOTOGRAFÍA DISPONIBLE</span>
+            </div>
+            <p class="sheet-restricted-desc">Inicia sesión o regístrate gratis para ver la imagen en alta definición.</p>
+            <span class="sheet-restricted-cta">[ ACCEDER / REGISTRO → ]</span>
+          </div>
+        </div>
+      `
+    ) : ''}
 
     <!-- Ficha Técnica Modular Limpia (Matriz Tipográfica) -->
     <div class="sheet-tech-section">
@@ -244,7 +257,14 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
         <div class="tech-row tech-row-link">
           <span class="tech-label">[ ENLACE ]</span>
           <span class="tech-value">
-            <a href="${escapeHtml(building.enlace_url)}" target="_blank" rel="noopener noreferrer" class="sheet-web-link">PÁGINA OFICIAL DEL PROYECTO ↗</a>
+            ${state.sessionToken ? `
+              <a href="${escapeHtml(building.enlace_url)}" target="_blank" rel="noopener noreferrer" class="sheet-web-link">PÁGINA OFICIAL DEL PROYECTO ↗</a>
+            ` : `
+              <button type="button" class="sheet-restricted-link-btn" data-trigger-login title="Inicia sesión o regístrate para abrir el enlace">
+                <i data-lucide="lock" width="11" height="11"></i>
+                <span>SOLO USUARIOS REGISTRADOS ↗</span>
+              </button>
+            `}
           </span>
         </div>
       ` : ''}
@@ -294,6 +314,15 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
   `;
 
   window.lucide?.createIcons({ context: sheet });
+
+  // Listeners para iniciar sesión desde elementos restringidos
+  document.querySelectorAll('[data-trigger-login]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const mLogin = document.getElementById('modal-login');
+      if (mLogin) mLogin.classList.add('open');
+    });
+  });
 
   // Listeners para botones de reporte
   document.querySelectorAll('[data-open-report]').forEach((btn) => {

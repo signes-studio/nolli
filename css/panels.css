@@ -142,6 +142,78 @@ body.dark-mode .sheet-hero-btn.active.saved {
   align-items: center;
   gap: 3px;
 }
+.sheet-restricted-banner {
+  background: var(--bg-card, #EFECE6);
+  border: 1px solid var(--border-strong, #141411);
+  box-shadow: 2px 2px 0px var(--border-strong, #141411);
+  padding: 12px 14px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  user-select: none;
+}
+.sheet-restricted-banner:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px var(--border-strong, #141411);
+}
+.sheet-restricted-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent, #E84E1B);
+  letter-spacing: 0.04em;
+}
+.sheet-restricted-desc {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-dim, #555);
+  margin: 0;
+}
+.sheet-restricted-cta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent-2, #EFBC02);
+  background: var(--border-strong, #141411);
+  padding: 4px 8px;
+  align-self: flex-start;
+  margin-top: 2px;
+}
+body.dark-mode .sheet-restricted-banner {
+  background: #191916;
+  border-color: #33332D;
+  box-shadow: 2px 2px 0px #000;
+}
+body.dark-mode .sheet-restricted-desc {
+  color: #A0A09A;
+}
+.sheet-restricted-link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent, #E84E1B);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.sheet-restricted-link-btn:hover {
+  color: var(--text, #141411);
+}
+body.dark-mode .sheet-restricted-link-btn:hover {
+  color: #fff;
+}
 .sheet-tech-section {
   border-bottom: 1px solid var(--border);
 }
