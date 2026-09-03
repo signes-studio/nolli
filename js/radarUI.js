@@ -171,7 +171,7 @@ export function renderRadarList(works, container, countSpan) {
     const metaCat = CATEGORY_META[catKey] || CATEGORY_META['otro'];
     const catColor = metaCat?.color || '#E84E1B';
     const distText = formatearDistanciaRadar(obra._dist);
-    const photo = getOptimizedPhotoUrl(obra.foto_url || obra.foto_miniatura || '', { width: 160 });
+    const photo = state.sessionToken ? getOptimizedPhotoUrl(obra.foto_url || obra.foto_miniatura || '', { width: 160 }) : '';
     const city = obra.place || obra.ciudad || '';
     const architects = obra.arquitectos || 'AUTOR NO IDENTIFICADO';
     const year = obra.año_construccion ? ` · ${escapeHtml(obra.año_construccion)}` : '';

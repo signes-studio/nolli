@@ -91,7 +91,7 @@ async function abrirFichaArquitecto(nombreArquitecto) {
             ${cityName ? `<span class="architect-city-tag">· ${escapeHtml(cityName)}</span>` : ''}
           </div>
         </div>
-        ${obra.foto_url && isValidHttpsUrl(obra.foto_url) ? `
+        ${obra.foto_url && isValidHttpsUrl(obra.foto_url) && state.sessionToken ? `
           <div class="architect-work-thumb-wrap">
             <img src="${escapeHtml(getOptimizedPhotoUrl(obra.foto_url, { width: 96 }))}" alt="${escapeHtml(obra.nombre_obra)}" class="architect-work-thumb" loading="lazy">
           </div>
@@ -240,18 +240,11 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
         <span class="tech-value tech-value-mono">${coords[1].toFixed(5)}° N, ${coords[0].toFixed(5)}° E</span>
       </div>
 
-      ${building.enlace_url && isValidHttpsUrl(building.enlace_url) ? `
+      ${building.enlace_url && isValidHttpsUrl(building.enlace_url) && state.sessionToken ? `
         <div class="tech-row tech-row-link">
           <span class="tech-label">ENLACE</span>
           <span class="tech-value">
-            ${state.sessionToken ? `
-              <a href="${escapeHtml(building.enlace_url)}" target="_blank" rel="noopener noreferrer" class="sheet-web-link">PÁGINA OFICIAL DEL PROYECTO ↗</a>
-            ` : `
-              <button type="button" class="sheet-restricted-link-btn" data-trigger-login title="Inicia sesión o regístrate para abrir el enlace">
-                <i data-lucide="lock" width="11" height="11"></i>
-                <span>SOLO USUARIOS REGISTRADOS ↗</span>
-              </button>
-            `}
+            <a href="${escapeHtml(building.enlace_url)}" target="_blank" rel="noopener noreferrer" class="sheet-web-link">PÁGINA OFICIAL DEL PROYECTO ↗</a>
           </span>
         </div>
       ` : ''}
@@ -713,6 +706,9 @@ function guardarEstadoPersonalLocal() {
   localStorage.setItem(`nolli:building-status:${state.userId}`, JSON.stringify([...state.buildingStatuses.entries()]));
 }
 
+document.addEventListener('radar:admin-login', actualizarFichaAbierta);
+document.addEventListener('radar:user-login', actualizarFichaAbierta);
+document.addEventListener('radar:user-session-ready', actualizarFichaAbierta);
 document.addEventListener('radar:admin-login', actualizarFichaAbierta);
 document.addEventListener('radar:admin-mode-change', actualizarFichaAbierta);
 document.addEventListener('radar:logout', actualizarFichaAbierta);
