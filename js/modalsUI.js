@@ -98,14 +98,14 @@ async function initLoginModal() {
     ].filter(Boolean);
     adminButtons.forEach((btn) => btn.classList.toggle('hidden', !canUseAdminTools));
 
-    bLoginT.textContent = canUseAdminTools ? '[ ADMIN DESBLOQUEADO ]' : '[ SESIÓN INICIADA ]';
+    bLoginT.textContent = canUseAdminTools ? 'ADMIN DESBLOQUEADO' : 'SESIÓN INICIADA';
     bLoginT.style.color = 'var(--accent-2)';
     bLoginT.style.borderColor = 'var(--accent-2)';
     bLoginT.style.background = 'rgba(239, 188, 2, 0.12)';
 
     const mobileBadge = document.getElementById('mobile-identity-badge');
     if (mobileBadge) {
-      mobileBadge.textContent = canUseAdminTools ? '[ ADMIN ]' : '[ SESIÓN ]';
+      mobileBadge.textContent = canUseAdminTools ? 'ADMIN' : 'SESIÓN';
     }
 
     logoutButton.classList.remove('hidden');
@@ -360,7 +360,7 @@ async function initLoginModal() {
     if (logoutButton) logoutButton.classList.add('hidden');
     loginEntryFields.forEach((field) => field.classList.remove('hidden'));
     if (bLoginT) {
-      bLoginT.textContent = '[ INICIAR SESIÓN ]';
+      bLoginT.textContent = 'INICIAR SESIÓN';
       bLoginT.style.color = 'var(--accent)';
       bLoginT.style.borderColor = 'var(--accent)';
       bLoginT.style.background = 'rgba(233, 92, 12, 0.1)';
@@ -721,7 +721,7 @@ function initReportModal() {
 
     const button = document.getElementById('btn-report-submit');
     if (button) {
-      button.textContent = '[ ENVIANDO REPORTE... ]';
+      button.textContent = 'ENVIANDO REPORTE...';
       button.disabled = true;
     }
 
@@ -734,7 +734,7 @@ function initReportModal() {
         description: description || `Reporte de ${activeReportType} enviado desde la ficha técnica.`
       }, state.sessionToken);
 
-      if (button) button.textContent = '[ REPORTE REGISTRADO CON ÉXITO ]';
+      if (button) button.textContent = 'REPORTE REGISTRADO CON ÉXITO';
       setTimeout(close, 800);
     } catch (error) {
       if (errorElement) {
@@ -745,7 +745,7 @@ function initReportModal() {
       if (button) {
         button.disabled = false;
         setTimeout(() => {
-          if (!modal?.classList.contains('open')) button.textContent = '[ ENVIAR REPORTE ]';
+          if (!modal?.classList.contains('open')) button.textContent = 'ENVIAR REPORTE';
         }, 1000);
       }
     }

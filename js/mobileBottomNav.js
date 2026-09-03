@@ -109,7 +109,7 @@ export function initMobileBottomNav() {
   async function cargarPanel(nombreModulo, nombreExportInit, targetPanel) {
     const loading = document.createElement('div');
     loading.className = 'panel-loading-status';
-    loading.textContent = '[ CARGANDO PANEL... ]';
+    loading.textContent = 'CARGANDO PANEL...';
     targetPanel?.prepend(loading);
     targetPanel?.setAttribute('aria-busy', 'true');
     try {
@@ -298,7 +298,7 @@ function initMobileSplashScreen() {
       sessionStorage.setItem('nolli_splash_shown', 'true');
     } catch (e) {}
 
-    if (status) status.textContent = '[ DATOS SINCRONIZADOS ]';
+    if (status) status.textContent = 'DATOS SINCRONIZADOS';
 
     setTimeout(() => {
       splash.classList.add('splash-hidden');
@@ -354,17 +354,17 @@ function initMobileIdentityWidget() {
 
     if (!isLogged) {
       actionBtn.classList.add('guest');
-      badge.textContent = '[ ACCEDER ]';
+      badge.textContent = 'ACCEDER';
       actionBtn.title = 'Iniciar sesión';
       if (quickMenu) quickMenu.hidden = true;
     } else if (isAdmin) {
       actionBtn.classList.add('admin-logged');
-      badge.textContent = '[ ADMIN ]';
+      badge.textContent = 'ADMIN';
       actionBtn.title = 'Menú rápido de administrador';
     } else {
       actionBtn.classList.add('user-logged');
       const inits = computeInitials();
-      badge.textContent = `[ ${inits} ]`;
+      badge.textContent = `${inits}`;
       actionBtn.title = 'Ver perfil personal';
     }
   }
@@ -523,9 +523,7 @@ function initMobileSearchWidget() {
 
       if (!matches.length) {
         resultsContainer.innerHTML = `
-          <div style="padding: 14px; font-family: 'Inter', sans-serif; font-size: 10px; color: var(--fg-dim); text-align: center;">
-            [ SIN RESULTADOS EN LA BASE DE DATOS ]
-          </div>
+          <div style="padding: 14px; font-family: 'Inter', sans-serif; font-size: 10px; color: var(--fg-dim); text-align: center;">SIN RESULTADOS EN LA BASE DE DATOS</div>
         `;
         dropdown.hidden = false;
         return;
@@ -534,7 +532,7 @@ function initMobileSearchWidget() {
       const headerActionHtml = `
         <button type="button" class="mobile-search-filter-action" data-action="filter-all-matches">
           <i data-lucide="filter" width="13" height="13"></i>
-          <span>[ VER Y FILTRAR LAS ${matches.length} OBRAS EN EL MAPA ]</span>
+          <span>VER Y FILTRAR LAS ${matches.length} OBRAS EN EL MAPA</span>
         </button>
       `;
 
@@ -557,7 +555,7 @@ function initMobileSearchWidget() {
           <button type="button" class="mobile-search-item" data-obra-id="${escapeHtml(obra.id || obra.featureId)}" aria-label="Ver obra ${titulo}">
             <div class="mobile-search-item-main">
               <div class="mobile-search-item-top-row">
-                <span class="mobile-search-cat-tag" style="color: ${catColor};">[ ${escapeHtml(catTexto)} ]</span>
+                <span class="mobile-search-cat-tag" style="color: ${catColor};">${escapeHtml(catTexto)}</span>
               </div>
               <div class="mobile-search-item-title">${titulo}</div>
               <div class="mobile-search-item-sub">

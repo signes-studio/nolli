@@ -138,7 +138,7 @@ async function checkAccessAndInit() {
     const userEmailEl = document.getElementById('admin-user-email');
     const userRoleEl = document.getElementById('admin-user-role');
     if (userEmailEl) userEmailEl.textContent = user.email || 'Admin';
-    if (userRoleEl) userRoleEl.textContent = `[ ${String(role || 'ADMIN').toUpperCase()} ]`;
+    if (userRoleEl) userRoleEl.textContent = `${String(role || 'ADMIN').toUpperCase()}`;
 
     // 3. Desbloquear pantalla y cargar datos
     if (loadingIndicator) loadingIndicator.classList.add('hidden');
@@ -267,7 +267,7 @@ function renderItinerariesList() {
     const sampleWorks = workIds.slice(0, 8).map((id) => {
       const obra = itineraryAdminState.catalogMap.get(String(id));
       if (!obra) return `<span class="itinerary-work-chip">#${id}</span>`;
-      return `<span class="itinerary-work-chip" title="${escapeHtml(obra.arquitecto || '')}">📍 ${escapeHtml(obra.nombre_obra || 'Sin nombre')} (${obra.año_construccion || 's/f'})</span>`;
+      return `<span class="itinerary-work-chip" title="${escapeHtml(obra.arquitecto || '')}">${escapeHtml(obra.nombre_obra || 'Sin nombre')} (${obra.año_construccion || 's/f'})</span>`;
     });
 
     return `
@@ -278,7 +278,7 @@ function renderItinerariesList() {
               <span class="itinerary-color-chip" style="background-color: ${escapeHtml(item.color || '#E84E1B')};"></span>
               <span class="itinerary-tag-badge">${escapeHtml(item.tag || 'MOVIMIENTO')}</span>
               <span style="font-family: 'Inter', sans-serif; font-size: 10px; color: var(--admin-fg-dim);">ID: ${escapeHtml(item.id)}</span>
-              ${isInactive ? '<span style="font-family: \'Inter\', sans-serif; font-size: 10px; color: var(--admin-red); font-weight: 800;">[ INACTIVO ]</span>' : ''}
+              ${isInactive ? '<span style="font-family: \'Inter\', sans-serif; font-size: 10px; color: var(--admin-red); font-weight: 800;">INACTIVO</span>' : ''}
             </div>
             <h3 class="itinerary-title">${escapeHtml(item.title)}</h3>
             <p class="itinerary-subtitle">${escapeHtml(item.subtitle || '')}</p>
@@ -449,7 +449,7 @@ function openItineraryModal(item = null) {
 
   if (item) {
     itineraryAdminState.editingId = item.id;
-    if (titleEl) titleEl.textContent = `[ EDITAR ITINERARIO // ${item.title.toUpperCase()} ]`;
+    if (titleEl) titleEl.textContent = `EDITAR ITINERARIO // ${item.title.toUpperCase()}`;
     if (isEditEl) isEditEl.value = 'true';
     if (idInput) {
       idInput.value = item.id;
@@ -472,7 +472,7 @@ function openItineraryModal(item = null) {
 
   } else {
     itineraryAdminState.editingId = null;
-    if (titleEl) titleEl.textContent = '[ NUEVO ITINERARIO // SELECCIÓN MANUAL ]';
+    if (titleEl) titleEl.textContent = 'NUEVO ITINERARIO // SELECCIÓN MANUAL';
     if (isEditEl) isEditEl.value = 'false';
     if (idInput) {
       idInput.value = `route-${Date.now().toString(36)}`;
@@ -517,7 +517,7 @@ function handleSearchBuildingsToSelect(e) {
   if (!itineraryAdminState.catalog || itineraryAdminState.catalog.length === 0) {
     resultsBox.innerHTML = `
       <div style="padding: 12px; font-family: 'Inter', sans-serif; font-size: 11px; color: var(--admin-fg-dim); text-align: center;">
-        ⏳ Cargando catálogo completo de obras (15.000+)...
+        Cargando catálogo completo de obras (15.000+)...
       </div>
     `;
     resultsBox.classList.remove('hidden');

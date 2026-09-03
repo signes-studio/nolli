@@ -30,8 +30,8 @@ async function abrirFichaArquitecto(nombreArquitecto) {
   const modal = document.getElementById('modal-architect');
   const works = document.getElementById('architect-profile-works');
   document.getElementById('architect-profile-name').textContent = nombreArquitecto;
-  document.getElementById('architect-profile-count').textContent = '[ CARGANDO CATÁLOGO... ]';
-  works.innerHTML = '<p class="architect-profile-empty">[ CONSULTANDO TODAS LAS OBRAS EN LA BASE DE DATOS... ]</p>';
+  document.getElementById('architect-profile-count').textContent = 'CARGANDO CATÁLOGO...';
+  works.innerHTML = '<p class="architect-profile-empty">CONSULTANDO TODAS LAS OBRAS EN LA BASE DE DATOS...</p>';
   modal.classList.add('open');
 
   let obras;
@@ -60,8 +60,8 @@ async function abrirFichaArquitecto(nombreArquitecto) {
     state.OBRAS = [...obrasPorId.values()];
   } catch (error) {
     console.error('Error cargando obras del arquitecto:', error);
-    document.getElementById('architect-profile-count').textContent = '[ ERROR DE CARGA ]';
-    works.innerHTML = '<p class="architect-profile-empty">[ NO SE PUDIERON CARGAR LAS OBRAS ]</p>';
+    document.getElementById('architect-profile-count').textContent = 'ERROR DE CARGA';
+    works.innerHTML = '<p class="architect-profile-empty">NO SE PUDIERON CARGAR LAS OBRAS</p>';
     return;
   }
 
@@ -98,7 +98,7 @@ async function abrirFichaArquitecto(nombreArquitecto) {
         ` : ''}
       </button>
     `;
-  }).join('') : '<p class="architect-profile-empty">[ NO HAY OBRAS REGISTRADAS PARA ESTE ARQUITECTO ]</p>';
+  }).join('') : '<p class="architect-profile-empty">NO HAY OBRAS REGISTRADAS PARA ESTE ARQUITECTO</p>';
 
   window.lucide?.createIcons({ context: modal });
 }
@@ -211,17 +211,17 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
     <!-- Ficha Técnica Modular Limpia (Matriz Tipográfica) -->
     <div class="sheet-tech-section">
       <div class="tech-row">
-        <span class="tech-label">[ ARQUITECTO ]</span>
+        <span class="tech-label">ARQUITECTO</span>
         <span class="tech-value tech-value-accent">${architects}</span>
       </div>
 
       <div class="tech-grid-2col">
         <div class="tech-col">
-          <span class="tech-label">[ AÑO ]</span>
+          <span class="tech-label">AÑO</span>
           <span class="tech-value">${building.año_construccion || '-'}</span>
         </div>
         <div class="tech-col">
-          <span class="tech-label">[ CATEGORÍA ]</span>
+          <span class="tech-label">CATEGORÍA</span>
           <span class="tech-value">
             <span class="sheet-cat-badge" style="border-left: 3px solid ${catColor};">${nombreCategoria(building.categoria)}</span>
           </span>
@@ -229,20 +229,20 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
       </div>
 
       <div class="tech-row">
-        <span class="tech-label">[ ACCESO ]</span>
+        <span class="tech-label">ACCESO</span>
         <span class="tech-value">
           <span class="sheet-access-badge">${formatAccess(building.estado_acceso || (building.visitable ? 'publico' : 'privado'))}</span>
         </span>
       </div>
 
       <div class="tech-row">
-        <span class="tech-label">[ COORDENADAS ]</span>
+        <span class="tech-label">COORDENADAS</span>
         <span class="tech-value tech-value-mono">${coords[1].toFixed(5)}° N, ${coords[0].toFixed(5)}° E</span>
       </div>
 
       ${building.enlace_url && isValidHttpsUrl(building.enlace_url) ? `
         <div class="tech-row tech-row-link">
-          <span class="tech-label">[ ENLACE ]</span>
+          <span class="tech-label">ENLACE</span>
           <span class="tech-value">
             ${state.sessionToken ? `
               <a href="${escapeHtml(building.enlace_url)}" target="_blank" rel="noopener noreferrer" class="sheet-web-link">PÁGINA OFICIAL DEL PROYECTO ↗</a>
@@ -260,7 +260,7 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
     <!-- Cuaderno Privado (Valoración y Notas) -->
     ${state.sessionToken ? `
       <div class="personal-notes">
-        <div class="personal-notes-head">[ MI VALORACIÓN Y NOTAS ]</div>
+        <div class="personal-notes-head">MI VALORACIÓN Y NOTAS</div>
         <div class="rating-stars">${[1, 2, 3, 4, 5].map((value) => `<button type="button" class="rating-star ${getStatus('valoracion') >= value ? 'active' : ''}" data-rating="${value}" aria-label="Valorar ${value} de 5">&#9733;</button>`).join('')}</div>
         <button type="button" class="btn note-toggle" data-note-toggle>AÑADIR NOTA PRIVADA</button>
         <div class="personal-note-editor" data-note-editor>
@@ -274,7 +274,7 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
     <!-- Panel de Administración / Moderación -->
     ${adminActive || canDeletePrivate ? `
       <div class="sheet-admin-block">
-        <div class="sheet-admin-head">[ GESTIÓN DE OBRA ]</div>
+        <div class="sheet-admin-head">GESTIÓN DE OBRA</div>
         <div class="sheet-admin-actions">
           ${adminActive ? `
             <button type="button" class="btn btn-admin-action" data-edit-building><i data-lucide="pencil" width="14" height="14"></i> EDITAR OBRA</button>
@@ -291,11 +291,11 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
     <div class="sheet-reports-actions">
       <button type="button" class="sheet-report-btn" data-open-report="error_datos">
         <i data-lucide="alert-circle" width="13" height="13"></i>
-        <span>[ REPORTAR ERROR ]</span>
+        <span>REPORTAR ERROR</span>
       </button>
       <button type="button" class="sheet-report-btn" data-open-report="duplicado">
         <i data-lucide="copy" width="13" height="13"></i>
-        <span>[ REPORTAR DUPLICADO ]</span>
+        <span>REPORTAR DUPLICADO</span>
       </button>
     </div>
   `;
@@ -613,7 +613,7 @@ function openShareModal() {
   const copyBtn = document.getElementById('btn-share-copy');
   const copyText = document.getElementById('share-copy-text');
   if (copyBtn) copyBtn.classList.remove('copied');
-  if (copyText) copyText.textContent = '[ COPIAR ENLACE ]';
+  if (copyText) copyText.textContent = 'COPIAR ENLACE';
 
   modal.classList.add('open');
   window.lucide?.createIcons({ context: sheet });
@@ -630,7 +630,7 @@ function handleShareAction(choice) {
   const arq = building.arquitectos ? (Array.isArray(building.arquitectos) ? building.arquitectos.join(', ') : building.arquitectos) : (building.arquitecto || '');
 
   if (choice === 'whatsapp') {
-    const text = `🏛️ ${building.nombre_obra}${arq ? `\n📐 ${arq}` : ''}\n📍 Ver en Nolli: ${shareUrl}`;
+    const text = `${building.nombre_obra}${arq ? `\n${arq}` : ''}\nVer en Nolli: ${shareUrl}`;
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
   } else if (choice === 'google') {
     const gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
@@ -639,7 +639,7 @@ function handleShareAction(choice) {
     if (navigator.share) {
       navigator.share({
         title: building.nombre_obra,
-        text: `🏛️ ${building.nombre_obra} - Guía de Arquitectura Nolli`,
+        text: `${building.nombre_obra} - Guía de Arquitectura Nolli`,
         url: shareUrl
       }).catch(() => {});
     } else {
@@ -650,7 +650,7 @@ function handleShareAction(choice) {
       if (copyText) copyText.textContent = '[ ¡ENLACE COPIADO! ]';
       setTimeout(() => {
         if (copyBtn) copyBtn.classList.remove('copied');
-        if (copyText) copyText.textContent = '[ COPIAR ENLACE ]';
+        if (copyText) copyText.textContent = 'COPIAR ENLACE';
       }, 2000);
     }
   } else if (choice === 'copy') {
@@ -661,7 +661,7 @@ function handleShareAction(choice) {
       if (copyText) copyText.textContent = '[ ¡ENLACE COPIADO! ]';
       setTimeout(() => {
         if (copyBtn) copyBtn.classList.remove('copied');
-        if (copyText) copyText.textContent = '[ COPIAR ENLACE ]';
+        if (copyText) copyText.textContent = 'COPIAR ENLACE';
       }, 2000);
     }).catch(() => {});
   }

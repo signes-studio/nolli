@@ -526,8 +526,8 @@ function renderFeedContent() {
 function renderBuildingsFeed(buildings, tabKey) {
   const isVisited = tabKey === 'visited';
   const emptyText = isVisited
-    ? '[ NO TIENES OBRAS MARCADAS COMO VISITADAS. REGISTRA TUS VISITAS DESDE EL MAPA. ]'
-    : '[ NO TIENES OBRAS FAVORITAS AÚN. GUARDA OBRAS EN FAVORITOS DESDE EL MAPA. ]';
+    ? 'NO TIENES OBRAS MARCADAS COMO VISITADAS. REGISTRA TUS VISITAS DESDE EL MAPA.'
+    : 'NO TIENES OBRAS FAVORITAS AÚN. GUARDA OBRAS EN FAVORITOS DESDE EL MAPA.';
 
   if (!buildings.length) {
     content.innerHTML = `
@@ -563,9 +563,9 @@ function renderBuildingsFeed(buildings, tabKey) {
       <div class="profile-feed-row">
         <a href="/obra/${encodeURIComponent(obra.id || obra.featureId)}" class="profile-feed-item" aria-label="Ver ${escapeHtml(title)} en el mapa">
           ${photo ? `
-            <img src="${escapeHtml(photo)}" alt="${escapeHtml(title)}" class="profile-feed-thumb" loading="lazy" onerror="this.outerHTML='<div class=\\'profile-feed-thumb-fallback\\'>🏛️</div>'">
+            <img src="${escapeHtml(photo)}" alt="${escapeHtml(title)}" class="profile-feed-thumb" loading="lazy" onerror="this.outerHTML='<div class=\\'profile-feed-thumb-fallback\\'></div>'">
           ` : `
-            <div class="profile-feed-thumb-fallback">🏛️</div>
+            <div class="profile-feed-thumb-fallback"></div>
           `}
           <div class="profile-feed-info">
             <h3 class="profile-feed-title">${escapeHtml(title)}</h3>
@@ -590,7 +590,7 @@ function renderCollectionsFeed() {
 
   content.innerHTML = `
     <div class="profile-collections-top">
-      <span style="font-family: 'Inter', sans-serif; font-size:11px; font-weight:800; color:var(--fg-dim);">[ MIS LISTAS // ${collections.length} ]</span>
+      <span style="font-family: 'Inter', sans-serif; font-size:11px; font-weight:800; color:var(--fg-dim);">MIS LISTAS // ${collections.length}</span>
       <button type="button" class="profile-new-list-btn" id="btn-create-collection-top">
         <span>+ NUEVA LISTA</span>
       </button>
@@ -653,8 +653,8 @@ function renderCollectionsFeed() {
           <div style="min-width:0; flex:1;">
             <div class="profile-collection-head-row" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
               <h3 class="profile-collection-name">${col.icon ? `${escapeHtml(col.icon)} ` : ''}${escapeHtml(col.name)}</h3>
-              <span class="profile-collection-count-badge">[ ${countText} ]</span>
-              <span style="font-size:8.5px; font-weight:800; font-family: 'Inter', sans-serif; padding:1px 5px; border:1px solid ${isPublic ? 'var(--accent, #E84E1B)' : 'var(--border-strong, #111111)'}; color:${isPublic ? 'var(--accent, #E84E1B)' : 'var(--fg-dim)'};">${isPublic ? '[ 🌐 PÚBLICA ]' : '[ 🔒 PRIVADA ]'}</span>
+              <span class="profile-collection-count-badge">${countText}</span>
+              <span style="font-size:8.5px; font-weight:800; font-family: 'Inter', sans-serif; padding:1px 5px; border:1px solid ${isPublic ? 'var(--accent, #E84E1B)' : 'var(--border-strong, #111111)'}; color:${isPublic ? 'var(--accent, #E84E1B)' : 'var(--fg-dim)'};">${isPublic ? 'PÚBLICA' : 'PRIVADA'}</span>
             </div>
             ${col.description ? `<p class="profile-collection-desc" style="margin-top:4px;">${escapeHtml(col.description)}</p>` : ''}
           </div>
@@ -690,7 +690,7 @@ function renderCollectionsFeed() {
       const col = f.user_collections || f;
       if (!col) return '';
       const creatorName = col.profiles?.nick ? `@${col.profiles.nick}` : (col.profiles?.first_name ? `@${col.profiles.first_name}` : 'Comunidad Nolli');
-      const emoji = col.icon || '🏛️';
+      const emoji = col.icon || '';
       const title = col.name || 'Lista pública';
       const desc = col.description || '';
 
@@ -700,7 +700,7 @@ function renderCollectionsFeed() {
             <div style="min-width:0; flex:1;">
               <div style="display:flex; align-items:center; gap:8px;">
                 <h3 class="profile-collection-name">${escapeHtml(emoji)} ${escapeHtml(title)}</h3>
-                <span style="font-size:8.5px; font-weight:800; font-family: 'Inter', sans-serif; padding:1px 5px; background:rgba(232,78,27,0.08); color:var(--accent, #E84E1B);">[ SEGUIDA ]</span>
+                <span style="font-size:8.5px; font-weight:800; font-family: 'Inter', sans-serif; padding:1px 5px; background:rgba(232,78,27,0.08); color:var(--accent, #E84E1B);">SEGUIDA</span>
               </div>
               <p style="font-size:10.5px; color:var(--fg-dim); margin-top:2px;">Por <strong style="color:var(--fg);">${escapeHtml(creatorName)}</strong></p>
               ${desc ? `<p class="profile-collection-desc" style="margin-top:4px;">${escapeHtml(desc)}</p>` : ''}
@@ -720,7 +720,7 @@ function renderCollectionsFeed() {
 
     content.innerHTML += `
       <div class="profile-collections-top" style="margin-top:28px;">
-        <span style="font-family: 'Inter', sans-serif; font-size:11px; font-weight:800; color:var(--accent, #E84E1B);">[ LISTAS SEGUIDAS DE LA COMUNIDAD // ${followed.length} ]</span>
+        <span style="font-family: 'Inter', sans-serif; font-size:11px; font-weight:800; color:var(--accent, #E84E1B);">LISTAS SEGUIDAS DE LA COMUNIDAD // ${followed.length}</span>
       </div>
       ${followedHtml}
     `;
@@ -734,9 +734,7 @@ function renderNotesFeed() {
 
   if (!buildingsWithNotes.length) {
     content.innerHTML = `
-      <div class="profile-feed-empty">
-        [ NO TIENES NOTAS PRIVADAS REGISTRADAS AÚN. REGISTRA TUS NOTAS EN CUALQUIER OBRA DESDE EL MAPA. ]
-      </div>
+      <div class="profile-feed-empty">NO TIENES NOTAS PRIVADAS REGISTRADAS AÚN. REGISTRA TUS NOTAS EN CUALQUIER OBRA DESDE EL MAPA.</div>
     `;
     return;
   }
@@ -756,7 +754,7 @@ function renderNotesFeed() {
             ${photo ? `
               <img src="${escapeHtml(photo)}" alt="${escapeHtml(title)}" class="profile-feed-thumb" style="width:50px; height:50px; min-width:50px; min-height:50px;" loading="lazy">
             ` : `
-              <div class="profile-feed-thumb-fallback" style="width:50px; height:50px; min-width:50px; min-height:50px; font-size:16px;">📝</div>
+              <div class="profile-feed-thumb-fallback" style="width:50px; height:50px; min-width:50px; min-height:50px; font-size:16px;"></div>
             `}
             <div style="min-width:0; flex:1;">
               <a href="./?obra=${encodeURIComponent(obra.id)}" class="profile-feed-title" style="font-size:14px; text-decoration:none;">${escapeHtml(title)}${escapeHtml(year)}</a>
@@ -1030,7 +1028,7 @@ function setupCollectionModal() {
     if (!token || !user) return;
 
     const editId = document.getElementById('collection-edit-id')?.value || '';
-    const icon = document.getElementById('collection-icon')?.value.trim() || '🏛️';
+    const icon = document.getElementById('collection-icon')?.value.trim() || '';
     const name = document.getElementById('collection-name')?.value.trim() || '';
     const description = document.getElementById('collection-desc')?.value.trim() || '';
     const show_on_map = Boolean(document.getElementById('collection-show-map')?.checked);
@@ -1041,7 +1039,7 @@ function setupCollectionModal() {
     const submitBtn = document.getElementById('btn-save-collection');
     if (submitBtn) {
       submitBtn.disabled = true;
-      submitBtn.querySelector('span').textContent = '[ GUARDANDO... ]';
+      submitBtn.querySelector('span').textContent = 'GUARDANDO...';
     }
 
     try {
@@ -1083,13 +1081,13 @@ function setupCollectionModal() {
       modalCollection.classList.remove('open');
     } catch (err) {
       if (collectionStatus) {
-        collectionStatus.textContent = `[ ERROR: ${err.message || 'No se pudo guardar'} ]`;
+        collectionStatus.textContent = `ERROR: ${err.message || 'No se pudo guardar'}`;
         collectionStatus.classList.remove('hidden');
       }
     } finally {
       if (submitBtn) {
         submitBtn.disabled = false;
-        submitBtn.querySelector('span').textContent = '[ GUARDAR LISTA ]';
+        submitBtn.querySelector('span').textContent = 'GUARDAR LISTA';
       }
     }
   });
@@ -1106,9 +1104,9 @@ function abrirModalCrearLista() {
   const shareWrap = document.getElementById('collection-share-wrap');
   const radioPrivate = document.getElementById('status-private');
 
-  if (title) title.textContent = '[ NUEVA LISTA ]';
+  if (title) title.textContent = 'NUEVA LISTA';
   if (editIdInput) editIdInput.value = '';
-  if (iconInput) iconInput.value = '🏛️';
+  if (iconInput) iconInput.value = '';
   if (nameInput) nameInput.value = '';
   if (descInput) descInput.value = '';
   if (mapToggle) mapToggle.checked = true;
@@ -1136,9 +1134,9 @@ function abrirModalEditarLista(colId) {
   const radioPrivate = document.getElementById('status-private');
   const radioPublic = document.getElementById('status-public');
 
-  if (title) title.textContent = '[ EDITAR LISTA ]';
+  if (title) title.textContent = 'EDITAR LISTA';
   if (editIdInput) editIdInput.value = col.id;
-  if (iconInput) iconInput.value = col.icon || '🏛️';
+  if (iconInput) iconInput.value = col.icon || '';
   if (nameInput) nameInput.value = col.name || '';
   if (descInput) descInput.value = col.description || '';
   if (mapToggle) mapToggle.checked = col.show_on_map !== false;
@@ -1185,7 +1183,7 @@ function setupNoteModal() {
     const submitBtn = document.getElementById('btn-save-note');
     if (submitBtn) {
       submitBtn.disabled = true;
-      submitBtn.querySelector('span').textContent = '[ GUARDANDO... ]';
+      submitBtn.querySelector('span').textContent = 'GUARDANDO...';
     }
 
     try {
@@ -1193,13 +1191,13 @@ function setupNoteModal() {
       modalEditNote.classList.remove('open');
     } catch (err) {
       if (noteStatus) {
-        noteStatus.textContent = `[ ERROR: ${err.message || 'No se pudo guardar la nota'} ]`;
+        noteStatus.textContent = `ERROR: ${err.message || 'No se pudo guardar la nota'}`;
         noteStatus.classList.remove('hidden');
       }
     } finally {
       if (submitBtn) {
         submitBtn.disabled = false;
-        submitBtn.querySelector('span').textContent = '[ GUARDAR NOTA ]';
+        submitBtn.querySelector('span').textContent = 'GUARDAR NOTA';
       }
     }
   });
@@ -1284,7 +1282,7 @@ function setupEditProfileModal() {
       const submitBtn = document.getElementById('btn-save-profile');
       if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.querySelector('span').textContent = '[ GUARDANDO CAMBIOS... ]';
+        submitBtn.querySelector('span').textContent = 'GUARDANDO CAMBIOS...';
       }
 
       const updatedProfile = {
@@ -1329,7 +1327,7 @@ function setupEditProfileModal() {
         renderHero();
 
         if (editStatus) {
-          editStatus.textContent = '[ PERFIL ACTUALIZADO CON ÉXITO ]';
+          editStatus.textContent = 'PERFIL ACTUALIZADO CON ÉXITO';
           editStatus.classList.remove('hidden');
         }
 
@@ -1339,13 +1337,13 @@ function setupEditProfileModal() {
         }, 1200);
       } catch (err) {
         if (editStatus) {
-          editStatus.textContent = `[ ERROR: ${err.message || 'No se pudo guardar'} ]`;
+          editStatus.textContent = `ERROR: ${err.message || 'No se pudo guardar'}`;
           editStatus.classList.remove('hidden');
         }
       } finally {
         if (submitBtn) {
           submitBtn.disabled = false;
-          submitBtn.querySelector('span').textContent = '[ GUARDAR CAMBIOS ]';
+          submitBtn.querySelector('span').textContent = 'GUARDAR CAMBIOS';
         }
       }
     });

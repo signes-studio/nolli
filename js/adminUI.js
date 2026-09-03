@@ -276,7 +276,7 @@ function mostrarAlertaSeguridad(titulo, mensaje) {
 
   toast.innerHTML = `
     <div style="display:flex; justify-content:space-between; align-items:center;">
-      <span style="font-size:11px; font-weight:800; color:#E84E1B;">[ 403 // ${escapeHtml(titulo)} ]</span>
+      <span style="font-size:11px; font-weight:800; color:#E84E1B;">403 // ${escapeHtml(titulo)}</span>
       <button type="button" onclick="this.closest('#admin-security-toast').remove()" style="background:none; border:none; color:#F4F1EA; font-size:12px; cursor:pointer;">✕</button>
     </div>
     <div style="font-size:10px; color:#D5CFC0; line-height:1.4;">${escapeHtml(mensaje)}</div>
@@ -294,15 +294,13 @@ function renderAuthRequired() {
   if (list) {
     list.innerHTML = `
       <div style="padding: 36px 18px; text-align: center; display: grid; gap: 14px; font-family: 'Inter', sans-serif;">
-        <div style="font-size: 28px;">🔐</div>
+        <div style="font-size: 28px;"><i data-lucide="shield-alert" width="28" height="28"></i></div>
         <h3 style="font-size: 14px; font-weight: 800; color: var(--accent-2, #EFBC02); margin: 0;">AUTENTICACIÓN REQUERIDA</h3>
         <p style="font-size: 11px; color: var(--fg-dim); line-height: 1.5; margin: 0;">
           Para acceder al panel de administración, revisión de obras, reportes de incidencias y directorio de usuarios, debes identificarte con tu cuenta administradora.
         </p>
         <div>
-          <button type="button" id="btn-admin-login-cta" class="filter-action" style="padding: 8px 18px; font-size: 11px; font-weight: 800; color: var(--accent-2, #EFBC02); border: 1.5px solid var(--accent-2, #EFBC02); background: rgba(239, 188, 2, 0.12); cursor: pointer;">
-            [ INICIAR SESIÓN ]
-          </button>
+          <button type="button" id="btn-admin-login-cta" class="filter-action" style="padding: 8px 18px; font-size: 11px; font-weight: 800; color: var(--accent-2, #EFBC02); border: 1.5px solid var(--accent-2, #EFBC02); background: rgba(239, 188, 2, 0.12); cursor: pointer;">INICIAR SESIÓN</button>
         </div>
       </div>
     `;
@@ -407,7 +405,7 @@ async function renderList() {
           <div class="admin-project-info">
             <div style="display:flex; align-items:center; gap:6px;">
               <strong>${safeNombre}</strong>
-              ${isPending ? '<span style="font-size:9px; font-weight:800; background:var(--accent-2, #EFBC02); color:#141411; padding:1px 4px;">[ PENDIENTE ]</span>' : ''}
+              ${isPending ? '<span style="font-size:9px; font-weight:800; background:var(--accent-2, #EFBC02); color:#141411; padding:1px 4px;">PENDIENTE</span>' : ''}
             </div>
             <span>${safeArquitecto}</span>
             <span class="admin-project-city" data-city-for="${safeFeatureId}">LOCALIZACIÓN...</span>
@@ -559,7 +557,7 @@ async function renderUsers() {
             <div class="admin-user-heading">
               <span class="admin-presence-indicator ${presence.isOnline ? 'online' : 'offline'}" title="${safePresenceLabel}"></span>
               <strong>${safeFullName}</strong>
-              ${presence.isOnline ? '<span class="admin-badge-online">[ ONLINE ]</span>' : ''}
+              ${presence.isOnline ? '<span class="admin-badge-online">ONLINE</span>' : ''}
             </div>
             <span>${safeEmail}</span>
             <span>${safeCity} · ${safeCountry}</span>

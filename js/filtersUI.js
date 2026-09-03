@@ -27,7 +27,7 @@ export function generarFiltrosUI() {
   filterPanel.innerHTML = `
     <div class="filter-head">
       <div>
-        <span style="color:var(--fg-dim)">[ FILTROS ]</span>
+        <span style="color:var(--fg-dim)">FILTROS</span>
         <small id="filter-summary" class="filter-summary">TODAS LAS OBRAS</small>
       </div>
       <div class="filter-head-actions">
@@ -40,7 +40,7 @@ export function generarFiltrosUI() {
 
     <div class="filter-group" data-filter-group="categories">
       <button type="button" class="filter-group-head" aria-expanded="true">
-        <span>[ CATEGORÍAS ]</span>
+        <span>CATEGORÍAS</span>
         <span class="filter-chevron">−</span>
       </button>
       <div class="filter-group-body">

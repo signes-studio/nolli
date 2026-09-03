@@ -363,11 +363,11 @@ function abrirModalCrearLista() {
     <div id="collection-modal-overlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; display:flex; align-items:center; justify-content:center; padding:16px;">
       <div style="background:var(--bg-panel, #F8F1DF); border:2px solid var(--border-strong, #111111); box-shadow:4px 4px 0px #111111; padding:18px; width:100%; max-width:340px; display:grid; gap:12px; font-family: 'Inter', sans-serif; font-size:11px;">
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid var(--border-strong); padding-bottom:6px;">
-          <strong style="color:var(--accent); font-family:'League Spartan',sans-serif; font-size:14px;">[ NUEVA LISTA ]</strong>
+          <strong style="color:var(--accent); font-family:'League Spartan',sans-serif; font-size:14px;">NUEVA LISTA</strong>
           <button type="button" class="filter-action" data-close-modal style="cursor:pointer;">✕</button>
         </div>
         <div style="display:grid; grid-template-columns: 50px 1fr; gap:6px;">
-          <input id="modal-emoji-input" class="tech-input" type="text" placeholder="🏛️" maxlength="4" style="text-align:center;" title="Icono / Emoji">
+          <input id="modal-emoji-input" class="tech-input" type="text" placeholder="Icono" maxlength="4" style="text-align:center;" title="Icono / Emoji">
           <input id="modal-name-input" class="tech-input" type="text" placeholder="NOMBRE DE LISTA">
         </div>
         <textarea id="modal-desc-input" class="tech-input" placeholder="Descripción breve (opcional)..." style="resize:vertical; min-height:50px; font-family:inherit; font-size:inherit;"></textarea>
@@ -378,11 +378,11 @@ function abrirModalCrearLista() {
           <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
             <label style="display:flex; align-items:center; gap:6px; padding:6px 8px; border:1.5px solid var(--border-strong, #111111); background:rgba(17,17,17,0.04); cursor:pointer; font-size:10px; font-weight:700;">
               <input type="radio" name="modal-create-status" value="private" checked style="accent-color:var(--accent, #E84E1B);">
-              <span>🔒 PRIVADA</span>
+              <span>PRIVADA</span>
             </label>
             <label style="display:flex; align-items:center; gap:6px; padding:6px 8px; border:1.5px solid var(--border-strong, #111111); background:rgba(17,17,17,0.04); cursor:pointer; font-size:10px; font-weight:700;">
               <input type="radio" name="modal-create-status" value="public" style="accent-color:var(--accent, #E84E1B);">
-              <span>🌐 PÚBLICA</span>
+              <span>PÚBLICA</span>
             </label>
           </div>
         </div>
@@ -478,11 +478,11 @@ function abrirModalEditarLista(collectionId) {
     <div id="collection-modal-overlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; display:flex; align-items:center; justify-content:center; padding:16px;">
       <div style="background:var(--bg-panel, #F8F1DF); border:2px solid var(--border-strong, #111111); box-shadow:4px 4px 0px #111111; padding:18px; width:100%; max-width:340px; display:grid; gap:12px; font-family: 'Inter', sans-serif; font-size:11px;">
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid var(--border-strong); padding-bottom:6px;">
-          <strong style="color:var(--accent); font-family:'League Spartan',sans-serif; font-size:14px;">[ EDITAR LISTA ]</strong>
+          <strong style="color:var(--accent); font-family:'League Spartan',sans-serif; font-size:14px;">EDITAR LISTA</strong>
           <button type="button" class="filter-action" data-close-modal style="cursor:pointer;">✕</button>
         </div>
         <div style="display:grid; grid-template-columns: 50px 1fr; gap:6px;">
-          <input id="modal-edit-emoji" class="tech-input" type="text" value="${escapeHtml(collection.icon || '')}" placeholder="🏛️" maxlength="4" style="text-align:center;">
+          <input id="modal-edit-emoji" class="tech-input" type="text" value="${escapeHtml(collection.icon || '')}" placeholder="Icono" maxlength="4" style="text-align:center;">
           <input id="modal-edit-name" class="tech-input" type="text" value="${escapeHtml(collection.name || '')}" placeholder="Nombre de lista">
         </div>
         <textarea id="modal-edit-desc" class="tech-input" placeholder="Descripción breve..." style="resize:vertical; min-height:50px; font-family:inherit; font-size:inherit;">${escapeHtml(collection.description || '')}</textarea>
@@ -493,18 +493,18 @@ function abrirModalEditarLista(collectionId) {
           <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
             <label style="display:flex; align-items:center; gap:6px; padding:6px 8px; border:1.5px solid var(--border-strong, #111111); background:rgba(17,17,17,0.04); cursor:pointer; font-size:10px; font-weight:700;">
               <input type="radio" name="modal-edit-status" value="private" ${!isPublic ? 'checked' : ''} style="accent-color:var(--accent, #E84E1B);">
-              <span>🔒 PRIVADA</span>
+              <span>PRIVADA</span>
             </label>
             <label style="display:flex; align-items:center; gap:6px; padding:6px 8px; border:1.5px solid var(--border-strong, #111111); background:rgba(17,17,17,0.04); cursor:pointer; font-size:10px; font-weight:700;">
               <input type="radio" name="modal-edit-status" value="public" ${isPublic ? 'checked' : ''} style="accent-color:var(--accent, #E84E1B);">
-              <span>🌐 PÚBLICA</span>
+              <span>PÚBLICA</span>
             </label>
           </div>
         </div>
 
         ${isPublic ? `
           <button type="button" class="filter-action" data-copy-collection-link="${collection.id}" style="width:100%; padding:6px 10px; font-size:10px; font-weight:800; color:var(--accent); border:1.5px solid var(--accent); background:rgba(232,78,27,0.06); cursor:pointer;">
-            [ 🔗 COPIAR ENLACE COMPARTIBLE ]
+            COPIAR ENLACE COMPARTIBLE
           </button>
         ` : ''}
 
@@ -579,7 +579,7 @@ function copiarEnlaceLista(collectionId, btnElement = null) {
   navigator.clipboard.writeText(url).then(() => {
     if (btnElement) {
       const orig = btnElement.textContent;
-      btnElement.textContent = '✓ ¡ENLACE COPIADO!';
+      btnElement.textContent = 'ENLACE COPIADO';
       setTimeout(() => { btnElement.textContent = orig; }, 2500);
     } else {
       alert('¡Enlace de lista copiado al portapapeles!');
@@ -730,7 +730,7 @@ function renderCollections() {
           <div style="min-width:0; flex:1;">
             <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
               <span style="font-weight:700; color:var(--fg);">${collectionEmoji}${escapeHtml(collection.name)}</span>
-              <span style="font-size:8.5px; font-weight:800; font-family: 'Inter', sans-serif; padding:1px 4px; border:1px solid ${isPublic ? 'var(--accent, #E84E1B)' : 'var(--border-strong, #111111)'}; color:${isPublic ? 'var(--accent, #E84E1B)' : 'var(--fg-dim)'};">${isPublic ? '[ 🌐 PÚBLICA ]' : '[ 🔒 PRIVADA ]'}</span>
+              <span style="font-size:8.5px; font-weight:800; font-family: 'Inter', sans-serif; padding:1px 4px; border:1px solid ${isPublic ? 'var(--accent, #E84E1B)' : 'var(--border-strong, #111111)'}; color:${isPublic ? 'var(--accent, #E84E1B)' : 'var(--fg-dim)'};">${isPublic ? 'PÚBLICA' : 'PRIVADA'}</span>
             </div>
             ${collectionDescription}
           </div>
@@ -764,7 +764,7 @@ function renderCollections() {
     const col = followItem.user_collections || followItem;
     if (!col) return '';
     const creatorName = col.profiles?.nick ? `@${col.profiles.nick}` : (col.profiles?.first_name ? `@${col.profiles.first_name}` : 'Comunidad Nolli');
-    const emoji = col.icon || '🏛️';
+    const emoji = col.icon || '';
     const title = col.name || 'Lista pública';
 
     return `
@@ -773,7 +773,7 @@ function renderCollections() {
           <div style="min-width:0; flex:1;">
             <div style="display:flex; align-items:center; gap:6px;">
               <span style="font-weight:700; color:var(--fg);">${escapeHtml(emoji)} ${escapeHtml(title)}</span>
-              <span style="font-size:8.5px; font-weight:800; font-family: 'Inter', sans-serif; padding:1px 4px; background:rgba(232,78,27,0.08); color:var(--accent, #E84E1B);">[ SEGUIDA ]</span>
+              <span style="font-size:8.5px; font-weight:800; font-family: 'Inter', sans-serif; padding:1px 4px; background:rgba(232,78,27,0.08); color:var(--accent, #E84E1B);">SEGUIDA</span>
             </div>
             <div class="my-place-meta" style="font-size:9.5px; color:var(--fg-dim); margin-top:2px;">Por ${escapeHtml(creatorName)}</div>
           </div>

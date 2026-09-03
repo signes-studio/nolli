@@ -286,8 +286,11 @@ body.dark-mode .sheet-restricted-link-btn:hover {
   background: var(--bg-raised);
 }
 .sheet-admin-head {
-  font-size: 9px;
-  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-family: 'League Spartan', sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   color: var(--accent-2);
   margin-bottom: 6px;
 }
@@ -327,9 +330,18 @@ body.dark-mode .sheet-restricted-link-btn:hover {
 .personal-organizer-option input { accent-color: var(--accent); }
 .personal-create-row { display: grid; grid-template-columns: 1fr auto; gap: 7px; }
 .personal-organizer-body > #btn-personal-organizer-save { justify-self: start; }
-.personal-notes { display: grid; gap: 7px; padding: 10px 12px 12px; border-bottom: 1px solid var(--border); }
-.personal-notes label { color: var(--fg-dim); font-size: 10px; letter-spacing: .04em; }
-.personal-notes textarea { resize: vertical; min-height: 68px; }
+.personal-notes { display: grid; gap: 7px; padding: 12px 14px; border-bottom: 1px solid var(--border); }
+.personal-notes-head {
+  font-family: 'League Spartan', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--fg-dim, #6B6B6B);
+  margin-bottom: 2px;
+}
+.personal-notes label { font-family: 'Inter', sans-serif; color: var(--fg-dim); font-size: 10px; font-weight: 700; letter-spacing: .04em; }
+.personal-notes textarea { font-family: 'Inter', sans-serif; resize: vertical; min-height: 68px; font-size: 11px; }
 .save-personal-status { justify-self: start; padding: 7px 9px; font-size: 10px; }
 .note-toggle { justify-self: start; padding: 6px 8px; font-size: 10px; }
 .personal-note-editor { display: none; gap: 7px; }

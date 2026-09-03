@@ -170,12 +170,10 @@
       <!-- Panel de Administración Centralizado (Solo visible si es Admin/Superadmin) -->
       <section id="profile-admin-card" class="hidden" style="border: 2px solid var(--accent, #E84E1B); background: rgba(232, 78, 27, 0.05); padding: 16px 20px; margin-bottom: 24px; box-shadow: 4px 4px 0px #111111; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
         <div>
-          <div style="font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 800; color: var(--accent, #E84E1B); letter-spacing: 0.08em;">[ MODO ADMINISTRACIÓN // PRIVILEGIOS ACTIVOS ]</div>
+          <div style="font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 800; color: var(--accent, #E84E1B); letter-spacing: 0.08em;">MODO ADMINISTRACIÓN // PRIVILEGIOS ACTIVOS</div>
           <div style="font-family: 'League Spartan', sans-serif; font-size: 17px; font-weight: 800; margin-top: 2px; color: var(--fg, #111111);">Consola de Curaduría, Reportes y Usuarios</div>
         </div>
-        <a href="./admin" class="profile-login-cta-btn" style="background: var(--accent, #E84E1B); color: #FFFFFF; border: 1.5px solid #111111; padding: 8px 16px; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 800; text-decoration: none; box-shadow: 2px 2px 0px #111111;">
-          [ ABRIR CONSOLA ADMIN ↗ ]
-        </a>
+        <a href="./admin" class="profile-login-cta-btn" style="background: var(--accent, #E84E1B); color: #FFFFFF; border: 1.5px solid #111111; padding: 8px 16px; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 800; text-decoration: none; box-shadow: 2px 2px 0px #111111;">ABRIR CONSOLA ADMIN ↗</a>
       </section>
 
       <!-- 4. Navegación Curatorial -->
@@ -226,7 +224,7 @@
     <div class="profile-edit-sheet">
       <div class="profile-edit-head">
         <div class="profile-edit-title-wrap">
-          <h3 id="modal-edit-profile-title" class="profile-edit-title">[ PERSONALIZAR PERFIL ]</h3>
+          <h3 id="modal-edit-profile-title" class="profile-edit-title">PERSONALIZAR PERFIL</h3>
           <p class="profile-edit-subtitle">Edita tus datos personales, biografía y enlaces visibles en tu archivo.</p>
         </div>
         <button type="button" id="btn-edit-profile-close" class="profile-edit-close" aria-label="Cerrar personalización">
@@ -270,7 +268,7 @@
         <div id="profile-edit-status" class="profile-edit-status hidden"></div>
 
         <button type="submit" id="btn-save-profile" class="profile-save-btn">
-          <span>[ GUARDAR CAMBIOS ]</span>
+          <span>GUARDAR CAMBIOS</span>
         </button>
       </form>
     </div>
@@ -281,7 +279,7 @@
     <div class="profile-edit-sheet">
       <div class="profile-edit-head">
         <div class="profile-edit-title-wrap">
-          <h3 id="modal-collection-title" class="profile-edit-title">[ NUEVA LISTA ]</h3>
+          <h3 id="modal-collection-title" class="profile-edit-title">NUEVA LISTA</h3>
           <p id="modal-collection-subtitle" class="profile-edit-subtitle">Organiza tus obras en listas y colecciones personales.</p>
         </div>
         <button type="button" id="btn-modal-collection-close" class="profile-edit-close" aria-label="Cerrar modal de lista">
@@ -294,7 +292,7 @@
         <div class="profile-form-row" style="grid-template-columns: 80px 1fr;">
           <div class="profile-form-group">
             <label class="profile-form-label" for="collection-icon">ICONO</label>
-            <input type="text" id="collection-icon" class="tech-input" placeholder="🏛️" maxlength="4" style="text-align:center;">
+            <input type="text" id="collection-icon" class="tech-input" placeholder="Icono" maxlength="4" style="text-align:center;">
           </div>
           <div class="profile-form-group">
             <label class="profile-form-label" for="collection-name">NOMBRE DE LA LISTA</label>
@@ -313,18 +311,18 @@
           <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:4px;">
             <label class="radio-option" style="display:flex; align-items:center; gap:8px; padding:8px 12px; border:1.5px solid var(--border-strong, #111111); background:rgba(17,17,17,0.04); cursor:pointer; font-size:11px; font-weight:700;">
               <input type="radio" name="collection-status-radio" value="private" id="status-private" checked style="accent-color:var(--accent, #E84E1B);">
-              <span>🔒 PRIVADA</span>
+              <span>PRIVADA</span>
             </label>
             <label class="radio-option" style="display:flex; align-items:center; gap:8px; padding:8px 12px; border:1.5px solid var(--border-strong, #111111); background:rgba(17,17,17,0.04); cursor:pointer; font-size:11px; font-weight:700;">
               <input type="radio" name="collection-status-radio" value="public" id="status-public" style="accent-color:var(--accent, #E84E1B);">
-              <span>🌐 PÚBLICA</span>
+              <span>PÚBLICA</span>
             </label>
           </div>
         </div>
 
         <div id="collection-share-wrap" class="hidden" style="margin-bottom:8px;">
           <button type="button" id="btn-copy-collection-link" class="profile-action-btn" style="width:100%; border-color:var(--accent, #E84E1B); color:var(--accent, #E84E1B); font-weight:800; font-size:11px;">
-            [ 🔗 COPIAR ENLACE COMPARTIBLE ]
+            COPIAR ENLACE COMPARTIBLE
           </button>
           <div id="copy-link-feedback" class="hidden" style="font-size:10px; font-family: 'Inter', sans-serif; color:var(--accent, #E84E1B); text-align:center; margin-top:4px; font-weight:700;">¡Enlace copiado al portapapeles!</div>
         </div>
@@ -339,7 +337,7 @@
         <div style="display:flex; gap:10px; margin-top:8px;">
           <button type="button" id="btn-collection-cancel" class="profile-action-btn" style="flex:1;">CANCELAR</button>
           <button type="submit" id="btn-save-collection" class="profile-save-btn" style="flex:2;">
-            <span>[ GUARDAR LISTA ]</span>
+            <span>GUARDAR LISTA</span>
           </button>
         </div>
       </form>
@@ -351,7 +349,7 @@
     <div class="profile-edit-sheet">
       <div class="profile-edit-head">
         <div class="profile-edit-title-wrap">
-          <h3 id="modal-edit-note-title" class="profile-edit-title">[ NOTA PRIVADA ]</h3>
+          <h3 id="modal-edit-note-title" class="profile-edit-title">NOTA PRIVADA</h3>
           <p id="modal-note-building-title" class="profile-edit-subtitle">Edificio de arquitectura</p>
         </div>
         <button type="button" id="btn-modal-note-close" class="profile-edit-close" aria-label="Cerrar nota">
@@ -371,7 +369,7 @@
         <div style="display:flex; gap:10px; margin-top:8px;">
           <button type="button" id="btn-delete-note-modal" class="profile-action-btn-danger" style="flex:1;">ELIMINAR</button>
           <button type="submit" id="btn-save-note" class="profile-save-btn" style="flex:2;">
-            <span>[ GUARDAR NOTA ]</span>
+            <span>GUARDAR NOTA</span>
           </button>
         </div>
       </form>
@@ -447,14 +445,12 @@
           <div class="register-success-icon-wrap">
             <i data-lucide="mail-check" width="28" height="28" style="color:var(--accent, #E84E1B)"></i>
           </div>
-          <h3 class="register-success-title">[ REGISTRO COMPLETADO ]</h3>
+          <h3 class="register-success-title">REGISTRO COMPLETADO</h3>
           <p class="register-success-msg">
             Se ha enviado un enlace de activación a tu correo electrónico. Por favor, revisa tu bandeja de entrada (y la carpeta de spam) para confirmar la cuenta y desbloquear el acceso al archivo de nolli.
           </p>
           <div class="register-success-meta" id="register-success-email"></div>
-          <button type="button" id="btn-success-to-login" class="btn btn-auth-primary w-full mt-2">
-            [ VOLVER AL INICIO DE SESIÓN ]
-          </button>
+          <button type="button" id="btn-success-to-login" class="btn btn-auth-primary w-full mt-2">VOLVER AL INICIO DE SESIÓN</button>
         </div>
       </div>
     </div>

@@ -133,7 +133,7 @@ function showLockScreen(title, message) {
   if (mainApp) mainApp.classList.add('hidden');
   if (lockScreen) lockScreen.classList.remove('hidden');
 
-  if (titleEl) titleEl.textContent = `[ 403 // ${title} ]`;
+  if (titleEl) titleEl.textContent = `403 // ${title}`;
   if (descEl) descEl.textContent = message;
 
   const btnLogin = document.getElementById('btn-lock-login');
@@ -148,7 +148,7 @@ function renderAdminIdentity(user, role) {
   const emailEl = document.getElementById('admin-user-email');
   const roleEl = document.getElementById('admin-user-role');
   if (emailEl) emailEl.textContent = user.email || 'Admin';
-  if (roleEl) roleEl.textContent = `[ ${role.toUpperCase()} ]`;
+  if (roleEl) roleEl.textContent = `${role.toUpperCase()}`;
 }
 
 function iniciarPresencia() {
@@ -268,9 +268,7 @@ function renderModulePending() {
 
   if (!works.length) {
     container.innerHTML = `
-      <div style="border:2px dashed var(--admin-border-light); padding:40px; text-align:center; font-family: 'Inter', sans-serif; font-size:12px; color:var(--admin-fg-dim);">
-        [ NO SE ENCONTRARON OBRAS BAJO ESTE CRITERIO // BANDEJA LIMPIA ]
-      </div>
+      <div style="border:2px dashed var(--admin-border-light); padding:40px; text-align:center; font-family: 'Inter', sans-serif; font-size:12px; color:var(--admin-fg-dim);">NO SE ENCONTRARON OBRAS BAJO ESTE CRITERIO // BANDEJA LIMPIA</div>
     `;
     return;
   }
@@ -288,27 +286,27 @@ function renderModulePending() {
     return `
       <article class="admin-work-card ${isPending ? 'pending-border' : ''}" data-work-id="${safeId}">
         ${photo ? `
-          <img src="${escapeHtml(photo)}" alt="${title}" class="admin-work-thumb" loading="lazy" onerror="this.outerHTML='<div class=\\'admin-work-thumb-fallback\\'>🏛️</div>'">
+          <img src="${escapeHtml(photo)}" alt="${title}" class="admin-work-thumb" loading="lazy" onerror="this.outerHTML='<div class=\\'admin-work-thumb-fallback\\'></div>'">
         ` : `
-          <div class="admin-work-thumb-fallback">🏛️</div>
+          <div class="admin-work-thumb-fallback"></div>
         `}
         
         <div class="admin-work-info">
           <div class="admin-work-title-row">
             <h3 class="admin-work-title">${title}</h3>
-            ${isPending ? `<span class="admin-badge-pending">[ PENDIENTE DE REVISIÓN ]</span>` : ''}
+            ${isPending ? `<span class="admin-badge-pending">PENDIENTE DE REVISIÓN</span>` : ''}
             <span class="admin-work-tag" style="background:var(--admin-bg-raised);">${escapeHtml(obra.estado_revision || 'publicada').toUpperCase()}</span>
           </div>
 
           <div class="admin-work-meta">
-            <span>📐 <strong>${architect}</strong>${year}</span>
-            <span>📍 ${place}</span>
+            <span><strong>${architect}</strong>${year}</span>
+            <span>${place}</span>
           </div>
 
           <div class="admin-work-tags">
-            <span class="admin-work-tag">🏷️ ${escapeHtml(category)}</span>
-            ${obra.estado_acceso ? `<span class="admin-work-tag">🚪 ${escapeHtml(obra.estado_acceso)}</span>` : ''}
-            ${obra.añadido_por ? `<span class="admin-work-tag">👤 Por: ${escapeHtml(obra.añadido_por)}</span>` : ''}
+            <span class="admin-work-tag">${escapeHtml(category)}</span>
+            ${obra.estado_acceso ? `<span class="admin-work-tag">${escapeHtml(obra.estado_acceso)}</span>` : ''}
+            ${obra.añadido_por ? `<span class="admin-work-tag">Por: ${escapeHtml(obra.añadido_por)}</span>` : ''}
           </div>
         </div>
 
@@ -363,9 +361,7 @@ function renderModuleReports() {
 
   if (!reports.length) {
     container.innerHTML = `
-      <div style="border:2px dashed var(--admin-border-light); padding:40px; text-align:center; font-family: 'Inter', sans-serif; font-size:12px; color:var(--admin-fg-dim);">
-        [ NO HAY INCIDENCIAS PENDIENTES // BUZÓN VACÍO ]
-      </div>
+      <div style="border:2px dashed var(--admin-border-light); padding:40px; text-align:center; font-family: 'Inter', sans-serif; font-size:12px; color:var(--admin-fg-dim);">NO HAY INCIDENCIAS PENDIENTES // BUZÓN VACÍO</div>
     `;
     return;
   }
@@ -384,9 +380,9 @@ function renderModuleReports() {
         <div class="admin-report-head">
           <div>
             <h3 class="admin-report-building">${buildingTitle}</h3>
-            ${architect ? `<div style="font-size:11px; color:var(--admin-fg-dim); font-family: 'Inter', sans-serif;">📐 ${architect}</div>` : ''}
+            ${architect ? `<div style="font-size:11px; color:var(--admin-fg-dim); font-family: 'Inter', sans-serif;">${architect}</div>` : ''}
           </div>
-          <span class="admin-report-date">📅 ${date}</span>
+          <span class="admin-report-date">${date}</span>
         </div>
 
         <div class="admin-report-body">
@@ -395,7 +391,7 @@ function renderModuleReports() {
         </div>
 
         <div class="admin-report-footer">
-          <span class="admin-report-sender">👤 Remitente: <strong>${user}</strong></span>
+          <span class="admin-report-sender">Remitente: <strong>${user}</strong></span>
           <div class="admin-report-actions-row">
             <a href="./?obra=${buildingId}" target="_blank" rel="noopener noreferrer" class="admin-btn">
               <i data-lucide="compass" width="13" height="13"></i>
@@ -431,7 +427,7 @@ function renderModuleUsers() {
         <td colspan="5" style="padding: 24px;">
           <div style="border: 1.5px solid var(--admin-red); background: var(--admin-red-bg); padding: 18px; color: var(--admin-fg);">
             <strong style="color: var(--admin-red); display: block; font-size: 12px; margin-bottom: 6px; font-family: 'Inter', sans-serif;">
-              ⚠️ CONFLICTO DE POLÍTICAS RLS EN SUPABASE (RECURSIÓN INFINITA EN "PROFILES")
+              CONFLICTO DE POLÍTICAS RLS EN SUPABASE (RECURSIÓN INFINITA EN "PROFILES")
             </strong>
             <p style="font-size: 11px; margin: 0 0 10px; line-height: 1.5;">
               La política de seguridad de la tabla <code>profiles</code> en Supabase contiene una subconsulta que se evalúa a sí misma recursivamente.
@@ -465,9 +461,7 @@ function renderModuleUsers() {
   if (!users.length) {
     container.innerHTML = `
       <tr>
-        <td colspan="5" style="text-align:center; padding:30px; color:var(--admin-fg-dim);">
-          [ NO SE ENCONTRARON USUARIOS CON ESTE FILTRO ]
-        </td>
+        <td colspan="5" style="text-align:center; padding:30px; color:var(--admin-fg-dim);">NO SE ENCONTRARON USUARIOS CON ESTE FILTRO</td>
       </tr>
     `;
     return;
@@ -490,15 +484,15 @@ function renderModuleUsers() {
           <div class="admin-user-cell">
             <span class="admin-presence-dot ${presence.isOnline ? 'online' : ''}" title="${presence.title}"></span>
             <div>
-              <div class="admin-user-name">${fullName} ${presence.isOnline ? `<span class="admin-online-badge">[ ONLINE ]</span>` : ''}</div>
+              <div class="admin-user-name">${fullName} ${presence.isOnline ? `<span class="admin-online-badge">ONLINE</span>` : ''}</div>
               <div class="admin-user-email">${email}</div>
             </div>
           </div>
         </td>
         <td>
-          <span class="admin-role-tag ${role}">[ ${role.toUpperCase()} ]</span>
+          <span class="admin-role-tag ${role}">${role.toUpperCase()}</span>
         </td>
-        <td>📍 ${location}</td>
+        <td>${location}</td>
         <td>
           <span style="color:${presence.isOnline ? 'var(--admin-green)' : 'var(--admin-fg-dim)'}; font-weight:${presence.isOnline ? '700' : '500'};">
             ${presence.label}
@@ -523,7 +517,7 @@ function calculateUserPresence(lastSeenAt) {
   const diffMin = Math.floor(diffMs / 60000);
 
   if (diffMin < 5) {
-    return { isOnline: true, label: '🟢 Activo ahora', title: 'En línea en este momento' };
+    return { isOnline: true, label: 'Activo ahora', title: 'En línea en este momento' };
   }
   if (diffMin < 60) {
     return { isOnline: false, label: `Hace ${diffMin} min`, title: `Última conexión: hace ${diffMin} minutos` };

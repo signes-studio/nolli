@@ -40,13 +40,13 @@
     <div class="admin-header-inner">
       <div class="admin-brand-group">
         <a href="./" class="admin-logo">nolli<span>.</span></a>
-        <span class="admin-tagline">[ CONSOLA DE ADMINISTRACIÓN // RADAR ]</span>
+        <span class="admin-tagline">CONSOLA DE ADMINISTRACIÓN // RADAR</span>
       </div>
 
       <div class="admin-header-actions">
         <div class="admin-user-pill">
           <span id="admin-user-email">Cargando...</span>
-          <span id="admin-user-role" class="admin-role-badge">[ ADMIN ]</span>
+          <span id="admin-user-role" class="admin-role-badge">ADMIN</span>
         </div>
 
         <button type="button" id="btn-theme-toggle" class="admin-header-btn" title="Alternar Modo Oscuro / Claro">
@@ -70,16 +70,16 @@
        PANTALLA DE CARGA INICIAL
        ========================================================================= -->
   <div id="admin-loading" style="padding: 80px 20px; text-align: center; font-family: 'Inter', sans-serif;">
-    <div style="font-size: 36px; margin-bottom: 12px;">⏳</div>
-    <div style="font-size: 13px; font-weight: 800; color: var(--admin-fg);">[ VERIFICANDO CREDENCIALES Y PRIVILEGIOS DE SEGURIDAD... ]</div>
+    <div style="margin-bottom: 12px;"><i data-lucide="loader-2" width="32" height="32" class="animate-spin"></i></div>
+    <div style="font-size: 13px; font-weight: 800; color: var(--admin-fg);">VERIFICANDO CREDENCIALES Y PRIVILEGIOS DE SEGURIDAD...</div>
   </div>
 
   <!-- =========================================================================
        PANTALLA DE BLOQUEO // ACCESO DENEGADO
        ========================================================================= -->
   <section id="admin-lock-screen" class="admin-lock-screen hidden">
-    <div class="admin-lock-icon">🔐</div>
-    <h2 id="lock-screen-title" class="admin-lock-title">[ 403 // ACCESO DENEGADO ]</h2>
+    <div class="admin-lock-icon"><i data-lucide="shield-alert" width="32" height="32"></i></div>
+    <h2 id="lock-screen-title" class="admin-lock-title">403 // ACCESO DENEGADO</h2>
     <p id="lock-screen-desc" class="admin-lock-desc">
       Esta sección está restringida exclusivamente al equipo de administración y curaduría arquitectónica.
     </p>
@@ -103,17 +103,17 @@
     <!-- Menú de Navegación Curatorial de Texto Puro -->
     <nav class="admin-curatorial-nav" aria-label="Secciones de administración">
       <button type="button" class="admin-nav-tab active" data-tab-target="pending">
-        <span>[ 01. OBRAS PENDIENTES ]</span>
+        <span>01. OBRAS PENDIENTES</span>
         <span id="badge-count-pending" class="admin-tab-count">0</span>
       </button>
 
       <button type="button" class="admin-nav-tab" data-tab-target="reports">
-        <span>[ 02. REPORTES DE ERROR ]</span>
+        <span>02. REPORTES DE ERROR</span>
         <span id="badge-count-reports" class="admin-tab-count">0</span>
       </button>
 
       <button type="button" class="admin-nav-tab" data-tab-target="users">
-        <span>[ 03. DIRECTORIO DE USUARIOS ]</span>
+        <span>03. DIRECTORIO DE USUARIOS</span>
         <span id="badge-count-users" class="admin-tab-count">0</span>
       </button>
     </nav>
@@ -208,7 +208,7 @@
   <div id="modal-edit-work" class="admin-modal-overlay" aria-hidden="true">
     <div class="admin-modal-box">
       <div class="admin-modal-head">
-        <h3 class="font-display" style="font-size: 18px; margin: 0;">[ EDITAR FICHA DE OBRA ]</h3>
+        <h3 class="font-display" style="font-size: 18px; margin: 0;">EDITAR FICHA DE OBRA</h3>
         <button type="button" id="btn-modal-close" class="admin-btn" style="padding: 4px 8px;">✕</button>
       </div>
 

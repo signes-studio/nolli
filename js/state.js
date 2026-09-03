@@ -222,7 +222,6 @@ export const CATEGORY_META = {
     label: 'Residencial',
     labelShort: 'RESIDENCIAL',
     color: '#E95C0C',
-    emoji: '🏠',
     icon: 'home'
   },
   dotacional_equipamiento: {
@@ -230,7 +229,6 @@ export const CATEGORY_META = {
     label: 'Dotacional / Equipamiento',
     labelShort: 'DOTACIONAL Y EQUIPAMIENTO',
     color: '#EFBC02',
-    emoji: '🏛️',
     icon: 'building-2'
   },
   industrial_logistico: {
@@ -238,7 +236,6 @@ export const CATEGORY_META = {
     label: 'Industrial / Logístico',
     labelShort: 'INDUSTRIAL Y LOGÍSTICO',
     color: '#064773',
-    emoji: '🏭',
     icon: 'factory'
   },
   religioso_funerario: {
@@ -246,7 +243,6 @@ export const CATEGORY_META = {
     label: 'Religioso / Funerario',
     labelShort: 'RELIGIOSO Y FUNERARIO',
     color: '#F2ACCD',
-    emoji: '⛪',
     icon: 'cross'
   },
   comercial_terciario: {
@@ -254,7 +250,6 @@ export const CATEGORY_META = {
     label: 'Comercial / Terciario',
     labelShort: 'COMERCIAL Y TERCIARIO',
     color: '#4388C6',
-    emoji: '🏪',
     icon: 'shopping-bag'
   },
   espacio_publico_paisaje: {
@@ -262,7 +257,6 @@ export const CATEGORY_META = {
     label: 'Espacio Público / Paisaje',
     labelShort: 'ESPACIO PÚBLICO Y PAISAJE',
     color: '#0D682F',
-    emoji: '🌳',
     icon: 'trees'
   },
   infraestructura_urbanismo: {
@@ -270,7 +264,6 @@ export const CATEGORY_META = {
     label: 'Infraestructura / Urbanismo',
     labelShort: 'INFRAESTRUCTURA Y URBANISMO',
     color: '#E41F23',
-    emoji: '🌉',
     icon: 'bridge'
   },
   otro: {
@@ -278,7 +271,6 @@ export const CATEGORY_META = {
     label: 'Otros',
     labelShort: 'OTRO',
     color: '#691B14',
-    emoji: '📍',
     icon: 'map-pin'
   }
 };

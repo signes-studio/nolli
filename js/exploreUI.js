@@ -16,7 +16,7 @@ export async function renderPublicCollections(query = '') {
   const countBadge = document.getElementById('explore-count-badge');
 
   if (!publicCollectionsCache.length && publicContainer) {
-    publicContainer.innerHTML = `<div class="explore-loading">[ CONSULTANDO LISTAS PÚBLICAS DE LA COMUNIDAD... ]</div>`;
+    publicContainer.innerHTML = `<div class="explore-loading">CONSULTANDO LISTAS PÚBLICAS DE LA COMUNIDAD...</div>`;
     try {
       publicCollectionsCache = await fetchAllPublicCollections();
     } catch (err) {
@@ -57,19 +57,17 @@ export async function renderPublicCollections(query = '') {
         return `
           <div class="radar-route-card" data-curated-id="${escapeHtml(route.id)}" role="button" tabindex="0" aria-label="Ruta ${escapeHtml(route.title)}">
             <div class="radar-route-topline">
-              <span class="radar-route-tag" style="color:${route.color}; border-color:${route.color};">[ ${escapeHtml(route.tag)} ]</span>
-              <span class="radar-route-stops">[ ${stopsLabel} ]</span>
+              <span class="radar-route-tag" style="color:${route.color}; border-color:${route.color};">${escapeHtml(route.tag)}</span>
+              <span class="radar-route-stops">${stopsLabel}</span>
             </div>
             <h4 class="radar-route-title">${escapeHtml(route.title)}</h4>
             <p class="radar-route-desc">${escapeHtml(route.subtitle)}</p>
-            <button type="button" class="radar-route-btn" data-curated-id="${escapeHtml(route.id)}">
-              [ INICIAR ITINERARIO ]
-            </button>
+            <button type="button" class="radar-route-btn" data-curated-id="${escapeHtml(route.id)}">INICIAR ITINERARIO</button>
           </div>
         `;
       }).join('');
     } else {
-      curatedContainer.innerHTML = `<div style="font-size:11px; color:var(--fg-dim); padding:4px 0;">[ NINGUNA SELECCIÓN CURATORIAL COINCIDENTE ]</div>`;
+      curatedContainer.innerHTML = `<div style="font-size:11px; color:var(--fg-dim); padding:4px 0;">NINGUNA SELECCIÓN CURATORIAL COINCIDENTE</div>`;
     }
   }
 
@@ -93,7 +91,7 @@ export async function renderPublicCollections(query = '') {
     if (!collections.length) {
       publicContainer.innerHTML = `
         <div class="explore-empty-state" style="padding: 24px 16px; text-align: center; border: 1.5px dashed var(--border-strong, #111111); background: rgba(17,17,17,0.02);">
-          <div class="font-display text-sm font-bold" style="color:var(--fg);">[ ${q ? 'NO HAY LISTAS DE USUARIO COINCIDENTES' : 'NO HAY COLECCIONES PÚBLICAS AÚN'} ]</div>
+          <div class="font-display text-sm font-bold" style="color:var(--fg);">${q ? 'NO HAY LISTAS DE USUARIO COINCIDENTES' : 'NO HAY COLECCIONES PÚBLICAS AÚN'}</div>
           <p class="text-xs text-dim" style="margin-top: 4px;">${q ? 'Prueba con otro término de búsqueda.' : 'Sé el primero en compartir una lista pública desde tu perfil.'}</p>
         </div>
       `;
@@ -102,13 +100,13 @@ export async function renderPublicCollections(query = '') {
         <div class="public-collections-grid" style="display: grid; gap: 12px;">
           ${collections.map((col) => {
             const authorNick = col.profiles?.nick ? `@${col.profiles.nick}` : (col.profiles?.first_name ? `@${col.profiles.first_name}` : 'Comunidad Nolli');
-            const emoji = col.icon || col.emoji || '🏛️';
+            const emoji = col.icon || '';
             const title = col.name || 'Colección sin título';
             const desc = col.description || 'Selección curatorial comunitaria';
             
             // Conteo de obras asociadas si viene en items o aproximado
             const itemsCount = (state.userCollectionItems || []).filter(i => String(i.collection_id) === String(col.id)).length;
-            const countLabel = itemsCount > 0 ? `[ ${itemsCount} OBRAS ]` : '[ PÚBLICA ]';
+            const countLabel = itemsCount > 0 ? `${itemsCount} OBRAS` : 'PÚBLICA';
 
             const isOwn = String(col.user_id) === String(state.userId);
             const isFollowing = (state.userFollowedCollections || []).some(f => String(f.collection_id) === String(col.id));
@@ -131,15 +129,13 @@ export async function renderPublicCollections(query = '') {
                   <div style="display:flex; gap:6px; align-items:center;">
                     ${!isOwn ? `
                       <button type="button" class="btn-follow-collection" data-follow-collection-id="${col.id}" style="font-family: 'Inter', sans-serif; font-size:9.5px; font-weight:800; padding:4px 8px; border:1.5px solid ${isFollowing ? 'var(--accent, #E84E1B)' : 'var(--border-strong, #111111)'}; background:${isFollowing ? 'var(--accent, #E84E1B)' : 'transparent'}; color:${isFollowing ? '#FFF' : 'var(--fg)'}; cursor:pointer;">
-                        ${isFollowing ? '[ ✓ SIGUIENDO ]' : '[ + SEGUIR ]'}
+                        ${isFollowing ? 'SIGUIENDO' : '+ SEGUIR'}
                       </button>
                     ` : `
-                      <span style="font-size:9px; font-family: 'Inter', sans-serif; color:var(--accent, #E84E1B); font-weight:800;">[ TU LISTA ]</span>
+                      <span style="font-size:9px; font-family: 'Inter', sans-serif; color:var(--accent, #E84E1B); font-weight:800;">TU LISTA</span>
                     `}
                     
-                    <button type="button" class="btn-view-collection-map" data-view-collection-id="${col.id}" style="font-family: 'Inter', sans-serif; font-size:9.5px; font-weight:800; padding:4px 8px; border:1.5px solid var(--border-strong, #111111); background:var(--bg-card, #FFFFFF); color:var(--fg); cursor:pointer;">
-                      [ VER EN MAPA ↗ ]
-                    </button>
+                    <button type="button" class="btn-view-collection-map" data-view-collection-id="${col.id}" style="font-family: 'Inter', sans-serif; font-size:9.5px; font-weight:800; padding:4px 8px; border:1.5px solid var(--border-strong, #111111); background:var(--bg-card, #FFFFFF); color:var(--fg); cursor:pointer;">VER EN MAPA ↗</button>
                   </div>
                 </div>
               </article>

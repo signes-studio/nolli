@@ -31,7 +31,7 @@ export function buildEmojiIcon(emoji, isDark = false, size = 64) {
   ctx.font = `${Math.round(size * 0.44)}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(emoji || '📍', center, center + 1);
+  ctx.fillText(emoji || '', center, center + 1);
 
   return ctx.getImageData(0, 0, size, size);
 }

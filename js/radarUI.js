@@ -62,7 +62,7 @@ export function renderCuratedCarousel() {
     container.innerHTML = `
       <div class="radar-empty-state">
         <i data-lucide="compass" width="24" height="24" style="color:var(--accent, #E84E1B); margin-bottom:8px;"></i>
-        <div class="font-display text-sm font-bold">[ NINGUNA COLECCIÓN CERCA DE TU POSICIÓN ]</div>
+        <div class="font-display text-sm font-bold">NINGUNA COLECCIÓN CERCA DE TU POSICIÓN</div>
         <p class="text-xs text-dim">Desplázate por el mapa para descubrir selecciones curatoriales de otras zonas.</p>
       </div>
     `;
@@ -75,8 +75,8 @@ export function renderCuratedCarousel() {
     return `
       <article class="radar-curated-card" data-route-id="${escapeHtml(route.id)}" role="button" tabindex="0" aria-label="${escapeHtml(route.title)}">
         <div class="radar-curated-header" style="border-color:${route.color};">
-          <span class="radar-curated-tag" style="color:${route.color};">[ ${escapeHtml(route.tag || 'RUTA')} ]</span>
-          <span class="radar-vermillon-badge">[ OBRA MÁS CERCANA: ${distText} ]</span>
+          <span class="radar-curated-tag" style="color:${route.color};">${escapeHtml(route.tag || 'RUTA')}</span>
+          <span class="radar-vermillon-badge">OBRA MÁS CERCANA: ${distText}</span>
         </div>
         <h4 class="radar-curated-title">${escapeHtml(route.title)}</h4>
         <p class="radar-curated-subtitle">${escapeHtml(route.subtitle || '')}</p>
@@ -140,14 +140,14 @@ export function formatearDistanciaRadar(metros) {
 
 export function renderRadarList(works, container, countSpan) {
   if (countSpan) {
-    countSpan.textContent = `[ ${works.length} DETECTADAS ]`;
+    countSpan.textContent = `${works.length} DETECTADAS`;
   }
 
   if (!works.length) {
     container.innerHTML = `
       <div class="radar-empty-state">
         <i data-lucide="crosshair" width="28" height="28" style="color:var(--accent, #E84E1B); margin-bottom:8px;"></i>
-        <div class="font-display text-sm font-bold">[ NINGUNA OBRA A MENOS DE ${radarRadius < 1000 ? radarRadius + 'M' : (radarRadius / 1000) + 'KM'} ]</div>
+        <div class="font-display text-sm font-bold">NINGUNA OBRA A MENOS DE ${radarRadius < 1000 ? radarRadius + 'M' : (radarRadius / 1000) + 'KM'}</div>
         <p class="text-xs text-dim">Amplía el radio de búsqueda o desplázate por el mapa.</p>
       </div>
     `;
@@ -168,8 +168,8 @@ export function renderRadarList(works, container, countSpan) {
     return `
       <article class="radar-proximity-card" data-radar-feature-id="${escapeHtml(obra.featureId || obra.id)}" role="button" tabindex="0" aria-label="${escapeHtml(obra.nombre_obra)}">
         <div class="radar-proximity-header">
-          <span class="radar-vermillon-badge">[ ${distText} ]</span>
-          <span class="radar-cat-badge" style="color:${catColor}; border-color:${catColor};">[ ${escapeHtml(obra.categoria || 'ARQUITECTURA').toUpperCase()} ]</span>
+          <span class="radar-vermillon-badge">${distText}</span>
+          <span class="radar-cat-badge" style="color:${catColor}; border-color:${catColor};">${escapeHtml(obra.categoria || 'ARQUITECTURA').toUpperCase()}</span>
         </div>
         <div class="radar-proximity-body">
           ${photo ? `

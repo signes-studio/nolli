@@ -88,19 +88,19 @@
     dialog.className = 'nolli-consent-backdrop';
     dialog.innerHTML = `
       <div class="nolli-consent-dialog" role="dialog" aria-modal="true" aria-labelledby="nolli-consent-title" aria-describedby="nolli-consent-description">
-        <p class="nolli-consent-kicker">[ CONFIGURACION // COOKIES Y ALMACENAMIENTO ]</p>
+        <p class="nolli-consent-kicker">CONFIGURACIÓN // COOKIES Y ALMACENAMIENTO</p>
         <h2 id="nolli-consent-title">CONTROL DE SERVICIOS EXTERNOS</h2>
-        <p id="nolli-consent-description">NOLLI usa almacenamiento tecnico necesario. Puedes decidir si autorizas los servicios externos de mapa y tipografia.</p>
+        <p id="nolli-consent-description">NOLLI usa almacenamiento técnico necesario. Puedes decidir si autorizas los servicios externos de mapa y tipografía.</p>
         <div class="nolli-consent-actions">
-          <button type="button" data-consent-action="accept">[ ACEPTAR TODO ]</button>
-          <button type="button" data-consent-action="reject">[ RECHAZAR TODO ]</button>
-          <button type="button" data-consent-action="configure" aria-expanded="false">[ CONFIGURAR ]</button>
+          <button type="button" data-consent-action="accept">ACEPTAR TODO</button>
+          <button type="button" data-consent-action="reject">RECHAZAR TODO</button>
+          <button type="button" data-consent-action="configure" aria-expanded="false">CONFIGURAR</button>
         </div>
         <div class="nolli-consent-preferences" hidden>
           <label><input type="checkbox" checked disabled> <span><strong>NECESARIAS</strong><small>Sesión, seguridad y preferencias técnicas.</small></span></label>
           <label><input id="nolli-consent-map" type="checkbox" ${saved?.mapa_terceros ? 'checked' : ''}> <span><strong>MAPA DE TERCEROS</strong><small>Teselas de Mapbox y telemetría de Mapbox Events.</small></span></label>
           <label><input id="nolli-consent-fonts" type="checkbox" ${saved?.tipografia_externa ? 'checked' : ''}> <span><strong>TIPOGRAFÍA EXTERNA</strong><small>Solicitud de fuentes a Google Fonts.</small></span></label>
-          <button type="button" data-consent-action="save">[ GUARDAR PREFERENCIAS ]</button>
+          <button type="button" data-consent-action="save">GUARDAR PREFERENCIAS</button>
         </div>
       </div>`;
     document.body.appendChild(dialog);
@@ -136,7 +136,7 @@
     button.type = 'button';
     button.className = 'nolli-cookie-settings';
     button.setAttribute('aria-label', 'Configurar cookies');
-    button.innerHTML = '<i data-lucide="cookie" width="14" height="14" aria-hidden="true"></i><span>[ COOKIES ]</span>';
+    button.innerHTML = '<i data-lucide="cookie" width="14" height="14" aria-hidden="true"></i><span>COOKIES</span>';
     button.addEventListener('click', openConfiguration);
     document.body.appendChild(button);
     window.lucide?.createIcons();

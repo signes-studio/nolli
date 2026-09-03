@@ -41,7 +41,7 @@ function renderizarTarjetaObra(obra, distance = null) {
     <button type="button" class="nearby-item search-work-card" data-feature-id="${escapeHtml(obra.featureId)}" data-lng="${obra.coordenadas[0]}" data-lat="${obra.coordenadas[1]}" aria-label="Ver obra ${titulo}">
       <div class="search-card-main">
         <div class="search-card-top-row">
-          <span class="search-cat-tag" style="color:${catColor};">[ ${escapeHtml(catTexto)} ]</span>
+          <span class="search-cat-tag" style="color:${catColor};">${escapeHtml(catTexto)}</span>
         </div>
         <div class="search-card-title">${titulo}</div>
         <div class="search-card-meta">
@@ -250,7 +250,7 @@ async function ejecutarBusquedaGlobal() {
     const filterHeader = `
       <button type="button" class="nearby-item btn-apply-search-filter" data-action="filter-text-map">
         <i data-lucide="filter" class="filter-action-icon" width="14" height="14"></i>
-        <span>[ VER TODAS LAS ${obrasFiltradas.length} OBRAS EN EL MAPA ]</span>
+        <span>VER TODAS LAS ${obrasFiltradas.length} OBRAS EN EL MAPA</span>
       </button>
     `;
 
@@ -428,7 +428,7 @@ async function mostrarEdificiosDeArquitecto(nombreArquitecto) {
   const filterHeader = `
     <button type="button" class="nearby-item btn-apply-search-filter" data-action="filter-architect-map">
       <i data-lucide="filter" class="filter-action-icon" width="14" height="14"></i>
-      <span>[ VER TODAS LAS ${obrasDelArquitecto.length} OBRAS EN EL MAPA ]</span>
+      <span>VER TODAS LAS ${obrasDelArquitecto.length} OBRAS EN EL MAPA</span>
     </button>
   `;
 
