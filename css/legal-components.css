@@ -12,7 +12,7 @@
 .nolli-local-fonts .font-display { font-family: system-ui, sans-serif !important; }
 
 .nolli-consent-backdrop { position: fixed; inset: 0; z-index: 200; display: grid; place-items: end center; padding: 16px; background: rgba(20, 20, 17, .38); }
-.nolli-consent-dialog { width: min(680px, 100%); background: var(--bg-panel, #F8F1DF); border: 2px solid var(--border-strong, #141411); padding: 18px; color: var(--fg, #141411); font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.45; }
+.nolli-consent-dialog { width: min(680px, 100%); background: var(--bg-panel, #F8F1DF); border: 2px solid var(--border-strong, #141411); padding: 18px; color: var(--fg, #141411); font-family: 'Inter', sans-serif; font-size: 11px; line-height: 1.45; }
 .nolli-consent-kicker { margin: 0 0 5px; color: var(--accent, #E95C0C); font-size: 10px; font-weight: 700; letter-spacing: .04em; }
 .nolli-consent-dialog h2 { margin: 0 0 8px; font-family: 'League Spartan', sans-serif; font-size: 18px; line-height: 1; }
 .nolli-consent-dialog p { margin: 0; }
@@ -27,11 +27,11 @@
 .nolli-consent-preferences strong { display: block; font-size: 10px; color: var(--accent, #E95C0C); }
 .nolli-consent-preferences small { display: block; color: var(--fg-dim, #6B6B6B); font-size: 10px; }
 .nolli-consent-preferences button { margin: 10px; }
-.nolli-cookie-settings { position: fixed; z-index: 41; bottom: 18px; left: auto; right: calc(50% + 4px); display: inline-flex; align-items: center; gap: 3px; min-height: 24px; border: 0; background: transparent; color: var(--fg-dim, #6B6B6B); padding: 4px 0; font-family: 'JetBrains Mono', monospace; font-size: 9px; cursor: pointer; opacity: .34; transition: opacity .15s ease, color .15s ease; }
+.nolli-cookie-settings { position: fixed; z-index: 41; bottom: 18px; left: auto; right: calc(50% + 4px); display: inline-flex; align-items: center; gap: 3px; min-height: 24px; border: 0; background: transparent; color: var(--fg-dim, #6B6B6B); padding: 4px 0; font-family: 'Inter', sans-serif; font-size: 9px; cursor: pointer; opacity: .34; transition: opacity .15s ease, color .15s ease; }
 .nolli-cookie-settings:hover, .nolli-cookie-settings:focus-visible { color: var(--fg, #141411); opacity: 1; outline: 1px solid var(--border-strong, #141411); outline-offset: 3px; }
 .nolli-map-footer { position: fixed; z-index: 41; bottom: 18px; left: calc(50% + 4px); right: auto; border: 0; padding: 0; background: transparent; color: var(--fg-dim, #6B6B6B); font-size: 9px; opacity: .34; transition: opacity .15s ease, color .15s ease; }
 .nolli-map-footer:hover, .nolli-map-footer:focus-within { opacity: 1; }
-.nolli-site-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid var(--border-strong, #141411); padding: 8px 10px; color: var(--fg-dim, #6B6B6B); font-family: 'JetBrains Mono', monospace; font-size: 10px; }
+.nolli-site-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid var(--border-strong, #141411); padding: 8px 10px; color: var(--fg-dim, #6B6B6B); font-family: 'Inter', sans-serif; font-size: 10px; }
 .nolli-site-footer.nolli-map-footer { border-top: 0; padding: 0; }
 .nolli-site-footer nav { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 9px; }
 .nolli-site-footer a { color: var(--accent, #E95C0C); text-decoration: none; }

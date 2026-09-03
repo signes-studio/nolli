@@ -175,7 +175,7 @@ async function loadInitialData() {
   const container = document.getElementById('itineraries-list-container');
   if (container) {
     container.innerHTML = `
-      <div style="text-align: center; padding: 40px 20px; font-family: 'JetBrains Mono', monospace; color: var(--admin-fg-dim);">
+      <div style="text-align: center; padding: 40px 20px; font-family: 'Inter', sans-serif; color: var(--admin-fg-dim);">
         Cargando catálogo completo de obras e itinerarios...
       </div>
     `;
@@ -220,7 +220,7 @@ async function loadInitialData() {
     console.error('Error cargando datos:', err);
     if (container) {
       container.innerHTML = `
-        <div style="text-align: center; padding: 40px 20px; font-family: 'JetBrains Mono', monospace; color: var(--admin-red);">
+        <div style="text-align: center; padding: 40px 20px; font-family: 'Inter', sans-serif; color: var(--admin-red);">
           Error al cargar los datos. Intenta recargar la página.
         </div>
       `;
@@ -251,7 +251,7 @@ function renderItinerariesList() {
 
   if (list.length === 0) {
     container.innerHTML = `
-      <div style="text-align: center; padding: 60px 20px; font-family: 'JetBrains Mono', monospace; color: var(--admin-fg-dim); background: var(--admin-bg-surface); border: 2px dashed var(--admin-border);">
+      <div style="text-align: center; padding: 60px 20px; font-family: 'Inter', sans-serif; color: var(--admin-fg-dim); background: var(--admin-bg-surface); border: 2px dashed var(--admin-border);">
         No se encontraron itinerarios. ¡Crea uno nuevo con el botón superior!
       </div>
     `;
@@ -277,8 +277,8 @@ function renderItinerariesList() {
             <div class="itinerary-badge-row">
               <span class="itinerary-color-chip" style="background-color: ${escapeHtml(item.color || '#E84E1B')};"></span>
               <span class="itinerary-tag-badge">${escapeHtml(item.tag || 'MOVIMIENTO')}</span>
-              <span style="font-family: 'JetBrains Mono'; font-size: 10px; color: var(--admin-fg-dim);">ID: ${escapeHtml(item.id)}</span>
-              ${isInactive ? '<span style="font-family: \'JetBrains Mono\'; font-size: 10px; color: var(--admin-red); font-weight: 800;">[ INACTIVO ]</span>' : ''}
+              <span style="font-family: 'Inter', sans-serif; font-size: 10px; color: var(--admin-fg-dim);">ID: ${escapeHtml(item.id)}</span>
+              ${isInactive ? '<span style="font-family: \'Inter\', sans-serif; font-size: 10px; color: var(--admin-red); font-weight: 800;">[ INACTIVO ]</span>' : ''}
             </div>
             <h3 class="itinerary-title">${escapeHtml(item.title)}</h3>
             <p class="itinerary-subtitle">${escapeHtml(item.subtitle || '')}</p>
@@ -516,7 +516,7 @@ function handleSearchBuildingsToSelect(e) {
 
   if (!itineraryAdminState.catalog || itineraryAdminState.catalog.length === 0) {
     resultsBox.innerHTML = `
-      <div style="padding: 12px; font-family: 'JetBrains Mono'; font-size: 11px; color: var(--admin-fg-dim); text-align: center;">
+      <div style="padding: 12px; font-family: 'Inter', sans-serif; font-size: 11px; color: var(--admin-fg-dim); text-align: center;">
         ⏳ Cargando catálogo completo de obras (15.000+)...
       </div>
     `;
@@ -543,7 +543,7 @@ function handleSearchBuildingsToSelect(e) {
 
   if (matches.length === 0) {
     resultsBox.innerHTML = `
-      <div style="padding: 12px; font-family: 'JetBrains Mono'; font-size: 11px; color: var(--admin-fg-dim); text-align: center;">
+      <div style="padding: 12px; font-family: 'Inter', sans-serif; font-size: 11px; color: var(--admin-fg-dim); text-align: center;">
         No se encontraron obras coincidentes para "${escapeHtml(query)}".
       </div>
     `;
@@ -561,7 +561,7 @@ function handleSearchBuildingsToSelect(e) {
             <strong style="font-size: 13px;">${escapeHtml(obra.nombre_obra || 'Sin título')}</strong>
             <span style="font-size: 11px; color: var(--admin-fg-dim);">(${obra.año_construccion || 's/f'})</span>
           </div>
-          <div style="font-size: 11px; color: var(--admin-fg-dim); font-family: 'JetBrains Mono'; margin-top: 2px;">
+          <div style="font-size: 11px; color: var(--admin-fg-dim); font-family: 'Inter', sans-serif; margin-top: 2px;">
             ${escapeHtml(obra.arquitecto || obra.arquitectos || 'Autor desconocido')} • ${escapeHtml(obra.place || obra.ciudad || 'VLC')} • ID: ${escapeHtml(obra.id)}
           </div>
         </div>
@@ -601,7 +601,7 @@ function renderFormSelectedWorksList() {
 
   if (list.length === 0) {
     container.innerHTML = `
-      <div style="text-align: center; padding: 24px 12px; font-family: 'JetBrains Mono'; font-size: 11px; color: var(--admin-fg-dim);">
+      <div style="text-align: center; padding: 24px 12px; font-family: 'Inter', sans-serif; font-size: 11px; color: var(--admin-fg-dim);">
         Aún no has añadido obras. Busca arriba por nombre, arquitecto o ciudad para añadirlas una a una.
       </div>
     `;

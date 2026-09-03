@@ -268,7 +268,7 @@ function renderModulePending() {
 
   if (!works.length) {
     container.innerHTML = `
-      <div style="border:2px dashed var(--admin-border-light); padding:40px; text-align:center; font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--admin-fg-dim);">
+      <div style="border:2px dashed var(--admin-border-light); padding:40px; text-align:center; font-family: 'Inter', sans-serif; font-size:12px; color:var(--admin-fg-dim);">
         [ NO SE ENCONTRARON OBRAS BAJO ESTE CRITERIO // BANDEJA LIMPIA ]
       </div>
     `;
@@ -363,7 +363,7 @@ function renderModuleReports() {
 
   if (!reports.length) {
     container.innerHTML = `
-      <div style="border:2px dashed var(--admin-border-light); padding:40px; text-align:center; font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--admin-fg-dim);">
+      <div style="border:2px dashed var(--admin-border-light); padding:40px; text-align:center; font-family: 'Inter', sans-serif; font-size:12px; color:var(--admin-fg-dim);">
         [ NO HAY INCIDENCIAS PENDIENTES // BUZÓN VACÍO ]
       </div>
     `;
@@ -384,13 +384,13 @@ function renderModuleReports() {
         <div class="admin-report-head">
           <div>
             <h3 class="admin-report-building">${buildingTitle}</h3>
-            ${architect ? `<div style="font-size:11px; color:var(--admin-fg-dim); font-family:'JetBrains Mono', monospace;">📐 ${architect}</div>` : ''}
+            ${architect ? `<div style="font-size:11px; color:var(--admin-fg-dim); font-family: 'Inter', sans-serif;">📐 ${architect}</div>` : ''}
           </div>
           <span class="admin-report-date">📅 ${date}</span>
         </div>
 
         <div class="admin-report-body">
-          <strong style="display:block; font-family:'JetBrains Mono', monospace; font-size:10px; margin-bottom:4px; color:var(--admin-accent);">MOTIVO / DETALLE REPORTADO:</strong>
+          <strong style="display:block; font-family: 'Inter', sans-serif; font-size:10px; margin-bottom:4px; color:var(--admin-accent);">MOTIVO / DETALLE REPORTADO:</strong>
           ${desc}
         </div>
 
@@ -430,7 +430,7 @@ function renderModuleUsers() {
       <tr>
         <td colspan="5" style="padding: 24px;">
           <div style="border: 1.5px solid var(--admin-red); background: var(--admin-red-bg); padding: 18px; color: var(--admin-fg);">
-            <strong style="color: var(--admin-red); display: block; font-size: 12px; margin-bottom: 6px; font-family: 'JetBrains Mono', monospace;">
+            <strong style="color: var(--admin-red); display: block; font-size: 12px; margin-bottom: 6px; font-family: 'Inter', sans-serif;">
               ⚠️ CONFLICTO DE POLÍTICAS RLS EN SUPABASE (RECURSIÓN INFINITA EN "PROFILES")
             </strong>
             <p style="font-size: 11px; margin: 0 0 10px; line-height: 1.5;">

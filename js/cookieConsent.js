@@ -1,7 +1,7 @@
 /* Consentimiento de servicios opcionales. Se carga antes de los modulos de la aplicacion. */
 (function () {
   const STORAGE_KEY = 'nolli_cookie_consent';
-  const FONT_URL = 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=League+Spartan:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap';
+  const FONT_URL = 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=League+Spartan:wght@600;700;800;900&&display=swap';
   let consent = readConsent();
   let dialog = null;
   let opener = null;

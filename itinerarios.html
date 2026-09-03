@@ -9,6 +9,11 @@
   <link rel="icon" type="image/svg+xml" href="./icon.svg">
   <meta name="theme-color" content="#F4F1EA">
 
+  <!-- Google Fonts: Inter & League Spartan -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=League+Spartan:wght@600;700;800;900&display=swap" rel="stylesheet">
+
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest" defer></script>
 
@@ -54,7 +59,7 @@
       border: 1px solid #111;
     }
     .itinerary-tag-badge {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Inter', sans-serif;
       font-size: 10px;
       font-weight: 800;
       padding: 3px 6px;
@@ -79,7 +84,7 @@
       background: var(--admin-bg-raised);
       border: 1px solid var(--admin-border-light);
       padding: 12px 14px;
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Inter', sans-serif;
       font-size: 11px;
       max-height: 140px;
       overflow-y: auto;
@@ -112,7 +117,7 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Inter', sans-serif;
       font-size: 11px;
       font-weight: 800;
       padding: 4px 10px;
@@ -182,7 +187,7 @@
       gap: 10px;
     }
     .selected-work-num {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Inter', sans-serif;
       font-weight: 900;
       font-size: 12px;
       color: var(--admin-accent);
@@ -202,7 +207,7 @@
     .selected-work-sub {
       font-size: 11px;
       color: var(--admin-fg-dim);
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Inter', sans-serif;
     }
     .selected-work-btns {
       display: flex;
@@ -215,7 +220,7 @@
       background: var(--admin-bg);
       border: 1px solid var(--admin-border);
       cursor: pointer;
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Inter', sans-serif;
     }
     .btn-icon-small:hover {
       background: var(--admin-border);
@@ -261,7 +266,7 @@
   <!-- =========================================================================
        PANTALLA DE CARGA INICIAL
        ========================================================================= -->
-  <div id="admin-loading" style="padding: 80px 20px; text-align: center; font-family: 'JetBrains Mono', monospace;">
+  <div id="admin-loading" style="padding: 80px 20px; text-align: center; font-family: 'Inter', sans-serif;">
     <div style="font-size: 36px; margin-bottom: 12px;">⏳</div>
     <div style="font-size: 13px; font-weight: 800; color: var(--admin-fg);">[ VERIFICANDO CREDENCIALES DE ADMINISTRADOR... ]</div>
   </div>
@@ -290,7 +295,7 @@
         <i data-lucide="log-in" width="14" height="14"></i>
         <span>INICIAR SESIÓN</span>
       </button>
-      <div id="login-error-msg" style="color: var(--admin-red); font-family: 'JetBrains Mono'; font-size: 11px; text-align: center;" class="hidden"></div>
+      <div id="login-error-msg" style="color: var(--admin-red); font-family: 'Inter', sans-serif; font-size: 11px; text-align: center;" class="hidden"></div>
     </form>
 
     <div class="admin-lock-actions">
@@ -335,7 +340,7 @@
 
     <!-- Contenedor del Listado de Itinerarios -->
     <div id="itineraries-list-container">
-      <div style="text-align: center; padding: 40px 20px; font-family: 'JetBrains Mono', monospace; color: var(--admin-fg-dim);">
+      <div style="text-align: center; padding: 40px 20px; font-family: 'Inter', sans-serif; color: var(--admin-fg-dim);">
         Cargando catálogo de itinerarios y obras...
       </div>
     </div>
@@ -361,7 +366,7 @@
           <div>
             <label class="admin-label" for="form-id">ID / CÓDIGO ÚNICO</label>
             <input type="text" id="form-id" class="admin-input" placeholder="route-racionalismo" required>
-            <small style="font-size: 10px; color: var(--admin-fg-dim); font-family: 'JetBrains Mono';">Prefijo 'route-' recomendado</small>
+            <small style="font-size: 10px; color: var(--admin-fg-dim); font-family: 'Inter', sans-serif;">Prefijo 'route-' recomendado</small>
           </div>
           <div>
             <label class="admin-label" for="form-title">TÍTULO DEL ITINERARIO *</label>
@@ -386,7 +391,7 @@
             <label class="admin-label" for="form-color">COLOR TEMÁTICO</label>
             <div style="display: flex; gap: 8px; align-items: center;">
               <input type="color" id="form-color-picker" value="#E84E1B" style="width: 38px; height: 38px; border: 1px solid #111; cursor: pointer; padding: 0;">
-              <input type="text" id="form-color" class="admin-input" value="#E84E1B" style="font-family: 'JetBrains Mono';">
+              <input type="text" id="form-color" class="admin-input" value="#E84E1B" style="font-family: 'Inter', sans-serif;">
             </div>
             <div class="color-swatches-row">
               <button type="button" class="color-swatch-btn" style="background:#E84E1B;" data-color="#E84E1B"></button>
@@ -422,7 +427,7 @@
             <h4 style="margin: 0; font-size: 15px; font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase;">
               [ SELECCIÓN MANUAL DE OBRAS ]
             </h4>
-            <span id="form-selected-count-badge" style="font-family: 'JetBrains Mono'; font-weight: 800; font-size: 12px; color: var(--admin-accent); background: var(--admin-bg-raised); padding: 4px 10px; border: 1px solid var(--admin-border);">
+            <span id="form-selected-count-badge" style="font-family: 'Inter', sans-serif; font-weight: 800; font-size: 12px; color: var(--admin-accent); background: var(--admin-bg-raised); padding: 4px 10px; border: 1px solid var(--admin-border);">
               0 OBRAS AÑADIDAS
             </span>
           </div>
@@ -443,7 +448,7 @@
           <div style="margin-top: 14px;">
             <label class="admin-label">OBRAS SELECCIONADAS EN ESTE ITINERARIO (PARADAS EN ORDEN)</label>
             <div id="form-selected-works-container" class="selected-works-list">
-              <div style="text-align: center; padding: 20px; font-family: 'JetBrains Mono'; font-size: 11px; color: var(--admin-fg-dim);">
+              <div style="text-align: center; padding: 20px; font-family: 'Inter', sans-serif; font-size: 11px; color: var(--admin-fg-dim);">
                 Aún no has añadido obras. Busca arriba por nombre o arquitecto para añadirlas una a una.
               </div>
             </div>

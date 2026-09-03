@@ -120,7 +120,7 @@ body.dark-mode .location-reticle {
 .btn {
   font-size: 11px; letter-spacing: .06em; padding: 10px 14px;
   border: 1px solid var(--border-strong); background: var(--bg-panel); color: var(--fg);
-  cursor: pointer; font-family: 'JetBrains Mono', monospace;
+  cursor: pointer; font-family: 'Inter', sans-serif;
 }
 .btn:hover, .btn:focus-visible { background: var(--fg); color: var(--bg-panel); outline: none; }
 .btn-accent { background: var(--accent-2); border-color: var(--accent-2); color: var(--fg); font-weight: 700; }
@@ -160,7 +160,7 @@ body.dark-mode .location-reticle {
 .architect-profile-kicker {
   margin: 0 0 4px;
   color: var(--accent, #E95C0C);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Inter', sans-serif;
   font-weight: 800;
   font-size: 9px;
   letter-spacing: .08em;
@@ -181,7 +181,7 @@ body.dark-mode .location-reticle {
 .architect-profile-count {
   margin: 6px 0 14px;
   color: var(--accent, #E84E1B);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Inter', sans-serif;
   font-weight: 700;
   font-size: 10px;
   letter-spacing: 0.05em;
@@ -305,7 +305,7 @@ body.dark-mode .location-reticle {
   margin: 0;
   padding: 16px 0;
   color: var(--fg-dim);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 10px;
   text-align: center;
 }
@@ -575,7 +575,7 @@ body.dark-mode .location-reticle {
   }
 
   #modal-architect .architect-profile-count {
-    font-family: 'JetBrains Mono', monospace !important;
+    font-family: 'Inter', sans-serif !important;
     font-size: 10px !important;
     font-weight: 700 !important;
     color: var(--accent, #E84E1B) !important;
@@ -647,7 +647,7 @@ body.dark-mode .modal-head {
 
 .tech-label {
   display: block;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.06em;
@@ -665,7 +665,7 @@ body.dark-mode .tech-label {
   background: var(--bg-panel, #F8F1DF);
   border: 1.5px solid var(--border-strong, #111111);
   color: var(--fg, #111111);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 12.5px;
   padding: 10px 12px;
   border-radius: 0 !important;
@@ -901,7 +901,7 @@ body.dark-mode .register-success-msg {
 }
 
 .register-success-meta {
-  font-family: 'JetBrains Mono', monospace !important;
+  font-family: 'Inter', sans-serif !important;
   font-size: 11px !important;
   font-weight: 800 !important;
   color: var(--accent, #E84E1B) !important;

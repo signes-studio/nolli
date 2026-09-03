@@ -73,7 +73,7 @@ h1, h2, h3, h4, h5, h6, .font-display {
 }
 
 .font-mono, .mono-text {
-  font-family: 'JetBrains Mono', monospace !important;
+  font-family: 'Inter', sans-serif !important;
 }
 
 /* =========================================================================
@@ -118,7 +118,7 @@ h1, h2, h3, h4, h5, h6, .font-display {
 }
 
 .admin-tagline {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 10px;
   font-weight: 700;
   color: var(--admin-fg-dim);
@@ -141,7 +141,7 @@ h1, h2, h3, h4, h5, h6, .font-display {
   padding: 5px 10px;
   border: 1.5px solid var(--admin-border);
   background: var(--admin-bg-raised);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 11px;
   font-weight: 700;
 }
@@ -165,7 +165,7 @@ h1, h2, h3, h4, h5, h6, .font-display {
   border: 1.5px solid var(--admin-border);
   background: var(--admin-bg-surface);
   color: var(--admin-fg);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 11px;
   font-weight: 700;
   text-decoration: none;
@@ -205,7 +205,7 @@ h1, h2, h3, h4, h5, h6, .font-display {
   box-shadow: var(--admin-shadow);
   padding: 36px 28px;
   text-align: center;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Inter', sans-serif;
 }
 
 .admin-lock-icon {
@@ -251,7 +251,7 @@ h1, h2, h3, h4, h5, h6, .font-display {
   border: none;
   border-bottom: 3px solid transparent;
   padding: 12px 18px;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.04em;
@@ -319,7 +319,7 @@ h1, h2, h3, h4, h5, h6, .font-display {
   border: 1.5px solid var(--admin-border);
   background: var(--admin-bg);
   color: var(--admin-fg);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 11px;
   font-weight: 600;
   outline: none;
@@ -335,7 +335,7 @@ h1, h2, h3, h4, h5, h6, .font-display {
   border: 1.5px solid var(--admin-border);
   background: var(--admin-bg);
   color: var(--admin-fg);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 11px;
   font-weight: 700;
   outline: none;
@@ -413,7 +413,7 @@ h1, h2, h3, h4, h5, h6, .font-display {
 }
 
 .admin-badge-pending {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 9px;
   font-weight: 800;
   background: var(--admin-accent-2);
@@ -443,7 +443,7 @@ h1, h2, h3, h4, h5, h6, .font-display {
 }
 
 .admin-work-tag {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 9.5px;
   font-weight: 700;
   padding: 2px 6px;
@@ -468,7 +468,7 @@ h1, h2, h3, h4, h5, h6, .font-display {
   border: 1.5px solid var(--admin-border);
   background: var(--admin-bg-surface);
   color: var(--admin-fg);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.04em;
@@ -543,7 +543,7 @@ h1, h2, h3, h4, h5, h6, .font-display {
 }
 
 .admin-report-date {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 10px;
   color: var(--admin-fg-dim);
 }
@@ -566,7 +566,7 @@ h1, h2, h3, h4, h5, h6, .font-display {
 }
 
 .admin-report-sender {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 10px;
   color: var(--admin-fg-dim);
 }
@@ -589,7 +589,7 @@ h1, h2, h3, h4, h5, h6, .font-display {
 .admin-users-table {
   width: 100%;
   border-collapse: collapse;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 11px;
 }
 
@@ -733,7 +733,7 @@ h1, h2, h3, h4, h5, h6, .font-display {
 
 .admin-form-label {
   display: block;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 10px;
   font-weight: 800;
   color: var(--admin-fg-dim);

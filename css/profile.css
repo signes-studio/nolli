@@ -769,7 +769,7 @@ body.dark-mode .profile-edit-close {
 }
 
 .profile-form-label {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 10px;
   font-weight: 800;
   color: var(--fg-dim, #6B6B6B);
@@ -836,7 +836,7 @@ body.dark-mode .profile-save-btn {
 }
 
 .profile-edit-status {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 11px;
   font-weight: 700;
   color: var(--accent, #E84E1B);
@@ -961,7 +961,7 @@ body.dark-mode .profile-feed-row {
   background: var(--bg-raised, #ECE6D8);
   border: 1px solid var(--border-strong, #141411);
   color: var(--fg, #141411);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 10px;
   font-weight: 700;
   padding: 6px 10px;

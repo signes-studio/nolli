@@ -198,28 +198,15 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
       </button>
     </div>
 
-    <!-- Fotografía Principal en Banner Panorámico -->
-    ${building.foto_url && isValidHttpsUrl(building.foto_url) ? (
-      state.sessionToken ? `
-        <div class="sheet-gallery-wrap">
-          <button type="button" class="photo-thumb sheet-photo-banner" data-photo-url="${escapeHtml(building.foto_url)}" aria-label="Ampliar fotografía de la obra">
-            <img class="sheet-photo" src="${escapeHtml(getOptimizedPhotoUrl(building.foto_url, { width: 1000 }))}" alt="Fotografía de ${escapeHtml(building.nombre_obra)}" loading="lazy"${openedFromUrl ? ' fetchpriority="high"' : ''}>
-            <span class="photo-zoom-badge"><i data-lucide="maximize-2" width="12" height="12"></i> AMPLIAR</span>
-          </button>
-        </div>
-      ` : `
-        <div class="sheet-gallery-wrap">
-          <div class="sheet-restricted-banner" data-trigger-login role="button" tabindex="0" title="Inicia sesión o regístrate gratis para ver la fotografía">
-            <div class="sheet-restricted-badge">
-              <i data-lucide="lock" width="12" height="12"></i>
-              <span>FOTOGRAFÍA DISPONIBLE</span>
-            </div>
-            <p class="sheet-restricted-desc">Inicia sesión o regístrate gratis para ver la imagen en alta definición.</p>
-            <span class="sheet-restricted-cta">[ ACCEDER / REGISTRO → ]</span>
-          </div>
-        </div>
-      `
-    ) : ''}
+    <!-- Fotografía Principal en Banner Panorámico (Solo usuarios registrados) -->
+    ${building.foto_url && isValidHttpsUrl(building.foto_url) && state.sessionToken ? `
+      <div class="sheet-gallery-wrap">
+        <button type="button" class="photo-thumb sheet-photo-banner" data-photo-url="${escapeHtml(building.foto_url)}" aria-label="Ampliar fotografía de la obra">
+          <img class="sheet-photo" src="${escapeHtml(getOptimizedPhotoUrl(building.foto_url, { width: 1000 }))}" alt="Fotografía de ${escapeHtml(building.nombre_obra)}" loading="lazy"${openedFromUrl ? ' fetchpriority="high"' : ''}>
+          <span class="photo-zoom-badge"><i data-lucide="maximize-2" width="12" height="12"></i> AMPLIAR</span>
+        </button>
+      </div>
+    ` : ''}
 
     <!-- Ficha Técnica Modular Limpia (Matriz Tipográfica) -->
     <div class="sheet-tech-section">

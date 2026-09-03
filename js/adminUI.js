@@ -266,7 +266,7 @@ function mostrarAlertaSeguridad(titulo, mensaje) {
       padding: 14px 18px;
       max-width: 90vw;
       width: 440px;
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Inter', sans-serif;
       display: flex;
       flex-direction: column;
       gap: 6px;
@@ -293,7 +293,7 @@ function renderAuthRequired() {
 
   if (list) {
     list.innerHTML = `
-      <div style="padding: 36px 18px; text-align: center; display: grid; gap: 14px; font-family: 'JetBrains Mono', monospace;">
+      <div style="padding: 36px 18px; text-align: center; display: grid; gap: 14px; font-family: 'Inter', sans-serif;">
         <div style="font-size: 28px;">🔐</div>
         <h3 style="font-size: 14px; font-weight: 800; color: var(--accent-2, #EFBC02); margin: 0;">AUTENTICACIÓN REQUERIDA</h3>
         <p style="font-size: 11px; color: var(--fg-dim); line-height: 1.5; margin: 0;">

@@ -311,22 +311,22 @@ export function cargarMapaMapbox() {
 
     const IMPORTANCE_LABEL_CONFIG = {
       0: {
-        font: ['Inter Bold', 'Open Sans Bold', 'Arial Unicode MS Bold'],
+        font: ['Inter Bold', 'Open Sans Bold', 'Inter Bold'],
         size: 12.5,
         minzoom: 8.0, // Textos visibles a partir de zoom 8
       },
       1: {
-        font: ['Inter Medium', 'Open Sans Semibold', 'Arial Unicode MS Bold'],
+        font: ['Inter Medium', 'Open Sans Semibold', 'Inter Bold'],
         size: 11.5,
         minzoom: 8.0, // Textos visibles a partir de zoom 8
       },
       2: {
-        font: ['Inter Regular', 'Open Sans Regular', 'Arial Unicode MS Regular'],
+        font: ['Inter Regular', 'Open Sans Regular', 'Inter Regular'],
         size: 11,
         minzoom: 14.5,
       },
       3: {
-        font: ['Inter Light', 'Open Sans Light', 'Arial Unicode MS Regular'],
+        font: ['Inter Light', 'Open Sans Light', 'Inter Regular'],
         size: 10,
         minzoom: 17.0,
       },
@@ -587,7 +587,7 @@ export function cargarMapaMapbox() {
       filter: ['==', ['get', 'selected'], 1],
       layout: {
         'text-field': ['get', 'nombre_obra'],
-        'text-font': ['Inter Bold', 'Open Sans Bold', 'Arial Unicode MS Bold'],
+        'text-font': ['Inter Bold', 'Open Sans Bold', 'Inter Bold'],
         'text-size': 13,
         'text-offset': [1.2, 0],
         'text-anchor': 'left',
@@ -614,7 +614,7 @@ export function cargarMapaMapbox() {
       filter: ['==', ['get', 'selected'], 1],
       layout: {
         'text-field': ['get', 'nombre_obra'],
-        'text-font': ['Inter Bold', 'Open Sans Bold', 'Arial Unicode MS Bold'],
+        'text-font': ['Inter Bold', 'Open Sans Bold', 'Inter Bold'],
         'text-size': 13.5,
         'text-offset': [1.2, 0],
         'text-anchor': 'left',
@@ -865,7 +865,7 @@ function mostrarToastUbicacion(mensaje) {
       box-shadow: 4px 4px 0px rgba(17, 17, 17, 0.9);
       padding: 10px 14px;
       max-width: min(88vw, 360px);
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Inter', sans-serif;
       font-size: 10px;
       font-weight: 800;
       letter-spacing: 0.06em;

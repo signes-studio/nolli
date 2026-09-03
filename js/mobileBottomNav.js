@@ -523,7 +523,7 @@ function initMobileSearchWidget() {
 
       if (!matches.length) {
         resultsContainer.innerHTML = `
-          <div style="padding: 14px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--fg-dim); text-align: center;">
+          <div style="padding: 14px; font-family: 'Inter', sans-serif; font-size: 10px; color: var(--fg-dim); text-align: center;">
             [ SIN RESULTADOS EN LA BASE DE DATOS ]
           </div>
         `;

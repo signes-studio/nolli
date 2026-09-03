@@ -120,24 +120,24 @@ export async function renderPublicCollections(query = '') {
                     <span style="font-size:16px;">${escapeHtml(emoji)}</span>
                     <strong style="font-family:'League Spartan',sans-serif; font-size:15px; color:var(--fg);">${escapeHtml(title)}</strong>
                   </div>
-                  <span style="font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:800; color:var(--accent, #E84E1B);">${countLabel}</span>
+                  <span style="font-family: 'Inter', sans-serif; font-size:9px; font-weight:800; color:var(--accent, #E84E1B);">${countLabel}</span>
                 </div>
                 
                 ${desc ? `<p style="font-size:11px; color:var(--fg-dim); line-height:1.4; margin:0;">${escapeHtml(desc)}</p>` : ''}
                 
                 <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(17,17,17,0.1); padding-top:8px; margin-top:2px;">
-                  <span style="font-size:10px; font-family:'JetBrains Mono',monospace; color:var(--fg-dim);">Por <strong style="color:var(--fg);">${escapeHtml(authorNick)}</strong></span>
+                  <span style="font-size:10px; font-family: 'Inter', sans-serif; color:var(--fg-dim);">Por <strong style="color:var(--fg);">${escapeHtml(authorNick)}</strong></span>
                   
                   <div style="display:flex; gap:6px; align-items:center;">
                     ${!isOwn ? `
-                      <button type="button" class="btn-follow-collection" data-follow-collection-id="${col.id}" style="font-family:'JetBrains Mono',monospace; font-size:9.5px; font-weight:800; padding:4px 8px; border:1.5px solid ${isFollowing ? 'var(--accent, #E84E1B)' : 'var(--border-strong, #111111)'}; background:${isFollowing ? 'var(--accent, #E84E1B)' : 'transparent'}; color:${isFollowing ? '#FFF' : 'var(--fg)'}; cursor:pointer;">
+                      <button type="button" class="btn-follow-collection" data-follow-collection-id="${col.id}" style="font-family: 'Inter', sans-serif; font-size:9.5px; font-weight:800; padding:4px 8px; border:1.5px solid ${isFollowing ? 'var(--accent, #E84E1B)' : 'var(--border-strong, #111111)'}; background:${isFollowing ? 'var(--accent, #E84E1B)' : 'transparent'}; color:${isFollowing ? '#FFF' : 'var(--fg)'}; cursor:pointer;">
                         ${isFollowing ? '[ ✓ SIGUIENDO ]' : '[ + SEGUIR ]'}
                       </button>
                     ` : `
-                      <span style="font-size:9px; font-family:'JetBrains Mono',monospace; color:var(--accent, #E84E1B); font-weight:800;">[ TU LISTA ]</span>
+                      <span style="font-size:9px; font-family: 'Inter', sans-serif; color:var(--accent, #E84E1B); font-weight:800;">[ TU LISTA ]</span>
                     `}
                     
-                    <button type="button" class="btn-view-collection-map" data-view-collection-id="${col.id}" style="font-family:'JetBrains Mono',monospace; font-size:9.5px; font-weight:800; padding:4px 8px; border:1.5px solid var(--border-strong, #111111); background:var(--bg-card, #FFFFFF); color:var(--fg); cursor:pointer;">
+                    <button type="button" class="btn-view-collection-map" data-view-collection-id="${col.id}" style="font-family: 'Inter', sans-serif; font-size:9.5px; font-weight:800; padding:4px 8px; border:1.5px solid var(--border-strong, #111111); background:var(--bg-card, #FFFFFF); color:var(--fg); cursor:pointer;">
                       [ VER EN MAPA ↗ ]
                     </button>
                   </div>

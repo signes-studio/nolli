@@ -590,7 +590,7 @@ function renderCollectionsFeed() {
 
   content.innerHTML = `
     <div class="profile-collections-top">
-      <span style="font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:800; color:var(--fg-dim);">[ MIS LISTAS // ${collections.length} ]</span>
+      <span style="font-family: 'Inter', sans-serif; font-size:11px; font-weight:800; color:var(--fg-dim);">[ MIS LISTAS // ${collections.length} ]</span>
       <button type="button" class="profile-new-list-btn" id="btn-create-collection-top">
         <span>+ NUEVA LISTA</span>
       </button>
@@ -654,7 +654,7 @@ function renderCollectionsFeed() {
             <div class="profile-collection-head-row" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
               <h3 class="profile-collection-name">${col.icon ? `${escapeHtml(col.icon)} ` : ''}${escapeHtml(col.name)}</h3>
               <span class="profile-collection-count-badge">[ ${countText} ]</span>
-              <span style="font-size:8.5px; font-weight:800; font-family:'JetBrains Mono',monospace; padding:1px 5px; border:1px solid ${isPublic ? 'var(--accent, #E84E1B)' : 'var(--border-strong, #111111)'}; color:${isPublic ? 'var(--accent, #E84E1B)' : 'var(--fg-dim)'};">${isPublic ? '[ 🌐 PÚBLICA ]' : '[ 🔒 PRIVADA ]'}</span>
+              <span style="font-size:8.5px; font-weight:800; font-family: 'Inter', sans-serif; padding:1px 5px; border:1px solid ${isPublic ? 'var(--accent, #E84E1B)' : 'var(--border-strong, #111111)'}; color:${isPublic ? 'var(--accent, #E84E1B)' : 'var(--fg-dim)'};">${isPublic ? '[ 🌐 PÚBLICA ]' : '[ 🔒 PRIVADA ]'}</span>
             </div>
             ${col.description ? `<p class="profile-collection-desc" style="margin-top:4px;">${escapeHtml(col.description)}</p>` : ''}
           </div>
@@ -700,7 +700,7 @@ function renderCollectionsFeed() {
             <div style="min-width:0; flex:1;">
               <div style="display:flex; align-items:center; gap:8px;">
                 <h3 class="profile-collection-name">${escapeHtml(emoji)} ${escapeHtml(title)}</h3>
-                <span style="font-size:8.5px; font-weight:800; font-family:'JetBrains Mono',monospace; padding:1px 5px; background:rgba(232,78,27,0.08); color:var(--accent, #E84E1B);">[ SEGUIDA ]</span>
+                <span style="font-size:8.5px; font-weight:800; font-family: 'Inter', sans-serif; padding:1px 5px; background:rgba(232,78,27,0.08); color:var(--accent, #E84E1B);">[ SEGUIDA ]</span>
               </div>
               <p style="font-size:10.5px; color:var(--fg-dim); margin-top:2px;">Por <strong style="color:var(--fg);">${escapeHtml(creatorName)}</strong></p>
               ${desc ? `<p class="profile-collection-desc" style="margin-top:4px;">${escapeHtml(desc)}</p>` : ''}
@@ -720,7 +720,7 @@ function renderCollectionsFeed() {
 
     content.innerHTML += `
       <div class="profile-collections-top" style="margin-top:28px;">
-        <span style="font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:800; color:var(--accent, #E84E1B);">[ LISTAS SEGUIDAS DE LA COMUNIDAD // ${followed.length} ]</span>
+        <span style="font-family: 'Inter', sans-serif; font-size:11px; font-weight:800; color:var(--accent, #E84E1B);">[ LISTAS SEGUIDAS DE LA COMUNIDAD // ${followed.length} ]</span>
       </div>
       ${followedHtml}
     `;

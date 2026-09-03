@@ -361,7 +361,7 @@ function abrirModalCrearLista() {
   removerModalExistente();
   const modalHTML = `
     <div id="collection-modal-overlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; display:flex; align-items:center; justify-content:center; padding:16px;">
-      <div style="background:var(--bg-panel, #F8F1DF); border:2px solid var(--border-strong, #111111); box-shadow:4px 4px 0px #111111; padding:18px; width:100%; max-width:340px; display:grid; gap:12px; font-family:'JetBrains Mono', monospace; font-size:11px;">
+      <div style="background:var(--bg-panel, #F8F1DF); border:2px solid var(--border-strong, #111111); box-shadow:4px 4px 0px #111111; padding:18px; width:100%; max-width:340px; display:grid; gap:12px; font-family: 'Inter', sans-serif; font-size:11px;">
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid var(--border-strong); padding-bottom:6px;">
           <strong style="color:var(--accent); font-family:'League Spartan',sans-serif; font-size:14px;">[ NUEVA LISTA ]</strong>
           <button type="button" class="filter-action" data-close-modal style="cursor:pointer;">✕</button>
@@ -476,7 +476,7 @@ function abrirModalEditarLista(collectionId) {
   removerModalExistente();
   const modalHTML = `
     <div id="collection-modal-overlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; display:flex; align-items:center; justify-content:center; padding:16px;">
-      <div style="background:var(--bg-panel, #F8F1DF); border:2px solid var(--border-strong, #111111); box-shadow:4px 4px 0px #111111; padding:18px; width:100%; max-width:340px; display:grid; gap:12px; font-family:'JetBrains Mono', monospace; font-size:11px;">
+      <div style="background:var(--bg-panel, #F8F1DF); border:2px solid var(--border-strong, #111111); box-shadow:4px 4px 0px #111111; padding:18px; width:100%; max-width:340px; display:grid; gap:12px; font-family: 'Inter', sans-serif; font-size:11px;">
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid var(--border-strong); padding-bottom:6px;">
           <strong style="color:var(--accent); font-family:'League Spartan',sans-serif; font-size:14px;">[ EDITAR LISTA ]</strong>
           <button type="button" class="filter-action" data-close-modal style="cursor:pointer;">✕</button>
@@ -730,7 +730,7 @@ function renderCollections() {
           <div style="min-width:0; flex:1;">
             <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
               <span style="font-weight:700; color:var(--fg);">${collectionEmoji}${escapeHtml(collection.name)}</span>
-              <span style="font-size:8.5px; font-weight:800; font-family:'JetBrains Mono',monospace; padding:1px 4px; border:1px solid ${isPublic ? 'var(--accent, #E84E1B)' : 'var(--border-strong, #111111)'}; color:${isPublic ? 'var(--accent, #E84E1B)' : 'var(--fg-dim)'};">${isPublic ? '[ 🌐 PÚBLICA ]' : '[ 🔒 PRIVADA ]'}</span>
+              <span style="font-size:8.5px; font-weight:800; font-family: 'Inter', sans-serif; padding:1px 4px; border:1px solid ${isPublic ? 'var(--accent, #E84E1B)' : 'var(--border-strong, #111111)'}; color:${isPublic ? 'var(--accent, #E84E1B)' : 'var(--fg-dim)'};">${isPublic ? '[ 🌐 PÚBLICA ]' : '[ 🔒 PRIVADA ]'}</span>
             </div>
             ${collectionDescription}
           </div>
@@ -773,7 +773,7 @@ function renderCollections() {
           <div style="min-width:0; flex:1;">
             <div style="display:flex; align-items:center; gap:6px;">
               <span style="font-weight:700; color:var(--fg);">${escapeHtml(emoji)} ${escapeHtml(title)}</span>
-              <span style="font-size:8.5px; font-weight:800; font-family:'JetBrains Mono',monospace; padding:1px 4px; background:rgba(232,78,27,0.08); color:var(--accent, #E84E1B);">[ SEGUIDA ]</span>
+              <span style="font-size:8.5px; font-weight:800; font-family: 'Inter', sans-serif; padding:1px 4px; background:rgba(232,78,27,0.08); color:var(--accent, #E84E1B);">[ SEGUIDA ]</span>
             </div>
             <div class="my-place-meta" style="font-size:9.5px; color:var(--fg-dim); margin-top:2px;">Por ${escapeHtml(creatorName)}</div>
           </div>
@@ -792,14 +792,14 @@ function renderCollections() {
 
   list.innerHTML = `
     <div class="my-collections-header">
-      <span style="font-size: 10px; color: var(--fg-dim); font-weight: 700; font-family:'JetBrains Mono', monospace;">MIS LISTAS (${(state.userCollections || []).length})</span>
+      <span style="font-size: 10px; color: var(--fg-dim); font-weight: 700; font-family: 'Inter', sans-serif;">MIS LISTAS (${(state.userCollections || []).length})</span>
       <button type="button" class="btn-new-list" data-open-create-collection-modal style="padding: 5px 12px; font-size: 10px;">[ + NUEVA LISTA ]</button>
     </div>
     ${ownCards || '<div class="nearby-empty" style="padding:16px;">Crea tu primera lista para organizar obras.</div>'}
 
     ${(state.userFollowedCollections || []).length > 0 ? `
       <div class="my-collections-header" style="margin-top:20px;">
-        <span style="font-size: 10px; color: var(--accent, #E84E1B); font-weight: 700; font-family:'JetBrains Mono', monospace;">LISTAS SEGUIDAS (${state.userFollowedCollections.length})</span>
+        <span style="font-size: 10px; color: var(--accent, #E84E1B); font-weight: 700; font-family: 'Inter', sans-serif;">LISTAS SEGUIDAS (${state.userFollowedCollections.length})</span>
       </div>
       ${followedCards}
     ` : ''}

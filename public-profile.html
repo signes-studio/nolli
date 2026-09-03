@@ -23,6 +23,12 @@
   <title>nolli. | perfil de usuario</title>
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./icon.svg">
+
+  <!-- Google Fonts: Inter & League Spartan -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=League+Spartan:wght@600;700;800;900&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="css/legal-components.css">
   <script src="js/cookieConsent.js" defer></script>
   <script src="js/siteFooter.js" defer></script>
@@ -69,11 +75,11 @@
         <h1 id="profile-header-title" class="font-display text-2xl leading-none tracking-tight" style="color: var(--accent); margin: 0; text-transform: lowercase; font-weight: 800;">nolli<span style="color:var(--fg)">.</span></h1>
         <p class="text-[10px] tracking-widest mt-1" style="color:var(--fg-dim); margin:0;">perfil público</p>
       </div>
-      <a href="./" class="filter-action" style="text-decoration: none; padding: 6px 12px; border: 1px solid var(--border-strong, #141411); font-family: 'JetBrains Mono', monospace; font-size: 11px;">[ VOLVER AL MAPA ]</a>
+      <a href="./" class="filter-action" style="text-decoration: none; padding: 6px 12px; border: 1px solid var(--border-strong, #141411); font-family: 'Inter', sans-serif; font-size: 11px;">[ VOLVER AL MAPA ]</a>
     </div>
 
     <!-- Tarjeta de cabecera del usuario (Avatar, Nick, Nombre y Bio) -->
-    <section class="my-collection-card" style="background: var(--bg-panel, #F8F1DF); border: 1px solid var(--border-strong, #141411); padding: 20px; display: grid; gap: 14px; margin-bottom: 20px; font-family: 'JetBrains Mono', monospace;">
+    <section class="my-collection-card" style="background: var(--bg-panel, #F8F1DF); border: 1px solid var(--border-strong, #141411); padding: 20px; display: grid; gap: 14px; margin-bottom: 20px; font-family: 'Inter', sans-serif;">
       <div style="display: flex; gap: 16px; align-items: center;">
         <div id="user-avatar" style="width: 64px; height: 64px; border-radius: 50%; background: var(--accent, #E95C0C); color: #FFF; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; border: 1px solid var(--border-strong, #141411);">
           ?
@@ -90,13 +96,13 @@
     </section>
 
     <!-- Pestañas de datos públicos adaptadas a las clases del index -->
-    <div class="places-tabs" style="font-family: 'JetBrains Mono', monospace; margin-bottom: 12px;">
+    <div class="places-tabs" style="font-family: 'Inter', sans-serif; margin-bottom: 12px;">
       <button type="button" class="places-tab active" data-profile-tab="collections">LISTAS PÚBLICAS</button>
       <button type="button" class="places-tab" data-profile-tab="visited">VISITADOS</button>
     </div>
 
     <!-- Contenedor dinámico de listas o visitados -->
-    <div id="profile-content-list" style="display: grid; gap: 10px; font-family: 'JetBrains Mono', monospace;">
+    <div id="profile-content-list" style="display: grid; gap: 10px; font-family: 'Inter', sans-serif;">
       <div class="nearby-empty" style="padding: 20px; text-align: center; border: 1px solid var(--border, #D8D6CE); background: var(--bg-panel, #F8F1DF); font-size: 11px;">
         Cargando contenido...
       </div>

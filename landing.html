@@ -22,6 +22,12 @@
 <title>nolli. | atlas de arquitectura</title>
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="./icon.svg">
+
+<!-- Google Fonts: Inter & League Spartan -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=League+Spartan:wght@600;700;800;900&display=swap" rel="stylesheet">
+
 <link rel="stylesheet" href="css/legal-components.css">
 <script src="js/cookieConsent.js" defer></script>
 
@@ -44,7 +50,7 @@
   .l-shell { max-width: 1440px; margin: 0 auto; padding: 0 24px; }
 
   .col-axis { display: grid; grid-template-columns: repeat(12, 1fr); border-bottom: 1px solid var(--border-strong); }
-  .col-axis span { padding: 4px 0 4px 6px; border-left: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--fg-dim); letter-spacing: .06em; }
+  .col-axis span { padding: 4px 0 4px 6px; border-left: 1px solid var(--border); font-family: 'Inter', sans-serif; font-size: 9px; color: var(--fg-dim); letter-spacing: .06em; }
   .col-axis span:first-child { border-left: none; }
   @media (max-width: 760px) { .col-axis span:nth-child(n+7) { display: none; } }
 
@@ -53,7 +59,7 @@
   .l-header { grid-column: 1 / 13; display: flex; justify-content: space-between; align-items: flex-end; padding: 16px 0; border-bottom: 1px solid var(--border-strong); }
   .l-logo { font-family: 'League Spartan', -apple-system, sans-serif; font-weight: 800; font-size: 24px; text-transform: lowercase; color: var(--fg); text-decoration: none; }
   .l-logo em { font-style: normal; color: var(--accent); }
-  .l-nav { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; display: flex; gap: 20px; align-items: center; }
+  .l-nav { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 700; display: flex; gap: 20px; align-items: center; }
   .l-nav a { color: var(--fg); text-decoration: none; border-bottom: 1px solid transparent; }
   .l-nav a:hover { border-color: var(--fg); }
   .l-nav .lang { color: var(--fg-dim); }
@@ -64,7 +70,7 @@
   @media (max-width: 900px) { .l-hero { grid-column: 1 / 13; } }
   .l-hero h1 { font-family: 'League Spartan', -apple-system, sans-serif; font-weight: 800; font-size: clamp(38px, 7vw, 68px); line-height: 0.95; margin: 0 0 22px; letter-spacing: -0.02em; }
   .l-hero p { font-size: 15px; line-height: 1.65; color: var(--fg-dim); max-width: 460px; margin: 0 0 30px; }
-  .l-cta { display: inline-flex; align-items: center; gap: 10px; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 13px; letter-spacing: .04em; background: var(--accent-2); color: var(--fg); border: 2px solid var(--fg); padding: 15px 24px; text-transform: uppercase; text-decoration: none; cursor: pointer; }
+  .l-cta { display: inline-flex; align-items: center; gap: 10px; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: .04em; background: var(--accent-2); color: var(--fg); border: 2px solid var(--fg); padding: 15px 24px; text-transform: uppercase; text-decoration: none; cursor: pointer; }
   .l-cta:hover { background: var(--fg); color: var(--accent-2); }
 
   .l-map-frag { grid-column: 10 / 13; border-left: 1px solid var(--border-strong); min-height: 300px; position: relative; overflow: hidden; background: #111111; }
@@ -79,8 +85,8 @@
   .l-stats .stat { grid-column: span 4; padding: 20px 0; border-right: 1px solid var(--border); }
   @media (max-width: 700px) { .l-stats .stat { grid-column: span 12; border-right: none; border-top: 1px solid var(--border); padding: 14px 0; } .l-stats .stat:first-child { border-top: none; } }
   .l-stats .stat:last-child { border-right: none; }
-  .l-stats .num { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 28px; color: var(--fg); }
-  .l-stats .lbl { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: .1em; color: var(--fg-dim); text-transform: uppercase; }
+  .l-stats .num { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 28px; color: var(--fg); }
+  .l-stats .lbl { font-family: 'Inter', sans-serif; font-size: 9px; letter-spacing: .1em; color: var(--fg-dim); text-transform: uppercase; }
 
   .l-method { grid-column: 1 / 13; display: grid; grid-template-columns: repeat(12, 1fr); gap: 24px; padding: 48px 0; border-top: 1px solid var(--border-strong); }
   .l-method h2 { grid-column: 1 / 5; font-family: 'League Spartan', -apple-system, sans-serif; font-weight: 800; font-size: 28px; margin: 0; }
@@ -88,11 +94,11 @@
   .l-method-items { grid-column: 5 / 13; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
   @media (max-width: 900px) { .l-method-items { grid-column: 1 / 13; grid-template-columns: 1fr; } }
   .l-method-item { border-top: 2px solid var(--fg); padding-top: 12px; }
-  .l-method-item span { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--fg-dim); letter-spacing: .08em; }
+  .l-method-item span { font-family: 'Inter', sans-serif; font-size: 10px; color: var(--fg-dim); letter-spacing: .08em; }
   .l-method-item h3 { margin: 6px 0 8px; font-size: 15px; font-weight: 600; }
   .l-method-item p { margin: 0; font-size: 13px; line-height: 1.6; color: var(--fg-dim); }
 
-  .l-footer { grid-column: 1 / 13; display: flex; justify-content: space-between; align-items: center; padding: 20px 0 40px; border-top: 1px solid var(--border-strong); font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--fg-dim); }
+  .l-footer { grid-column: 1 / 13; display: flex; justify-content: space-between; align-items: center; padding: 20px 0 40px; border-top: 1px solid var(--border-strong); font-family: 'Inter', sans-serif; font-size: 10px; color: var(--fg-dim); }
   .l-footer a { color: var(--fg-dim); text-decoration: none; }
   .l-footer a:hover { color: var(--fg); }
 </style>
