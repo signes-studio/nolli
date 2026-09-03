@@ -12,6 +12,7 @@ import {
   createItinerary,
   updateItinerary,
   deleteItinerary,
+  LOCAL_ITINERARIES_KEY,
 } from './api.js';
 import { escapeHtml, normalizarCategoria, CATEGORY_META } from './state.js';
 import { CURATED_ROUTES, matchWorksForRoute } from './itinerariesConfig.js';
@@ -197,20 +198,26 @@ async function loadInitialData() {
 
     // 2. Cargar itinerarios de Supabase / localStorage / CURATED_ROUTES
     const remoteItineraries = await fetchItineraries(itineraryAdminState.token, true);
-    if (remoteItineraries && remoteItineraries.length > 0) {
+    if (remoteItineraries !== null && Array.isArray(remoteItineraries)) {
       itineraryAdminState.itineraries = remoteItineraries;
     } else {
       // Pre-poblar los itinerarios base convirtiendo sus filtros iniciales en work_ids explícitos
-      itineraryAdminState.itineraries = CURATED_ROUTES.map((r, idx) => {
+      const initialRoutes = CURATED_ROUTES.map((r, idx) => {
         const matched = matchWorksForRoute(r, itineraryAdminState.catalog);
+        const workIds = matched.map((w) => String(w.id));
         return {
           ...r,
-          work_ids: matched.map((w) => String(w.id)),
-          stops: `${matched.length} OBRAS`,
+          work_ids: workIds,
+          workIds: workIds,
+          stops: `${workIds.length} OBRAS`,
           active: true,
           order_num: idx,
         };
       });
+      itineraryAdminState.itineraries = initialRoutes;
+      try {
+        localStorage.setItem(LOCAL_ITINERARIES_KEY, JSON.stringify(initialRoutes));
+      } catch (e) {}
     }
 
     renderItinerariesList();
@@ -702,12 +709,21 @@ async function handleSaveItinerary(e) {
     };
 
     if (isEdit) {
-      await updateItinerary(id, data, itineraryAdminState.token);
-      itineraryAdminState.itineraries = itineraryAdminState.itineraries.map((r) => (r.id === id ? { ...r, ...data } : r));
+      const updated = await updateItinerary(id, data, itineraryAdminState.token);
+      itineraryAdminState.itineraries = itineraryAdminState.itineraries.map((r) => (r.id === id ? { ...r, ...data, ...(updated || {}) } : r));
     } else {
       const created = await createItinerary(data, itineraryAdminState.token);
-      itineraryAdminState.itineraries.push(created || data);
+      const existingIdx = itineraryAdminState.itineraries.findIndex((r) => r.id === id);
+      if (existingIdx >= 0) {
+        itineraryAdminState.itineraries[existingIdx] = { ...itineraryAdminState.itineraries[existingIdx], ...data, ...(created || {}) };
+      } else {
+        itineraryAdminState.itineraries.push(created || data);
+      }
     }
+
+    try {
+      localStorage.setItem(LOCAL_ITINERARIES_KEY, JSON.stringify(itineraryAdminState.itineraries));
+    } catch (e) {}
 
     closeItineraryModal();
     renderItinerariesList();
@@ -732,8 +748,12 @@ async function handleToggleActive(id) {
 
   const newActive = item.active === false;
   try {
-    await updateItinerary(id, { ...item, active: newActive }, itineraryAdminState.token);
+    const updatedData = { ...item, active: newActive };
+    await updateItinerary(id, updatedData, itineraryAdminState.token);
     item.active = newActive;
+    try {
+      localStorage.setItem(LOCAL_ITINERARIES_KEY, JSON.stringify(itineraryAdminState.itineraries));
+    } catch (e) {}
     renderItinerariesList();
     updateStats();
   } catch (err) {
@@ -751,6 +771,9 @@ async function handleDeleteItinerary(id) {
   try {
     await deleteItinerary(id, itineraryAdminState.token);
     itineraryAdminState.itineraries = itineraryAdminState.itineraries.filter((r) => r.id !== id);
+    try {
+      localStorage.setItem(LOCAL_ITINERARIES_KEY, JSON.stringify(itineraryAdminState.itineraries));
+    } catch (e) {}
     renderItinerariesList();
     updateStats();
     alert('Itinerario eliminado correctamente.');

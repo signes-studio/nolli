@@ -1176,7 +1176,47 @@ export async function unfollowCollection(collectionId, userId, sessionToken) {
    ITINERARIOS & RUTAS CURATORIALES (ADMIN & PÚBLICO)
    ========================================================================= */
 
-const LOCAL_ITINERARIES_KEY = 'nolli_local_itineraries';
+export const LOCAL_ITINERARIES_KEY = 'nolli_local_itineraries';
+
+function getStoredItineraries() {
+  try {
+    const raw = localStorage.getItem(LOCAL_ITINERARIES_KEY);
+    if (raw !== null) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (e) {}
+  return null;
+}
+
+function saveStoredItineraries(list) {
+  try {
+    localStorage.setItem(LOCAL_ITINERARIES_KEY, JSON.stringify(list));
+  } catch (e) {}
+}
+
+export function updateLocalStorageItinerary(item) {
+  let list = getStoredItineraries();
+  if (list === null) {
+    list = [item];
+  } else {
+    const existingIndex = list.findIndex((r) => r.id === item.id);
+    if (existingIndex >= 0) {
+      list[existingIndex] = { ...list[existingIndex], ...item };
+    } else {
+      list.push(item);
+    }
+  }
+  saveStoredItineraries(list);
+}
+
+export function deleteLocalStorageItinerary(id) {
+  let list = getStoredItineraries();
+  if (list !== null) {
+    list = list.filter((r) => r.id !== id);
+    saveStoredItineraries(list);
+  }
+}
 
 export async function fetchItineraries(sessionToken = null, includeInactive = false) {
   try {
@@ -1185,14 +1225,14 @@ export async function fetchItineraries(sessionToken = null, includeInactive = fa
     const response = await fetch(`${SUPABASE_URL}/rest/v1/itineraries${query}${sort}`, {
       headers: {
         'apikey': SUPABASE_KEY,
-        ...(sessionToken ? { 'Authorization': `Bearer ${sessionToken}` } : {}),
+        'Authorization': `Bearer ${sessionToken || SUPABASE_KEY}`,
       },
     });
 
     if (response.ok) {
       const data = await response.json();
       if (Array.isArray(data) && data.length > 0) {
-        return data.map((item) => ({
+        const formatted = data.map((item) => ({
           ...item,
           work_ids: item.work_ids || item.workIds || [],
           workIds: item.work_ids || item.workIds || [],
@@ -1204,6 +1244,8 @@ export async function fetchItineraries(sessionToken = null, includeInactive = fa
           addedByFilter: item.added_by_filter || item.addedByFilter || null,
           bboxFilter: item.bbox_filter || item.bboxFilter || null,
         }));
+        saveStoredItineraries(formatted);
+        return formatted;
       }
     }
   } catch (err) {
@@ -1211,15 +1253,10 @@ export async function fetchItineraries(sessionToken = null, includeInactive = fa
   }
 
   // Fallback a localStorage
-  try {
-    const raw = localStorage.getItem(LOCAL_ITINERARIES_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return includeInactive ? parsed : parsed.filter((r) => r.active !== false);
-      }
-    }
-  } catch (e) {}
+  const stored = getStoredItineraries();
+  if (stored !== null) {
+    return includeInactive ? stored : stored.filter((r) => r.active !== false);
+  }
 
   return null;
 }
@@ -1236,35 +1273,35 @@ export async function createItinerary(itinerary, sessionToken) {
     work_ids: workIds,
     active: itinerary.active !== false,
     order_num: Number(itinerary.order_num || 0),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
   };
 
   try {
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/itineraries`, {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/itineraries?on_conflict=id`, {
       method: 'POST',
       headers: {
         'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${sessionToken}`,
+        'Authorization': `Bearer ${sessionToken || SUPABASE_KEY}`,
         'Content-Type': 'application/json',
-        'Prefer': 'return=representation',
+        'Prefer': 'return=representation,resolution=merge-duplicates',
       },
       body: JSON.stringify(payload),
     });
 
     if (response.ok) {
       const result = await response.json();
-      return result[0] || payload;
+      const saved = result[0] || payload;
+      updateLocalStorageItinerary(saved);
+      window.dispatchEvent(new CustomEvent('nolli:itineraries-updated', { detail: saved }));
+      return saved;
     }
   } catch (err) {
     console.warn('Error al guardar itinerario en Supabase:', err);
   }
 
-  try {
-    const raw = localStorage.getItem(LOCAL_ITINERARIES_KEY) || '[]';
-    const list = JSON.parse(raw);
-    const updatedList = [...list.filter((r) => r.id !== payload.id), { ...payload, ...itinerary }];
-    localStorage.setItem(LOCAL_ITINERARIES_KEY, JSON.stringify(updatedList));
-  } catch (e) {}
-
+  updateLocalStorageItinerary(payload);
+  window.dispatchEvent(new CustomEvent('nolli:itineraries-updated', { detail: payload }));
   return payload;
 }
 
@@ -1287,7 +1324,7 @@ export async function updateItinerary(id, itinerary, sessionToken) {
       method: 'PATCH',
       headers: {
         'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${sessionToken}`,
+        'Authorization': `Bearer ${sessionToken || SUPABASE_KEY}`,
         'Content-Type': 'application/json',
         'Prefer': 'return=representation',
       },
@@ -1296,20 +1333,19 @@ export async function updateItinerary(id, itinerary, sessionToken) {
 
     if (response.ok) {
       const result = await response.json();
-      return result[0] || { id, ...payload };
+      const saved = result[0] || { id, ...payload };
+      updateLocalStorageItinerary(saved);
+      window.dispatchEvent(new CustomEvent('nolli:itineraries-updated', { detail: saved }));
+      return saved;
     }
   } catch (err) {
     console.warn('Error al actualizar itinerario en Supabase:', err);
   }
 
-  try {
-    const raw = localStorage.getItem(LOCAL_ITINERARIES_KEY) || '[]';
-    const list = JSON.parse(raw);
-    const updatedList = list.map((r) => (r.id === id ? { ...r, ...payload, ...itinerary } : r));
-    localStorage.setItem(LOCAL_ITINERARIES_KEY, JSON.stringify(updatedList));
-  } catch (e) {}
-
-  return { id, ...payload };
+  const updatedObj = { id, ...payload, ...itinerary };
+  updateLocalStorageItinerary(updatedObj);
+  window.dispatchEvent(new CustomEvent('nolli:itineraries-updated', { detail: updatedObj }));
+  return updatedObj;
 }
 
 export async function deleteItinerary(id, sessionToken) {
@@ -1318,24 +1354,21 @@ export async function deleteItinerary(id, sessionToken) {
       method: 'DELETE',
       headers: {
         'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${sessionToken}`,
+        'Authorization': `Bearer ${sessionToken || SUPABASE_KEY}`,
         'Prefer': 'return=representation',
       },
     });
 
     if (response.ok) {
+      deleteLocalStorageItinerary(id);
+      window.dispatchEvent(new CustomEvent('nolli:itineraries-updated', { detail: { id, deleted: true } }));
       return true;
     }
   } catch (err) {
     console.warn('Error al eliminar itinerario en Supabase:', err);
   }
 
-  try {
-    const raw = localStorage.getItem(LOCAL_ITINERARIES_KEY) || '[]';
-    const list = JSON.parse(raw);
-    const updatedList = list.filter((r) => r.id !== id);
-    localStorage.setItem(LOCAL_ITINERARIES_KEY, JSON.stringify(updatedList));
-  } catch (e) {}
-
+  deleteLocalStorageItinerary(id);
+  window.dispatchEvent(new CustomEvent('nolli:itineraries-updated', { detail: { id, deleted: true } }));
   return true;
 }

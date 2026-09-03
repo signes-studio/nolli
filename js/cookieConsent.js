@@ -135,11 +135,9 @@
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'nolli-cookie-settings';
-    button.setAttribute('aria-label', 'Configurar cookies');
-    button.innerHTML = '<i data-lucide="cookie" width="14" height="14" aria-hidden="true"></i><span>COOKIES</span>';
+    button.textContent = 'COOKIES';
     button.addEventListener('click', openConfiguration);
     document.body.appendChild(button);
-    window.lucide?.createIcons();
   }
 
   window.nolliHasConsent = hasConsent;

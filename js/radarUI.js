@@ -20,7 +20,7 @@ export async function getCuratedRoutes() {
   if (state.curatedRoutes && state.curatedRoutes.length > 0) return state.curatedRoutes;
   try {
     const remote = await fetchItineraries(state.sessionToken, false);
-    if (remote && remote.length > 0) {
+    if (remote && Array.isArray(remote) && remote.length > 0) {
       state.curatedRoutes = remote;
       return remote;
     }
@@ -29,14 +29,25 @@ export async function getCuratedRoutes() {
   return CURATED_ROUTES;
 }
 
+window.addEventListener('nolli:itineraries-updated', () => {
+  state.curatedRoutes = null;
+});
+window.addEventListener('storage', (e) => {
+  if (e.key === 'nolli_local_itineraries') {
+    state.curatedRoutes = null;
+  }
+});
+
 // Para cada ruta, calcula cuántas obras coincidentes hay y la distancia a la más cercana
 // respecto al centro de referencia actual (usuario o centro de mapa).
 export function getNearbyRoutes(maxDistanceMeters = CURATED_PROXIMITY_METERS) {
   const [refLon, refLat] = getRadarCenter();
   const results = [];
+  const routes = (state.curatedRoutes && state.curatedRoutes.length > 0) ? state.curatedRoutes : CURATED_ROUTES;
 
-  for (const route of CURATED_ROUTES) {
-    const works = matchWorksForRoute(route);
+  for (const route of routes) {
+    if (route.active === false) continue;
+    const works = matchWorksForRoute(route, state.buildings);
     let nearestDist = Infinity;
     for (const obra of works) {
       if (!obra.coordenadas || obra.coordenadas.length !== 2) continue;
