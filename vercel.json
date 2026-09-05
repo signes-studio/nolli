@@ -34,7 +34,7 @@
       ]
     },
     {
-      "source": "/(icon\\.svg|icon\\.png|manifest\\.webmanifest|manifest\\.json)",
+      "source": "/(icon\\.svg|icon\\.png|favicon\\.ico|manifest\\.webmanifest|manifest\\.json)",
       "headers": [
         {
           "key": "Cache-Control",

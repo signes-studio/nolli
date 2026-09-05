@@ -154,6 +154,10 @@ function renderCategoryPage(slug, page, buildings, totalCount) {
   <meta property="og:url" content="${escapeHtml(canonicalUrl)}">
   <meta property="og:image" content="${escapeHtml(image)}">
   <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" type="image/png" sizes="48x48" href="${SITE_URL}/icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="${SITE_URL}/icons/icon-192.png">
+  <link rel="apple-touch-icon" href="${SITE_URL}/icons/icon-192.png">
+  <link rel="shortcut icon" href="${SITE_URL}/favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://wsrv.nl" crossorigin>
