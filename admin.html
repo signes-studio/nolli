@@ -4,17 +4,22 @@
   <base href="/">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https: http:; connect-src 'self' https://*.supabase.co https://nominatim.openstreetmap.org; object-src 'none'; base-uri 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https: http:; connect-src 'self' https://*.supabase.co https://nominatim.openstreetmap.org https://wsrv.nl; object-src 'none'; base-uri 'self';">
   <link rel="preconnect" href="https://ldtfvpjigzvcagtciipn.supabase.co" crossorigin>
+  <link rel="preconnect" href="https://wsrv.nl" crossorigin>
   <link rel="dns-prefetch" href="https://ldtfvpjigzvcagtciipn.supabase.co">
+  <link rel="dns-prefetch" href="https://wsrv.nl">
   
   <link rel="icon" type="image/svg+xml" href="./icon.svg">
   <meta name="theme-color" content="#F4F1EA">
 
-  <!-- Google Fonts: Inter & League Spartan -->
+  <!-- Google Fonts: Inter & League Spartan (Asynchronous Non-Blocking) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=League+Spartan:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=League+Spartan:wght@600;700;800;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=League+Spartan:wght@600;700;800;900&display=swap">
+  </noscript>
 
   <link rel="stylesheet" href="./css/legal-components.css">
   <script src="./js/cookieConsent.js" defer></script>
@@ -26,8 +31,8 @@
     }
   </script>
 
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest" defer></script>
+  <!-- Lucide Icons local -->
+  <script src="./js/lucide.min.js" defer></script>
 
   <link rel="stylesheet" href="./css/admin.css">
 </head>

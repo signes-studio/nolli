@@ -225,16 +225,10 @@ async function inicializarRadar() {
       state.map?.once('style.load', onMapReady);
     }
     
-    // La consulta y regeneración de GeoJSON se realizan al terminar el gesto;
-    // ejecutarlas durante `move` compite con el renderizado de Mapbox.
-    state.map.on('moveend', () => {
-      clearTimeout(publicLoadTimer);
-      cargarEdificiosVisibles();
-    });
-    
+    // El mapa se renderiza por WebGL a 60 FPS con los datos en memoria;
+    // no se recalcula en moveend para evitar pausas y congelamientos.
     document.addEventListener('radar:filters-changed', () => {
-      lastViewportKey = null; // Invalida cache al cambiar filtros
-      programarCargaEdificiosVisibles();
+      actualizarFuenteMapa();
     });
 
     document.addEventListener('click', (e) => {
@@ -355,6 +349,9 @@ document.addEventListener('radar:user-session-ready', () => {
     cargarPanelBajoDemanda('adminUI', 'initAdminUI').catch((err) => console.warn('Init AdminUI:', err));
   }
 });
+
+// 0. Pre-calentar catálogo de obras en paralelo para zero-waterfall
+getBuildingsCatalog().catch(() => {});
 
 // 1. Iniciar mapa inmediatamente
 inicializarRadar();

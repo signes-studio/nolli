@@ -4,11 +4,14 @@
 <base href="/">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.mapbox.com https://api.mapbox.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://*.mapbox.com https://api.mapbox.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.mapbox.com https://api.mapbox.com https://events.mapbox.com https://nominatim.openstreetmap.org; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.mapbox.com https://api.mapbox.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://*.mapbox.com https://api.mapbox.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.mapbox.com https://api.mapbox.com https://events.mapbox.com https://nominatim.openstreetmap.org https://wsrv.nl; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
 <link rel="preconnect" href="https://api.mapbox.com" crossorigin>
 <link rel="preconnect" href="https://ldtfvpjigzvcagtciipn.supabase.co" crossorigin>
+<link rel="preconnect" href="https://wsrv.nl" crossorigin>
 <link rel="dns-prefetch" href="https://api.mapbox.com">
 <link rel="dns-prefetch" href="https://ldtfvpjigzvcagtciipn.supabase.co">
+<link rel="dns-prefetch" href="https://wsrv.nl">
+<link rel="preload" href="/api/catalog" as="fetch" crossorigin>
 <title>nolli. | radar arquitectónico</title>
 <meta name="description" content="Radar arquitectónico interactivo: explora y registra obras de arquitectura sobre un mapa en vivo.">
 <link rel="canonical" href="https://nollimap.app/">
@@ -23,21 +26,25 @@
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/icon.svg">
 
-<!-- Google Fonts: Inter & League Spartan -->
+<!-- Google Fonts: Inter & League Spartan (Asynchronous Non-Blocking) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=League+Spartan:wght@600;700;800;900&display=swap" rel="stylesheet">
+<link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=League+Spartan:wght@600;700;800;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=League+Spartan:wght@600;700;800;900&display=swap">
+</noscript>
 
-<!-- Mapbox GL JS & CSS -->
-<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css">
-<script src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js"></script>
+<!-- Mapbox GL JS & CSS (Preload paralelo sin bloquear el parser) -->
+<link rel="preload" href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<link rel="preload" href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js" as="script">
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js" defer></script>
 
 <!-- Scripts auxiliares diferidos -->
 <script src="/js/cookieConsent.js" defer></script>
 <script src="/js/siteFooter.js" defer></script>
 
-<!-- Lucide Icons diferido -->
-<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js" defer></script>
+<!-- Lucide Icons local diferido (0 redirects, sin latencia unpkg) -->
+<script src="/js/lucide.min.js" defer></script>
 
 <!-- Hojas de estilo no bloqueantes (Asynchronous Preload) -->
 <link rel="preload" href="/css/legal-components.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -47,6 +54,7 @@
 <link rel="preload" href="/css/panels.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
 <link rel="preload" href="/css/components.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
 <noscript>
+  <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css">
   <link rel="stylesheet" href="/css/legal-components.css">
   <link rel="stylesheet" href="/css/utilities.css">
   <link rel="stylesheet" href="/css/base.css">
@@ -59,6 +67,17 @@
 <link rel="prefetch" href="/css/profile.css">
 <link rel="prefetch" href="/js/profile.js">
 <link rel="manifest" href="/manifest.webmanifest">
+
+<script type="speculationrules">
+{
+  "prefetch": [
+    {
+      "where": { "href_matches": "/*" },
+      "eagerness": "moderate"
+    }
+  ]
+}
+</script>
 
 <script>
   (function(l) {
@@ -439,25 +458,25 @@
     <div class="map-style-options">
       <button type="button" class="map-style-option active" data-map-style="abstract" aria-label="Mapa estilo claro">
         <div class="map-style-preview" aria-hidden="true">
-          <img src="img/light-thumb.webp" alt="Mapa Claro" class="map-style-thumb" loading="lazy">
+          <img src="img/light-thumb.webp" alt="Mapa Claro" class="map-style-thumb" width="83" height="52" loading="lazy" decoding="async">
         </div>
         <span class="map-style-label">CLARO</span>
       </button>
       <button type="button" class="map-style-option" data-map-style="dark" aria-label="Mapa estilo oscuro">
         <div class="map-style-preview" aria-hidden="true">
-          <img src="img/dark-thumb.webp" alt="Mapa Oscuro" class="map-style-thumb" loading="lazy">
+          <img src="img/dark-thumb.webp" alt="Mapa Oscuro" class="map-style-thumb" width="83" height="52" loading="lazy" decoding="async">
         </div>
         <span class="map-style-label">OSCURO</span>
       </button>
       <button type="button" class="map-style-option" data-map-style="hybrid" aria-label="Mapa estilo híbrido / estándar">
         <div class="map-style-preview" aria-hidden="true">
-          <img src="img/hybrid-thumb.webp" alt="Mapa Híbrido" class="map-style-thumb" loading="lazy">
+          <img src="img/hybrid-thumb.webp" alt="Mapa Híbrido" class="map-style-thumb" width="83" height="52" loading="lazy" decoding="async">
         </div>
         <span class="map-style-label">HÍBRIDO</span>
       </button>
       <button type="button" class="map-style-option" data-map-style="satellite" aria-label="Mapa estilo satélite">
         <div class="map-style-preview" aria-hidden="true">
-          <img src="img/satellite-thumb.webp" alt="Mapa Satélite" class="map-style-thumb" loading="lazy">
+          <img src="img/satellite-thumb.webp" alt="Mapa Satélite" class="map-style-thumb" width="83" height="52" loading="lazy" decoding="async">
         </div>
         <span class="map-style-label">SATÉLITE</span>
       </button>

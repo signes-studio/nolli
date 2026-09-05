@@ -1,4 +1,4 @@
-﻿const { categoryLabel } = require('./_lib/categories.js');
+const { categoryLabel } = require('./_lib/categories.js');
 
 const SITE_URL = 'https://nollimap.app';
 const PAGE_SIZE = 60;
@@ -12,6 +12,17 @@ function escapeHtml(value) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+
+function getOptimizedUrl(fotoUrl, width = 480) {
+  if (!fotoUrl) return '';
+  try {
+    const url = new URL(fotoUrl);
+    if (!['http:', 'https:'].includes(url.protocol)) return fotoUrl;
+    return `https://wsrv.nl/?url=${encodeURIComponent(url.href)}&w=${width}&q=75&output=webp`;
+  } catch {
+    return fotoUrl;
+  }
 }
 
 async function fetchArchitectBuildings(nombre, page) {
@@ -71,7 +82,7 @@ function renderArchitectPage(nombre, page, buildings, totalCount) {
       <article class="work-card">
         <a href="${SITE_URL}/obra/${encodeURIComponent(b.id)}" class="card-link">
           ${b.foto_url
-            ? `<img class="card-img" src="${escapeHtml(b.foto_url)}" alt="${escapeHtml(b.nombre_obra)}" loading="lazy">`
+            ? `<img class="card-img" src="${escapeHtml(getOptimizedUrl(b.foto_url, 480))}" alt="${escapeHtml(b.nombre_obra)}" loading="lazy" decoding="async">`
             : `<div class="card-img-placeholder"><span class="card-tag">${escapeHtml(categoriaText)}</span></div>`
           }
           <div class="card-body">
@@ -150,7 +161,12 @@ function renderArchitectPage(nombre, page, buildings, totalCount) {
   <meta name="twitter:card" content="summary_large_image">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=League+Spartan:wght@700;800;900&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://wsrv.nl" crossorigin>
+  <link rel="dns-prefetch" href="https://wsrv.nl">
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=League+Spartan:wght@700;800;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=League+Spartan:wght@700;800;900&display=swap">
+  </noscript>
   <script type="application/ld+json">${schemaJson}</script>
   <script type="application/ld+json">${breadcrumbJson}</script>
   <style>

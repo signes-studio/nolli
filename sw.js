@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nolli-shell-v65';
+const CACHE_NAME = 'nolli-shell-v68';
 const APP_SHELL = [
   './',
   './index.html',
@@ -17,6 +17,7 @@ const APP_SHELL = [
   './css/panels.css',
   './css/profile.css',
   './css/utilities.css',
+  './js/lucide.min.js',
   './js/admin.js',
   './js/itinerarios.js',
   './js/itinerariesConfig.js',
@@ -41,8 +42,14 @@ const APP_SHELL = [
   './js/siteFooter.js',
   './js/imageProxy.js',
   './js/state.js',
+  './img/light-thumb.webp',
+  './img/dark-thumb.webp',
+  './img/hybrid-thumb.webp',
+  './img/satellite-thumb.webp',
   './manifest.webmanifest',
   './icon.svg',
+  './icon.png',
+  './icons/logo.png',
 ];
 
 self.addEventListener('install', (event) => {
@@ -62,7 +69,7 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   if (!event.request.url.startsWith(self.location.origin)) return;
   const url = new URL(event.request.url);
-  const isStaticAsset = /^\/(?:css|js|icons)\//.test(url.pathname);
+  const isStaticAsset = /^\/(?:css|js|icons|img)\//.test(url.pathname) || /\.(?:webp|png|svg|ico|webmanifest|json)$/.test(url.pathname);
 
   if (isStaticAsset) {
     event.respondWith(

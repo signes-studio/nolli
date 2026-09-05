@@ -19,6 +19,17 @@ function buildingDescription(building) {
     .join(' | ');
 }
 
+function getOptimizedUrl(fotoUrl, width = 1200) {
+  if (!fotoUrl) return '';
+  try {
+    const url = new URL(fotoUrl);
+    if (!['http:', 'https:'].includes(url.protocol)) return fotoUrl;
+    return `https://wsrv.nl/?url=${encodeURIComponent(url.href)}&w=${width}&q=80&output=webp`;
+  } catch {
+    return fotoUrl;
+  }
+}
+
 async function fetchPublicBuilding(id) {
   const supabaseUrl = process.env.SUPABASE_URL || FALLBACK_SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || FALLBACK_SUPABASE_KEY;
@@ -143,7 +154,12 @@ function renderBuildingPage(building) {
   <meta name="twitter:card" content="summary_large_image">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=League+Spartan:wght@700;800;900&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://wsrv.nl" crossorigin>
+  <link rel="dns-prefetch" href="https://wsrv.nl">
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=League+Spartan:wght@700;800;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=League+Spartan:wght@700;800;900&display=swap">
+  </noscript>
   <script type="application/ld+json">${schemaJson}</script>
   <script type="application/ld+json">${breadcrumbJson}</script>
   <style>
@@ -230,7 +246,7 @@ function renderBuildingPage(building) {
     <section>
       <h1 class="work-title">${escapeHtml(building.nombre_obra)}</h1>
       <p class="work-intro">${escapeHtml(description)}</p>
-      ${building.foto_url ? `<img class="work-image" src="${escapeHtml(building.foto_url)}" alt="${escapeHtml(building.nombre_obra)}">` : ''}
+      ${building.foto_url ? `<img class="work-image" src="${escapeHtml(getOptimizedUrl(building.foto_url, 1200))}" alt="${escapeHtml(building.nombre_obra)}" loading="eager" decoding="async" fetchpriority="high">` : ''}
       <a class="map-link" href="${SITE_URL}/?obra=${encodeURIComponent(building.id)}">Ver en el mapa <span aria-hidden="true">&#8599;</span></a>
     </section>
     ${details ? `<dl class="details">${details}</dl>` : ''}

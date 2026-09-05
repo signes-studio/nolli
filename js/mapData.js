@@ -6,10 +6,11 @@ import { state, esRolAdmin } from './state.js';
 
 
 
-function coordenadasVisuales(obra) {
+function coordenadasVisuales(obra, isShared = false) {
   if (!obra || !Array.isArray(obra.coordenadas) || !Number.isFinite(obra.coordenadas[0]) || !Number.isFinite(obra.coordenadas[1])) {
     return [0, 0];
   }
+  if (!isShared) return obra.coordenadas;
   const [longitud, latitud] = obra.coordenadas;
   const id = String(obra.id ?? obra.featureId ?? '0');
   const hash = [...id].reduce((value, character) => ((value * 31) + character.charCodeAt(0)) >>> 0, 7);
@@ -99,17 +100,20 @@ export function actualizarFuenteMapa() {
         const safeC3 = Math.max(1, Math.min(26, c3));
         const alphaRank = (safeC1 * 676) + (safeC2 * 26) + safeC3;
 
+        const coordKey = obra.coordenadas.join(',');
+        const sharedCount = ubicacionesCompartidas.get(coordKey) || 1;
+
         const feature = {
           type: 'Feature',
           id: obra.featureId,
-          geometry: { type: 'Point', coordinates: coordenadasVisuales(obra) },
+          geometry: { type: 'Point', coordinates: coordenadasVisuales(obra, sharedCount > 1) },
           properties: {
             ...obra,
             alpha_rank: alphaRank,
             arquitectos: obra.arquitectos || [],
             estado_acceso: obra.estado_acceso || 'privado',
             estado_revision: obra.private ? 'privada' : (obra.estado_revision || 'publicada'),
-            shared_location_count: ubicacionesCompartidas.get(obra.coordenadas.join(',')) || 1,
+            shared_location_count: sharedCount,
             favorite: state.buildingStatuses?.get(String(obra.id))?.favorite ? 1 : 0,
             visited: state.buildingStatuses?.get(String(obra.id))?.visited ? 1 : 0,
             selected: obra.selected ? 1 : 0,

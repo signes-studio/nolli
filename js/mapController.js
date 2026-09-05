@@ -35,8 +35,8 @@ export function registrarIconosColecciones() {
 const ICON_LAYER_MINZOOMS = {
   0: 0,    // importancia máxima: siempre visible
   1: 0,    // importante: siempre visible
-  2: 9.0,  // notable: a partir de zoom 9
-  3: 12.0, // estándar: a partir de zoom 12
+  2: 6.5,  // notable: visible desde escala regional / metropolitana
+  3: 9.0,  // estándar: visible desde escala de ciudad
 };
 
 function ajustarZoomCapa(layerId, minzoom, maxzoom = 24) {
@@ -172,15 +172,17 @@ export function cargarMapaMapbox() {
       type: 'geojson',
       data: { type: 'FeatureCollection', features: [] },
       promoteId: 'featureId',
-      buffer: 512, // Pre-renderiza un buffer del 400% alrededor de la pantalla para desplazamiento sin lag
-      tolerance: 0.25,
+      buffer: 128,
+      tolerance: 0.375,
+      maxzoom: 16,
     });
     state.map.addSource('obras-maestras', {
       type: 'geojson',
       data: { type: 'FeatureCollection', features: [] },
       promoteId: 'featureId',
-      buffer: 512, // Pre-renderiza etiquetas maestras fuera del viewport
-      tolerance: 0.25,
+      buffer: 128,
+      tolerance: 0.375,
+      maxzoom: 16,
     });
     actualizarFuenteMapa();
 
@@ -333,8 +335,8 @@ export function cargarMapaMapbox() {
     };
 
     [3, 2, 1, 0].forEach((importance) => {
-      // Importancia 0 y 1 visibles siempre (minzoom: 0); Importancia 2 a partir de zoom 12; Importancia 3 a partir de zoom 14
-      const minzoom = (importance === 0 || importance === 1) ? 0 : importance === 2 ? 12.0 : 14.0;
+      // Importancia 0 y 1 visibles siempre (minzoom: 0); Importancia 2 a partir de zoom 6.5; Importancia 3 a partir de zoom 9.0
+      const minzoom = (importance === 0 || importance === 1) ? 0 : importance === 2 ? 6.5 : 9.0;
       const baseFilter = ['==', ['get', 'importancia'], importance];
       const sourceId = (importance === 0 || importance === 1) ? 'obras-maestras' : 'obras';
       const iconSize = importance === 0 ? 0.92 : importance === 1 ? 0.70 : importance === 2 ? 0.56 : 0.52;

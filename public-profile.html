@@ -4,11 +4,11 @@
   <base href="/">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://*.mapbox.com https://api.mapbox.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://*.mapbox.com https://api.mapbox.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.mapbox.com https://api.mapbox.com https://events.mapbox.com https://nominatim.openstreetmap.org; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
-  <link rel="preconnect" href="https://api.mapbox.com" crossorigin>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://nominatim.openstreetmap.org https://wsrv.nl; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
   <link rel="preconnect" href="https://ldtfvpjigzvcagtciipn.supabase.co" crossorigin>
-  <link rel="dns-prefetch" href="https://api.mapbox.com">
+  <link rel="preconnect" href="https://wsrv.nl" crossorigin>
   <link rel="dns-prefetch" href="https://ldtfvpjigzvcagtciipn.supabase.co">
+  <link rel="dns-prefetch" href="https://wsrv.nl">
   <meta name="description" content="Perfil de usuario en Nolli, radar arquitectónico interactivo.">
   <meta name="robots" content="noindex, follow">
   <link rel="canonical" href="https://nollimap.app/public-profile">
@@ -24,10 +24,13 @@
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./icon.svg">
 
-  <!-- Google Fonts: Inter & League Spartan -->
+  <!-- Google Fonts: Inter & League Spartan (Asynchronous Non-Blocking) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=League+Spartan:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=League+Spartan:wght@600;700;800;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=League+Spartan:wght@600;700;800;900&display=swap">
+  </noscript>
 
   <link rel="stylesheet" href="css/legal-components.css">
   <script src="js/cookieConsent.js" defer></script>
@@ -40,13 +43,9 @@
     }
   </script>
 
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js" defer></script>
-
-  <!-- Estilos propios (orden idéntico al index.html) -->
+  <!-- Estilos propios optimizados -->
   <link rel="stylesheet" href="css/utilities.css">
   <link rel="stylesheet" href="css/base.css">
-  <link rel="stylesheet" href="css/map-hud.css">
   <link rel="stylesheet" href="css/panels.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="manifest" href="manifest.webmanifest">
