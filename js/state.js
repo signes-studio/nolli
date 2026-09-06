@@ -176,6 +176,14 @@ export function normalizarCategoria(valor) {
   return 'otro';
 }
 
+export function extraerAnioDefensivo(valor) {
+  if (valor === null || valor === undefined) return null;
+  const str = String(valor).trim();
+  if (!str) return null;
+  const match = str.match(/-?\d{4}/) || str.match(/-?\d+/);
+  return match ? match[0] : null;
+}
+
 export function nombreCategoria(valor) {
   return {
     residencial: 'RESIDENCIAL',
@@ -303,7 +311,7 @@ export function transformarEdificio(fila, index = 0) {
     enlace_url: fila.enlace_url || null,
     arquitecto: fila.arquitecto || '',
     arquitectos: Array.isArray(fila.arquitectos) ? fila.arquitectos : separarArquitectos(fila.arquitecto),
-    año_construccion: fila.año_construccion || null,
+    año_construccion: extraerAnioDefensivo(fila.año_construccion),
     importancia: normalizarImportancia(fila.importancia),
     categoria: normalizarCategoria(fila.categoria),
     ciudad: fila.place || fila.ciudad || null,
