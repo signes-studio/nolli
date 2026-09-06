@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nolli-shell-v68';
+const CACHE_NAME = 'nolli-shell-v69';
 const APP_SHELL = [
   './',
   './index.html',
@@ -89,11 +89,42 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Estrategia Stale-While-Revalidate para /api/catalog (permite uso offline del catálogo y mapa)
+  if (url.pathname === '/api/catalog') {
+    event.respondWith(
+      caches.open(CACHE_NAME).then(async (cache) => {
+        const cachedResponse = await cache.match(event.request);
+        const fetchPromise = fetch(event.request)
+          .then((networkResponse) => {
+            if (networkResponse && networkResponse.ok) {
+              cache.put(event.request, networkResponse.clone());
+            }
+            return networkResponse;
+          })
+          .catch((err) => {
+            if (cachedResponse) return cachedResponse;
+            throw err;
+          });
+
+        if (cachedResponse) {
+          event.waitUntil(fetchPromise.catch(() => undefined));
+          return cachedResponse;
+        }
+
+        return fetchPromise;
+      }),
+    );
+    return;
+  }
+
+  // Estrategia Network-First con fallback a cache para páginas y navegación
   event.respondWith(
-    fetch(new Request(event.request, { cache: 'no-store' }))
+    fetch(event.request)
       .then((response) => {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        if (response && response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        }
         return response;
       })
       .catch(() => caches.match(event.request)),
