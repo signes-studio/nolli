@@ -16,6 +16,7 @@ import {
 import { abrirFicha } from './sheetUI.js';
 import { registrarIconosColecciones, actualizarVisibilidadIconosLista } from './mapController.js';
 import { actualizarFuenteMapa } from './mapData.js';
+import { showNeoToast } from './renderUtils.js';
 import {
   fetchUserCollections,
   fetchUserCollectionItems,
@@ -46,7 +47,7 @@ export function initMyPlacesUI() {
   if (button) {
     button.addEventListener('click', () => {
       if (!state.sessionToken) {
-        alert('Inicia sesión para consultar tu zona personal.');
+        showNeoToast('Inicia sesión para consultar tu zona personal.');
         return;
       }
       const isOpen = panel.classList.toggle('open');
@@ -217,7 +218,7 @@ export async function handleListHashRoute() {
 
     const buildingIds = [...new Set(items.map((i) => String(i.building_id)).filter(Boolean))];
     if (buildingIds.length === 0) {
-      alert(`La lista "${col.name}" aún no tiene obras añadidas.`);
+      showNeoToast(`La lista "${col.name}" aún no tiene obras añadidas.`);
       return;
     }
 
@@ -403,7 +404,7 @@ function abrirModalCrearLista() {
 
 async function crearListaDesdeModal() {
   if (!state.userId || !state.sessionToken) {
-    alert('Inicia sesión para crear listas.');
+    showNeoToast('Inicia sesión para crear listas.');
     return;
   }
 
@@ -420,7 +421,7 @@ async function crearListaDesdeModal() {
   const status = statusRadio?.value === 'public' ? 'public' : 'private';
 
   if (!name) {
-    alert('Escribe un nombre para la lista.');
+    showNeoToast('Escribe un nombre para la lista.');
     return;
   }
 
@@ -463,7 +464,7 @@ async function crearListaDesdeModal() {
     actualizarFuenteMapa();
     cerrarModalFlotante();
     renderList();
-    alert(`Nota: La lista se creó localmente. Error del servidor: ${error.message}`);
+    showNeoToast(`Nota: La lista se creó localmente. Error del servidor: ${error.message}`);
   }
 }
 
@@ -539,7 +540,7 @@ async function guardarEdicionListaModal(collectionId) {
   const status = statusRadio?.value === 'public' ? 'public' : 'private';
 
   if (!newName) {
-    alert('El nombre no puede estar vacío.');
+    showNeoToast('El nombre no puede estar vacío.');
     return;
   }
 
@@ -582,7 +583,7 @@ function copiarEnlaceLista(collectionId, btnElement = null) {
       btnElement.textContent = 'ENLACE COPIADO';
       setTimeout(() => { btnElement.textContent = orig; }, 2500);
     } else {
-      alert('¡Enlace de lista copiado al portapapeles!');
+      showNeoToast('¡Enlace de lista copiado al portapapeles!');
     }
   }).catch(() => {
     prompt('Copia este enlace directo a la lista:', url);
@@ -619,7 +620,7 @@ async function dejarDeSeguirLista(collectionId) {
     state.userFollowedCollections = state.userFollowedCollections.filter((item) => String(item.collection_id) !== String(collectionId));
     renderList();
   } catch (err) {
-    alert(err.message || 'Error al dejar de seguir la lista.');
+    showNeoToast(err.message || 'Error al dejar de seguir la lista.');
   }
 }
 

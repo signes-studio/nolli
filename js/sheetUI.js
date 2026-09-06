@@ -7,6 +7,7 @@ import { actualizarFuenteMapa } from './mapData.js';
 import { cerrarFiltros, generarFiltrosUI } from './filtersUI.js';
 import { fetchBuildings, saveBuildingStatus, deleteBuilding, deletePrivateBuilding, createUserCollection, addUserCollectionItem, createUserPrivateLabel, deleteUserPrivateLabel } from './api.js';
 import { getOptimizedPhotoUrl } from './imageProxy.js';
+import { showNeoToast } from './renderUtils.js';
 
 const sheet = document.getElementById('sheet');
 let organizerMode = 'collections';
@@ -369,7 +370,7 @@ function organizerOptions(building, mode) {
 
 function openOrganizer(mode) {
   const building = getSelectedBuilding();
-  if (!building || !state.userId || !state.sessionToken) { alert('Inicia sesion para organizar tus obras.'); return; }
+  if (!building || !state.userId || !state.sessionToken) { showNeoToast('Inicia sesión para organizar tus obras.'); return; }
   organizerMode = mode;
   document.getElementById('personal-organizer-title').textContent = mode === 'collections' ? 'GUARDAR EN LISTAS' : 'ANADIR ETIQUETAS';
   document.getElementById('personal-organizer-project').textContent = building.nombre_obra;
@@ -529,7 +530,7 @@ async function saveStatus(status, value) {
   if (!building) return;
 
   if (!state.userId || !state.sessionToken) {
-    alert('Inicia sesión para guardar favoritos y visitas.');
+    showNeoToast('Inicia sesión para guardar favoritos y visitas.');
     return;
   }
 
@@ -540,28 +541,35 @@ async function saveStatus(status, value) {
   // 1. Actualización Optimista Visual Inmediata (0ms)
   state.buildingStatuses.set(key, next);
   renderSheetStatusUI(building);
-  guardarEstadoPersonalLocal();
-  actualizarFuenteMapa();
-  document.dispatchEvent(new CustomEvent('radar:user-status-changed'));
+  document.dispatchEvent(new CustomEvent('radar:user-status-changed', { detail: { buildingId: key, status, value } }));
 
-  // 2. Sincronización en segundo plano con Supabase
+  // 2. Persistencia Inmediata Local (Offline-Ready)
+  guardarZonaPersonalLocal(state.userId);
+
+  // 3. Sincronización Asíncrona con el Servidor
   try {
-    await saveBuildingStatus(state.userId, building.id, next, state.sessionToken);
+    await saveBuildingStatus(building.id, next, state.userId, state.sessionToken);
   } catch (error) {
-    console.warn('Sincronización en segundo plano completada con almacenamiento local:', error);
-    guardarEstadoPersonalLocal();
+    console.error('Error al guardar estado:', error);
+    // Rollback en caso de error de red
+    state.buildingStatuses.set(key, previous);
+    renderSheetStatusUI(building);
+    guardarZonaPersonalLocal(state.userId);
+    document.dispatchEvent(new CustomEvent('radar:user-status-changed', { detail: { buildingId: key, status, value: previous[status] } }));
   }
 }
 
 async function saveNote(button) {
   const building = getSelectedBuilding();
-  if (!building || !state.userId || !state.sessionToken) return;
-  const key = String(building.id);
-  const previous = state.buildingStatuses.get(key) || { favorite: false, visited: false };
-  const next = { ...previous, notas: document.getElementById('building-notes').value, valoracion: previous.valoracion || null };
-  state.buildingStatuses.set(key, next);
-  renderSheetStatusUI(building);
-  guardarEstadoPersonalLocal();
+  if (!building || !state.userId || !state.sessionToken) {
+    showNeoToast('Inicia sesión para guardar notas privadas.');
+    return;
+  }
+
+  const editor = button.closest('[data-note-editor]');
+  const textarea = editor ? editor.querySelector('textarea') : null;
+  const nota = textarea ? textarea.value.trim() : '';
+
   button.disabled = true;
   button.textContent = 'GUARDANDO...';
   try {
@@ -579,13 +587,13 @@ async function saveNote(button) {
 async function deletePrivate() {
   const building = getSelectedBuilding();
   if (!building?.private || !state.userId || String(building.user_id) !== String(state.userId) || !window.confirm(`¿Eliminar "${building.nombre_obra}" de tus chinchetas privadas?`)) return;
-  try { await deletePrivateBuilding(building.id, state.userId, state.sessionToken); state.OBRAS = state.OBRAS.filter((item) => item !== building); state.privateBuildings = state.privateBuildings.filter((item) => item !== building); cerrarFicha(); actualizarFuenteMapa(); } catch (error) { alert(error.message); }
+  try { await deletePrivateBuilding(building.id, state.userId, state.sessionToken); state.OBRAS = state.OBRAS.filter((item) => item !== building); state.privateBuildings = state.privateBuildings.filter((item) => item !== building); cerrarFicha(); actualizarFuenteMapa(); } catch (error) { showNeoToast(error.message || 'Error al eliminar.'); }
 }
 
 async function deleteBuildingFromSheet() {
   const building = getSelectedBuilding();
   if (!building || !esRolAdmin(state.userRole) || !window.confirm(`¿Eliminar "${building.nombre_obra}"?`)) return;
-  try { await deleteBuilding(building.id, state.sessionToken); state.OBRAS = state.OBRAS.filter((item) => item !== building); cerrarFicha(); actualizarFuenteMapa(); generarFiltrosUI(); document.dispatchEvent(new CustomEvent('radar:buildings-changed')); } catch (error) { alert(error.message); }
+  try { await deleteBuilding(building.id, state.sessionToken); state.OBRAS = state.OBRAS.filter((item) => item !== building); cerrarFicha(); actualizarFuenteMapa(); generarFiltrosUI(); document.dispatchEvent(new CustomEvent('radar:buildings-changed')); } catch (error) { showNeoToast(error.message || 'Error al eliminar.'); }
 }
 
 function openShareModal() {

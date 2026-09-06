@@ -250,3 +250,77 @@ export function formatearDistancia(metros) {
   }
   return `${(metros / 1000).toFixed(1)} KM`;
 }
+
+/**
+ * Muestra una notificación toast no bloqueante con estética Neo-Bauhaus.
+ * @param {string} message - Mensaje a mostrar
+ * @param {object} options - { type, actionText, onAction, duration }
+ */
+export function showNeoToast(message, options = {}) {
+  const {
+    actionText = null,
+    onAction = null,
+    duration = actionText ? 5000 : 3200,
+  } = options;
+
+  let toast = document.getElementById('nolli-neo-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'nolli-neo-toast';
+    toast.style.cssText = `
+      position: fixed;
+      left: 50%;
+      bottom: 84px;
+      transform: translateX(-50%);
+      z-index: 99999;
+      background: #141411;
+      color: #F8F1DF;
+      border: 2px solid #E95C0C;
+      padding: 10px 16px;
+      max-width: min(92vw, 420px);
+      width: max-content;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      line-height: 1.4;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+      border-radius: 0 !important;
+    `;
+    document.body.appendChild(toast);
+  }
+
+  const isAuthNotice = String(message).toLowerCase().includes('inicia sesión') || String(message).toLowerCase().includes('iniciar sesión');
+  const finalActionText = actionText || (isAuthNotice ? 'INICIAR SESIÓN' : null);
+
+  toast.innerHTML = `
+    <span style="flex:1;">${String(message).toUpperCase()}</span>
+    ${finalActionText ? `<button type="button" id="nolli-toast-action-btn" style="background:#E95C0C; color:#FFFFFF; border:none; padding:6px 10px; font-family:'League Spartan',sans-serif; font-size:11px; font-weight:800; letter-spacing:0.04em; cursor:pointer; text-transform:uppercase; border-radius:0 !important; flex-shrink:0;">${finalActionText}</button>` : ''}
+  `;
+
+  if (finalActionText) {
+    const btn = toast.querySelector('#nolli-toast-action-btn');
+    if (btn) {
+      btn.onclick = () => {
+        toast.style.opacity = '0';
+        if (onAction) {
+          onAction();
+        } else if (isAuthNotice) {
+          const loginModal = document.getElementById('modal-login');
+          if (loginModal) loginModal.classList.add('open');
+        }
+      };
+    }
+  }
+
+  toast.style.opacity = '1';
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => {
+    toast.style.opacity = '0';
+  }, duration);
+}

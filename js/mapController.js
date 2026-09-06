@@ -7,6 +7,7 @@ import { MAPBOX_TOKEN, MAP_STYLES, DEFAULT_CENTER, DEFAULT_ZOOM } from './config
 import { buildIcon, drawTargetIcon, drawPrivateSquareIcon, drawSearchLupaIcon, drawExploreCompassIcon, buildEmojiIcon } from './icons.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { abrirFicha, cerrarFicha } from './sheetUI.js';
+import { showNeoToast } from './renderUtils.js';
 
 /** Registra o actualiza los emojis de las listas del usuario en Mapbox */
 export function registrarIconosColecciones() {
@@ -716,7 +717,7 @@ export function cargarMapaMapbox() {
 
 function activarModoAñadir() {
   if (!state.sessionToken) {
-    alert('Inicia sesión para proponer una nueva obra.');
+    showNeoToast('Inicia sesión para proponer una nueva obra.');
     return;
   }
   state.addingBuilding = !state.addingBuilding;

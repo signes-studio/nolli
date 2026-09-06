@@ -6,6 +6,7 @@ import { state, separarArquitectos, normalizarCategoria, esRolAdmin } from './st
 import { loginAdmin, registerUser, refreshUserSession, requestPasswordReset, fetchUserRole, fetchCurrentUser, fetchCurrentProfile, fetchBuildingStatuses, upsertCurrentProfile, createBuildingReport, createBuilding, createPrivateBuilding, updateBuilding, updateUserPresence, invalidateCatalogCache } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
+import { showNeoToast } from './renderUtils.js';
 
 const ADMIN_SESSION_KEY = 'nolli_admin_session_token';
 let presenceTimer = null;
@@ -609,7 +610,7 @@ function initAddBuildingModal() {
 
 function handleMapLongPress(lngLat) {
   if (!state.sessionToken) {
-    alert('Inicia sesión para registrar o proponer una nueva obra.');
+    showNeoToast('Inicia sesión para registrar o proponer una nueva obra.');
     return;
   }
   state.editingBuildingId = null;
