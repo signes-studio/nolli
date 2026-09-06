@@ -234,16 +234,18 @@ async function ejecutarBusquedaGlobal() {
     return;
   }
 
-  // CASO 2: HAY TEXTO EN EL BUSCADOR DE EDIFICIOS -> Filtrar edificios por nombre
+  // CASO 2: HAY TEXTO EN EL BUSCADOR DE EDIFICIOS -> Filtrar edificios por nombre o ciudad/lugar
   if (textQuery) {
-    const obrasFiltradas = obrasEncontradas.filter((obra) => 
-      normalizarTexto(obra.nombre_obra).includes(textQuery)
-    );
+    const obrasFiltradas = obrasEncontradas.filter((obra) => {
+      const matchNombre = normalizarTexto(obra.nombre_obra).includes(textQuery);
+      const matchLugar = normalizarTexto(obra.place || obra.ciudad || '').includes(textQuery);
+      return matchNombre || matchLugar;
+    });
 
     currentSearchResults = obrasFiltradas;
 
     if (!obrasFiltradas.length) {
-      searchResults.innerHTML = '<div class="nearby-empty">No se encontraron edificios con ese nombre.</div>';
+      searchResults.innerHTML = '<div class="nearby-empty">No se encontraron edificios ni lugares coincidentes.</div>';
       return;
     }
 
