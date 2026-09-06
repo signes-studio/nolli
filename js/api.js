@@ -1144,7 +1144,18 @@ export async function reviewBuilding(id, estadoRevision, sessionToken = null) {
 
 export async function searchUserByNick(nick) {
   const cleanNick = String(nick || '').trim().replace(/^@/, '');
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/profiles_public?nick=eq.${encodeURIComponent(cleanNick)}&select=id,nick,avatar_url`, {
+  if (!cleanNick) return null;
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/public_profiles?nick=eq.${encodeURIComponent(cleanNick)}&select=id,nick,first_name,city,country,bio,website,avatar_url`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
+  });
+  if (!response.ok) return null;
+  const rows = await response.json().catch(() => []);
+  return rows[0] || null;
+}
+
+export async function fetchPublicProfileById(userId) {
+  if (!userId) return null;
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/public_profiles?id=eq.${encodeURIComponent(userId)}&select=id,nick,first_name,city,country,bio,website,avatar_url`, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
   });
   if (!response.ok) return null;
@@ -1153,7 +1164,7 @@ export async function searchUserByNick(nick) {
 }
 
 export async function fetchPublicUserCollections(userId) {
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?user_id=eq.${encodeURIComponent(userId)}&select=*&order=created_at.asc`, {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?user_id=eq.${encodeURIComponent(userId)}&or=(status.eq.public,is_public.eq.true)&select=*&order=created_at.asc`, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
   });
   if (!response.ok) return [];
@@ -1198,11 +1209,11 @@ export async function fetchAllPublicCollections() {
     is_public: col.status === 'public' || col.is_public === true,
   }));
 
-  // Enriquecer con perfiles de autores
+  // Enriquecer con perfiles de autores desde la vista segura public_profiles
   try {
     const userIds = [...new Set(collections.map((c) => c.user_id).filter(Boolean))];
     if (userIds.length > 0) {
-      const profilesRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles_public?id=in.(${userIds.map((id) => `"${encodeURIComponent(id)}"`).join(',')})&select=id,nick,avatar_url`, {
+      const profilesRes = await fetch(`${SUPABASE_URL}/rest/v1/public_profiles?id=in.(${userIds.map((id) => `"${encodeURIComponent(id)}"`).join(',')})&select=id,nick,first_name,avatar_url`, {
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
       });
       if (profilesRes.ok) {
@@ -1223,16 +1234,26 @@ export async function fetchAllPublicCollections() {
 /** Carga una colección por su identificador único (pública o del usuario). */
 export async function fetchCollectionById(collectionId, sessionToken = null) {
   const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken || SUPABASE_KEY}` };
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?id=eq.${encodeURIComponent(collectionId)}&select=id,name,icon,description,status,is_public,created_at,user_id,profiles:user_id(id,nick,first_name,last_name)&limit=1`, { headers });
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?id=eq.${encodeURIComponent(collectionId)}&select=id,name,icon,description,status,is_public,created_at,user_id&limit=1`, { headers });
   if (!response.ok) return null;
   const list = await response.json().catch(() => []);
-  return list[0] || null;
+  const collection = list[0] || null;
+  if (collection && collection.user_id) {
+    try {
+      const pRes = await fetch(`${SUPABASE_URL}/rest/v1/public_profiles?id=eq.${encodeURIComponent(collection.user_id)}&select=id,nick,first_name,avatar_url`, { headers });
+      if (pRes.ok) {
+        const profs = await pRes.json().catch(() => []);
+        collection.profiles = profs[0] || null;
+      }
+    } catch {}
+  }
+  return collection;
 }
 
 /** Obtiene las colecciones seguidas/guardadas por el usuario actual. */
 export async function fetchFollowedCollections(userId, sessionToken) {
   if (!userId || !sessionToken) return [];
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_followed_collections?user_id=eq.${encodeURIComponent(userId)}&select=collection_id,created_at,user_collections:collection_id(id,name,icon,description,status,is_public,user_id,profiles:user_id(id,nick,first_name,last_name))&order=created_at.desc`, {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_followed_collections?user_id=eq.${encodeURIComponent(userId)}&select=collection_id,created_at,user_collections:collection_id(id,name,icon,description,status,is_public,user_id)&order=created_at.desc`, {
     headers: {
       'apikey': SUPABASE_KEY,
       'Authorization': `Bearer ${sessionToken}`,
@@ -1247,7 +1268,25 @@ export async function fetchFollowedCollections(userId, sessionToken) {
     if (!fallbackRes.ok) return [];
     return fallbackRes.json().catch(() => []);
   }
-  return response.json().catch(() => []);
+  const rows = await response.json().catch(() => []);
+  try {
+    const userIds = [...new Set(rows.map((r) => r.user_collections?.user_id).filter(Boolean))];
+    if (userIds.length > 0) {
+      const pRes = await fetch(`${SUPABASE_URL}/rest/v1/public_profiles?id=in.(${userIds.map((id) => `"${encodeURIComponent(id)}"`).join(',')})&select=id,nick,first_name,avatar_url`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
+      });
+      if (pRes.ok) {
+        const pList = await pRes.json().catch(() => []);
+        const pMap = new Map(pList.map((p) => [String(p.id), p]));
+        rows.forEach((r) => {
+          if (r.user_collections && pMap.has(String(r.user_collections.user_id))) {
+            r.user_collections.profiles = pMap.get(String(r.user_collections.user_id));
+          }
+        });
+      }
+    }
+  } catch {}
+  return rows;
 }
 
 /** Seguir una colección pública. */

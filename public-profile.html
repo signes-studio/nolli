@@ -113,7 +113,7 @@
 
   <script type="module">
     import { state } from './state.js';
-    import { searchUserByNick, fetchPublicUserCollections, fetchPublicUserBuildingStatuses, fetchBuildings } from './api.js';
+    import { searchUserByNick, fetchPublicProfileById, fetchPublicUserCollections, fetchPublicUserBuildingStatuses, fetchBuildings } from './api.js';
 
     let profileUser = null;
     let publicCollections = [];
@@ -124,11 +124,12 @@
     async function initProfileView() {
       const urlParams = new URLSearchParams(window.location.search);
       const nickQuery = urlParams.get('nick');
+      const idQuery = urlParams.get('id');
 
-      if (!nickQuery) {
+      if (!nickQuery && !idQuery) {
         document.getElementById('profile-content-list').innerHTML = `
           <div class="nearby-empty" style="padding: 20px; text-align: center; border: 1px solid var(--border-strong, #141411); background: var(--bg-panel, #F8F1DF); font-size: 11px;">
-            Especifica un usuario en la URL (ej: perfil.html?nick=nombre_usuario).
+            Especifica un usuario en la URL (ej: public-profile.html?nick=nombre_usuario o ?id=uuid).
           </div>`;
         return;
       }
@@ -136,11 +137,11 @@
       try {
         allBuildings = await fetchBuildings({ includeAllImportance: true });
 
-        profileUser = await searchUserByNick(nickQuery);
+        profileUser = idQuery ? await fetchPublicProfileById(idQuery) : await searchUserByNick(nickQuery);
         if (!profileUser) {
           document.getElementById('profile-content-list').innerHTML = `
             <div class="nearby-empty" style="padding: 20px; text-align: center; border: 1px solid var(--border-strong, #141411); background: var(--bg-panel, #F8F1DF); font-size: 11px;">
-              No se ha encontrado ningún usuario con el nick "@${nickQuery}".
+              No se ha encontrado ningún usuario con los datos indicados.
             </div>`;
           return;
         }
@@ -164,23 +165,24 @@
     }
 
     function renderUserInfo(user) {
-      const fullName = user.nick || 'Usuario de Nolli';
-      const nick = user.nick ? `@${user.nick}` : '@anónimo';
+      const displayName = user.first_name || user.nick || 'Usuario de Nolli';
+      const nick = user.nick ? `@${user.nick}` : '';
+      const location = [user.city, user.country].filter(Boolean).join(', ') || 'ARQUITECTURA & VIAJES';
 
-      document.getElementById('user-display-name').textContent = fullName;
+      document.getElementById('user-display-name').textContent = displayName;
       document.getElementById('user-nick-handle').textContent = nick;
-      document.getElementById('user-location').textContent = 'PERFIL PÚBLICO NOLLI';
-      document.getElementById('user-bio').textContent = 'Este perfil muestra únicamente la información que su titular ha hecho pública.';
+      document.getElementById('user-location').textContent = location.toUpperCase();
+      document.getElementById('user-bio').textContent = user.bio || 'Este perfil muestra únicamente la información pública del usuario en Nolli.';
       
       const avatar = document.getElementById('user-avatar');
-      avatar.textContent = (user.nick || 'U')[0].toUpperCase();
+      avatar.textContent = (user.first_name || user.nick || 'U')[0].toUpperCase();
       if (user.avatar_url) {
         avatar.style.backgroundImage = `url(${JSON.stringify(user.avatar_url)})`;
         avatar.style.backgroundSize = 'cover';
         avatar.style.backgroundPosition = 'center';
         avatar.textContent = '';
       }
-      document.getElementById('profile-header-title').textContent = `nolli. (${nick})`;
+      document.getElementById('profile-header-title').textContent = `nolli. (${nick || displayName})`;
     }
 
     document.addEventListener('click', (e) => {
