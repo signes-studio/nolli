@@ -12,7 +12,7 @@ import { cargarMapaMapbox } from './mapController.js';
 import { initModalsUI } from './modalsUI.js';
 import { initSearchUI, abrirBusquedaConQuery } from './searchUI.js';
 import { initMobileBottomNav } from './mobileBottomNav.js';
-import { getViewportKey } from './renderUtils.js';
+import { getViewportKey, showNeoToast } from './renderUtils.js';
 
 import { abrirFicha } from './sheetUI.js';
 
@@ -121,6 +121,11 @@ async function cargarYMostrarObra(obraId) {
   if (obra && state.map) {
     state.map.flyTo({ center: obra.coordenadas, zoom: Math.max(state.map.getZoom(), 15) });
     abrirFicha(obra, obra.coordenadas, obra.featureId || obra.id, true);
+  } else if (!obra) {
+    showNeoToast('LA OBRA SOLICITADA NO EXISTE O FUE RETIRADA', { type: 'alert', duration: 4000 });
+    const url = new URL(window.location.href);
+    url.searchParams.delete('obra');
+    window.history.replaceState(null, '', url.pathname + (url.searchParams.toString() ? '?' + url.searchParams.toString() : '') + url.hash);
   }
 }
 
