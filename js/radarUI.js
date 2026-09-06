@@ -1,6 +1,6 @@
 import { state, CATEGORY_META, escapeHtml, separarArquitectos, normalizarCategoria, normalizarImportancia, upsertBuilding, dedupeBuildings } from './state.js';
 import { abrirFicha } from './sheetUI.js';
-import { calcularDistanciaMetros, formatearDistancia } from './renderUtils.js';
+import { calcularDistanciaMetros, formatearDistancia, showNeoToast } from './renderUtils.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { actualizarMarcadorUbicacion, actualizarVisibilidadIconosLista } from './mapController.js';
 import { fetchBuildingsInRadius, fetchBuildings, getBuildingsCatalog, fetchItineraries, fetchBuildingsByIds } from './api.js';
@@ -102,6 +102,13 @@ export function renderCuratedCarousel() {
 }
 
 
+export function hasActiveGpsFix() {
+  return Boolean(
+    (Array.isArray(state.userLocation) && state.userLocation.length === 2) ||
+    (state.userLocation && Number.isFinite(state.userLocation.lng) && Number.isFinite(state.userLocation.lat))
+  );
+}
+
 function getRadarCenter() {
   if (Array.isArray(state.userLocation) && state.userLocation.length === 2) {
     return state.userLocation;
@@ -113,8 +120,87 @@ function getRadarCenter() {
   ) {
     return [state.userLocation.lng, state.userLocation.lat];
   }
-  // El radar debe responder a la ubicación del usuario, no al centro visible del mapa.
+  // Fallback a Valencia cuando no hay geolocalización disponible
   return [-0.3763, 39.4699];
+}
+
+export function solicitarUbicacionGPS() {
+  if (!navigator.geolocation) {
+    showNeoToast('GEOLOCALIZACIÓN NO DISPONIBLE EN ESTE NAVEGADOR');
+    return;
+  }
+  showNeoToast('BUSCANDO SEÑAL GPS...');
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const coords = [pos.coords.longitude, pos.coords.latitude];
+      actualizarMarcadorUbicacion(coords);
+      state.userLocation = coords;
+      actualizarEstadoGPSUI();
+      renderRadarUI();
+      renderCuratedCarousel();
+      showNeoToast('GPS ACTIVO: UBICACIÓN ACTUALIZADA');
+    },
+    (err) => {
+      console.warn('Error al solicitar GPS:', err.message);
+      actualizarEstadoGPSUI();
+      showNeoToast('SIN ACCESO A GPS: REVISA LOS PERMISOS EN TU NAVEGADOR');
+    },
+    { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+  );
+}
+
+export function actualizarEstadoGPSUI() {
+  const badge = document.getElementById('radar-status-badge');
+  const isGpsActive = hasActiveGpsFix();
+
+  if (badge) {
+    if (isGpsActive) {
+      badge.textContent = 'GPS ACTIVO';
+      badge.style.color = '#FFFFFF';
+      badge.style.background = 'var(--accent, #E95C0C)';
+      badge.style.borderColor = 'var(--accent, #E95C0C)';
+    } else {
+      badge.textContent = 'UBICACIÓN: VALENCIA';
+      badge.style.color = 'var(--fg-dim, #6B6B6B)';
+      badge.style.background = 'var(--bg-raised, #F0E9D2)';
+      badge.style.borderColor = 'var(--border-strong, #141411)';
+    }
+  }
+
+  const container = document.getElementById('radar-content-container');
+  if (container) {
+    let notice = document.getElementById('radar-gps-notice');
+    if (!isGpsActive) {
+      if (!notice) {
+        notice = document.createElement('div');
+        notice.id = 'radar-gps-notice';
+        notice.style.cssText = 'padding: 10px 14px; background: var(--bg-raised, #F0E9D2); border-bottom: 2px solid var(--border-strong, #141411); font-size: 11px; display: flex; flex-direction: column; gap: 8px; border-radius: 0 !important;';
+        notice.innerHTML = `
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+            <span style="font-weight: 800; font-family: 'League Spartan', sans-serif; font-size: 13px; color: var(--fg);">SIN ACCESO A GPS</span>
+            <span style="font-size: 9px; font-weight: 700; color: var(--accent, #E95C0C); letter-spacing: 0.05em;">PREDETERMINADO: VALENCIA</span>
+          </div>
+          <p style="margin: 0; font-size: 10px; color: var(--fg-dim); line-height: 1.4;">Para calcular obras a tu alrededor, activa el GPS o busca otra ciudad en el mapa.</p>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" id="btn-radar-request-gps" style="background: var(--fg, #141411); color: var(--bg, #F8F1DF); border: none; padding: 6px 10px; font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 800; cursor: pointer; letter-spacing: 0.04em;">ACTIVAR GPS</button>
+            <button type="button" id="btn-radar-go-search" style="background: transparent; color: var(--fg, #141411); border: 1px solid var(--border-strong, #141411); padding: 6px 10px; font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 800; cursor: pointer; letter-spacing: 0.04em;">BUSCAR CIUDAD</button>
+          </div>
+        `;
+        container.prepend(notice);
+
+        document.getElementById('btn-radar-request-gps')?.addEventListener('click', () => {
+          solicitarUbicacionGPS();
+        });
+
+        document.getElementById('btn-radar-go-search')?.addEventListener('click', () => {
+          document.getElementById('radar-panel')?.classList.remove('open');
+          document.getElementById('btn-search')?.click();
+        });
+      }
+    } else if (notice) {
+      notice.remove();
+    }
+  }
 }
 
 function iniciarGeolocalizacionEnSegundoPlano() {
@@ -123,6 +209,7 @@ function iniciarGeolocalizacionEnSegundoPlano() {
     (pos) => {
       const coords = [pos.coords.longitude, pos.coords.latitude];
       actualizarMarcadorUbicacion(coords);
+      actualizarEstadoGPSUI();
       const panel = document.getElementById('radar-panel');
       if (panel && panel.classList.contains('open')) {
         renderRadarUI();
@@ -133,6 +220,7 @@ function iniciarGeolocalizacionEnSegundoPlano() {
       if (err.code === 1 && locationWatchId != null) {
         navigator.geolocation.clearWatch(locationWatchId);
         locationWatchId = null;
+        actualizarEstadoGPSUI();
         return;
       }
       console.warn('Geolocalización en background:', err.message);
@@ -205,6 +293,7 @@ export function renderRadarList(works, container, countSpan) {
 }
 
 export async function renderRadarUI() {
+  actualizarEstadoGPSUI();
   const container = document.getElementById('radar-detected-list');
   const countSpan = document.getElementById('radar-detected-count');
   if (!container) return;
