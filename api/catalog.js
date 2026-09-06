@@ -1,12 +1,57 @@
 const FALLBACK_SUPABASE_URL = 'https://ldtfvpjigzvcagtciipn.supabase.co';
 const FALLBACK_SUPABASE_KEY = 'sb_publishable_kYQ7Fa8nBsrkp1f8C4AuAg_4-5uBFm0';
 
+// Rate limiting in-memory map (por IP en el container edge)
+const rateLimitMap = new Map();
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000; // 10 minutos
+const RATE_LIMIT_MAX_REQUESTS = 20; // Máximo 20 peticiones por ventana de 10 min
+
+function checkRateLimit(ip) {
+  const now = Date.now();
+  if (rateLimitMap.size > 2000) {
+    for (const [k, v] of rateLimitMap.entries()) {
+      if (now > v.resetAt) rateLimitMap.delete(k);
+    }
+  }
+
+  const record = rateLimitMap.get(ip);
+  if (!record || now > record.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return false;
+  }
+
+  record.count++;
+  return record.count > RATE_LIMIT_MAX_REQUESTS;
+}
+
 module.exports = async function handler(req, res) {
+  // 1. Rate limiting por IP
+  const clientIp = (
+    req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+    req.headers['x-real-ip'] ||
+    req.socket?.remoteAddress ||
+    'anonymous'
+  );
+
+  if (checkRateLimit(clientIp)) {
+    res.setHeader('Retry-After', '600');
+    return res.status(429).json({
+      error: 'Too Many Requests',
+      message: 'Has superado el límite de solicitudes de catálogo. Por favor, espera unos minutos.',
+    });
+  }
+
   const supabaseUrl = process.env.SUPABASE_URL || FALLBACK_SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || FALLBACK_SUPABASE_KEY;
 
   const pageSize = 1000;
-  const fields = 'id,nombre_obra,foto_url,enlace_url,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,añadido_por,longitud,latitud,place';
+  // Excluir enlace_url y añadido_por reduce ~932 KB (-17.1% Brotli) sin afectar pines, filtros ni buscador.
+  // Modo ligero opcional (?light=true) para pines mínimos: solo id, nombre, categoria, importancia, coordenadas (-49.8%).
+  const isLight = req.query?.light === 'true' || req.query?.light === '1';
+  const fields = isLight
+    ? 'id,nombre_obra,categoria,importancia,longitud,latitud'
+    : 'id,nombre_obra,foto_url,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,longitud,latitud,place';
+
   const params = new URLSearchParams({
     select: fields,
     order: 'id.asc',
@@ -39,7 +84,8 @@ module.exports = async function handler(req, res) {
     }
 
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
-    res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800');
+    // Cabecera Edge CDN compartida a nivel mundial: 30 minutos fresca, 1 hora revalidación
+    res.setHeader('Cache-Control', 'public, s-maxage=1800, stale-while-revalidate=3600');
     return res.status(200).json(allBuildings);
   } catch (error) {
     console.error('Error al generar catálogo en edge:', error);
