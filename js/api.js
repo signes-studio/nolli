@@ -128,11 +128,17 @@ export async function fetchBuildings({ bounds, zoom, architect, includeAllImport
   return [];
 }
 
+let bypassNextCatalogCache = false;
+
 /** Descarga el catálogo completo optimizado con CDN Edge de Vercel (0 egress de Supabase). */
-export async function fetchBuildingFacets() {
+export async function fetchBuildingFacets(forceBypass = false) {
+  const shouldBypass = forceBypass || bypassNextCatalogCache;
+  bypassNextCatalogCache = false;
+
   try {
     // 1. Intentar descargar el catálogo comprimido (Brotli) y cacheado en CDN Edge de Vercel (0 egress de Supabase)
-    const edgeRes = await fetch('./api/catalog');
+    const catalogUrl = shouldBypass ? `./api/catalog?ts=${Date.now()}` : './api/catalog';
+    const edgeRes = await fetch(catalogUrl);
     if (edgeRes.ok) {
       const data = await edgeRes.json();
       if (Array.isArray(data) && data.length > 0) {
@@ -220,6 +226,7 @@ export async function getBuildingsCatalog() {
 export function invalidateCatalogCache() {
   catalogCache = null;
   catalogPromise = null;
+  bypassNextCatalogCache = true;
   try {
     localStorage.removeItem(CATALOG_CACHE_KEY);
     localStorage.removeItem('nolli:catalog-synced-at');

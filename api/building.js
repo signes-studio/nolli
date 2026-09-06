@@ -125,6 +125,81 @@ function sanitizeBuildingPayload(data, isUpdate = false) {
   return payload;
 }
 
+/**
+ * Invalida/purga la caché CDN de /api/catalog en Vercel Edge y Cloudflare
+ * de manera granular por tags y URLs.
+ */
+async function purgeCatalogCdnCache() {
+  const purgeTasks = [];
+
+  // 1. Purga por tags en Vercel Edge CDN (API oficial)
+  const vercelToken = process.env.VERCEL_TOKEN || process.env.VERCEL_API_TOKEN;
+  const vercelProjectId = process.env.VERCEL_PROJECT_ID || process.env.VERCEL_GIT_REPO_SLUG || 'nolli';
+  const vercelTeamId = process.env.VERCEL_TEAM_ID;
+
+  if (vercelToken) {
+    const vercelParams = new URLSearchParams({ projectIdOrName: vercelProjectId });
+    if (vercelTeamId) vercelParams.append('teamId', vercelTeamId);
+
+    const vercelPurgePromise = fetch(`https://api.vercel.com/v1/edge-cache/invalidate-by-tags?${vercelParams.toString()}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${vercelToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ tags: ['catalog'] }),
+    }).then(async (res) => {
+      if (!res.ok) {
+        const errText = await res.text().catch(() => '');
+        console.warn('Aviso de purga Vercel CDN:', res.status, errText);
+      } else {
+        console.log('Caché Vercel CDN invalidado con éxito para tag "catalog".');
+      }
+    }).catch((err) => {
+      console.warn('Fallo de red al solicitar purga a Vercel CDN:', err.message);
+    });
+
+    purgeTasks.push(vercelPurgePromise);
+  }
+
+  // 2. Purga en Cloudflare CDN si el dominio está configurado con Cloudflare
+  const cfZoneId = process.env.CLOUDFLARE_ZONE_ID;
+  const cfToken = process.env.CLOUDFLARE_API_TOKEN;
+
+  if (cfZoneId && cfToken) {
+    const cfPurgePromise = fetch(`https://api.cloudflare.com/client/v4/zones/${cfZoneId}/purge_cache`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${cfToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        tags: ['catalog'],
+        files: [
+          'https://nollimap.app/api/catalog',
+          'https://nollimap.app/api/catalog?light=true',
+          'https://nollimap.app/api/catalog?light=1',
+        ],
+      }),
+    }).then(async (res) => {
+      if (!res.ok) {
+        const errText = await res.text().catch(() => '');
+        console.warn('Aviso de purga Cloudflare:', res.status, errText);
+      } else {
+        console.log('Caché Cloudflare purgado con éxito para /api/catalog.');
+      }
+    }).catch((err) => {
+      console.warn('Fallo de red al solicitar purga a Cloudflare:', err.message);
+    });
+
+    purgeTasks.push(cfPurgePromise);
+  }
+
+  if (purgeTasks.length > 0) {
+    await Promise.allSettled(purgeTasks);
+  }
+}
+
 module.exports = async function handler(req, res) {
   const supabaseUrl = process.env.SUPABASE_URL || FALLBACK_SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || FALLBACK_SUPABASE_KEY;
@@ -187,6 +262,7 @@ module.exports = async function handler(req, res) {
       }
 
       const inserted = await response.json();
+      await purgeCatalogCdnCache();
       return res.status(201).json(inserted);
     }
 
@@ -224,6 +300,7 @@ module.exports = async function handler(req, res) {
         return res.status(404).json({ error: `No se encontró ninguna obra con el ID ${id}.` });
       }
 
+      await purgeCatalogCdnCache();
       return res.status(200).json(updated);
     }
 
@@ -252,6 +329,7 @@ module.exports = async function handler(req, res) {
       }
 
       const deleted = await response.json().catch(() => []);
+      await purgeCatalogCdnCache();
       return res.status(200).json(deleted);
     }
 

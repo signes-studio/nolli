@@ -84,8 +84,11 @@ module.exports = async function handler(req, res) {
     }
 
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
-    // Cabecera Edge CDN compartida a nivel mundial: 30 minutos fresca, 1 hora revalidación
-    res.setHeader('Cache-Control', 'public, s-maxage=1800, stale-while-revalidate=3600');
+    // Etiquetas para invalidación/purga granular en Vercel Edge y Cloudflare CDN
+    res.setHeader('Vercel-Cache-Tag', 'catalog');
+    res.setHeader('Cache-Tag', 'catalog');
+    // Cabecera Edge CDN compartida a nivel mundial: 1 hora fresca (s-maxage=3600), 2 horas revalidación
+    res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=7200');
     return res.status(200).json(allBuildings);
   } catch (error) {
     console.error('Error al generar catálogo en edge:', error);
