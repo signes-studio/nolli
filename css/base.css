@@ -379,8 +379,8 @@ body.dark-mode .admin-tab.active {
   font-family: 'Inter', sans-serif;
 }
 
-/* Prevención estricta de auto-zoom en iOS Safari al enfocar inputs en móvil */
-@media (max-width: 768px) {
+/* Prevención estricta de auto-zoom en iOS Safari al enfocar inputs en cualquier dispositivo táctil */
+@media (max-width: 768px), (pointer: coarse) {
   input, select, textarea, .tech-input, .mobile-search-input {
     font-size: 16px !important;
   }
