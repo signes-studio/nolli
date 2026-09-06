@@ -42,11 +42,15 @@ function clearSessionAndUserCaches() {
 function iniciarLatidoPresencia() {
   if (presenceTimer) clearInterval(presenceTimer);
   if (state.sessionToken) {
-    updateUserPresence(state.sessionToken);
+    updateUserPresence(state.sessionToken, state.userId);
     presenceTimer = setInterval(() => {
-      if (state.sessionToken) updateUserPresence(state.sessionToken);
-      else clearInterval(presenceTimer);
-    }, 3 * 60 * 1000);
+      if (!state.sessionToken) {
+        clearInterval(presenceTimer);
+        return;
+      }
+      if (document.hidden) return; // Ahorro de egress: no emitir latidos con la pestaña en segundo plano
+      updateUserPresence(state.sessionToken, state.userId);
+    }, 15 * 60 * 1000);
   }
 }
 

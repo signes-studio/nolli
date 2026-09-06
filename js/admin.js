@@ -156,11 +156,15 @@ function renderAdminIdentity(user, role) {
 function iniciarPresencia() {
   if (presenceTimer) clearInterval(presenceTimer);
   if (adminConsoleState.token) {
-    updateUserPresence(adminConsoleState.token);
+    updateUserPresence(adminConsoleState.token, adminConsoleState.user?.id);
     presenceTimer = setInterval(() => {
-      if (adminConsoleState.token) updateUserPresence(adminConsoleState.token);
-      else clearInterval(presenceTimer);
-    }, 2 * 60 * 1000);
+      if (!adminConsoleState.token) {
+        clearInterval(presenceTimer);
+        return;
+      }
+      if (document.hidden) return;
+      updateUserPresence(adminConsoleState.token, adminConsoleState.user?.id);
+    }, 15 * 60 * 1000);
   }
 }
 

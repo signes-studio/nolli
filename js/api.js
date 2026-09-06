@@ -676,12 +676,12 @@ export async function upsertCurrentProfile(user, profile = {}, sessionToken) {
   return response.json();
 }
 
-export async function updateUserPresence(sessionToken) {
+export async function updateUserPresence(sessionToken, userId = null) {
   if (!sessionToken) return;
   try {
-    const user = await fetchCurrentUser(sessionToken);
-    if (!user || !user.id) return;
-    await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(user.id)}`, {
+    const targetUserId = userId || (await fetchCurrentUser(sessionToken))?.id;
+    if (!targetUserId) return;
+    await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(targetUserId)}`, {
       method: 'PATCH',
       headers: {
         'apikey': SUPABASE_KEY,
@@ -777,20 +777,61 @@ export async function fetchUserRole(sessionToken) {
   return (effectiveRole === 'admin' || effectiveRole === 'superadmin' || effectiveRole === 'tester') ? effectiveRole : 'user';
 }
 
+// Caché en memoria para evitar peticiones repetidas a Supabase Auth y status durante la sesión
+let currentUserPromise = null;
+const cachedUserMap = new Map();
+
 export async function fetchCurrentUser(sessionToken) {
-  const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
-    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
-  });
-  if (!response.ok) throw new Error('La sesión ha caducado.');
-  return response.json();
+  if (!sessionToken) throw new Error('No hay sesión activa.');
+  const cached = cachedUserMap.get(sessionToken);
+  if (cached && Date.now() < cached.expiresAt) {
+    return cached.user;
+  }
+  if (currentUserPromise) return currentUserPromise;
+
+  currentUserPromise = (async () => {
+    try {
+      const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
+      });
+      if (!response.ok) throw new Error('La sesión ha caducado.');
+      const user = await response.json();
+      cachedUserMap.set(sessionToken, { user, expiresAt: Date.now() + 2 * 60 * 1000 });
+      return user;
+    } finally {
+      currentUserPromise = null;
+    }
+  })();
+
+  return currentUserPromise;
 }
 
+const buildingStatusesCache = new Map();
+let buildingStatusesPromise = null;
+
 export async function fetchBuildingStatuses(userId, sessionToken) {
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_building_status?user_id=eq.${encodeURIComponent(userId)}&select=building_id,favorite,visited,notas,valoracion`, {
-    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
-  });
-  if (!response.ok) return [];
-  return response.json();
+  if (!userId || !sessionToken) return [];
+  const cached = buildingStatusesCache.get(String(userId));
+  if (cached && Date.now() < cached.expiresAt) {
+    return cached.data;
+  }
+  if (buildingStatusesPromise) return buildingStatusesPromise;
+
+  buildingStatusesPromise = (async () => {
+    try {
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/user_building_status?user_id=eq.${encodeURIComponent(userId)}&select=building_id,favorite,visited,notas,valoracion`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
+      });
+      if (!response.ok) return [];
+      const data = await response.json();
+      buildingStatusesCache.set(String(userId), { data, expiresAt: Date.now() + 60 * 1000 });
+      return data;
+    } finally {
+      buildingStatusesPromise = null;
+    }
+  })();
+
+  return buildingStatusesPromise;
 }
 
 export async function saveBuildingStatus(userId, buildingId, status, sessionToken) {
@@ -808,6 +849,7 @@ export async function saveBuildingStatus(userId, buildingId, status, sessionToke
     const error = await response.json().catch(() => ({}));
     throw new Error(error.message || error.details || 'No se pudo guardar tu estado personal.');
   }
+  buildingStatusesCache.delete(String(userId));
   return response.json();
 }
 

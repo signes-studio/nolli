@@ -321,8 +321,16 @@ async function asegurarObrasEnMemoria() {
   }
 }
 
-async function syncZonaPersonal() {
+let lastZonaPersonalSyncTime = 0;
+const ZONA_PERSONAL_SYNC_TTL_MS = 60 * 1000; // 60 segundos de frescura en memoria
+
+async function syncZonaPersonal(forzar = false) {
   if (!state.userId || !state.sessionToken) return;
+  const now = Date.now();
+  if (!forzar && (now - lastZonaPersonalSyncTime < ZONA_PERSONAL_SYNC_TTL_MS) && state.userCollections?.length > 0) {
+    return; // Ya sincronizado recientemente en memoria: 0 egress hacia Supabase
+  }
+  lastZonaPersonalSyncTime = now;
   try {
     const [collections, collectionItems, statuses, followed] = await Promise.all([
       fetchUserCollections(state.userId, state.sessionToken),
