@@ -1,4 +1,6 @@
-const CACHE_NAME = 'nolli-shell-v69';
+const CACHE_NAME = 'nolli-shell-v70';
+const CATALOG_FRESHNESS_MINUTES = 60;
+const CATALOG_CACHE_TTL_MS = CATALOG_FRESHNESS_MINUTES * 60 * 1000;
 const APP_SHELL = [
   './',
   './index.html',
@@ -89,29 +91,55 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Estrategia Stale-While-Revalidate para /api/catalog (permite uso offline del catálogo y mapa)
+  // Estrategia Stale-While-Revalidate con control de frescura para /api/catalog (permite uso offline y evita descargas redundantes)
   if (url.pathname === '/api/catalog') {
     event.respondWith(
       caches.open(CACHE_NAME).then(async (cache) => {
-        const cachedResponse = await cache.match(event.request);
-        const fetchPromise = fetch(event.request)
-          .then((networkResponse) => {
+        const [cachedResponse, timestampRes] = await Promise.all([
+          (await cache.match(event.request)) || (await cache.match('/api/catalog')),
+          cache.match('/api/catalog-timestamp'),
+        ]);
+
+        const fetchPromise = async () => {
+          try {
+            const networkResponse = await fetch(event.request);
             if (networkResponse && networkResponse.ok) {
-              cache.put(event.request, networkResponse.clone());
+              await cache.put(event.request, networkResponse.clone());
+              try {
+                await cache.put('/api/catalog', networkResponse.clone());
+              } catch {}
+              await cache.put(
+                '/api/catalog-timestamp',
+                new Response(String(Date.now()), {
+                  headers: { 'Content-Type': 'text/plain' },
+                }),
+              );
             }
             return networkResponse;
-          })
-          .catch((err) => {
+          } catch (err) {
             if (cachedResponse) return cachedResponse;
             throw err;
-          });
+          }
+        };
 
         if (cachedResponse) {
-          event.waitUntil(fetchPromise.catch(() => undefined));
+          let isStale = true;
+          if (timestampRes) {
+            try {
+              const savedTime = Number(await timestampRes.text());
+              if (Number.isFinite(savedTime) && (Date.now() - savedTime < CATALOG_CACHE_TTL_MS)) {
+                isStale = false;
+              }
+            } catch {}
+          }
+
+          if (isStale) {
+            event.waitUntil(fetchPromise().catch(() => undefined));
+          }
           return cachedResponse;
         }
 
-        return fetchPromise;
+        return fetchPromise();
       }),
     );
     return;
