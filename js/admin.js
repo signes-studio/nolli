@@ -673,10 +673,11 @@ function setupModalEvents() {
       const id = adminConsoleState.editingWorkId;
       if (!id) return;
 
+      const editAnoVal = document.getElementById('edit-ano').value.trim();
       const payload = {
         nombre_obra: document.getElementById('edit-nombre').value.trim(),
         arquitecto: document.getElementById('edit-arquitecto').value.trim(),
-        año_construccion: document.getElementById('edit-ano').value ? parseInt(document.getElementById('edit-ano').value, 10) : null,
+        año_construccion: editAnoVal ? editAnoVal : null,
         categoria: document.getElementById('edit-categoria').value,
         estado_acceso: document.getElementById('edit-acceso').value,
         foto_url: document.getElementById('edit-foto').value.trim() || null,

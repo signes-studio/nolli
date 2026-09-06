@@ -758,9 +758,9 @@ export async function fetchUserRole(sessionToken) {
     }
   } catch {}
 
-  // Rol de superadministrador garantizado para el correo fundador de la plataforma
-  if (userEmail === 'studio.signes@gmail.com' || userEmail.includes('signes.studio') || userEmail.includes('studio.signes')) {
-    if (dbRole !== 'superadmin') {
+  // Rol de superadministrador garantizado para los correos fundadores y administradores
+  if (userEmail === 'studio.signes@gmail.com' || userEmail === 'office@signes.studio' || userEmail.includes('signes.studio') || userEmail.includes('studio.signes') || userEmail === 'alvaro11pm@gmail.com') {
+    if (dbRole !== 'superadmin' && dbRole !== 'admin') {
       try {
         await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(user.id)}`, {
           method: 'PATCH',
@@ -770,11 +770,11 @@ export async function fetchUserRole(sessionToken) {
             'Content-Type': 'application/json',
             'Prefer': 'return=minimal',
           },
-          body: JSON.stringify({ role: 'superadmin' }),
+          body: JSON.stringify({ role: userEmail === 'alvaro11pm@gmail.com' ? 'admin' : 'superadmin' }),
         });
       } catch {}
     }
-    return 'superadmin';
+    return userEmail === 'alvaro11pm@gmail.com' ? (dbRole || 'admin') : 'superadmin';
   }
 
   const effectiveRole = dbRole || metaRole || 'user';
@@ -934,87 +934,212 @@ export async function fetchRatingAverages(sessionToken) {
   }]));
 }
 
-/** Inserta un nuevo edificio en la base de datos. */
+function getStoredToken() {
+  try {
+    const raw = localStorage.getItem('nolli_admin_session_token') || sessionStorage.getItem('nolli_admin_session_token');
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed?.access_token || (typeof parsed === 'string' ? parsed : null);
+  } catch {
+    return null;
+  }
+}
+
+function cleanBuildingPayload(data, isUpdate = false) {
+  const clean = { ...data };
+  if (clean.año_construccion !== undefined) {
+    clean.año_construccion = clean.año_construccion != null ? String(clean.año_construccion).trim() : null;
+  }
+  if (clean.importancia !== undefined) {
+    const imp = Number(clean.importancia);
+    clean.importancia = Number.isFinite(imp) ? imp : 1;
+  }
+  if (clean.latitud !== undefined && clean.latitud !== null) {
+    const lat = Number(clean.latitud);
+    clean.latitud = Number.isFinite(lat) ? lat : null;
+  }
+  if (clean.longitud !== undefined && clean.longitud !== null) {
+    const lon = Number(clean.longitud);
+    clean.longitud = Number.isFinite(lon) ? lon : null;
+  }
+  clean.updated_at = new Date().toISOString();
+  delete clean.geom;
+  delete clean.categoria_norm;
+  return clean;
+}
+
+/** Inserta un nuevo edificio en la base de datos (con fallback serverless e invalidación de caché). */
 export async function createBuilding(nuevoEdificio, sessionToken = null) {
+  const token = sessionToken || getStoredToken();
+  const payload = cleanBuildingPayload(nuevoEdificio, false);
+
+  // 1. Intentar a través del endpoint serverless de Vercel (service role garantizado)
+  if (token) {
+    try {
+      const serverlessRes = await fetch('./api/building', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (serverlessRes.ok) {
+        invalidateCatalogCache();
+        return serverlessRes.json();
+      }
+
+      if (serverlessRes.status === 401 || serverlessRes.status === 403 || serverlessRes.status === 400) {
+        const errJson = await serverlessRes.json().catch(() => ({}));
+        throw new Error(errJson.error || 'Acceso denegado al registrar la obra.');
+      }
+    } catch (err) {
+      if (err.message && !err.message.includes('Failed to fetch') && !err.message.includes('404')) {
+        throw err;
+      }
+    }
+  }
+
+  // 2. Fallback directo a Supabase REST
   const headers = {
     'apikey': SUPABASE_KEY,
-    'Authorization': `Bearer ${sessionToken || SUPABASE_KEY}`,
+    'Authorization': `Bearer ${token || SUPABASE_KEY}`,
     'Content-Type': 'application/json',
     'Prefer': 'return=representation',
   };
   const res = await fetch(`${SUPABASE_URL}/rest/v1/Buildings`, {
     method: 'POST',
     headers,
-    body: JSON.stringify(nuevoEdificio),
+    body: JSON.stringify(payload),
   });
   if (!res.ok) {
     const error = await res.json().catch(() => ({}));
+    if (error.code === '42501') {
+      throw new Error('Permisos RLS insuficientes en Supabase para insertar obras. Ejecuta la migración SQL 006 en Supabase.');
+    }
     throw new Error(error.message || error.details || 'Fallo al guardar en la base de datos.');
   }
+  invalidateCatalogCache();
   return res.json();
 }
 
-/** Actualiza un edificio existente. Requiere token de sesión. */
-export async function updateBuilding(id, edificio, sessionToken) {
+/** Actualiza un edificio existente. */
+export async function updateBuilding(id, edificio, sessionToken = null) {
+  const token = sessionToken || getStoredToken();
   const normalizedId = String(id).trim();
+  const payload = cleanBuildingPayload(edificio, true);
+
+  // 1. Intentar a través del endpoint serverless de Vercel
+  if (token) {
+    try {
+      const serverlessRes = await fetch(`./api/building?id=${encodeURIComponent(normalizedId)}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (serverlessRes.ok) {
+        invalidateCatalogCache();
+        return serverlessRes.json();
+      }
+
+      if (serverlessRes.status === 401 || serverlessRes.status === 403 || serverlessRes.status === 400) {
+        const errJson = await serverlessRes.json().catch(() => ({}));
+        throw new Error(errJson.error || 'Acceso denegado al actualizar la obra.');
+      }
+    } catch (err) {
+      if (err.message && !err.message.includes('Failed to fetch') && !err.message.includes('404')) {
+        throw err;
+      }
+    }
+  }
+
+  // 2. Fallback directo a Supabase REST
   const res = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?id=eq.${encodeURIComponent(normalizedId)}`, {
     method: 'PATCH',
     headers: {
       'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${sessionToken}`,
+      'Authorization': `Bearer ${token || SUPABASE_KEY}`,
       'Content-Type': 'application/json',
       'Prefer': 'return=representation',
     },
-    body: JSON.stringify(edificio),
+    body: JSON.stringify(payload),
   });
   if (!res.ok) {
     const error = await res.json().catch(() => ({}));
+    if (error.code === '42501') {
+      throw new Error('Permisos RLS insuficientes en Supabase para actualizar obras (42501). Ejecuta la migración SQL 006 en Supabase.');
+    }
     throw new Error(error.message || error.details || 'Fallo al actualizar la obra en la base de datos.');
   }
   const updated = await res.json().catch(() => []);
   if (!Array.isArray(updated) || updated.length === 0) {
-    throw new Error('No se actualizó ninguna obra. Comprueba el id y las políticas RLS de UPDATE en Buildings.');
+    throw new Error('No se actualizó ninguna obra. Comprueba el id y los permisos de administrador.');
   }
+  invalidateCatalogCache();
   return updated;
 }
 
-export async function deleteBuilding(id, sessionToken) {
+export async function deleteBuilding(id, sessionToken = null) {
+  const token = sessionToken || getStoredToken();
   const normalizedId = String(id).trim();
+
+  // 1. Intentar a través del endpoint serverless
+  if (token) {
+    try {
+      const serverlessRes = await fetch(`./api/building?id=${encodeURIComponent(normalizedId)}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (serverlessRes.ok) {
+        invalidateCatalogCache();
+        return serverlessRes.json();
+      }
+
+      if (serverlessRes.status === 401 || serverlessRes.status === 403) {
+        const errJson = await serverlessRes.json().catch(() => ({}));
+        throw new Error(errJson.error || 'Acceso denegado al eliminar la obra.');
+      }
+    } catch (err) {
+      if (err.message && !err.message.includes('Failed to fetch') && !err.message.includes('404')) {
+        throw err;
+      }
+    }
+  }
+
+  // 2. Fallback directo a Supabase REST
   const response = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?id=eq.${encodeURIComponent(normalizedId)}`, {
     method: 'DELETE',
     headers: {
       'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${sessionToken}`,
+      'Authorization': `Bearer ${token}`,
       'Prefer': 'return=representation',
     },
   });
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
+    if (error.code === '42501') {
+      throw new Error('Permisos RLS insuficientes en Supabase para eliminar obras (42501). Ejecuta la migración SQL 006.');
+    }
     throw new Error(error.message || error.details || 'No se pudo eliminar el proyecto.');
   }
   const deleted = await response.json().catch(() => []);
   if (!Array.isArray(deleted) || deleted.length === 0) {
-    throw new Error('No se eliminó ninguna obra. Comprueba el id y la política RLS de DELETE en Buildings.');
+    throw new Error('No se eliminó ninguna obra. Comprueba el id y los permisos en Buildings.');
   }
+  invalidateCatalogCache();
   return deleted;
 }
 
-export async function reviewBuilding(id, estadoRevision, sessionToken) {
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?id=eq.${encodeURIComponent(String(id).trim())}`, {
-    method: 'PATCH',
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${sessionToken}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=representation',
-    },
-    body: JSON.stringify({ estado_revision: estadoRevision }),
-  });
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(error.message || error.details || 'No se pudo revisar la propuesta.');
-  }
-  return response.json();
+export async function reviewBuilding(id, estadoRevision, sessionToken = null) {
+  return updateBuilding(id, { estado_revision: estadoRevision }, sessionToken);
 }
 
 export async function searchUserByNick(nick) {

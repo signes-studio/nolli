@@ -503,7 +503,7 @@ function initAddBuildingModal() {
       foto_url: fotoUrl || null,
       enlace_url: enlaceUrl || null,
       arquitecto: finalArq,
-      año_construccion: Number.isNaN(ano) ? null : ano,
+      año_construccion: Number.isNaN(ano) ? null : String(ano),
       importancia,
       categoria,
       estado_acceso: estadoAcceso,
@@ -513,11 +513,27 @@ function initAddBuildingModal() {
 
     try {
       if (state.editingBuildingId !== null) {
-        const updatedData = await updateBuilding(state.editingBuildingId, edificio, state.sessionToken);
-        const updated = updatedData[0];
-        const obra = state.OBRAS.find((item) => String(item.id) === String(state.editingBuildingId));
-        if (obra) Object.assign(obra, {
+        const obraExistente = state.OBRAS.find((item) => String(item.id) === String(state.editingBuildingId));
+        const esAdmin = esRolAdmin(state.userRole);
+
+        // Si el usuario es administrador, aplicar la visibilidad seleccionada
+        let estadoRevision = obraExistente?.estado_revision || 'publicada';
+        if (esAdmin) {
+          if (visibility === 'direct') estadoRevision = 'publicada';
+          else if (visibility === 'review') estadoRevision = 'pendiente';
+        }
+
+        const edificioUpdate = {
           ...edificio,
+          estado_revision: estadoRevision,
+          place: obraExistente?.place || null,
+        };
+
+        const updatedData = await updateBuilding(state.editingBuildingId, edificioUpdate, state.sessionToken);
+        const updated = Array.isArray(updatedData) ? updatedData[0] : updatedData;
+        const obra = obraExistente;
+        if (obra) Object.assign(obra, {
+          ...edificioUpdate,
           arquitectos: separarArquitectos(finalArq),
           id: obra.id,
           coordenadas: [updated?.longitud ?? edificio.longitud, updated?.latitud ?? edificio.latitud],
@@ -545,13 +561,14 @@ function initAddBuildingModal() {
           ? await createPrivateBuilding(privateData, state.sessionToken)
           : await createBuilding({ ...nuevoEdificio, propuesto_por: state.userId }, state.sessionToken);
 
+        const inserted = Array.isArray(insertedData) ? insertedData[0] : insertedData;
         const savedItem = {
           ...(isPrivate ? privateData : nuevoEdificio),
           arquitectos: separarArquitectos(finalArq),
           añadido_por: nuevoEdificio.añadido_por,
           estado_revision: isPrivate ? 'privada' : nuevoEdificio.estado_revision,
-          id: insertedData?.[0]?.id || nuevoId,
-          featureId: String(insertedData?.[0]?.id ?? `obra-${nuevoId}`),
+          id: inserted?.id || nuevoId,
+          featureId: String(inserted?.id ?? `obra-${nuevoId}`),
           private: isPrivate,
           coordenadas: [state.pendingLngLat.lng, state.pendingLngLat.lat],
           selected: false,
