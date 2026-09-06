@@ -122,11 +122,14 @@ body.dark-mode .location-reticle {
   border: 1px solid var(--border-strong); background: var(--bg-panel); color: var(--fg);
   cursor: pointer; font-family: 'Inter', sans-serif;
 }
-.btn:hover, .btn:focus-visible { background: var(--fg); color: var(--bg-panel); outline: none; }
+.btn:hover { background: var(--fg); color: var(--bg-panel); }
+.btn:focus-visible { background: var(--fg); color: var(--bg-panel); outline: 2px solid var(--accent, #E95C0C) !important; outline-offset: 2px; }
 .btn-accent { background: var(--accent-2); border-color: var(--accent-2); color: var(--fg); font-weight: 700; }
-.btn-accent:hover, .btn-accent:focus-visible { background: var(--fg); color: var(--accent-2); }
+.btn-accent:hover { background: var(--fg); color: var(--accent-2); }
+.btn-accent:focus-visible { background: var(--fg); color: var(--accent-2); outline: 2px solid var(--accent, #E95C0C) !important; outline-offset: 2px; }
 .btn-accent2 { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
-.btn-accent2:hover, .btn-accent2:focus-visible { background: var(--fg); color: var(--accent); }
+.btn-accent2:hover { background: var(--fg); color: var(--accent); }
+.btn-accent2:focus-visible { background: var(--fg); color: var(--accent); outline: 2px solid var(--accent, #E95C0C) !important; outline-offset: 2px; }
 .btn-edit { font-size: 10px; padding: 5px 7px; color: var(--accent); border-color: var(--accent); }
 .admin-mode-control { display: inline-flex; align-items: center; justify-content: flex-end; gap: 6px; margin-top: 8px; color: var(--accent); font-size: 9px; cursor: pointer; }
 .admin-mode-control input { position: absolute; opacity: 0; pointer-events: none; }
@@ -212,10 +215,13 @@ body.dark-mode .location-reticle {
   transition: transform 0.08s ease, background 0.12s ease;
 }
 
-.architect-work-card:hover,
+.architect-work-card:hover {
+  background: var(--bg-raised, #ECE6D8);
+}
 .architect-work-card:focus-visible {
   background: var(--bg-raised, #ECE6D8);
-  outline: none;
+  outline: 2px solid var(--accent, #E95C0C) !important;
+  outline-offset: 2px;
 }
 
 .architect-work-card:active {
