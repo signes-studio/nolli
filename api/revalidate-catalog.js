@@ -11,6 +11,14 @@ async function purgeCatalogCdnCache() {
   const vercelProjectId = process.env.VERCEL_PROJECT_ID || process.env.VERCEL_GIT_REPO_SLUG || 'nolli';
   const vercelTeamId = process.env.VERCEL_TEAM_ID;
 
+  const cfZoneId = process.env.CLOUDFLARE_ZONE_ID;
+  const cfToken = process.env.CLOUDFLARE_API_TOKEN;
+
+  if (!vercelToken && !cfToken) {
+    console.error('[PURGE ERROR] No se encontró VERCEL_TOKEN ni CLOUDFLARE_API_TOKEN en variables de entorno de producción. La purga de caché CDN no se pudo disparar.');
+    return [{ status: 'rejected', reason: 'NO_PURGE_TOKEN_CONFIGURED' }];
+  }
+
   if (vercelToken) {
     const vercelParams = new URLSearchParams({ projectIdOrName: vercelProjectId });
     if (vercelTeamId) vercelParams.append('teamId', vercelTeamId);
@@ -25,20 +33,18 @@ async function purgeCatalogCdnCache() {
     }).then(async (res) => {
       if (!res.ok) {
         const errText = await res.text().catch(() => '');
-        console.warn('Aviso de purga Vercel CDN:', res.status, errText);
+        console.error(`[PURGE ERROR] Fallo al invalidar caché Vercel CDN (HTTP ${res.status}):`, errText);
         return { success: false, status: res.status, error: errText };
       }
+      console.log('[PURGE SUCCESS] Caché Vercel CDN invalidado con éxito para tag "catalog" (HTTP 200).');
       return { success: true, status: 200 };
     }).catch((err) => {
-      console.warn('Fallo de red al solicitar purga a Vercel CDN:', err.message);
+      console.error('[PURGE ERROR] Fallo de red al solicitar purga a Vercel CDN:', err.message);
       return { success: false, error: err.message };
     });
 
     purgeTasks.push(vercelPurgePromise);
   }
-
-  const cfZoneId = process.env.CLOUDFLARE_ZONE_ID;
-  const cfToken = process.env.CLOUDFLARE_API_TOKEN;
 
   if (cfZoneId && cfToken) {
     const cfPurgePromise = fetch(`https://api.cloudflare.com/client/v4/zones/${cfZoneId}/purge_cache`, {
@@ -102,3 +108,4 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: 'Error al invalidar la caché del catálogo.' });
   }
 };
+

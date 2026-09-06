@@ -137,6 +137,14 @@ async function purgeCatalogCdnCache() {
   const vercelProjectId = process.env.VERCEL_PROJECT_ID || process.env.VERCEL_GIT_REPO_SLUG || 'nolli';
   const vercelTeamId = process.env.VERCEL_TEAM_ID;
 
+  const cfZoneId = process.env.CLOUDFLARE_ZONE_ID;
+  const cfToken = process.env.CLOUDFLARE_API_TOKEN;
+
+  if (!vercelToken && !cfToken) {
+    console.error('[PURGE ERROR] No se encontró VERCEL_TOKEN ni CLOUDFLARE_API_TOKEN en variables de entorno de producción. La purga de caché CDN no se pudo disparar.');
+    return [{ status: 'rejected', reason: 'NO_PURGE_TOKEN_CONFIGURED' }];
+  }
+
   if (vercelToken) {
     const vercelParams = new URLSearchParams({ projectIdOrName: vercelProjectId });
     if (vercelTeamId) vercelParams.append('teamId', vercelTeamId);
@@ -151,21 +159,20 @@ async function purgeCatalogCdnCache() {
     }).then(async (res) => {
       if (!res.ok) {
         const errText = await res.text().catch(() => '');
-        console.warn('Aviso de purga Vercel CDN:', res.status, errText);
-      } else {
-        console.log('Caché Vercel CDN invalidado con éxito para tag "catalog".');
+        console.error(`[PURGE ERROR] Fallo al invalidar caché Vercel CDN (HTTP ${res.status}):`, errText);
+        return { provider: 'vercel', success: false, status: res.status, error: errText };
       }
+      console.log('[PURGE SUCCESS] Caché Vercel CDN invalidado con éxito para tag "catalog" (HTTP 200).');
+      return { provider: 'vercel', success: true, status: 200 };
     }).catch((err) => {
-      console.warn('Fallo de red al solicitar purga a Vercel CDN:', err.message);
+      console.error('[PURGE ERROR] Excepción de red al solicitar purga a Vercel CDN:', err.message);
+      return { provider: 'vercel', success: false, error: err.message };
     });
 
     purgeTasks.push(vercelPurgePromise);
   }
 
   // 2. Purga en Cloudflare CDN si el dominio está configurado con Cloudflare
-  const cfZoneId = process.env.CLOUDFLARE_ZONE_ID;
-  const cfToken = process.env.CLOUDFLARE_API_TOKEN;
-
   if (cfZoneId && cfToken) {
     const cfPurgePromise = fetch(`https://api.cloudflare.com/client/v4/zones/${cfZoneId}/purge_cache`, {
       method: 'POST',
@@ -184,20 +191,21 @@ async function purgeCatalogCdnCache() {
     }).then(async (res) => {
       if (!res.ok) {
         const errText = await res.text().catch(() => '');
-        console.warn('Aviso de purga Cloudflare:', res.status, errText);
-      } else {
-        console.log('Caché Cloudflare purgado con éxito para /api/catalog.');
+        console.error(`[PURGE ERROR] Fallo al purgar Cloudflare CDN (HTTP ${res.status}):`, errText);
+        return { provider: 'cloudflare', success: false, status: res.status, error: errText };
       }
+      console.log('[PURGE SUCCESS] Caché Cloudflare purgado con éxito para /api/catalog (HTTP 200).');
+      return { provider: 'cloudflare', success: true, status: 200 };
     }).catch((err) => {
-      console.warn('Fallo de red al solicitar purga a Cloudflare:', err.message);
+      console.error('[PURGE ERROR] Excepción de red al solicitar purga a Cloudflare:', err.message);
+      return { provider: 'cloudflare', success: false, error: err.message };
     });
 
     purgeTasks.push(cfPurgePromise);
   }
 
-  if (purgeTasks.length > 0) {
-    await Promise.allSettled(purgeTasks);
-  }
+  const results = await Promise.allSettled(purgeTasks);
+  return results;
 }
 
 module.exports = async function handler(req, res) {
