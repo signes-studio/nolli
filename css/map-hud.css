@@ -413,7 +413,7 @@ body.dark-mode .topbar-btn-profile:hover {
     border-left: 1px solid var(--border-strong, #141411);
     background: transparent;
     color: var(--fg, #141411);
-    padding: 6px 10px;
+    padding: 6px 12px;
     font-family: 'Inter', sans-serif;
     font-size: 10px;
     font-weight: 700;
@@ -422,7 +422,8 @@ body.dark-mode .topbar-btn-profile:hover {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 32px;
+    min-height: 44px;
+    min-width: 44px;
     transition: background 0.12s ease, color 0.12s ease;
   }
 
@@ -595,12 +596,14 @@ body.dark-mode .topbar-btn-profile:hover {
   }
 
   .mobile-search-close {
-    width: 32px;
-    height: 32px;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
     border: 0;
     background: transparent;
     color: var(--fg, #141411);
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;

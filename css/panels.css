@@ -19,7 +19,7 @@
   background: var(--bg-raised);
 }
 .sheet-header-actions { display: flex; align-items: center; gap: 4px; }
-.sheet-close-button { display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; background: transparent; color: var(--fg-dim); cursor: pointer; }
+.sheet-close-button { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 0; border: 0; background: transparent; color: var(--fg-dim); cursor: pointer; touch-action: manipulation; }
 .sheet-close-button:hover { color: var(--accent); }
 .sheet-close-button:focus-visible { color: var(--accent); outline: 2px solid var(--accent, #E95C0C) !important; outline-offset: 2px; }
 .data-row {
@@ -1559,7 +1559,7 @@ body.dark-mode .btn-apply-search-filter {
 .sheet-link a { color: var(--accent); font-size: 10px; text-decoration: underline; }
 .photo-viewer { position: relative; width: min(94vw, 1000px); height: min(88vh, 760px); display: flex; align-items: center; justify-content: center; background: #0c0c0c; border: 1px solid var(--border-strong); }
 .photo-viewer img { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; }
-.photo-close { position: absolute; top: 8px; right: 8px; z-index: 1; width: 30px; height: 30px; border: 1px solid var(--fg-dim); background: rgba(17,17,17,.85); color: var(--fg); font: inherit; cursor: pointer; }
+.photo-close { position: absolute; top: 8px; right: 8px; z-index: 1; min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--fg-dim); background: rgba(17,17,17,.85); color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; touch-action: manipulation; }
 /* ==========================================================================
    PANEL DE FILTROS: ESTRUCTURA Y COMPONENTES NEO-BAUHAUS
    ========================================================================== */
