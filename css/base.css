@@ -373,3 +373,10 @@ body.dark-mode .admin-tab.active {
   text-align: center;
   font-family: 'Inter', sans-serif;
 }
+
+/* Prevención estricta de auto-zoom en iOS Safari al enfocar inputs en móvil */
+@media (max-width: 768px) {
+  input, select, textarea, .tech-input, .mobile-search-input {
+    font-size: 16px !important;
+  }
+}

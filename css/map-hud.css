@@ -10,6 +10,16 @@
   width: 100%;
   height: 100%;
   z-index: 1;
+  touch-action: none !important;
+}
+
+.mapboxgl-canvas,
+.mapboxgl-canvas-container,
+.mapboxgl-map {
+  touch-action: none !important;
+  -webkit-touch-callout: none !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
 }
 
 /* Controles de atribucion/branding para Mapbox y MapLibre */

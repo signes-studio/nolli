@@ -111,6 +111,7 @@ export function cargarMapaMapbox() {
 
   state.map.dragRotate?.disable?.();
   state.map.touchZoomRotate?.disableRotation?.();
+  state.map.touchPitch?.disable?.();
 
   // Redimensionamiento y ajuste dinámico de padding en dispositivos táctiles
   window.addEventListener('resize', () => {

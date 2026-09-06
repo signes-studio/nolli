@@ -365,3 +365,56 @@ if (mapToolsToggle && mapTools) {
     mapToolsToggle.classList.toggle('active-state', open);
   });
 }
+
+/* =========================================================================
+   BLOQUEO DE ZOOM NATIVO DE PÁGINA (ZOOM EXCLUSIVO PARA MAPBOX EN MÓVIL)
+   ========================================================================= */
+function bloquearZoomNativoWeb() {
+  // 1. Prevenir gestos nativos de escalado de página en iOS Safari
+  document.addEventListener('gesturestart', (e) => e.preventDefault(), { passive: false });
+  document.addEventListener('gesturechange', (e) => e.preventDefault(), { passive: false });
+  document.addEventListener('gestureend', (e) => e.preventDefault(), { passive: false });
+
+  // 2. Prevenir pinch-to-zoom de 2 dedos en cualquier elemento que no sea el mapa
+  document.addEventListener('touchstart', (e) => {
+    if (e.touches && e.touches.length > 1) {
+      if (!e.target.closest('#map, .mapboxgl-canvas, .mapboxgl-canvas-container')) {
+        e.preventDefault();
+      }
+    }
+  }, { passive: false });
+
+  document.addEventListener('touchmove', (e) => {
+    if (e.touches && e.touches.length > 1) {
+      if (!e.target.closest('#map, .mapboxgl-canvas, .mapboxgl-canvas-container')) {
+        e.preventDefault();
+      }
+    }
+  }, { passive: false });
+
+  // 3. Prevenir doble-tap nativo de zoom fuera del lienzo del mapa
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', (e) => {
+    const now = Date.now();
+    if (now - lastTouchEnd <= 300) {
+      const tag = e.target?.tagName?.toLowerCase();
+      if (tag !== 'input' && tag !== 'textarea' && !e.target.isContentEditable) {
+        if (!e.target.closest('#map, .mapboxgl-canvas')) {
+          e.preventDefault();
+        }
+      }
+    }
+    lastTouchEnd = now;
+  }, { passive: false });
+
+  // 4. Si el visualViewport llega a escalar o desajustarse por teclado, reajustar scroll
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', () => {
+      if (window.visualViewport.scale > 1.01) {
+        window.scrollTo(0, 0);
+      }
+    });
+  }
+}
+
+bloquearZoomNativoWeb();
