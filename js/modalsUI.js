@@ -690,12 +690,24 @@ function initReportModal() {
     if (event.target.closest('#btn-report-close') || event.target === modal) close();
   });
 
+  const updatePlaceholder = () => {
+    if (!descriptionInput) return;
+    if (activeReportType === 'duplicado') {
+      descriptionInput.placeholder = 'Indica el nombre, arquitecto o enlace de la obra con la que está duplicada...';
+    } else if (activeReportType === 'error_datos') {
+      descriptionInput.placeholder = 'Describe los datos erróneos o la información correcta...';
+    } else {
+      descriptionInput.placeholder = 'Describe la incidencia detectada...';
+    }
+  };
+
   // Selector de píldoras de tipo de incidencia
   pills?.forEach((pill) => {
     pill.addEventListener('click', () => {
       pills.forEach((p) => p.classList.remove('active'));
       pill.classList.add('active');
       activeReportType = pill.dataset.reportType || 'error_datos';
+      updatePlaceholder();
     });
   });
 
@@ -712,6 +724,7 @@ function initReportModal() {
       pill.classList.toggle('active', pill.dataset.reportType === activeReportType);
     });
 
+    updatePlaceholder();
     if (errorElement) errorElement.classList.add('hidden');
     if (descriptionInput) descriptionInput.value = '';
     modal?.classList.add('open');
@@ -729,12 +742,21 @@ function initReportModal() {
       return;
     }
 
-    if (!description && activeReportType === 'error_datos') {
-      if (errorElement) {
-        errorElement.textContent = 'Describe la corrección propuesta.';
-        errorElement.classList.remove('hidden');
+    if (!description) {
+      if (activeReportType === 'duplicado') {
+        if (errorElement) {
+          errorElement.textContent = 'Indica qué obra es la colisionante (nombre o enlace) antes de enviar.';
+          errorElement.classList.remove('hidden');
+        }
+        return;
       }
-      return;
+      if (activeReportType === 'error_datos') {
+        if (errorElement) {
+          errorElement.textContent = 'Describe la corrección propuesta.';
+          errorElement.classList.remove('hidden');
+        }
+        return;
+      }
     }
 
     const button = document.getElementById('btn-report-submit');
