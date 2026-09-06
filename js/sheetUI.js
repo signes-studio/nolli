@@ -620,7 +620,43 @@ function openShareModal() {
   window.lucide?.createIcons({ context: sheet });
 }
 
-function handleShareAction(choice) {
+async function copiarAlPortapapeles(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (e) {
+      console.warn('Fallo al copiar con Clipboard API, probando fallback execCommand:', e);
+    }
+  }
+
+  try {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-9999px';
+    textarea.style.top = '0';
+    textarea.setAttribute('readonly', '');
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    const successful = document.execCommand('copy');
+    document.body.removeChild(textarea);
+    if (successful) return true;
+  } catch (err) {
+    console.warn('Fallo al copiar con execCommand:', err);
+  }
+
+  try {
+    window.prompt('Copia el enlace de la obra manualmente:', text);
+    return true;
+  } catch (err) {
+    console.error('No se pudo abrir prompt de copia manual:', err);
+    return false;
+  }
+}
+
+async function handleShareAction(choice) {
   const building = getSelectedBuilding();
   if (!building) return;
 
@@ -629,6 +665,22 @@ function handleShareAction(choice) {
   const shareUrl = `${origin}/obra/${encodeURIComponent(shareId)}`;
   const [lng, lat] = building.coordenadas || [0, 0];
   const arq = building.arquitectos ? (Array.isArray(building.arquitectos) ? building.arquitectos.join(', ') : building.arquitectos) : (building.arquitecto || '');
+
+  const notificarCopiado = (exito) => {
+    const copyBtn = document.getElementById('btn-share-copy');
+    const copyText = document.getElementById('share-copy-text');
+    if (!copyBtn || !copyText) return;
+    if (exito) {
+      copyBtn.classList.add('copied');
+      copyText.textContent = '[ ¡ENLACE COPIADO! ]';
+    } else {
+      copyText.textContent = '[ ERROR AL COPIAR ]';
+    }
+    setTimeout(() => {
+      copyBtn.classList.remove('copied');
+      copyText.textContent = 'COPIAR ENLACE';
+    }, 2000);
+  };
 
   if (choice === 'whatsapp') {
     const text = `${building.nombre_obra}${arq ? `\n${arq}` : ''}\nVer en Nolli: ${shareUrl}`;
@@ -644,27 +696,12 @@ function handleShareAction(choice) {
         url: shareUrl
       }).catch(() => {});
     } else {
-      navigator.clipboard.writeText(shareUrl);
-      const copyBtn = document.getElementById('btn-share-copy');
-      const copyText = document.getElementById('share-copy-text');
-      if (copyBtn) copyBtn.classList.add('copied');
-      if (copyText) copyText.textContent = '[ ¡ENLACE COPIADO! ]';
-      setTimeout(() => {
-        if (copyBtn) copyBtn.classList.remove('copied');
-        if (copyText) copyText.textContent = 'COPIAR ENLACE';
-      }, 2000);
+      const copiado = await copiarAlPortapapeles(shareUrl);
+      notificarCopiado(copiado);
     }
   } else if (choice === 'copy') {
-    navigator.clipboard.writeText(shareUrl).then(() => {
-      const copyBtn = document.getElementById('btn-share-copy');
-      const copyText = document.getElementById('share-copy-text');
-      if (copyBtn) copyBtn.classList.add('copied');
-      if (copyText) copyText.textContent = '[ ¡ENLACE COPIADO! ]';
-      setTimeout(() => {
-        if (copyBtn) copyBtn.classList.remove('copied');
-        if (copyText) copyText.textContent = 'COPIAR ENLACE';
-      }, 2000);
-    }).catch(() => {});
+    const copiado = await copiarAlPortapapeles(shareUrl);
+    notificarCopiado(copiado);
   }
 }
 
