@@ -249,7 +249,7 @@
   </aside>
 
   <!-- Buscador flotante y expansivo (Desktop y Móvil) -->
-  <div id="mobile-search-widget" class="mobile-search-widget collapsed" aria-label="Buscador rápido">
+  <div id="mobile-search-widget" class="mobile-search-widget collapsed" role="dialog" aria-modal="true" aria-label="Buscador rápido">
     <button type="button" id="btn-mobile-search-toggle" class="mobile-search-trigger" aria-label="Abrir buscador rápido" title="Buscar obras">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search" aria-hidden="true">
         <circle cx="11" cy="11" r="8"></circle>
@@ -373,9 +373,9 @@
   </div>
 
   <!-- Panel de filtros -->
-  <section id="filter-panel" class="filter-panel" aria-label="Filtro por arquitecto">
+  <section id="filter-panel" class="filter-panel" role="dialog" aria-modal="true" aria-label="Filtros del mapa">
     <div class="filter-head">
-      <div><span style="color:var(--fg-dim)">FILTROS</span><small id="filter-summary" class="filter-summary">TODAS LAS OBRAS</small></div>
+      <div><span style="color:var(--fg-dim)">FILTROS</span><small id="filter-summary" class="filter-summary" aria-live="polite">TODAS LAS OBRAS</small></div>
       <div class="filter-head-actions">
         <button type="button" class="filter-clear" data-filter-reset>LIMPIAR</button>
         <button type="button" id="btn-filters-close" class="sheet-close-button" aria-label="Cerrar filtros">
@@ -389,7 +389,7 @@
     </div>
   </section>
 
-  <section id="my-places-panel" class="my-places-panel" aria-label="Mis colecciones y listas">
+  <section id="my-places-panel" class="my-places-panel" role="dialog" aria-modal="true" aria-label="Mis colecciones y listas">
     <div class="filter-head">
       <div>
         <span style="color:var(--accent, #E84E1B)">TU ESPACIO</span>
@@ -486,7 +486,7 @@
   </section>
 
   <!-- Sheet de ficha técnica -->
-  <section id="sheet" class="sheet" aria-label="Ficha técnica de la obra">
+  <section id="sheet" class="sheet" role="dialog" aria-modal="true" aria-label="Ficha técnica de la obra">
     <div class="sheet-drag-handle" id="sheet-drag-handle" aria-label="Arrastrar para cerrar ficha">
       <span class="sheet-drag-bar"></span>
     </div>
@@ -505,7 +505,7 @@
   </section>
 
   <!-- Sheet de Exploración Vertical (Directorio Archivo) -->
-  <section id="explore-panel" class="sheet explore-panel" aria-label="Explorar obras cercanas">
+  <section id="explore-panel" class="sheet explore-panel" role="dialog" aria-modal="true" aria-label="Explorar obras cercanas">
     <div class="sheet-drag-handle" id="explore-drag-handle" aria-label="Arrastrar para cerrar">
       <span class="sheet-drag-bar"></span>
     </div>
@@ -551,7 +551,7 @@
   </section>
 
   <!-- Sheet de Mi Radar Arquitectónico (Contexto en Tiempo Real) -->
-  <section id="radar-panel" class="sheet radar-panel" aria-label="Mi Radar Arquitectónico">
+  <section id="radar-panel" class="sheet radar-panel" role="dialog" aria-modal="true" aria-label="Mi Radar Arquitectónico">
     <div class="sheet-drag-handle" id="radar-drag-handle" aria-label="Arrastrar para cerrar">
       <span class="sheet-drag-bar"></span>
     </div>
@@ -584,7 +584,7 @@
       <div class="radar-detected-section">
         <div class="radar-section-head">
           <span class="radar-section-label">OBRAS EN TU RADIO</span>
-          <span id="radar-detected-count" class="radar-detected-count"></span>
+          <span id="radar-detected-count" class="radar-detected-count" aria-live="polite"></span>
         </div>
         <div id="radar-detected-list" class="radar-detected-list"></div>
       </div>
