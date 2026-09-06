@@ -55,7 +55,9 @@ function initTheme() {
     btnTheme.addEventListener('click', () => {
       const isDark = document.body.classList.toggle('dark-mode');
       document.documentElement.classList.toggle('dark-mode', isDark);
-      localStorage.setItem('nolli_theme', isDark ? 'dark' : 'light');
+      try {
+        localStorage.setItem('nolli_theme', isDark ? 'dark' : 'light');
+      } catch {}
       if (window.lucide) window.lucide.createIcons();
     });
   }

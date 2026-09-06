@@ -748,7 +748,9 @@ document.addEventListener('click', (event) => {
 
 function guardarEstadoPersonalLocal() {
   if (!state.userId) return;
-  localStorage.setItem(`nolli:building-status:${state.userId}`, JSON.stringify([...state.buildingStatuses.entries()]));
+  try {
+    localStorage.setItem(`nolli:building-status:${state.userId}`, JSON.stringify([...state.buildingStatuses.entries()]));
+  } catch {}
 }
 
 document.addEventListener('radar:admin-login', actualizarFichaAbierta);

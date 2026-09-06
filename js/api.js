@@ -188,34 +188,21 @@ export async function getBuildingsCatalog() {
     return catalogCache;
   }
 
+  // Limpiar clave legacy voluminosa en caso de que existiese en el cliente
   try {
-    const raw = localStorage.getItem(CATALOG_CACHE_KEY);
-    if (raw) {
-      const cached = JSON.parse(raw);
-      if (cached?.expiresAt > Date.now() && Array.isArray(cached.rows) && cached.rows.length > 0) {
-        catalogCache = cached.rows;
-        return catalogCache;
-      }
-    }
-  } catch {
     localStorage.removeItem(CATALOG_CACHE_KEY);
-  }
-  
+  } catch {}
+
   if (catalogPromise) {
     return catalogPromise;
   }
-  
+
   catalogPromise = fetchBuildingFacets().then((result) => {
     if (Array.isArray(result) && result.length > 0) {
       catalogCache = result;
       try {
-        localStorage.setItem(CATALOG_CACHE_KEY, JSON.stringify({
-          expiresAt: Date.now() + CATALOG_CACHE_TTL_MS,
-          rows: result,
-        }));
-      } catch {
-        // El catálogo sigue disponible en memoria si el almacenamiento está lleno o bloqueado.
-      }
+        localStorage.setItem('nolli:catalog-synced-at', String(Date.now()));
+      } catch {}
     }
     catalogPromise = null;
     return catalogCache || result;
@@ -223,7 +210,7 @@ export async function getBuildingsCatalog() {
     catalogPromise = null;
     throw err;
   });
-  
+
   return catalogPromise;
 }
 
@@ -233,7 +220,16 @@ export async function getBuildingsCatalog() {
 export function invalidateCatalogCache() {
   catalogCache = null;
   catalogPromise = null;
-  localStorage.removeItem(CATALOG_CACHE_KEY);
+  try {
+    localStorage.removeItem(CATALOG_CACHE_KEY);
+    localStorage.removeItem('nolli:catalog-synced-at');
+  } catch {}
+  if (typeof caches !== 'undefined') {
+    caches.open('nolli-shell-v70').then((cache) => {
+      cache.delete('/api/catalog');
+      cache.delete('/api/catalog-timestamp');
+    }).catch(() => {});
+  }
 }
 
 export async function fetchUserPendingBuildings(userId, sessionToken) {

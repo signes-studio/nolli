@@ -115,8 +115,10 @@ function initTheme() {
     themeBtn.addEventListener('click', () => {
       const nowDark = document.body.classList.toggle('dark-mode');
       document.documentElement.classList.toggle('dark-mode', nowDark);
-      localStorage.setItem('nolli_theme', nowDark ? 'dark' : 'light');
-      localStorage.setItem('nolli_map_style', nowDark ? 'dark' : 'abstract');
+      try {
+        localStorage.setItem('nolli_theme', nowDark ? 'dark' : 'light');
+        localStorage.setItem('nolli_map_style', nowDark ? 'dark' : 'abstract');
+      } catch {}
       const metaEl = document.getElementById('meta-theme-color');
       if (metaEl) metaEl.setAttribute('content', nowDark ? '#141411' : '#F8F1DF');
       updateThemeIcon(nowDark);
@@ -911,8 +913,10 @@ async function toggleStatus(buildingId, statusUpdate) {
 
   // Sincronizar con state global y storage
   state.buildingStatuses.set(String(buildingId), next);
-  localStorage.setItem(`nolli:building-status:${user.id}`, JSON.stringify([...state.buildingStatuses.entries()]));
-  localStorage.setItem('nolli_cached_statuses', JSON.stringify([...profileState.statuses.entries()].map(([id, s]) => ({ building_id: id, ...s }))));
+  try {
+    localStorage.setItem(`nolli:building-status:${user.id}`, JSON.stringify([...state.buildingStatuses.entries()]));
+    localStorage.setItem('nolli_cached_statuses', JSON.stringify([...profileState.statuses.entries()].map(([id, s]) => ({ building_id: id, ...s }))));
+  } catch {}
 
   renderMetrics();
   renderFeedContent();

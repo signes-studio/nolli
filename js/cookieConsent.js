@@ -45,7 +45,9 @@
       tipografia_externa: Boolean(preferences.tipografia_externa),
       timestamp: new Date().toISOString(),
     };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(consent));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(consent));
+    } catch {}
     applyFontPreference();
     window.dispatchEvent(new CustomEvent('nolli:cookie-consent', { detail: consent }));
   }

@@ -170,7 +170,9 @@ async function initLoginModal() {
       }
       marcarSesionIniciada(state.userRole);
       await cargarEstadoUsuario();
-      localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(savedSession));
+      try {
+        localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(savedSession));
+      } catch {}
     } catch (error) {
       console.warn('Error restaurando sesión:', error);
       const msg = String(error?.message || '');
@@ -304,8 +306,10 @@ async function initLoginModal() {
           state.userRole = 'user';
           await cargarEstadoUsuario();
           const sessionData = { access_token: data.access_token, refresh_token: data.refresh_token };
-          if (keepSession.checked) localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(sessionData));
-          else sessionStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(sessionData));
+          try {
+            if (keepSession.checked) localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(sessionData));
+            else sessionStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(sessionData));
+          } catch {}
           marcarSesionIniciada('user');
         }
         // Desplegar pantalla de confirmación dedicada Neo-Bauhaus
@@ -323,8 +327,10 @@ async function initLoginModal() {
         state.userRole = await fetchUserRole(state.sessionToken);
         await cargarEstadoUsuario();
         const sessionData = { access_token: auth.access_token, refresh_token: auth.refresh_token };
-        if (keepSession.checked) localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(sessionData));
-        else sessionStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(sessionData));
+        try {
+          if (keepSession.checked) localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(sessionData));
+          else sessionStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(sessionData));
+        } catch {}
         mLogin.classList.remove('open');
         marcarSesionIniciada(state.userRole);
       }

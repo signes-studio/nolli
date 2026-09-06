@@ -796,7 +796,9 @@ function initMapStyleSelector() {
     if (!styleKey || !MAP_STYLES[styleKey]) return;
 
     state.mapStyle = styleKey;
-    localStorage.setItem('nolli_map_style', styleKey);
+    try {
+      localStorage.setItem('nolli_map_style', styleKey);
+    } catch {}
 
     panel.querySelectorAll('[data-map-style]').forEach((item) => {
       item.classList.toggle('active', item === option);
@@ -807,7 +809,9 @@ function initMapStyleSelector() {
     const isDarkMode = styleKey === 'dark';
     document.documentElement.classList.toggle('dark-mode', isDarkMode);
     document.body.classList.toggle('dark-mode', isDarkMode);
-    localStorage.setItem('nolli_theme', isDarkMode ? 'dark' : 'light');
+    try {
+      localStorage.setItem('nolli_theme', isDarkMode ? 'dark' : 'light');
+    } catch {}
 
     panel.classList.remove('open');
     button.classList.remove('active-state');

@@ -412,5 +412,7 @@ export function guardarZonaPersonalLocal(userId) {
     items: state.userCollectionItems,
     labels: state.userPrivateLabels,
   };
-  localStorage.setItem(getPersonalFallbackKey(userId), JSON.stringify(payload));
+  try {
+    localStorage.setItem(getPersonalFallbackKey(userId), JSON.stringify(payload));
+  } catch {}
 }
