@@ -139,7 +139,7 @@ async function buscarUbicaciones(query) {
     if (requestId !== locationSearchRequest) return;
     const places = data.features || [];
     locationResults.innerHTML = places.length ? places.map((place) => `
-      <button type="button" class="nearby-item location-result" data-location-center="${place.center.join(',')}" data-location-zoom="${place.bbox ? 12 : 14}">
+      <button type="button" class="nearby-item location-result" data-location-center="${place.center.join(',')}" data-location-zoom="${place.bbox ? 13 : 14.5}">
         <span class="nearby-name">${escapeHtml(place.text || place.place_name)}</span>
         <span class="nearby-meta">${escapeHtml(place.place_name || '')}</span>
       </button>
@@ -363,11 +363,20 @@ document.addEventListener('click', (event) => {
   const location = event.target.closest('.location-result');
   if (location && state.map) {
     const center = location.dataset.locationCenter.split(',').map(Number);
-    state.map.flyTo({ center, zoom: Number(location.dataset.locationZoom) || 13 });
+    const targetZoom = Number(location.dataset.locationZoom) || 13;
+    state.map.flyTo({ center, zoom: targetZoom, essential: true });
     locationInput.value = location.querySelector('.nearby-name')?.textContent || locationInput.value;
     locationResults.innerHTML = '';
-    searchPanel.classList.remove('open');
-    btnSearch.classList.remove('active-state');
+    searchPanel?.classList.remove('open');
+    btnSearch?.classList.remove('active-state');
+    document.getElementById('panel-backdrop')?.classList.remove('active');
+
+    // Si había un filtro de búsqueda previo activo, restaurar para mostrar todas las obras de la nueva ciudad
+    if (state.activeItinerary && (state.activeItinerary.isSearch || String(state.activeItinerary.id || '').startsWith('search-'))) {
+      state.activeItinerary = null;
+      document.getElementById('itinerary-filter-badge')?.classList.add('hidden');
+      actualizarFuenteMapa();
+    }
     return;
   }
   

@@ -419,6 +419,9 @@ document.addEventListener('radar:catalog-invalidated', () => {
 });
 
 async function cargarTodasObrasMobile() {
+  if (state.OBRAS && state.OBRAS.length > 0) {
+    return state.OBRAS;
+  }
   if (cacheObrasMobileSearch && cacheObrasMobileSearch.length > 0) {
     return cacheObrasMobileSearch;
   }

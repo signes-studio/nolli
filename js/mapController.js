@@ -172,7 +172,7 @@ export function cargarMapaMapbox() {
       type: 'geojson',
       data: { type: 'FeatureCollection', features: [] },
       promoteId: 'featureId',
-      buffer: 128,
+      buffer: 256,
       tolerance: 0.375,
       maxzoom: 16,
     });
@@ -180,7 +180,7 @@ export function cargarMapaMapbox() {
       type: 'geojson',
       data: { type: 'FeatureCollection', features: [] },
       promoteId: 'featureId',
-      buffer: 128,
+      buffer: 256,
       tolerance: 0.375,
       maxzoom: 16,
     });
@@ -315,22 +315,22 @@ export function cargarMapaMapbox() {
       0: {
         font: ['Inter Bold', 'Open Sans Bold', 'Inter Bold'],
         size: 12.5,
-        minzoom: 8.0, // Textos visibles a partir de zoom 8
+        minzoom: 8.0,
       },
       1: {
         font: ['Inter Medium', 'Open Sans Semibold', 'Inter Bold'],
         size: 11.5,
-        minzoom: 8.0, // Textos visibles a partir de zoom 8
+        minzoom: 8.0,
       },
       2: {
         font: ['Inter Regular', 'Open Sans Regular', 'Inter Regular'],
         size: 11,
-        minzoom: 14.5,
+        minzoom: 13.0,
       },
       3: {
         font: ['Inter Light', 'Open Sans Light', 'Inter Regular'],
         size: 10,
-        minzoom: 17.0,
+        minzoom: 16.0,
       },
     };
 

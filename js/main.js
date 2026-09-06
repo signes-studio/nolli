@@ -47,37 +47,14 @@ async function cargarEdificiosVisibles() {
     const arquitectosActivosAnteriores = new Set(state.activeArquitectos);
     const habiaFiltroDeArquitectos = arquitectosAnteriores.size > 0
       && arquitectosActivosAnteriores.size < arquitectosAnteriores.size;
-    const architect = habiaFiltroDeArquitectos && arquitectosActivosAnteriores.size === 1
-      ? [...arquitectosActivosAnteriores][0]
-      : null;
-    
-    // CRÍTICO FIX #2: Dedupe viewport para evitar múltiples fetchBuildings por move event
-    const currentViewportKey = getViewportKey(
-      state.map?.getBounds(),
-      state.map?.getZoom(),
-      state.activeCategorias
-    );
-    
-    if (lastViewportKey === currentViewportKey && state.OBRAS.length > 0) {
-      return; // Mismo viewport → no recargar
-    }
-    lastViewportKey = currentViewportKey;
-    
-    const [datosDB, catalogo] = await Promise.all([
-      fetchBuildings({
-        bounds: architect ? null : state.map?.getBounds(),
-        zoom: state.map?.getZoom(),
-        architect,
-        signal: publicLoadController.signal,
-      }),
-      state.BUILDING_CATALOG.length ? Promise.resolve(state.BUILDING_CATALOG) : getBuildingsCatalog(), // CRÍTICO FIX #1: Use cache
-    ]);
-    const rawDatosDB = Array.isArray(datosDB) ? datosDB : [];
+
+    const catalogo = state.BUILDING_CATALOG.length ? state.BUILDING_CATALOG : await getBuildingsCatalog();
     const rawCatalogo = Array.isArray(catalogo) ? catalogo : [];
     state.BUILDING_CATALOG = rawCatalogo.map((fila) => ({ ...fila, categoria: normalizarCategoria(fila.categoria) }));
     state.ARQUITECTOS = [...new Set(state.BUILDING_CATALOG.flatMap((fila) => separarArquitectos(fila.arquitecto)))];
+
     const mapaObras = new Map(state.OBRAS.map((obra) => [String(obra.id), obra]));
-    rawDatosDB.forEach((fila, index) => {
+    rawCatalogo.forEach((fila, index) => {
       const idStr = String(fila.id);
       const anterior = mapaObras.get(idStr);
       const edificio = transformarEdificio(fila, index);
