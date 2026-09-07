@@ -4,7 +4,7 @@
    <script type="module"> por lo que se ejecuta en modo defer de forma nativa.
    ========================================================================= */
 
-import { state, separarArquitectos, normalizarCategoria, normalizarImportancia, esRolAdmin, transformarEdificio, dedupeBuildings } from './state.js';
+import { state, separarArquitectos, normalizarCategoria, normalizarImportancia, esRolAdmin, esRolEditor, transformarEdificio, dedupeBuildings } from './state.js';
 import { fetchBuildings, fetchBuildingFacets, fetchUserPendingBuildings, fetchPendingBuildings, fetchPrivateBuildings, fetchAllPrivateBuildings, getBuildingsCatalog, invalidateCatalogCache } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
@@ -273,7 +273,7 @@ async function cargarContenidoPrivado() {
   if (!state.userId || !state.sessionToken) return;
   const isSuperadmin = state.userRole === 'superadmin';
   const [pending, privateBuildings] = await Promise.all([
-    esRolAdmin(state.userRole) ? fetchPendingBuildings(state.sessionToken) : fetchUserPendingBuildings(state.userId, state.sessionToken),
+    esRolEditor(state.userRole) ? fetchPendingBuildings(state.sessionToken) : fetchUserPendingBuildings(state.userId, state.sessionToken),
     isSuperadmin ? fetchAllPrivateBuildings(state.sessionToken) : fetchPrivateBuildings(state.userId, state.sessionToken),
   ]);
   const existingIds = new Set(state.OBRAS.map((obra) => String(obra.id)));
@@ -330,7 +330,7 @@ async function cargarContenidoPrivado() {
 
 document.addEventListener('radar:user-session-ready', cargarContenidoPrivado);
 document.addEventListener('radar:user-session-ready', () => {
-  if (esRolAdmin(state.userRole)) {
+  if (esRolEditor(state.userRole)) {
     cargarPanelBajoDemanda('adminUI', 'initAdminUI').catch((err) => console.warn('Init AdminUI:', err));
   }
 });

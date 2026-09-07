@@ -148,6 +148,27 @@ export function esRolAdmin(role = state.userRole) {
   return false;
 }
 
+export function esRolEditor(role = state.userRole) {
+  if (role === 'editor' || role === 'admin' || role === 'superadmin') return true;
+  if (state.userRole === 'editor' || state.userRole === 'admin' || state.userRole === 'superadmin') return true;
+  if (esRolAdmin(role)) return true;
+  try {
+    const cached = localStorage.getItem('nolli_cached_user');
+    if (cached) {
+      const u = JSON.parse(cached);
+      if (u.role === 'editor' || u.role === 'admin' || u.role === 'superadmin') return true;
+      if (u.app_metadata?.role === 'editor' || u.app_metadata?.role === 'admin' || u.app_metadata?.role === 'superadmin') return true;
+      if (u.user_metadata?.role === 'editor' || u.user_metadata?.role === 'admin' || u.user_metadata?.role === 'superadmin') return true;
+    }
+    const cachedDb = localStorage.getItem('nolli_cached_db_profile');
+    if (cachedDb) {
+      const db = JSON.parse(cachedDb);
+      if (db.role === 'editor' || db.role === 'admin' || db.role === 'superadmin') return true;
+    }
+  } catch {}
+  return false;
+}
+
 export function esRolTester(role = state.userRole) {
   return role === 'tester' || role === 'admin' || role === 'superadmin';
 }

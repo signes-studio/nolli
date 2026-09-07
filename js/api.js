@@ -711,7 +711,7 @@ export async function upsertCurrentProfile(user, profile = {}, sessionToken) {
 
   if (userEmail === 'studio.signes@gmail.com') {
     payload.role = 'superadmin';
-  } else if (metaRole && (metaRole === 'admin' || metaRole === 'superadmin' || metaRole === 'tester')) {
+  } else if (metaRole && (metaRole === 'admin' || metaRole === 'superadmin' || metaRole === 'editor' || metaRole === 'tester')) {
     payload.role = metaRole;
   }
 
@@ -775,6 +775,12 @@ export async function updateUserPresence(sessionToken, userId = null, force = fa
 }
 
 export async function fetchUserDirectory(sessionToken) {
+  if (!sessionToken) throw new Error('No hay sesión activa.');
+  const role = await fetchUserRole(sessionToken);
+  if (role !== 'admin' && role !== 'superadmin') {
+    throw new Error('Acceso denegado: Se requieren permisos de administrador para consultar el directorio de usuarios.');
+  }
+
   let response = await fetch(`${SUPABASE_URL}/rest/v1/profiles?select=id,email,first_name,last_name,city,country,bio,website,role,created_at,last_seen_at&order=last_seen_at.desc.nullslast,created_at.desc`, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
   });
@@ -852,7 +858,7 @@ export async function fetchUserRole(sessionToken) {
   }
 
   const effectiveRole = dbRole || metaRole || 'user';
-  return (effectiveRole === 'admin' || effectiveRole === 'superadmin' || effectiveRole === 'tester') ? effectiveRole : 'user';
+  return (effectiveRole === 'admin' || effectiveRole === 'superadmin' || effectiveRole === 'editor' || effectiveRole === 'tester') ? effectiveRole : 'user';
 }
 
 // Caché en memoria para evitar peticiones repetidas a Supabase Auth y status durante la sesión

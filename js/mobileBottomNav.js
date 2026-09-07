@@ -7,7 +7,7 @@
    - Aceleración por hardware a 60 FPS estables
    ========================================================================= */
 
-import { state, esRolAdmin, separarArquitectos, normalizarCategoria, normalizarImportancia, nombreCategoria, CATEGORY_COLORS, CATEGORY_META, escapeHtml } from './state.js';
+import { state, esRolAdmin, esRolEditor, separarArquitectos, normalizarCategoria, normalizarImportancia, nombreCategoria, CATEGORY_COLORS, CATEGORY_META, escapeHtml } from './state.js';
 import { getBuildingsCatalog } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { activarFiltroBusquedaEnMapa } from './searchUI.js';
@@ -369,7 +369,7 @@ function initMobileIdentityWidget(toggleMobilePanel) {
 
   function updateIdentityUI() {
     const isLogged = Boolean(state.sessionToken);
-    const isAdmin = esRolAdmin(state.userRole);
+    const isEditorOrAdmin = esRolEditor(state.userRole);
 
     actionBtn.classList.remove('guest', 'user-logged', 'admin-logged');
 
@@ -378,10 +378,10 @@ function initMobileIdentityWidget(toggleMobilePanel) {
       badge.textContent = t('nav_access');
       actionBtn.title = t('nav_login');
       if (quickMenu) quickMenu.hidden = true;
-    } else if (isAdmin) {
+    } else if (isEditorOrAdmin) {
       actionBtn.classList.add('admin-logged');
-      badge.textContent = t('nav_admin');
-      actionBtn.title = t('nav_admin');
+      badge.textContent = state.userRole === 'editor' ? 'Editor' : t('nav_admin');
+      actionBtn.title = state.userRole === 'editor' ? 'Editor' : t('nav_admin');
     } else {
       actionBtn.classList.add('user-logged');
       const inits = computeInitials();
@@ -396,11 +396,11 @@ function initMobileIdentityWidget(toggleMobilePanel) {
     e.stopPropagation();
 
     const isLogged = Boolean(state.sessionToken);
-    const isAdmin = esRolAdmin(state.userRole);
+    const isEditorOrAdmin = esRolEditor(state.userRole);
     if (!isLogged) {
       const loginModal = document.getElementById('modal-login');
       if (loginModal) loginModal.classList.add('open');
-    } else if (isAdmin && quickMenu) {
+    } else if (isEditorOrAdmin && quickMenu) {
       quickMenu.hidden = !quickMenu.hidden;
       if (!quickMenu.hidden && window.lucide) {
         window.lucide.createIcons({ context: quickMenu });

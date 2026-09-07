@@ -16,7 +16,7 @@ function isAuthorizedEmail(email) {
   return false;
 }
 
-async function verifyAdminUser(supabaseUrl, serviceRoleKey, sessionToken) {
+async function verifyUserPermissions(supabaseUrl, serviceRoleKey, sessionToken) {
   if (!sessionToken) return null;
 
   // 1. Obtener datos de usuario autenticado en Supabase Auth
@@ -33,13 +33,16 @@ async function verifyAdminUser(supabaseUrl, serviceRoleKey, sessionToken) {
 
   // 2. Comprobar email prioritario
   if (isAuthorizedEmail(user.email)) {
-    return { ...user, is_admin: true };
+    return { ...user, is_admin: true, is_editor: true, role: 'superadmin' };
   }
 
   // 3. Comprobar app_metadata o user_metadata
   const metaRole = String(user.app_metadata?.role || user.user_metadata?.role || '').toLowerCase();
   if (metaRole === 'admin' || metaRole === 'superadmin') {
-    return { ...user, is_admin: true };
+    return { ...user, is_admin: true, is_editor: true, role: metaRole };
+  }
+  if (metaRole === 'editor') {
+    return { ...user, is_admin: false, is_editor: true, role: 'editor' };
   }
 
   // 4. Comprobar rol en la tabla public.profiles usando clave de servicio
@@ -55,11 +58,14 @@ async function verifyAdminUser(supabaseUrl, serviceRoleKey, sessionToken) {
       const dbRole = String(profiles[0]?.role || '').toLowerCase();
       const dbEmail = String(profiles[0]?.email || '').toLowerCase();
       if (dbRole === 'admin' || dbRole === 'superadmin' || isAuthorizedEmail(dbEmail)) {
-        return { ...user, is_admin: true };
+        return { ...user, is_admin: true, is_editor: true, role: dbRole || 'admin' };
+      }
+      if (dbRole === 'editor') {
+        return { ...user, is_admin: false, is_editor: true, role: 'editor' };
       }
     }
   } catch (err) {
-    console.error('Error al comprobar perfil de admin:', err);
+    console.error('Error al comprobar perfil de permisos:', err);
   }
 
   return null;
@@ -273,10 +279,10 @@ module.exports = async function handler(req, res) {
     return res.status(401).json({ error: 'Se requiere autorización de sesión para realizar esta operación.' });
   }
 
-  // Validar permisos de administrador
-  const adminUser = await verifyAdminUser(supabaseUrl, supabaseKey, token);
-  if (!adminUser) {
-    return res.status(403).json({ error: 'Acceso denegado: Se requieren permisos de administrador o superadministrador.' });
+  // Validar permisos de editor o administrador
+  const userPerms = await verifyUserPermissions(supabaseUrl, supabaseKey, token);
+  if (!userPerms || (!userPerms.is_admin && !userPerms.is_editor)) {
+    return res.status(403).json({ error: 'Acceso denegado: Se requieren permisos de editor o administrador.' });
   }
 
   try {
@@ -356,7 +362,13 @@ module.exports = async function handler(req, res) {
     }
 
     if (req.method === 'DELETE') {
-      // ELIMINAR OBRA
+      // ELIMINAR OBRA (Estrictamente restringido a administradores; editores no pueden borrar)
+      if (!userPerms.is_admin) {
+        return res.status(403).json({
+          error: 'Acceso denegado: El rol de editor no tiene permisos para eliminar obras. Se requiere rol de administrador.',
+        });
+      }
+
       const id = String(req.query?.id || req.body?.id || '').trim();
       if (!id) {
         return res.status(400).json({ error: 'Falta el identificador (id) de la obra a eliminar.' });

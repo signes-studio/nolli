@@ -2,7 +2,7 @@
    MODALSUI.JS — Modal de login de administrador y modal de alta de edificio
    ========================================================================= */
 
-import { state, separarArquitectos, normalizarCategoria, esRolAdmin } from './state.js';
+import { state, separarArquitectos, normalizarCategoria, esRolAdmin, esRolEditor } from './state.js';
 import { loginAdmin, registerUser, refreshUserSession, requestPasswordReset, fetchUserRole, fetchCurrentUser, fetchCurrentProfile, fetchBuildingStatuses, upsertCurrentProfile, createBuildingReport, createBuilding, createPrivateBuilding, updateBuilding, updateUserPresence, invalidateCatalogCache } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
@@ -100,7 +100,7 @@ async function initLoginModal() {
   let registerMode = false;
 
   const marcarSesionIniciada = (role) => {
-    const canUseAdminTools = esRolAdmin(role);
+    const canUseAdminTools = esRolEditor(role);
     state.adminMode = canUseAdminTools;
     if (adminModeControl) adminModeControl.classList.toggle('hidden', !canUseAdminTools);
     if (adminModeToggle) adminModeToggle.checked = state.adminMode;
@@ -131,7 +131,7 @@ async function initLoginModal() {
   };
 
   adminModeToggle.addEventListener('change', () => {
-    if (!esRolAdmin(state.userRole)) return;
+    if (!esRolEditor(state.userRole)) return;
     state.adminMode = adminModeToggle.checked;
     document.dispatchEvent(new CustomEvent('radar:admin-mode-change'));
   });
@@ -416,10 +416,10 @@ function initAddBuildingModal() {
 
   function actualizarOpcionesVisibilidad(selectedVal = null) {
     if (!selectVisibility) return;
-    const esAdmin = esRolAdmin(state.userRole);
+    const esEditorOrAdmin = esRolEditor(state.userRole);
     selectVisibility.innerHTML = '';
 
-    if (esAdmin) {
+    if (esEditorOrAdmin) {
       const optDirect = document.createElement('option');
       optDirect.value = 'direct';
       optDirect.textContent = t('add_vis_direct');
@@ -438,7 +438,7 @@ function initAddBuildingModal() {
 
     if (selectedVal && Array.from(selectVisibility.options).some((o) => o.value === selectedVal)) {
       selectVisibility.value = selectedVal;
-    } else if (esAdmin && state.adminMode) {
+    } else if (esEditorOrAdmin && state.adminMode) {
       selectVisibility.value = 'direct';
     } else {
       selectVisibility.value = 'review';
@@ -543,11 +543,11 @@ function initAddBuildingModal() {
     try {
       if (state.editingBuildingId !== null) {
         const obraExistente = state.OBRAS.find((item) => String(item.id) === String(state.editingBuildingId));
-        const esAdmin = esRolAdmin(state.userRole);
+        const esEditorOrAdmin = esRolEditor(state.userRole);
 
-        // Si el usuario es administrador, aplicar la visibilidad seleccionada
+        // Si el usuario es editor o administrador, aplicar la visibilidad seleccionada
         let estadoRevision = obraExistente?.estado_revision || 'publicada';
-        if (esAdmin) {
+        if (esEditorOrAdmin) {
           if (visibility === 'direct') estadoRevision = 'publicada';
           else if (visibility === 'review') estadoRevision = 'pendiente';
         }
@@ -572,13 +572,13 @@ function initAddBuildingModal() {
         });
       } else {
         const isPrivate = visibility === 'private';
-        const isDirect = visibility === 'direct' && esRolAdmin(state.userRole);
+        const isDirect = visibility === 'direct' && esRolEditor(state.userRole);
         const nuevoId = generarIdAlfanumerico(8);
 
         const nuevoEdificio = {
           ...edificio,
           id: nuevoId,
-          añadido_por: isDirect ? 'administrador' : (state.userEmail || 'usuario'),
+          añadido_por: isDirect ? (esRolAdmin(state.userRole) ? 'administrador' : 'editor') : (state.userEmail || 'usuario'),
           estado_revision: isDirect ? 'publicada' : 'pendiente',
         };
         const privateData = {
@@ -661,9 +661,9 @@ function handleMapLongPress(lngLat) {
 
   const select = document.getElementById('add-visibility');
   if (select) {
-    const esAdmin = esRolAdmin(state.userRole);
+    const esEditorOrAdmin = esRolEditor(state.userRole);
     select.innerHTML = '';
-    if (esAdmin) {
+    if (esEditorOrAdmin) {
       const optDirect = document.createElement('option');
       optDirect.value = 'direct';
       optDirect.textContent = t('add_vis_direct');
@@ -679,12 +679,12 @@ function handleMapLongPress(lngLat) {
     optPrivate.textContent = t('add_vis_private');
     select.appendChild(optPrivate);
 
-    select.value = (esAdmin && state.adminMode) ? 'direct' : 'review';
+    select.value = (esEditorOrAdmin && state.adminMode) ? 'direct' : 'review';
   }
 
   const modalTitle = document.getElementById('modal-add-title');
   const btnSave = document.getElementById('btn-add-save');
-  const isDirect = (esRolAdmin(state.userRole) && state.adminMode);
+  const isDirect = (esRolEditor(state.userRole) && state.adminMode);
   if (modalTitle) modalTitle.textContent = isDirect ? t('add_modal_direct_title') : t('add_modal_review_title');
   if (btnSave) btnSave.innerHTML = isDirect
     ? `<span class="inline-flex items-center gap-1"><i data-lucide="database" width="13" height="13"></i> ${t('add_btn_publish_direct')}</span>`

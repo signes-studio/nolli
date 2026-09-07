@@ -96,7 +96,7 @@ async function checkAccessAndInit() {
 
     const userEmail = String(user.email || '').toLowerCase().trim();
     const isMasterFounder = userEmail === 'studio.signes@gmail.com';
-    const isAuthorized = role === 'admin' || role === 'superadmin' || isMasterFounder;
+    const isAuthorized = role === 'admin' || role === 'superadmin' || role === 'editor' || isMasterFounder;
 
     if (!isAuthorized) {
       showLockScreen('PRIVILEGIOS INSUFICIENTES', `Tu cuenta (${userEmail}) no tiene los permisos necesarios (Rol actual: ${role.toUpperCase()}).`);
@@ -107,6 +107,13 @@ async function checkAccessAndInit() {
     if (lockScreen) lockScreen.classList.add('hidden');
     if (loadingIndicator) loadingIndicator.classList.add('hidden');
     if (mainApp) mainApp.classList.remove('hidden');
+
+    if (role === 'editor') {
+      const tabUsers = document.querySelector('[data-tab-target="users"]');
+      if (tabUsers) tabUsers.style.display = 'none';
+      const viewUsers = document.getElementById('view-users');
+      if (viewUsers) viewUsers.remove();
+    }
 
     renderAdminIdentity(user, isMasterFounder ? 'superadmin' : role);
     iniciarPresencia();
@@ -188,6 +195,7 @@ function setupTabNavigation() {
       tab.classList.add('active');
 
       const target = tab.dataset.tabTarget;
+      if (target === 'users' && adminConsoleState.role === 'editor') return;
       adminConsoleState.activeTab = target;
 
       document.querySelectorAll('.admin-tab-view').forEach((view) => view.classList.add('hidden'));
@@ -236,6 +244,10 @@ async function loadReportsData() {
 }
 
 async function loadUsersData() {
+  if (adminConsoleState.role === 'editor') {
+    adminConsoleState.users = [];
+    return;
+  }
   try {
     const users = await fetchUserDirectory(adminConsoleState.token);
     adminConsoleState.users = users || [];
@@ -344,10 +356,12 @@ function renderModulePending() {
             <i data-lucide="map-pin" width="14" height="14"></i>
             <span>VER MAPA</span>
           </a>
+          ${adminConsoleState.role !== 'editor' ? `
           <button type="button" class="admin-btn admin-btn-reject" data-action="delete" data-id="${safeId}">
             <i data-lucide="trash-2" width="14" height="14"></i>
             <span>BORRAR</span>
           </button>
+          ` : ''}
         </div>
       </article>
     `;
@@ -690,6 +704,11 @@ async function handleRejectWork(id) {
 }
 
 async function handleDeleteWork(id) {
+  if (adminConsoleState.role === 'editor') {
+    showAdminToast('Acceso denegado: El rol de editor no tiene permisos para eliminar obras.', 'error');
+    return;
+  }
+
   const item = adminConsoleState.allWorks.find((w) => String(w.id) === String(id));
   const name = item ? item.nombre_obra : `#${id}`;
   const confirmed = await confirmAdminAction('ELIMINAR DEFINITIVAMENTE', `¿Eliminar definitivamente la obra "${name}" de la base de datos? Esta acción es irreversible.`);

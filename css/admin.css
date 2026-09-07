@@ -679,6 +679,12 @@ h1, h2, h3, h4, h5, h6, .font-display {
   border-color: var(--admin-accent);
 }
 
+.admin-role-tag.editor {
+  background: #0077CC;
+  color: #FFFFFF;
+  border-color: #0077CC;
+}
+
 /* =========================================================================
    MODAL DE EDICIÓN INLINE
    ========================================================================= */

@@ -2,7 +2,7 @@
    SHEETUI.JS - Ficha tecnica y acciones personales de una obra
    ========================================================================= */
 
-import { state, separarArquitectos, normalizarCategoria, normalizarImportancia, nombreCategoria, esRolAdmin, guardarZonaPersonalLocal, CATEGORY_META } from './state.js';
+import { state, separarArquitectos, normalizarCategoria, normalizarImportancia, nombreCategoria, esRolAdmin, esRolEditor, guardarZonaPersonalLocal, CATEGORY_META } from './state.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { cerrarFiltros, generarFiltrosUI } from './filtersUI.js';
 import { fetchBuildings, saveBuildingStatus, reviewBuilding, deleteBuilding, deletePrivateBuilding, createUserCollection, addUserCollectionItem, createUserPrivateLabel, deleteUserPrivateLabel } from './api.js';
@@ -156,6 +156,7 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
   const architects = architectsList
     .map((architect) => `<button type="button" class="architect-filter" data-arq="${escapeHtml(architect)}">${escapeHtml(architect)}</button>`).join(', ');
   const adminActive = esRolAdmin(state.userRole);
+  const editorActive = esRolEditor(state.userRole);
   const isFav = getStatus('favorite');
   const isVis = getStatus('visited');
   const isSaved = state.userCollectionItems.some((item) => String(item.building_id) === String(building.id));
@@ -272,7 +273,7 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
     ` : ''}
 
     <!-- Panel de Administración / Moderación -->
-    ${adminActive || canDeletePrivate ? `
+    ${editorActive || canDeletePrivate ? `
       <div class="sheet-admin-block">
         <div class="sheet-admin-head">${t('sheet_building_management')}</div>
         ${isPending ? `
@@ -282,12 +283,14 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
           </div>
         ` : ''}
         <div class="sheet-admin-actions">
-          ${isPending ? `
+          ${isPending && adminActive ? `
             <button type="button" class="btn btn-admin-approve" data-review-building="publicada"><i data-lucide="check" width="13" height="13"></i> APROBAR</button>
             <button type="button" class="btn btn-admin-reject" data-review-building="rechazada"><i data-lucide="x" width="13" height="13"></i> RECHAZAR</button>
           ` : ''}
-          ${adminActive ? `
+          ${editorActive ? `
             <button type="button" class="btn btn-admin-action" data-edit-building><i data-lucide="pencil" width="14" height="14"></i> ${t('sheet_edit_building')}</button>
+          ` : ''}
+          ${adminActive ? `
             <button type="button" class="btn btn-admin-delete" data-delete-building><i data-lucide="trash-2" width="14" height="14"></i> ${t('sheet_delete_db')}</button>
           ` : ''}
           ${canDeletePrivate ? `

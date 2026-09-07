@@ -2,7 +2,7 @@
    FILTERSUI.JS — Panel de filtros por Categorías
    ========================================================================= */
 
-import { state, nombreCategoria, esRolAdmin, CATEGORY_META } from './state.js';
+import { state, nombreCategoria, esRolAdmin, esRolEditor, CATEGORY_META } from './state.js';
 import { t, getLanguage, setupLanguageSwitchers } from './i18n.js';
 
 const filterPanel = document.getElementById('filter-panel');
@@ -221,7 +221,7 @@ export function aplicarFiltrosMapa() {
   if (categoriasFilter) detalles.push(categoriasFilter);
 
   const adminReviewFilter = document.getElementById('admin-review-filter');
-  if (esRolAdmin(state.userRole) && adminReviewFilter?.value) {
+  if (esRolEditor(state.userRole) && adminReviewFilter?.value) {
     detalles.push(['==', ['get', 'estado_revision'], adminReviewFilter.value]);
   }
 

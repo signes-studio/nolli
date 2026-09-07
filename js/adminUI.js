@@ -3,7 +3,7 @@
    Arquitectura Serverless Blindada + Frontend Vanilla Neo-Bauhaus
    ========================================================================= */
 
-import { state, separarArquitectos, esRolAdmin, escapeHtml } from './state.js';
+import { state, separarArquitectos, esRolAdmin, esRolEditor, escapeHtml } from './state.js';
 import { 
   deleteBuilding, 
   fetchRatingAverages, 
@@ -74,6 +74,10 @@ export function initAdminUI() {
   document.addEventListener('click', (event) => {
     const tab = event.target.closest('[data-admin-tab]');
     if (!tab) return;
+    if (tab.dataset.adminTab === 'users' && !esRolAdmin(state.userRole)) {
+      mostrarAlertaSeguridad('ACCESO DENEGADO', 'Se requieren permisos de administrador para consultar usuarios.');
+      return;
+    }
     currentAdminTab = tab.dataset.adminTab;
     document.querySelectorAll('[data-admin-tab]').forEach((item) => item.classList.toggle('active', item === tab));
     renderCurrentTab();
@@ -131,7 +135,7 @@ export function initAdminUI() {
   // Atajo de teclado: Alt + A para alternar panel admin
   window.addEventListener('keydown', (e) => {
     if (e.altKey && (e.key === 'a' || e.key === 'A')) {
-      if (esRolAdmin(state.userRole)) {
+      if (esRolEditor(state.userRole)) {
         e.preventDefault();
         toggleAdminPanel();
       }
@@ -184,8 +188,8 @@ export async function toggleAdminPanel(forceOpen = null) {
       return;
     }
 
-    if (!esRolAdmin(state.userRole)) {
-      mostrarAlertaSeguridad('ACCESO DENEGADO', 'Se requieren privilegios de administrador para abrir este panel.');
+    if (!esRolEditor(state.userRole)) {
+      mostrarAlertaSeguridad('ACCESO DENEGADO', 'Se requieren privilegios de curaduría o administración para abrir este panel.');
       return;
     }
 
@@ -215,7 +219,7 @@ export async function handleAdminHashRoute() {
 
   if (!token) {
     window.history.replaceState(null, '', window.location.pathname + window.location.search);
-    mostrarAlertaSeguridad('AUTENTICACIÓN REQUERIDA', 'Inicia sesión con una cuenta de administrador para acceder a la curaduría.');
+    mostrarAlertaSeguridad('AUTENTICACIÓN REQUERIDA', 'Inicia sesión con una cuenta autorizada para acceder a la curaduría.');
     return;
   }
 
@@ -226,9 +230,9 @@ export async function handleAdminHashRoute() {
       state.userRole = role;
     }
 
-    if (!esRolAdmin(role)) {
+    if (!esRolEditor(role)) {
       window.history.replaceState(null, '', window.location.pathname + window.location.search);
-      mostrarAlertaSeguridad('ACCESO DENEGADO', `Tu cuenta no tiene privilegios de administración (Rol: ${role.toUpperCase()}).`);
+      mostrarAlertaSeguridad('ACCESO DENEGADO', `Tu cuenta no tiene privilegios de curaduría (Rol: ${role.toUpperCase()}).`);
       return;
     }
 
@@ -240,11 +244,16 @@ export async function handleAdminHashRoute() {
 }
 
 function checkAdminVisibility() {
+  const isEditorOrAdmin = esRolEditor(state.userRole);
   const isAdmin = esRolAdmin(state.userRole);
   const buttons = getAdminButtons();
   buttons.forEach((btn) => {
-    btn.classList.toggle('hidden', !isAdmin);
+    btn.classList.toggle('hidden', !isEditorOrAdmin);
   });
+  const userTab = document.querySelector('[data-admin-tab="users"]');
+  if (userTab) {
+    userTab.classList.toggle('hidden', !isAdmin);
+  }
 }
 
 function mostrarAlertaSeguridad(titulo, mensaje) {
@@ -308,7 +317,7 @@ function renderAuthRequired() {
 }
 
 async function syncAllAdminData() {
-  if (!state.sessionToken || !esRolAdmin(state.userRole)) return;
+  if (!state.sessionToken || !esRolEditor(state.userRole)) return;
 
   // 1. Cargar obras completas (incluidas pendientes)
   try {
@@ -339,13 +348,20 @@ async function syncAllAdminData() {
     if (reportCount) reportCount.textContent = `${cachedReports.length} pendientes`;
   } catch {}
 
-  // 4. Cargar usuarios
-  try {
-    cachedUsers = await fetchUserDirectory(state.sessionToken);
-  } catch {}
+  // 4. Cargar usuarios (solo administradores)
+  if (esRolAdmin(state.userRole)) {
+    try {
+      cachedUsers = await fetchUserDirectory(state.sessionToken);
+    } catch {}
+  }
 }
 
 function renderCurrentTab() {
+  if (currentAdminTab === 'users' && !esRolAdmin(state.userRole)) {
+    currentAdminTab = 'projects';
+    document.querySelectorAll('[data-admin-tab]').forEach((item) => item.classList.toggle('active', item.dataset.adminTab === 'projects'));
+  }
+
   const isProjects = currentAdminTab === 'projects';
   const isReports = currentAdminTab === 'reports';
   const isUsers = currentAdminTab === 'users';
@@ -361,7 +377,7 @@ function renderCurrentTab() {
 }
 
 async function renderList() {
-  if (!state.sessionToken || !esRolAdmin(state.userRole)) {
+  if (!state.sessionToken || !esRolEditor(state.userRole)) {
     renderAuthRequired();
     return;
   }
@@ -418,7 +434,9 @@ async function renderList() {
               <button type="button" class="btn admin-action-approve" data-admin-review="${safeId}" data-review-status="publicada">APROBAR</button>
               <button type="button" class="btn admin-action-reject" data-admin-review="${safeId}" data-review-status="rechazada">RECHAZAR</button>
             ` : ''}
-            <button type="button" class="btn admin-action-delete" data-admin-delete="${safeId}" title="Eliminar del catálogo">BORRAR</button>
+            ${esRolAdmin(state.userRole) ? `
+              <button type="button" class="btn admin-action-delete" data-admin-delete="${safeId}" title="Eliminar del catálogo">BORRAR</button>
+            ` : ''}
           </div>
         </div>
       `;
@@ -567,6 +585,7 @@ async function renderUsers() {
             <select class="admin-user-role-select tech-input" data-user-id="${escapeHtml(user.id)}">
               <option value="user" ${userRole === 'user' ? 'selected' : ''}>USER</option>
               <option value="tester" ${userRole === 'tester' ? 'selected' : ''}>TESTER</option>
+              <option value="editor" ${userRole === 'editor' ? 'selected' : ''}>EDITOR</option>
               <option value="admin" ${userRole === 'admin' ? 'selected' : ''}>ADMIN</option>
               <option value="superadmin" ${userRole === 'superadmin' ? 'selected' : ''}>SUPERADMIN</option>
             </select>
@@ -667,7 +686,7 @@ async function obtenerCiudad(obra) {
 
 async function eliminarProyecto(id) {
   if (!state.sessionToken || !esRolAdmin(state.userRole)) {
-    mostrarAlertaSeguridad('ACCESO RESTRINGIDO', 'Acción reservada a administradores autenticados.');
+    mostrarAlertaSeguridad('ACCESO DENEGADO', 'El rol de editor no tiene permisos para eliminar obras.');
     return;
   }
   const obra = state.OBRAS.find((item) => String(item.id) === String(id));
