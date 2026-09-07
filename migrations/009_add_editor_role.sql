@@ -70,3 +70,4 @@ DO $$
 BEGIN
   RAISE NOTICE 'Migración 009 completada con éxito: soporte para rol editor habilitado.';
 END $$;
+
