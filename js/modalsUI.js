@@ -147,6 +147,9 @@ async function initLoginModal() {
       notas: item.notas || '',
       valoracion: item.valoracion || null,
     }]));
+    try {
+      localStorage.setItem(`nolli:building-status:${user.id}`, JSON.stringify([...state.buildingStatuses.entries()]));
+    } catch {}
     document.dispatchEvent(new CustomEvent('radar:user-status-ready'));
     document.dispatchEvent(new CustomEvent('radar:user-session-ready'));
   };

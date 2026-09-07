@@ -794,9 +794,9 @@ function setupFeedActionHandlers() {
     if (!token || !user) return;
 
     // 1. Quitar de favoritos
-    const btnRemoveFav = e.target.closest('[data-remove-favorite]');
+    const btnRemoveFav = e.target.closest('[data-remove-favorite], [data-remove-fav]');
     if (btnRemoveFav) {
-      const buildingId = btnRemoveFav.dataset.removeFavorite;
+      const buildingId = btnRemoveFav.dataset.removeFavorite || btnRemoveFav.dataset.removeFav;
       await toggleStatus(buildingId, { favorite: false });
       return;
     }
@@ -920,6 +920,7 @@ async function toggleStatus(buildingId, statusUpdate) {
 
   renderMetrics();
   renderFeedContent();
+  document.dispatchEvent(new CustomEvent('radar:user-status-changed', { detail: { buildingId: String(buildingId), ...statusUpdate } }));
 
   try {
     await saveBuildingStatus(user.id, buildingId, next, token);

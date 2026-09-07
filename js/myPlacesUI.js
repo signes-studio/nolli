@@ -181,6 +181,14 @@ export function initMyPlacesUI() {
     }
   });
 
+  document.addEventListener('radar:user-status-ready', () => {
+    renderList();
+  });
+
+  document.addEventListener('radar:user-status-changed', () => {
+    renderList();
+  });
+
   document.addEventListener('radar:logout', () => {
     state.userCollections = [];
     state.userCollectionItems = [];

@@ -858,7 +858,7 @@ export async function saveBuildingStatus(arg1, arg2, arg3, arg4) {
     sessionToken = arg4;
   }
 
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_building_status`, {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_building_status?on_conflict=user_id,building_id`, {
     method: 'POST',
     headers: {
       'apikey': SUPABASE_KEY,

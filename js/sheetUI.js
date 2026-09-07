@@ -541,9 +541,11 @@ async function saveStatus(status, value) {
   // 1. Actualización Optimista Visual Inmediata (0ms)
   state.buildingStatuses.set(key, next);
   renderSheetStatusUI(building);
+  actualizarFuenteMapa();
   document.dispatchEvent(new CustomEvent('radar:user-status-changed', { detail: { buildingId: key, status, value } }));
 
   // 2. Persistencia Inmediata Local (Offline-Ready)
+  guardarEstadoPersonalLocal();
   guardarZonaPersonalLocal(state.userId);
 
   // 3. Sincronización Asíncrona con el Servidor
@@ -554,6 +556,8 @@ async function saveStatus(status, value) {
     // Rollback en caso de error de red
     state.buildingStatuses.set(key, previous);
     renderSheetStatusUI(building);
+    actualizarFuenteMapa();
+    guardarEstadoPersonalLocal();
     guardarZonaPersonalLocal(state.userId);
     document.dispatchEvent(new CustomEvent('radar:user-status-changed', { detail: { buildingId: key, status, value: previous[status] } }));
   }
@@ -574,6 +578,7 @@ async function saveNote(button) {
   const previous = state.buildingStatuses.get(key) || { favorite: false, visited: false };
   const next = { ...previous, notas: nota };
   state.buildingStatuses.set(key, next);
+  guardarEstadoPersonalLocal();
   guardarZonaPersonalLocal(state.userId);
 
   button.disabled = true;
@@ -729,7 +734,15 @@ document.addEventListener('click', (event) => {
   const rating = target.closest('[data-rating]');
   if (rating) { saveStatus('valoracion', Number(rating.dataset.rating)); rating.parentElement.querySelectorAll('[data-rating]').forEach((star) => star.classList.toggle('active', Number(star.dataset.rating) <= Number(rating.dataset.rating))); return; }
   const status = target.closest('[data-status]');
-  if (status) { const building = getSelectedBuilding(); saveStatus(status.dataset.status, !state.buildingStatuses.get(String(building?.id))?.[status.dataset.status]); return; }
+  if (status) {
+    const building = getSelectedBuilding();
+    const statusKey = status.dataset.status;
+    const isCurrentlyActive = status.classList.contains('active') ||
+      status.classList.contains(statusKey) ||
+      Boolean(state.buildingStatuses?.get(String(building?.id))?.[statusKey]);
+    saveStatus(statusKey, !isCurrentlyActive);
+    return;
+  }
   if (target.closest('[data-save-personal]')) { saveNote(target.closest('[data-save-personal]')); return; }
   const architect = target.closest('.architect-filter');
   if (architect) { abrirFichaArquitecto(architect.dataset.arq); return; }
