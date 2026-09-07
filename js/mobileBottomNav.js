@@ -12,6 +12,7 @@ import { getBuildingsCatalog } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { activarFiltroBusquedaEnMapa } from './searchUI.js';
 import { localizarDispositivo } from './mapController.js';
+import { t } from './i18n.js';
 
 export function initMobileBottomNav() {
   const bottomBar = document.getElementById('mobile-bottom-bar');
@@ -233,7 +234,7 @@ export function initMobileBottomNav() {
         if (loginModal) {
           loginModal.classList.add('open');
           const title = document.getElementById('modal-login-title');
-          if (title) title.textContent = 'ACCESO A EXPLORA // REGISTRO REQUERIDO';
+          if (title) title.textContent = t('auth_explore_required');
         }
         return;
       }
@@ -376,18 +377,18 @@ function initMobileIdentityWidget() {
 
     if (!isLogged) {
       actionBtn.classList.add('guest');
-      badge.textContent = 'ACCEDER';
-      actionBtn.title = 'Iniciar sesión';
+      badge.textContent = t('nav_access');
+      actionBtn.title = t('nav_login');
       if (quickMenu) quickMenu.hidden = true;
     } else if (isAdmin) {
       actionBtn.classList.add('admin-logged');
-      badge.textContent = 'ADMIN';
-      actionBtn.title = 'Menú rápido de administrador';
+      badge.textContent = t('nav_admin');
+      actionBtn.title = t('nav_admin');
     } else {
       actionBtn.classList.add('user-logged');
       const inits = computeInitials();
       badge.textContent = `${inits}`;
-      actionBtn.title = 'Ver perfil personal';
+      actionBtn.title = t('topbar_profile');
     }
   }
 
@@ -548,7 +549,7 @@ function initMobileSearchWidget() {
 
       if (!matches.length) {
         resultsContainer.innerHTML = `
-          <div style="padding: 14px; font-family: 'Inter', sans-serif; font-size: 10px; color: var(--fg-dim); text-align: center;">SIN RESULTADOS EN LA BASE DE DATOS</div>
+          <div style="padding: 14px; font-family: 'Inter', sans-serif; font-size: 10px; color: var(--fg-dim); text-align: center;">${t('search_no_results_db')}</div>
         `;
         dropdown.hidden = false;
         return;
@@ -557,7 +558,7 @@ function initMobileSearchWidget() {
       const headerActionHtml = `
         <button type="button" class="mobile-search-filter-action" data-action="filter-all-matches">
           <i data-lucide="filter" width="13" height="13"></i>
-          <span>VER Y FILTRAR LAS ${matches.length} OBRAS EN EL MAPA</span>
+          <span>${t('search_filter_all_matches', { count: matches.length })}</span>
         </button>
       `;
 
@@ -567,8 +568,8 @@ function initMobileSearchWidget() {
         const metaCat = CATEGORY_META[catClave] || CATEGORY_META['otro'];
         const catColor = metaCat?.color || '#E84E1B';
 
-        const titulo = escapeHtml(obra.nombre_obra || 'OBRA SIN TÍTULO').toUpperCase();
-        const arq = escapeHtml(obra.arquitecto || 'Arquitecto no indicado');
+        const titulo = escapeHtml(obra.nombre_obra || t('sheet_untitled_work')).toUpperCase();
+        const arq = escapeHtml(obra.arquitecto || t('sheet_architect_unknown'));
         const anio = obra.año_construccion ? escapeHtml(String(obra.año_construccion)) : '';
         const ciudad = obra.ciudad || obra.place ? escapeHtml(String(obra.ciudad || obra.place).toUpperCase()) : '';
 
@@ -577,7 +578,7 @@ function initMobileSearchWidget() {
         if (ciudad) metaParts.push(ciudad);
 
         return `
-          <button type="button" class="mobile-search-item" data-obra-id="${escapeHtml(obra.id || obra.featureId)}" aria-label="Ver obra ${titulo}">
+          <button type="button" class="mobile-search-item" data-obra-id="${escapeHtml(obra.id || obra.featureId)}" aria-label="${t('search_view_work_aria', { title: titulo })}">
             <div class="mobile-search-item-main">
               <div class="mobile-search-item-top-row">
                 <span class="mobile-search-cat-tag" style="color: ${catColor};">${escapeHtml(catTexto)}</span>

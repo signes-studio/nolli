@@ -3,9 +3,21 @@
    ========================================================================= */
 
 import { state, nombreCategoria, esRolAdmin, CATEGORY_META } from './state.js';
+import { t } from './i18n.js';
 
 const filterPanel = document.getElementById('filter-panel');
 const btnFilters = document.getElementById('btn-filters');
+
+const CATEGORY_I18N_KEYS = {
+  residencial: 'cat_residential',
+  dotacional_equipamiento: 'cat_civic',
+  industrial_logistico: 'cat_industrial',
+  religioso_funerario: 'cat_religious',
+  comercial_terciario: 'cat_commercial',
+  espacio_publico_paisaje: 'cat_public_space',
+  infraestructura_urbanismo: 'cat_infrastructure',
+  otro: 'cat_other',
+};
 
 // OPCIONAL FIX #1: Usar CATEGORY_META centralizado en lugar de duplicados
 const CATEGORIAS_CONFIG = Object.values(CATEGORY_META).map(meta => ({
@@ -27,12 +39,12 @@ export function generarFiltrosUI() {
   filterPanel.innerHTML = `
     <div class="filter-head">
       <div>
-        <span style="color:var(--fg-dim)">FILTROS</span>
-        <small id="filter-summary" class="filter-summary">TODAS LAS OBRAS</small>
+        <span style="color:var(--fg-dim)">${t('filter_title')}</span>
+        <small id="filter-summary" class="filter-summary">${t('filter_all_works')}</small>
       </div>
       <div class="filter-head-actions">
-        <button type="button" class="filter-clear" data-filter-reset>LIMPIAR</button>
-        <button type="button" id="btn-filters-close" class="sheet-close-button" aria-label="Cerrar filtros" style="width:28px; height:28px; min-width:28px; min-height:28px;">
+        <button type="button" class="filter-clear" data-filter-reset>${t('filter_clear')}</button>
+        <button type="button" id="btn-filters-close" class="sheet-close-button" aria-label="${t('filter_close_aria')}" style="width:28px; height:28px; min-width:28px; min-height:28px;">
           <i data-lucide="x" width="14" height="14"></i>
         </button>
       </div>
@@ -40,7 +52,7 @@ export function generarFiltrosUI() {
 
     <div class="filter-group" data-filter-group="categories">
       <button type="button" class="filter-group-head" aria-expanded="true">
-        <span>CATEGORÍAS</span>
+        <span>${t('legend_categories')}</span>
         <span class="filter-chevron">−</span>
       </button>
       <div class="filter-group-body">
@@ -49,15 +61,16 @@ export function generarFiltrosUI() {
             const checked = state.activeCategorias.has(cat.key) ? 'checked' : '';
             const metaColor = CATEGORY_META[cat.key];
             const colorCat = metaColor?.color || '#555550';
+            const catLabel = t(CATEGORY_I18N_KEYS[cat.key]) || cat.label;
             return `
               <div class="switch-row">
                 <div class="switch-label-wrap">
                   <span class="category-dot" style="background-color:${colorCat};"></span>
-                  <span class="category-name">${cat.label}</span>
+                  <span class="category-name">${catLabel}</span>
                 </div>
                 <div class="switch-actions-wrap">
-                  <button type="button" class="filter-action filter-isolate" data-isolate-category="${cat.key}" title="Ver solo ${cat.label}">AISLAR</button>
-                  <label class="tech-switch" aria-label="Activar ${cat.label}">
+                  <button type="button" class="filter-action filter-isolate" data-isolate-category="${cat.key}" title="${t('filter_isolate_title', { label: catLabel })}">${t('filter_isolate')}</button>
+                  <label class="tech-switch" aria-label="${t('filter_activate_aria', { label: catLabel })}">
                     <input type="checkbox" ${checked} data-category-key="${cat.key}">
                     <span class="track"></span>
                     <span class="thumb"></span>
@@ -86,7 +99,7 @@ function actualizarResumenFiltros() {
     activeParts.push(`${state.activeCategorias.size} CAT.`);
   }
 
-  summary.textContent = activeParts.length ? activeParts.join(' · ') : 'TODAS LAS OBRAS';
+  summary.textContent = activeParts.length ? activeParts.join(' · ') : t('filter_all_works');
 }
 
 export function cerrarFiltros() {

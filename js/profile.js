@@ -40,6 +40,7 @@ import {
 
 import { renderInChunks } from './renderUtils.js';
 import { getOptimizedPhotoUrl } from './imageProxy.js';
+import { t, initI18n, getUrlPrefix, applyI18nToDOM } from './i18n.js';
 
 const SESSION_KEY = 'nolli_admin_session_token';
 const content = document.getElementById('profile-content');
@@ -248,6 +249,8 @@ async function asegurarObrasFaltantes(neededIds) {
 // INICIALIZACIÓN
 // -------------------------------------------------------------------------
 async function init() {
+  await initI18n();
+  applyI18nToDOM();
   initTheme();
   bindProfileHeaderActions();
   setupNavTabs();
@@ -528,8 +531,8 @@ function renderFeedContent() {
 function renderBuildingsFeed(buildings, tabKey) {
   const isVisited = tabKey === 'visited';
   const emptyText = isVisited
-    ? 'NO TIENES OBRAS MARCADAS COMO VISITADAS. REGISTRA TUS VISITAS DESDE EL MAPA.'
-    : 'NO TIENES OBRAS FAVORITAS AÚN. GUARDA OBRAS EN FAVORITOS DESDE EL MAPA.';
+    ? t('profile_empty_visited', null, 'NO TIENES OBRAS MARCADAS COMO VISITADAS. REGISTRA TUS VISITAS DESDE EL MAPA.')
+    : t('profile_empty_favorites', null, 'NO TIENES OBRAS FAVORITAS AÚN. GUARDA OBRAS EN FAVORITOS DESDE EL MAPA.');
 
   if (!buildings.length) {
     content.innerHTML = `
@@ -552,18 +555,18 @@ function renderBuildingsFeed(buildings, tabKey) {
     const metaParts = [year, architect, city].filter(Boolean).join(' · ');
 
     const actionBtnHtml = isVisited
-      ? `<button type="button" class="profile-card-action-btn danger" data-remove-visited="${obra.id}" title="Quitar de visitados" aria-label="Quitar de visitados">
+      ? `<button type="button" class="profile-card-action-btn danger" data-remove-visited="${obra.id}" title="${escapeHtml(t('profile_remove_visited_aria', null, 'Quitar de visitados'))}" aria-label="${escapeHtml(t('profile_remove_visited_aria', null, 'Quitar de visitados'))}">
           <i data-lucide="check" width="12" height="12"></i>
-          <span>QUITAR</span>
+          <span>${t('remove_upper', null, 'QUITAR')}</span>
         </button>`
-      : `<button type="button" class="profile-card-action-btn danger" data-remove-favorite="${obra.id}" title="Quitar de favoritos" aria-label="Quitar de favoritos">
+      : `<button type="button" class="profile-card-action-btn danger" data-remove-favorite="${obra.id}" title="${escapeHtml(t('profile_remove_favorites_aria', null, 'Quitar de favoritos'))}" aria-label="${escapeHtml(t('profile_remove_favorites_aria', null, 'Quitar de favoritos'))}">
           <i data-lucide="star" width="12" height="12"></i>
-          <span>QUITAR</span>
+          <span>${t('remove_upper', null, 'QUITAR')}</span>
         </button>`;
 
     return `
       <div class="profile-feed-row">
-        <a href="/obra/${encodeURIComponent(obra.id || obra.featureId)}" class="profile-feed-item" aria-label="Ver ${escapeHtml(title)} en el mapa">
+        <a href="${getUrlPrefix()}/obra/${encodeURIComponent(obra.id || obra.featureId)}" class="profile-feed-item" aria-label="${escapeHtml(t('sheet_view_map_btn', null, 'Ver'))} ${escapeHtml(title)}">
           ${photo ? `
             <img src="${escapeHtml(photo)}" alt="${escapeHtml(title)}" class="profile-feed-thumb" loading="lazy" onerror="this.outerHTML='<div class=\\'profile-feed-thumb-fallback\\'></div>'">
           ` : `
@@ -592,9 +595,9 @@ function renderCollectionsFeed() {
 
   content.innerHTML = `
     <div class="profile-collections-top">
-      <span style="font-family: 'Inter', sans-serif; font-size:11px; font-weight:800; color:var(--fg-dim);">MIS LISTAS // ${collections.length}</span>
+      <span style="font-family: 'Inter', sans-serif; font-size:11px; font-weight:800; color:var(--fg-dim);">${t('profile_my_lists_header', { count: collections.length }, `MIS LISTAS // ${collections.length}`)}</span>
       <button type="button" class="profile-new-list-btn" id="btn-create-collection-top">
-        <span>+ NUEVA LISTA</span>
+        <span>${t('profile_btn_new_list', null, '+ NUEVA LISTA')}</span>
       </button>
     </div>
   `;
@@ -602,7 +605,7 @@ function renderCollectionsFeed() {
   if (!collections.length && !followed.length) {
     content.innerHTML += `
       <div class="profile-feed-empty">
-        [ NO TIENES COLECCIONES CREADAS. PULSA EN "+ NUEVA LISTA" PARA EMPEZAR A ORGANIZAR OBRAS. ]
+        ${t('profile_empty_collections', null, '[ NO TIENES COLECCIONES CREADAS. PULSA EN "+ NUEVA LISTA" PARA EMPEZAR A ORGANIZAR OBRAS. ]')}
       </div>
     `;
     return;
@@ -610,7 +613,7 @@ function renderCollectionsFeed() {
 
   const cardsHtml = collections.map((col) => {
     const items = (profileState.items || []).filter((item) => String(item.collection_id) === String(col.id));
-    const countText = `${items.length} ${items.length === 1 ? 'OBRA' : 'OBRAS'}`;
+    const countText = `${items.length} ${items.length === 1 ? t('building_singular', null, 'OBRA') : t('building_plural', null, 'OBRAS')}`;
     const isMapActive = col.show_on_map !== false;
     const isPublic = col.status === 'public' || col.is_public === true;
 
@@ -623,8 +626,8 @@ function renderCollectionsFeed() {
       if (!obra) {
         return `
           <div class="profile-collection-work-row">
-            <span style="font-size:11px; color:var(--fg-dim);">Obra #${escapeHtml(item.building_id)}</span>
-            <button type="button" class="profile-collection-item-remove-btn" data-collection-id="${col.id}" data-remove-item="${item.building_id}" title="Quitar de la lista">✕</button>
+            <span style="font-size:11px; color:var(--fg-dim);">${t('building_singular', null, 'Obra')} #${escapeHtml(item.building_id)}</span>
+            <button type="button" class="profile-collection-item-remove-btn" data-collection-id="${col.id}" data-remove-item="${item.building_id}" title="${escapeHtml(t('profile_remove_from_list_title', null, 'Quitar de la lista'))}">✕</button>
           </div>
         `;
       }
@@ -635,7 +638,7 @@ function renderCollectionsFeed() {
 
       return `
         <div class="profile-collection-work-row">
-          <a href="/obra/${encodeURIComponent(obra.id)}" class="profile-collection-work-link">
+          <a href="${getUrlPrefix()}/obra/${encodeURIComponent(obra.id)}" class="profile-collection-work-link">
             ${photo ? `
               <img src="${escapeHtml(photo)}" alt="${escapeHtml(title)}" class="profile-collection-work-thumb" loading="lazy" onerror="this.style.display='none'">
             ` : ''}
@@ -644,10 +647,10 @@ function renderCollectionsFeed() {
               <div class="profile-collection-work-meta">${escapeHtml(architect)}${escapeHtml(year)}</div>
             </div>
           </a>
-          <button type="button" class="profile-collection-item-remove-btn" data-collection-id="${col.id}" data-remove-item="${obra.id}" title="Quitar de la lista">✕</button>
+          <button type="button" class="profile-collection-item-remove-btn" data-collection-id="${col.id}" data-remove-item="${obra.id}" title="${escapeHtml(t('profile_remove_from_list_title', null, 'Quitar de la lista'))}">✕</button>
         </div>
       `;
-    }).join('') || '<div style="font-size:11px; color:var(--fg-dim); padding:6px 0;">[ Lista sin obras añadidas aún ]</div>';
+    }).join('') || `<div style="font-size:11px; color:var(--fg-dim); padding:6px 0;">${t('profile_empty_collection_items', null, '[ Lista sin obras añadidas aún ]')}</div>`;
 
     return `
       <article class="profile-collection-card" data-col-id="${col.id}">
@@ -656,23 +659,23 @@ function renderCollectionsFeed() {
             <div class="profile-collection-head-row" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
               <h3 class="profile-collection-name">${col.icon ? `${escapeHtml(col.icon)} ` : ''}${escapeHtml(col.name)}</h3>
               <span class="profile-collection-count-badge">${countText}</span>
-              <span style="font-size:8.5px; font-weight:800; font-family: 'Inter', sans-serif; padding:1px 5px; border:1px solid ${isPublic ? 'var(--accent, #E84E1B)' : 'var(--border-strong, #111111)'}; color:${isPublic ? 'var(--accent, #E84E1B)' : 'var(--fg-dim)'};">${isPublic ? 'PÚBLICA' : 'PRIVADA'}</span>
+              <span style="font-size:8.5px; font-weight:800; font-family: 'Inter', sans-serif; padding:1px 5px; border:1px solid ${isPublic ? 'var(--accent, #E84E1B)' : 'var(--border-strong, #111111)'}; color:${isPublic ? 'var(--accent, #E84E1B)' : 'var(--fg-dim)'};">${isPublic ? t('collection_status_public', null, 'PÚBLICA') : t('collection_status_private', null, 'PRIVADA')}</span>
             </div>
             ${col.description ? `<p class="profile-collection-desc" style="margin-top:4px;">${escapeHtml(col.description)}</p>` : ''}
           </div>
           <div class="profile-collection-tools">
             ${isPublic ? `
-              <button type="button" class="profile-collection-tool-btn" data-copy-col-link="${col.id}" title="Copiar enlace compartible">
+              <button type="button" class="profile-collection-tool-btn" data-copy-col-link="${col.id}" title="${escapeHtml(t('profile_copy_shareable_link', null, 'Copiar enlace compartible'))}">
                 <i data-lucide="share-2" width="13" height="13"></i>
               </button>
             ` : ''}
-            <button type="button" class="profile-collection-tool-btn ${isMapActive ? 'active' : ''}" data-toggle-map-col="${col.id}" title="${isMapActive ? 'Ocultar iconos en mapa' : 'Mostrar iconos en mapa'}">
+            <button type="button" class="profile-collection-tool-btn ${isMapActive ? 'active' : ''}" data-toggle-map-col="${col.id}" title="${escapeHtml(isMapActive ? t('profile_hide_map_icons', null, 'Ocultar iconos en mapa') : t('profile_show_map_icons', null, 'Mostrar iconos en mapa'))}">
               ${eyeIconSvg}
             </button>
-            <button type="button" class="profile-collection-tool-btn" data-edit-col="${col.id}" title="Editar lista">
+            <button type="button" class="profile-collection-tool-btn" data-edit-col="${col.id}" title="${escapeHtml(t('profile_edit_list_title', null, 'Editar lista'))}">
               <i data-lucide="edit-2" width="13" height="13"></i>
             </button>
-            <button type="button" class="profile-collection-tool-btn btn-delete" data-delete-col="${col.id}" title="Borrar lista">
+            <button type="button" class="profile-collection-tool-btn btn-delete" data-delete-col="${col.id}" title="${escapeHtml(t('profile_delete_list_title', null, 'Borrar lista'))}">
               <i data-lucide="trash-2" width="13" height="13"></i>
             </button>
           </div>
@@ -691,7 +694,7 @@ function renderCollectionsFeed() {
     const followedHtml = followed.map((f) => {
       const col = f.user_collections || f;
       if (!col) return '';
-      const creatorName = col.profiles?.nick ? `@${col.profiles.nick}` : (col.profiles?.first_name ? `@${col.profiles.first_name}` : 'Comunidad Nolli');
+      const creatorName = col.profiles?.nick ? `@${col.profiles.nick}` : (col.profiles?.first_name ? `@${col.profiles.first_name}` : t('profile_community_name', null, 'Comunidad Nolli'));
       const emoji = col.icon || '';
       const title = col.name || 'Lista pública';
       const desc = col.description || '';
@@ -702,16 +705,16 @@ function renderCollectionsFeed() {
             <div style="min-width:0; flex:1;">
               <div style="display:flex; align-items:center; gap:8px;">
                 <h3 class="profile-collection-name">${escapeHtml(emoji)} ${escapeHtml(title)}</h3>
-                <span style="font-size:8.5px; font-weight:800; font-family: 'Inter', sans-serif; padding:1px 5px; background:rgba(232,78,27,0.08); color:var(--accent, #E84E1B);">SEGUIDA</span>
+                <span style="font-size:8.5px; font-weight:800; font-family: 'Inter', sans-serif; padding:1px 5px; background:rgba(232,78,27,0.08); color:var(--accent, #E84E1B);">${t('profile_badge_followed', null, 'SEGUIDA')}</span>
               </div>
-              <p style="font-size:10.5px; color:var(--fg-dim); margin-top:2px;">Por <strong style="color:var(--fg);">${escapeHtml(creatorName)}</strong></p>
+              <p style="font-size:10.5px; color:var(--fg-dim); margin-top:2px;">${t('profile_created_by', { creator: escapeHtml(creatorName) }, `Por <strong style="color:var(--fg);">${escapeHtml(creatorName)}</strong>`)}</p>
               ${desc ? `<p class="profile-collection-desc" style="margin-top:4px;">${escapeHtml(desc)}</p>` : ''}
             </div>
             <div class="profile-collection-tools">
-              <a href="./#list=${encodeURIComponent(col.id)}" class="profile-collection-tool-btn" title="Ver en el mapa" style="text-decoration:none;">
+              <a href="./#list=${encodeURIComponent(col.id)}" class="profile-collection-tool-btn" title="${escapeHtml(t('profile_view_on_map_title', null, 'Ver en el mapa'))}" style="text-decoration:none;">
                 <i data-lucide="map" width="13" height="13"></i>
               </a>
-              <button type="button" class="profile-collection-tool-btn btn-delete" data-unfollow-col="${col.id}" title="Dejar de seguir">
+              <button type="button" class="profile-collection-tool-btn btn-delete" data-unfollow-col="${col.id}" title="${escapeHtml(t('profile_unfollow_title', null, 'Dejar de seguir'))}">
                 ✕
               </button>
             </div>
@@ -722,7 +725,7 @@ function renderCollectionsFeed() {
 
     content.innerHTML += `
       <div class="profile-collections-top" style="margin-top:28px;">
-        <span style="font-family: 'Inter', sans-serif; font-size:11px; font-weight:800; color:var(--accent, #E84E1B);">LISTAS SEGUIDAS DE LA COMUNIDAD // ${followed.length}</span>
+        <span style="font-family: 'Inter', sans-serif; font-size:11px; font-weight:800; color:var(--accent, #E84E1B);">${t('profile_followed_collections_header', { count: followed.length }, `LISTAS SEGUIDAS DE LA COMUNIDAD // ${followed.length}`)}</span>
       </div>
       ${followedHtml}
     `;
@@ -736,7 +739,7 @@ function renderNotesFeed() {
 
   if (!buildingsWithNotes.length) {
     content.innerHTML = `
-      <div class="profile-feed-empty">NO TIENES NOTAS PRIVADAS REGISTRADAS AÚN. REGISTRA TUS NOTAS EN CUALQUIER OBRA DESDE EL MAPA.</div>
+      <div class="profile-feed-empty">${t('profile_empty_notes', null, 'NO TIENES NOTAS PRIVADAS REGISTRADAS AÚN. REGISTRA TUS NOTAS EN CUALQUIER OBRA DESDE EL MAPA.')}</div>
     `;
     return;
   }
@@ -759,18 +762,18 @@ function renderNotesFeed() {
               <div class="profile-feed-thumb-fallback" style="width:50px; height:50px; min-width:50px; min-height:50px; font-size:16px;"></div>
             `}
             <div style="min-width:0; flex:1;">
-              <a href="./?obra=${encodeURIComponent(obra.id)}" class="profile-feed-title" style="font-size:14px; text-decoration:none;">${escapeHtml(title)}${escapeHtml(year)}</a>
+              <a href="${getUrlPrefix()}/obra/${encodeURIComponent(obra.id)}" class="profile-feed-title" style="font-size:14px; text-decoration:none;">${escapeHtml(title)}${escapeHtml(year)}</a>
               <div class="profile-feed-meta" style="font-size:11px;">${escapeHtml(architect)}</div>
             </div>
           </div>
           <div class="profile-collection-tools">
-            <button type="button" class="profile-card-action-btn" data-edit-note="${obra.id}" title="Editar nota">
+            <button type="button" class="profile-card-action-btn" data-edit-note="${obra.id}" title="${escapeHtml(t('edit_note', null, 'Editar nota'))}">
               <i data-lucide="edit-2" width="12" height="12"></i>
-              <span>EDITAR</span>
+              <span>${t('edit_upper', null, 'EDITAR')}</span>
             </button>
-            <button type="button" class="profile-card-action-btn danger" data-delete-note="${obra.id}" title="Eliminar nota">
+            <button type="button" class="profile-card-action-btn danger" data-delete-note="${obra.id}" title="${escapeHtml(t('delete_note', null, 'Eliminar nota'))}">
               <i data-lucide="trash-2" width="12" height="12"></i>
-              <span>BORRAR</span>
+              <span>${t('delete_upper', null, 'BORRAR')}</span>
             </button>
           </div>
         </div>
@@ -883,7 +886,7 @@ function setupFeedActionHandlers() {
     const btnUnfollow = e.target.closest('[data-unfollow-col]');
     if (btnUnfollow) {
       const colId = btnUnfollow.dataset.unfollowCol;
-      if (!window.confirm('¿Dejar de seguir esta lista pública?')) return;
+      if (!window.confirm(t('profile_confirm_unfollow', null, '¿Dejar de seguir esta lista pública?'))) return;
       try {
         await unfollowCollection(colId, user.id, token);
         profileState.followedCollections = profileState.followedCollections.filter(
@@ -943,7 +946,7 @@ async function borrarColeccion(collectionId) {
   if (!token || !user || !collectionId) return;
 
   const col = profileState.collections.find((c) => String(c.id) === String(collectionId));
-  if (!window.confirm(`¿Eliminar la lista "${col?.name || collectionId}"?`)) return;
+  if (!window.confirm(t('profile_confirm_delete_list', { name: col?.name || collectionId }, `¿Eliminar la lista "${col?.name || collectionId}"?`))) return;
 
   profileState.collections = profileState.collections.filter((c) => String(c.id) !== String(collectionId));
   profileState.items = profileState.items.filter((i) => String(i.collection_id) !== String(collectionId));
@@ -976,7 +979,7 @@ async function quitarObraDeColeccion(collectionId, buildingId) {
 }
 
 async function borrarNota(buildingId) {
-  if (!window.confirm('¿Eliminar la nota privada de esta obra?')) return;
+  if (!window.confirm(t('profile_confirm_delete_note', null, '¿Eliminar la nota privada de esta obra?'))) return;
   await toggleStatus(buildingId, { notas: '' });
 }
 
@@ -1044,7 +1047,7 @@ function setupCollectionModal() {
     const submitBtn = document.getElementById('btn-save-collection');
     if (submitBtn) {
       submitBtn.disabled = true;
-      submitBtn.querySelector('span').textContent = 'GUARDANDO...';
+      submitBtn.querySelector('span').textContent = t('saving', null, 'GUARDANDO...');
     }
 
     try {
@@ -1092,7 +1095,7 @@ function setupCollectionModal() {
     } finally {
       if (submitBtn) {
         submitBtn.disabled = false;
-        submitBtn.querySelector('span').textContent = 'GUARDAR LISTA';
+        submitBtn.querySelector('span').textContent = t('collection_btn_save', null, 'GUARDAR LISTA');
       }
     }
   });
@@ -1109,7 +1112,7 @@ function abrirModalCrearLista() {
   const shareWrap = document.getElementById('collection-share-wrap');
   const radioPrivate = document.getElementById('status-private');
 
-  if (title) title.textContent = 'NUEVA LISTA';
+  if (title) title.textContent = t('collection_modal_title', null, 'NUEVA LISTA');
   if (editIdInput) editIdInput.value = '';
   if (iconInput) iconInput.value = '';
   if (nameInput) nameInput.value = '';
@@ -1139,7 +1142,7 @@ function abrirModalEditarLista(colId) {
   const radioPrivate = document.getElementById('status-private');
   const radioPublic = document.getElementById('status-public');
 
-  if (title) title.textContent = 'EDITAR LISTA';
+  if (title) title.textContent = t('profile_title_edit_list', null, 'EDITAR LISTA');
   if (editIdInput) editIdInput.value = col.id;
   if (iconInput) iconInput.value = col.icon || '';
   if (nameInput) nameInput.value = col.name || '';
@@ -1173,7 +1176,7 @@ function setupNoteModal() {
     btnDeleteNoteModal.addEventListener('click', async () => {
       const buildingId = document.getElementById('note-building-id')?.value;
       if (!buildingId) return;
-      if (!window.confirm('¿Eliminar la nota privada de esta obra?')) return;
+      if (!window.confirm(t('profile_confirm_delete_note', null, '¿Eliminar la nota privada de esta obra?'))) return;
       modalEditNote.classList.remove('open');
       await toggleStatus(buildingId, { notas: '' });
     });
@@ -1188,7 +1191,7 @@ function setupNoteModal() {
     const submitBtn = document.getElementById('btn-save-note');
     if (submitBtn) {
       submitBtn.disabled = true;
-      submitBtn.querySelector('span').textContent = 'GUARDANDO...';
+      submitBtn.querySelector('span').textContent = t('saving', null, 'GUARDANDO...');
     }
 
     try {
@@ -1202,7 +1205,7 @@ function setupNoteModal() {
     } finally {
       if (submitBtn) {
         submitBtn.disabled = false;
-        submitBtn.querySelector('span').textContent = 'GUARDAR NOTA';
+        submitBtn.querySelector('span').textContent = t('note_modal_btn_save', null, 'GUARDAR NOTA');
       }
     }
   });
@@ -1236,19 +1239,19 @@ function setupEditProfileModal() {
       const metadata = user.user_metadata || {};
       const db = profileState.dbProfile || {};
 
-      const inFirstName = document.getElementById('edit-profile-firstname');
-      const inLastName = document.getElementById('edit-profile-lastname');
-      const inBio = document.getElementById('edit-profile-bio');
-      const inCity = document.getElementById('edit-profile-city');
-      const inCountry = document.getElementById('edit-profile-country');
-      const inWebsite = document.getElementById('edit-profile-website');
+      const inputFirst = document.getElementById('edit-profile-firstname');
+      const inputLast = document.getElementById('edit-profile-lastname');
+      const inputBio = document.getElementById('edit-profile-bio');
+      const inputCity = document.getElementById('edit-profile-city');
+      const inputCountry = document.getElementById('edit-profile-country');
+      const inputWeb = document.getElementById('edit-profile-website');
 
-      if (inFirstName) inFirstName.value = (db.first_name !== undefined && db.first_name !== null) ? db.first_name : (metadata.first_name || 'Luis Alberto');
-      if (inLastName) inLastName.value = (db.last_name !== undefined && db.last_name !== null) ? db.last_name : (metadata.last_name || 'Signes Sacristán');
-      if (inBio) inBio.value = (db.bio !== undefined && db.bio !== null) ? db.bio : (metadata.bio || 'Arquitecto & ArchViz | SIGNES.STUDIO');
-      if (inCity) inCity.value = (db.city !== undefined && db.city !== null) ? db.city : (metadata.city || 'Valencia');
-      if (inCountry) inCountry.value = (db.country !== undefined && db.country !== null) ? db.country : (metadata.country || 'España');
-      if (inWebsite) inWebsite.value = (db.website !== undefined && db.website !== null) ? db.website : (metadata.website || 'https://signes.studio');
+      if (inputFirst) inputFirst.value = db.first_name || metadata.first_name || '';
+      if (inputLast) inputLast.value = db.last_name || metadata.last_name || '';
+      if (inputBio) inputBio.value = db.bio || metadata.bio || '';
+      if (inputCity) inputCity.value = db.city || metadata.city || '';
+      if (inputCountry) inputCountry.value = db.country || metadata.country || '';
+      if (inputWeb) inputWeb.value = db.website || metadata.website || '';
 
       if (editStatus) editStatus.classList.add('hidden');
       modalEditProfile.classList.add('open');
@@ -1257,9 +1260,7 @@ function setupEditProfileModal() {
   }
 
   if (btnCloseEditProfile && modalEditProfile) {
-    btnCloseEditProfile.addEventListener('click', () => {
-      modalEditProfile.classList.remove('open');
-    });
+    btnCloseEditProfile.addEventListener('click', () => modalEditProfile.classList.remove('open'));
   }
 
   if (modalEditProfile) {
@@ -1287,7 +1288,7 @@ function setupEditProfileModal() {
       const submitBtn = document.getElementById('btn-save-profile');
       if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.querySelector('span').textContent = 'GUARDANDO CAMBIOS...';
+        submitBtn.querySelector('span').textContent = t('saving_changes', null, 'GUARDANDO CAMBIOS...');
       }
 
       const updatedProfile = {
@@ -1332,7 +1333,7 @@ function setupEditProfileModal() {
         renderHero();
 
         if (editStatus) {
-          editStatus.textContent = 'PERFIL ACTUALIZADO CON ÉXITO';
+          editStatus.textContent = t('profile_updated_success', null, 'PERFIL ACTUALIZADO CON ÉXITO');
           editStatus.classList.remove('hidden');
         }
 
@@ -1348,7 +1349,7 @@ function setupEditProfileModal() {
       } finally {
         if (submitBtn) {
           submitBtn.disabled = false;
-          submitBtn.querySelector('span').textContent = 'GUARDAR CAMBIOS';
+          submitBtn.querySelector('span').textContent = t('profile_edit_save', null, 'GUARDAR CAMBIOS');
         }
       }
     });
@@ -1387,9 +1388,9 @@ function setupLoginModal() {
     registerMode = false;
     if (loginForm) loginForm.classList.remove('hidden');
     if (registerSuccessView) registerSuccessView.classList.add('hidden');
-    if (modalTitle) modalTitle.textContent = 'AUTENTICACIÓN REQUERIDA';
-    if (actionButton) actionButton.textContent = 'AUTORIZAR ACCESO';
-    if (registerButton) registerButton.textContent = 'CREAR CUENTA';
+    if (modalTitle) modalTitle.textContent = t('auth_modal_title', null, 'AUTENTICACIÓN REQUERIDA');
+    if (actionButton) actionButton.textContent = t('auth_btn_login', null, 'AUTORIZAR ACCESO');
+    if (registerButton) registerButton.textContent = t('auth_btn_register_mode', null, 'CREAR CUENTA');
     registerOnlyFields.forEach((field) => field.classList.add('hidden'));
     forgotPasswordButton?.classList.remove('hidden');
     document.querySelector('.keep-session')?.classList.remove('hidden');
@@ -1434,7 +1435,7 @@ function setupLoginModal() {
     togglePassword.addEventListener('click', () => {
       const showing = passwordInput.type === 'text';
       passwordInput.type = showing ? 'password' : 'text';
-      togglePassword.setAttribute('aria-label', showing ? 'Mostrar contraseña' : 'Ocultar contraseña');
+      togglePassword.setAttribute('aria-label', showing ? t('auth_show_password_aria', null, 'Mostrar contraseña') : t('auth_hide_password_aria', null, 'Ocultar contraseña'));
       togglePassword.setAttribute('aria-pressed', String(!showing));
       togglePassword.innerHTML = `<i data-lucide="${showing ? 'eye' : 'eye-off'}" width="15" height="15"></i>`;
       if (window.lucide) window.lucide.createIcons();
@@ -1445,8 +1446,8 @@ function setupLoginModal() {
     registerButton.addEventListener('click', () => {
       registerMode = !registerMode;
       registerOnlyFields.forEach((field) => field.classList.toggle('hidden', !registerMode));
-      if (actionButton) actionButton.textContent = registerMode ? 'COMPLETAR REGISTRO' : 'AUTORIZAR ACCESO';
-      registerButton.textContent = registerMode ? 'VOLVER A INICIO DE SESIÓN' : 'CREAR CUENTA';
+      if (actionButton) actionButton.textContent = registerMode ? t('auth_btn_complete_register', null, 'COMPLETAR REGISTRO') : t('auth_btn_login', null, 'AUTORIZAR ACCESO');
+      registerButton.textContent = registerMode ? t('auth_btn_back_to_login', null, 'VOLVER A INICIO DE SESIÓN') : t('auth_btn_register_mode', null, 'CREAR CUENTA');
       if (termsCheckbox) termsCheckbox.required = registerMode;
       if (termsCheckbox && !registerMode) termsCheckbox.checked = false;
       if (err) err.classList.add('hidden');
@@ -1459,17 +1460,17 @@ function setupLoginModal() {
       const email = document.getElementById('login-email')?.value.trim();
       if (!email) {
         if (err) {
-          err.textContent = 'Escribe tu email para enviarte el enlace.';
+          err.textContent = t('auth_err_enter_email', null, 'Escribe tu email para enviarte el enlace.');
           err.classList.remove('hidden');
         }
         return;
       }
       forgotPasswordButton.disabled = true;
-      forgotPasswordButton.textContent = 'ENVIANDO ENLACE...';
+      forgotPasswordButton.textContent = t('auth_sending_link', null, 'ENVIANDO ENLACE...');
       try {
         await requestPasswordReset(email);
         if (err) {
-          err.textContent = 'Revisa tu correo para restablecer la contraseña.';
+          err.textContent = t('auth_msg_check_email_reset', null, 'Revisa tu correo para restablecer la contraseña.');
           err.classList.remove('hidden');
         }
       } catch (error) {
@@ -1479,7 +1480,7 @@ function setupLoginModal() {
         }
       } finally {
         forgotPasswordButton.disabled = false;
-        forgotPasswordButton.textContent = '¿OLVIDASTE LA CONTRASEÑA?';
+        forgotPasswordButton.textContent = t('auth_forgot_password', null, '¿OLVIDASTE LA CONTRASEÑA?');
       }
     });
   }
@@ -1493,7 +1494,7 @@ function setupLoginModal() {
 
       if (!email || !password) {
         if (err) {
-          err.textContent = 'Introduce tu correo y contraseña.';
+          err.textContent = t('auth_err_credentials_required', null, 'Introduce tu correo y contraseña.');
           err.classList.remove('hidden');
         }
         return;
@@ -1502,14 +1503,14 @@ function setupLoginModal() {
       if (registerMode) {
         if (!termsCheckbox?.checked) {
           if (err) {
-            err.textContent = 'Debes aceptar los términos y bases legales para registrarte.';
+            err.textContent = t('auth_err_accept_terms', null, 'Debes aceptar los términos y bases legales para registrarte.');
             err.classList.remove('hidden');
           }
           return;
         }
         if (actionButton) {
           actionButton.disabled = true;
-          actionButton.textContent = 'CREANDO CUENTA...';
+          actionButton.textContent = t('auth_creating_account', null, 'CREANDO CUENTA...');
         }
         const firstName = document.getElementById('register-first-name')?.value.trim() || '';
         const lastName = document.getElementById('register-last-name')?.value.trim() || '';
@@ -1532,7 +1533,7 @@ function setupLoginModal() {
               registerSuccessView.classList.remove('hidden');
               if (registerSuccessEmail) registerSuccessEmail.textContent = email;
             }
-            if (modalTitle) modalTitle.textContent = 'CONFIRMACIÓN DE CUENTA';
+            if (modalTitle) modalTitle.textContent = t('auth_title_confirm_account', null, 'CONFIRMACIÓN DE CUENTA');
             if (window.lucide) window.lucide.createIcons();
           }
         } catch (error) {
@@ -1543,13 +1544,13 @@ function setupLoginModal() {
         } finally {
           if (actionButton) {
             actionButton.disabled = false;
-            actionButton.textContent = registerMode ? 'COMPLETAR REGISTRO' : 'AUTORIZAR ACCESO';
+            actionButton.textContent = registerMode ? t('auth_btn_complete_register', null, 'COMPLETAR REGISTRO') : t('auth_btn_login', null, 'AUTORIZAR ACCESO');
           }
         }
       } else {
         if (actionButton) {
           actionButton.disabled = true;
-          actionButton.textContent = 'AUTENTICANDO...';
+          actionButton.textContent = t('auth_authenticating', null, 'AUTENTICANDO...');
         }
         try {
           const authData = await loginAdmin(email, password);
@@ -1565,7 +1566,7 @@ function setupLoginModal() {
         } finally {
           if (actionButton) {
             actionButton.disabled = false;
-            actionButton.textContent = 'AUTORIZAR ACCESO';
+            actionButton.textContent = t('auth_btn_login', null, 'AUTORIZAR ACCESO');
           }
         }
       }

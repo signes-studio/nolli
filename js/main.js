@@ -15,6 +15,9 @@ import { initMobileBottomNav } from './mobileBottomNav.js';
 import { getViewportKey, showNeoToast } from './renderUtils.js';
 
 import { abrirFicha } from './sheetUI.js';
+import { initI18n, t } from './i18n.js';
+
+await initI18n();
 
 let publicLoadRequest = 0;
 let publicLoadTimer = null;
@@ -122,7 +125,7 @@ async function cargarYMostrarObra(obraId) {
     state.map.flyTo({ center: obra.coordenadas, zoom: Math.max(state.map.getZoom(), 15) });
     abrirFicha(obra, obra.coordenadas, obra.featureId || obra.id, true);
   } else if (!obra) {
-    showNeoToast('LA OBRA SOLICITADA NO EXISTE O FUE RETIRADA', { type: 'alert', duration: 4000 });
+    showNeoToast(t('toast_work_not_found'), { type: 'alert', duration: 4000 });
     const url = new URL(window.location.href);
     url.searchParams.delete('obra');
     window.history.replaceState(null, '', url.pathname + (url.searchParams.toString() ? '?' + url.searchParams.toString() : '') + url.hash);

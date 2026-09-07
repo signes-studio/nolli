@@ -7,6 +7,7 @@ import { loginAdmin, registerUser, refreshUserSession, requestPasswordReset, fet
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
 import { showNeoToast } from './renderUtils.js';
+import { t } from './i18n.js';
 
 const ADMIN_SESSION_KEY = 'nolli_admin_session_token';
 let presenceTimer = null;
@@ -112,14 +113,14 @@ async function initLoginModal() {
     ].filter(Boolean);
     adminButtons.forEach((btn) => btn.classList.toggle('hidden', !canUseAdminTools));
 
-    bLoginT.textContent = canUseAdminTools ? 'ADMIN DESBLOQUEADO' : 'SESIÓN INICIADA';
+    bLoginT.textContent = canUseAdminTools ? t('nav_admin_unlocked') : t('nav_session_active');
     bLoginT.style.color = 'var(--accent-2)';
     bLoginT.style.borderColor = 'var(--accent-2)';
     bLoginT.style.background = 'rgba(239, 188, 2, 0.12)';
 
     const mobileBadge = document.getElementById('mobile-identity-badge');
     if (mobileBadge) {
-      mobileBadge.textContent = canUseAdminTools ? 'ADMIN' : 'SESIÓN';
+      mobileBadge.textContent = canUseAdminTools ? t('nav_admin') : t('nav_session');
     }
 
     logoutButton.classList.remove('hidden');
@@ -210,9 +211,9 @@ async function initLoginModal() {
     registerMode = false;
     if (loginForm) loginForm.classList.remove('hidden');
     if (registerSuccessView) registerSuccessView.classList.add('hidden');
-    if (title) title.textContent = 'AUTENTICACIÓN REQUERIDA';
-    if (actionButton) actionButton.textContent = 'AUTORIZAR ACCESO';
-    if (registerButton) registerButton.textContent = 'CREAR CUENTA';
+    if (title) title.textContent = t('auth_modal_title');
+    if (actionButton) actionButton.textContent = t('auth_btn_login');
+    if (registerButton) registerButton.textContent = t('auth_btn_register_mode');
     registerOnlyFields.forEach((field) => field.classList.add('hidden'));
     forgotPasswordButton?.classList.remove('hidden');
     document.querySelector('.keep-session')?.classList.remove('hidden');
@@ -354,7 +355,7 @@ async function initLoginModal() {
       err.textContent = error.message;
       err.classList.remove('hidden');
     } finally {
-      btnLogin.textContent = registerMode ? 'CREAR CUENTA' : 'AUTORIZAR ACCESO';
+      btnLogin.textContent = registerMode ? t('auth_btn_register_mode') : t('auth_btn_login');
     }
   });
 
@@ -365,9 +366,9 @@ async function initLoginModal() {
 
   registerButton.addEventListener('click', () => {
     registerMode = !registerMode;
-    title.textContent = registerMode ? 'REGISTRO DE USUARIO' : 'AUTENTICACIÓN REQUERIDA';
-    actionButton.textContent = registerMode ? 'CREAR CUENTA' : 'AUTORIZAR ACCESO';
-    registerButton.textContent = registerMode ? 'VOLVER AL LOGIN' : 'CREAR CUENTA';
+    title.textContent = registerMode ? t('auth_user_registration') : t('auth_modal_title');
+    actionButton.textContent = registerMode ? t('auth_btn_register_mode') : t('auth_btn_login');
+    registerButton.textContent = registerMode ? t('auth_back_to_login') : t('auth_btn_register_mode');
     registerOnlyFields.forEach((field) => field.classList.toggle('hidden', !registerMode));
     forgotPasswordButton.classList.toggle('hidden', registerMode);
     document.querySelector('.keep-session')?.classList.toggle('hidden', registerMode);
@@ -383,7 +384,7 @@ async function initLoginModal() {
     if (logoutButton) logoutButton.classList.add('hidden');
     loginEntryFields.forEach((field) => field.classList.remove('hidden'));
     if (bLoginT) {
-      bLoginT.textContent = 'INICIAR SESIÓN';
+      bLoginT.textContent = t('login_init_btn');
       bLoginT.style.color = 'var(--accent)';
       bLoginT.style.borderColor = 'var(--accent)';
       bLoginT.style.background = 'rgba(233, 92, 12, 0.1)';
@@ -421,18 +422,18 @@ function initAddBuildingModal() {
     if (esAdmin) {
       const optDirect = document.createElement('option');
       optDirect.value = 'direct';
-      optDirect.textContent = 'AÑADIR OBRA DIRECTA (PÚBLICA)';
+      optDirect.textContent = t('add_vis_direct');
       selectVisibility.appendChild(optDirect);
     }
 
     const optReview = document.createElement('option');
     optReview.value = 'review';
-    optReview.textContent = 'PROPONER A REVISIÓN (PENDIENTE)';
+    optReview.textContent = t('add_vis_review');
     selectVisibility.appendChild(optReview);
 
     const optPrivate = document.createElement('option');
     optPrivate.value = 'private';
-    optPrivate.textContent = 'GUARDAR PRIVADA (PERSONAL)';
+    optPrivate.textContent = t('add_vis_private');
     selectVisibility.appendChild(optPrivate);
 
     if (selectedVal && Array.from(selectVisibility.options).some((o) => o.value === selectedVal)) {
@@ -452,14 +453,14 @@ function initAddBuildingModal() {
     const btnSave = document.getElementById('btn-add-save');
 
     if (visibility === 'direct') {
-      if (modalTitle) modalTitle.textContent = 'REGISTRO DE OBRA DIRECTA (DB)';
-      if (btnSave) btnSave.innerHTML = '<span class="inline-flex items-center gap-1"><i data-lucide="database" width="13" height="13"></i> PUBLICAR DIRECTA</span>';
+      if (modalTitle) modalTitle.textContent = t('add_modal_direct_title');
+      if (btnSave) btnSave.innerHTML = `<span class="inline-flex items-center gap-1"><i data-lucide="database" width="13" height="13"></i> ${t('add_btn_publish_direct')}</span>`;
     } else if (visibility === 'private') {
-      if (modalTitle) modalTitle.textContent = 'NUEVA ETIQUETA PRIVADA';
-      if (btnSave) btnSave.innerHTML = '<span class="inline-flex items-center gap-1"><i data-lucide="bookmark" width="13" height="13"></i> GUARDAR PRIVADA</span>';
+      if (modalTitle) modalTitle.textContent = t('add_modal_private_title');
+      if (btnSave) btnSave.innerHTML = `<span class="inline-flex items-center gap-1"><i data-lucide="bookmark" width="13" height="13"></i> ${t('add_btn_save_private')}</span>`;
     } else {
-      if (modalTitle) modalTitle.textContent = 'PROPONER OBRA A REVISIÓN';
-      if (btnSave) btnSave.innerHTML = '<span class="inline-flex items-center gap-1"><i data-lucide="send" width="13" height="13"></i> ENVIAR A REVISIÓN</span>';
+      if (modalTitle) modalTitle.textContent = t('add_modal_review_title');
+      if (btnSave) btnSave.innerHTML = `<span class="inline-flex items-center gap-1"><i data-lucide="send" width="13" height="13"></i> ${t('add_btn_submit_review')}</span>`;
     }
     if (window.lucide) window.lucide.createIcons();
   }
@@ -471,8 +472,8 @@ function initAddBuildingModal() {
     document.getElementById('sheet')?.classList.remove('open');
     state.editingBuildingId = obra.id;
     state.pendingLngLat = { lng: obra.coordenadas[0], lat: obra.coordenadas[1] };
-    document.getElementById('modal-add-title').textContent = 'EDITAR OBRA (DB)';
-    document.getElementById('btn-add-save').innerHTML = '<span class="inline-flex items-center gap-1"><i data-lucide="check" width="13" height="13"></i> GUARDAR CAMBIOS</span>';
+    document.getElementById('modal-add-title').textContent = t('add_modal_edit_title');
+    document.getElementById('btn-add-save').innerHTML = `<span class="inline-flex items-center gap-1"><i data-lucide="check" width="13" height="13"></i> ${t('add_btn_save_changes')}</span>`;
     document.getElementById('add-coords').textContent = `${obra.coordenadas[0].toFixed(5)}, ${obra.coordenadas[1].toFixed(5)}`;
     document.getElementById('add-nombre').value = obra.nombre_obra || '';
     document.getElementById('add-foto').value = obra.foto_url || '';
@@ -632,7 +633,7 @@ function initAddBuildingModal() {
 
 function handleMapLongPress(lngLat) {
   if (!state.sessionToken) {
-    showNeoToast('Inicia sesión para registrar o proponer una nueva obra.');
+    showNeoToast(t('toast_login_required_add'));
     return;
   }
   state.editingBuildingId = null;
@@ -657,17 +658,17 @@ function handleMapLongPress(lngLat) {
     if (esAdmin) {
       const optDirect = document.createElement('option');
       optDirect.value = 'direct';
-      optDirect.textContent = 'AÑADIR OBRA DIRECTA (PÚBLICA)';
+      optDirect.textContent = t('add_vis_direct');
       select.appendChild(optDirect);
     }
     const optReview = document.createElement('option');
     optReview.value = 'review';
-    optReview.textContent = 'PROPONER A REVISIÓN (PENDIENTE)';
+    optReview.textContent = t('add_vis_review');
     select.appendChild(optReview);
 
     const optPrivate = document.createElement('option');
     optPrivate.value = 'private';
-    optPrivate.textContent = 'GUARDAR PRIVADA (PERSONAL)';
+    optPrivate.textContent = t('add_vis_private');
     select.appendChild(optPrivate);
 
     select.value = (esAdmin && state.adminMode) ? 'direct' : 'review';
@@ -676,10 +677,10 @@ function handleMapLongPress(lngLat) {
   const modalTitle = document.getElementById('modal-add-title');
   const btnSave = document.getElementById('btn-add-save');
   const isDirect = (esRolAdmin(state.userRole) && state.adminMode);
-  if (modalTitle) modalTitle.textContent = isDirect ? 'REGISTRO DE OBRA DIRECTA (DB)' : 'PROPONER OBRA A REVISIÓN';
+  if (modalTitle) modalTitle.textContent = isDirect ? t('add_modal_direct_title') : t('add_modal_review_title');
   if (btnSave) btnSave.innerHTML = isDirect
-    ? '<span class="inline-flex items-center gap-1"><i data-lucide="database" width="13" height="13"></i> PUBLICAR DIRECTA</span>'
-    : '<span class="inline-flex items-center gap-1"><i data-lucide="send" width="13" height="13"></i> ENVIAR A REVISIÓN</span>';
+    ? `<span class="inline-flex items-center gap-1"><i data-lucide="database" width="13" height="13"></i> ${t('add_btn_publish_direct')}</span>`
+    : `<span class="inline-flex items-center gap-1"><i data-lucide="send" width="13" height="13"></i> ${t('add_btn_submit_review')}</span>`;
 
   document.getElementById('add-error').classList.add('hidden');
   document.getElementById('modal-add-building').classList.add('open');

@@ -8,6 +8,7 @@ import { cerrarFiltros, generarFiltrosUI } from './filtersUI.js';
 import { fetchBuildings, saveBuildingStatus, deleteBuilding, deletePrivateBuilding, createUserCollection, addUserCollectionItem, createUserPrivateLabel, deleteUserPrivateLabel } from './api.js';
 import { getOptimizedPhotoUrl } from './imageProxy.js';
 import { showNeoToast } from './renderUtils.js';
+import { t, getUrlPrefix } from './i18n.js';
 
 const sheet = document.getElementById('sheet');
 let organizerMode = 'collections';
@@ -31,8 +32,8 @@ async function abrirFichaArquitecto(nombreArquitecto) {
   const modal = document.getElementById('modal-architect');
   const works = document.getElementById('architect-profile-works');
   document.getElementById('architect-profile-name').textContent = nombreArquitecto;
-  document.getElementById('architect-profile-count').textContent = 'CARGANDO CATÁLOGO...';
-  works.innerHTML = '<p class="architect-profile-empty">CONSULTANDO TODAS LAS OBRAS EN LA BASE DE DATOS...</p>';
+  document.getElementById('architect-profile-count').textContent = t('architect_loading');
+  works.innerHTML = `<p class="architect-profile-empty">${t('architect_querying_db')}</p>`;
   modal.classList.add('open');
 
   let obras;
@@ -61,8 +62,8 @@ async function abrirFichaArquitecto(nombreArquitecto) {
     state.OBRAS = [...obrasPorId.values()];
   } catch (error) {
     console.error('Error cargando obras del arquitecto:', error);
-    document.getElementById('architect-profile-count').textContent = 'ERROR DE CARGA';
-    works.innerHTML = '<p class="architect-profile-empty">NO SE PUDIERON CARGAR LAS OBRAS</p>';
+    document.getElementById('architect-profile-count').textContent = t('architect_load_error');
+    works.innerHTML = `<p class="architect-profile-empty">${t('architect_could_not_load')}</p>`;
     return;
   }
 
@@ -70,7 +71,8 @@ async function abrirFichaArquitecto(nombreArquitecto) {
     .sort((first, second) => Number(second.año_construccion || 0) - Number(first.año_construccion || 0)
       || String(first.nombre_obra || '').localeCompare(String(second.nombre_obra || ''), 'es'));
 
-  document.getElementById('architect-profile-count').textContent = `[ ${obras.length} ${obras.length === 1 ? 'OBRA REGISTRADA' : 'OBRAS REGISTRADAS'} ]`;
+  const countLabel = obras.length === 1 ? t('architect_single_work_label') : t('architect_multiple_works_label');
+  document.getElementById('architect-profile-count').textContent = t('architect_works_count', { count: obras.length, label: countLabel });
 
   works.innerHTML = obras.length ? obras.map((obra) => {
     const catKey = obra.categoria || 'otro';
@@ -99,7 +101,7 @@ async function abrirFichaArquitecto(nombreArquitecto) {
         ` : ''}
       </button>
     `;
-  }).join('') : '<p class="architect-profile-empty">NO HAY OBRAS REGISTRADAS PARA ESTE ARQUITECTO</p>';
+  }).join('') : `<p class="architect-profile-empty">${t('architect_no_works')}</p>`;
 
   window.lucide?.createIcons({ context: modal });
 }
@@ -121,8 +123,10 @@ export function cerrarFicha() {
   state.selectedFeatureId = null;
   actualizarFuenteMapa();
 
-  if (window.location.pathname.startsWith('/obra/')) {
-    window.history.pushState(null, '', '/');
+  const prefix = getUrlPrefix();
+  const basePath = prefix ? `${prefix}/` : '/';
+  if (window.location.pathname.includes('/obra/')) {
+    window.history.pushState(null, '', basePath);
   }
 }
 
@@ -138,10 +142,11 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
   if (selected) selected.selected = true;
   actualizarFuenteMapa();
 
-  // Actualizar URL limpia /obra/[ID] usando History API sin recargar
+  // Actualizar URL limpia [prefix]/obra/[ID] usando History API sin recargar
   const cleanId = String(building.id || targetId);
-  const targetPath = `/obra/${encodeURIComponent(cleanId)}`;
-  if (!window.location.pathname.startsWith('/obra/') || decodeURIComponent(window.location.pathname.replace(/^\/obra\//, '')) !== cleanId) {
+  const prefix = getUrlPrefix();
+  const targetPath = `${prefix}/obra/${encodeURIComponent(cleanId)}`;
+  if (!window.location.pathname.includes('/obra/') || decodeURIComponent(window.location.pathname.replace(/^.*\/obra\//, '')) !== cleanId) {
     window.history.pushState({ obraId: cleanId }, '', targetPath);
   }
 
@@ -163,7 +168,7 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
 
   document.getElementById('sheet-header-actions').innerHTML = `
     ${state.sessionToken ? `
-      <button type="button" class="sheet-fav-btn ${isFav ? 'active favorite' : ''}" data-status="favorite" title="${isFav ? 'Quitar de favoritos' : 'Añadir a favoritos'}" aria-label="${isFav ? 'Quitar de favoritos' : 'Añadir a favoritos'}">
+      <button type="button" class="sheet-fav-btn ${isFav ? 'active favorite' : ''}" data-status="favorite" title="${isFav ? t('sheet_fav_remove') : t('sheet_fav_add')}" aria-label="${isFav ? t('sheet_fav_remove') : t('sheet_fav_add')}">
         <i data-lucide="heart" width="16" height="16" ${isFav ? 'fill="currentColor"' : ''}></i>
       </button>
     ` : ''}
@@ -179,32 +184,32 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
 
     <!-- Botonera de Acción Rápida (Hero Actions) -->
     <div class="sheet-hero-actions">
-      <a href="https://www.google.com/maps/dir/?api=1&destination=${coords[1]},${coords[0]}" target="_blank" rel="noopener noreferrer" class="sheet-hero-btn btn-primary" title="Trazar ruta en Google Maps">
+      <a href="https://www.google.com/maps/dir/?api=1&destination=${coords[1]},${coords[0]}" target="_blank" rel="noopener noreferrer" class="sheet-hero-btn btn-primary" title="${t('sheet_directions')}">
         <i data-lucide="navigation" width="15" height="15"></i>
-        <span>CÓMO LLEGAR</span>
+        <span>${t('sheet_directions')}</span>
       </a>
       ${state.sessionToken ? `
         <button type="button" class="sheet-hero-btn ${isVis ? 'active visited' : ''}" data-status="visited">
           <i data-lucide="check-circle-2" width="15" height="15"></i>
-          <span>${isVis ? 'VISITADO' : 'VISITAR'}</span>
+          <span>${isVis ? t('sheet_visited') : t('sheet_visit')}</span>
         </button>
         <button type="button" class="sheet-hero-btn ${isSaved ? 'active saved' : ''}" data-save-collection>
           <i data-lucide="bookmark" width="15" height="15" ${isSaved ? 'fill="currentColor"' : ''}></i>
-          <span>${isSaved ? 'GUARDADO' : 'GUARDAR'}</span>
+          <span>${isSaved ? t('sheet_saved') : t('sheet_save')}</span>
         </button>
       ` : ''}
       <button type="button" class="sheet-hero-btn" data-share-action="open">
         <i data-lucide="share-2" width="15" height="15"></i>
-        <span>COMPARTIR</span>
+        <span>${t('sheet_share')}</span>
       </button>
     </div>
 
     <!-- Fotografía Principal en Banner Panorámico (Solo usuarios registrados) -->
     ${building.foto_url && isValidHttpsUrl(building.foto_url) && state.sessionToken ? `
       <div class="sheet-gallery-wrap">
-        <button type="button" class="photo-thumb sheet-photo-banner" data-photo-url="${escapeHtml(building.foto_url)}" aria-label="Ampliar fotografía de la obra">
+        <button type="button" class="photo-thumb sheet-photo-banner" data-photo-url="${escapeHtml(building.foto_url)}" aria-label="${t('sheet_photo_expand_aria')}">
           <img class="sheet-photo" src="${escapeHtml(getOptimizedPhotoUrl(building.foto_url, { width: 1000 }))}" alt="Fotografía de ${escapeHtml(building.nombre_obra)}" loading="lazy"${openedFromUrl ? ' fetchpriority="high"' : ''}>
-          <span class="photo-zoom-badge"><i data-lucide="maximize-2" width="12" height="12"></i> AMPLIAR</span>
+          <span class="photo-zoom-badge"><i data-lucide="maximize-2" width="12" height="12"></i> ${t('sheet_photo_expand')}</span>
         </button>
       </div>
     ` : ''}
@@ -212,17 +217,17 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
     <!-- Ficha Técnica Modular Limpia (Matriz Tipográfica) -->
     <div class="sheet-tech-section">
       <div class="tech-row">
-        <span class="tech-label">ARQUITECTO</span>
+        <span class="tech-label">${t('sheet_architecture')}</span>
         <span class="tech-value tech-value-accent">${architects}</span>
       </div>
 
       <div class="tech-grid-2col">
         <div class="tech-col">
-          <span class="tech-label">AÑO</span>
+          <span class="tech-label">${t('sheet_year')}</span>
           <span class="tech-value">${building.año_construccion || '-'}</span>
         </div>
         <div class="tech-col">
-          <span class="tech-label">CATEGORÍA</span>
+          <span class="tech-label">${t('sheet_category')}</span>
           <span class="tech-value">
             <span class="sheet-cat-badge" style="border-left: 3px solid ${catColor};">${nombreCategoria(building.categoria)}</span>
           </span>
@@ -230,22 +235,22 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
       </div>
 
       <div class="tech-row">
-        <span class="tech-label">ACCESO</span>
+        <span class="tech-label">${t('sheet_access')}</span>
         <span class="tech-value">
           <span class="sheet-access-badge">${formatAccess(building.estado_acceso || (building.visitable ? 'publico' : 'privado'))}</span>
         </span>
       </div>
 
       <div class="tech-row">
-        <span class="tech-label">COORDENADAS</span>
+        <span class="tech-label">${t('sheet_coordinates')}</span>
         <span class="tech-value tech-value-mono">${coords[1].toFixed(5)}° N, ${coords[0].toFixed(5)}° E</span>
       </div>
 
       ${building.enlace_url && isValidHttpsUrl(building.enlace_url) && state.sessionToken ? `
         <div class="tech-row tech-row-link">
-          <span class="tech-label">ENLACE</span>
+          <span class="tech-label">${t('sheet_link')}</span>
           <span class="tech-value">
-            <a href="${escapeHtml(building.enlace_url)}" target="_blank" rel="noopener noreferrer" class="sheet-web-link">PÁGINA OFICIAL DEL PROYECTO ↗</a>
+            <a href="${escapeHtml(building.enlace_url)}" target="_blank" rel="noopener noreferrer" class="sheet-web-link">${t('sheet_official_site')}</a>
           </span>
         </div>
       ` : ''}
@@ -254,13 +259,13 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
     <!-- Cuaderno Privado (Valoración y Notas) -->
     ${state.sessionToken ? `
       <div class="personal-notes">
-        <div class="personal-notes-head">MI VALORACIÓN Y NOTAS</div>
+        <div class="personal-notes-head">${t('sheet_my_rating_notes')}</div>
         <div class="rating-stars">${[1, 2, 3, 4, 5].map((value) => `<button type="button" class="rating-star ${getStatus('valoracion') >= value ? 'active' : ''}" data-rating="${value}" aria-label="Valorar ${value} de 5">&#9733;</button>`).join('')}</div>
-        <button type="button" class="btn note-toggle" data-note-toggle>AÑADIR NOTA PRIVADA</button>
+        <button type="button" class="btn note-toggle" data-note-toggle>${t('sheet_add_private_note')}</button>
         <div class="personal-note-editor" data-note-editor>
-          <label for="building-notes">NOTA PRIVADA</label>
-          <textarea id="building-notes" class="tech-input" rows="3" placeholder="Escribe tus notas privadas o estado de conservación..."></textarea>
-          <button type="button" class="btn save-personal-status" data-save-personal>GUARDAR NOTA</button>
+          <label for="building-notes">${t('sheet_private_note_label')}</label>
+          <textarea id="building-notes" class="tech-input" rows="3" placeholder="${t('sheet_private_note_placeholder')}"></textarea>
+          <button type="button" class="btn save-personal-status" data-save-personal>${t('sheet_save_note')}</button>
         </div>
       </div>
     ` : ''}
@@ -268,14 +273,14 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
     <!-- Panel de Administración / Moderación -->
     ${adminActive || canDeletePrivate ? `
       <div class="sheet-admin-block">
-        <div class="sheet-admin-head">GESTIÓN DE OBRA</div>
+        <div class="sheet-admin-head">${t('sheet_building_management')}</div>
         <div class="sheet-admin-actions">
           ${adminActive ? `
-            <button type="button" class="btn btn-admin-action" data-edit-building><i data-lucide="pencil" width="14" height="14"></i> EDITAR OBRA</button>
-            <button type="button" class="btn btn-admin-delete" data-delete-building><i data-lucide="trash-2" width="14" height="14"></i> ELIMINAR DE BASE DE DATOS</button>
+            <button type="button" class="btn btn-admin-action" data-edit-building><i data-lucide="pencil" width="14" height="14"></i> ${t('sheet_edit_building')}</button>
+            <button type="button" class="btn btn-admin-delete" data-delete-building><i data-lucide="trash-2" width="14" height="14"></i> ${t('sheet_delete_db')}</button>
           ` : ''}
           ${canDeletePrivate ? `
-            <button type="button" class="btn btn-admin-delete" data-delete-private><i data-lucide="trash-2" width="14" height="14"></i> ELIMINAR OBRA PRIVADA</button>
+            <button type="button" class="btn btn-admin-delete" data-delete-private><i data-lucide="trash-2" width="14" height="14"></i> ${t('sheet_delete_private')}</button>
           ` : ''}
         </div>
       </div>
@@ -285,11 +290,11 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
     <div class="sheet-reports-actions">
       <button type="button" class="sheet-report-btn" data-open-report="error_datos">
         <i data-lucide="alert-circle" width="13" height="13"></i>
-        <span>REPORTAR ERROR</span>
+        <span>${t('sheet_report_error')}</span>
       </button>
       <button type="button" class="sheet-report-btn" data-open-report="duplicado">
         <i data-lucide="copy" width="13" height="13"></i>
-        <span>REPORTAR DUPLICADO</span>
+        <span>${t('sheet_report_duplicate')}</span>
       </button>
     </div>
   `;
@@ -343,7 +348,19 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
   }
 }
 
-function formatAccess(value) { return { publico: 'PUBLICO', exterior_visible: 'EXTERIOR VISIBLE', con_reserva: 'CON RESERVA', privado: 'PRIVADO', cerrado_temporalmente: 'CERRADO TEMPORALMENTE', no_construido: 'NO CONSTRUIDO', desaparecido: 'DESAPARECIDO' }[value] || value; }
+function formatAccess(value) {
+  const map = {
+    publico: 'access_public',
+    exterior_visible: 'access_visible_ext',
+    con_reserva: 'access_reservation',
+    privado: 'access_private',
+    cerrado_temporalmente: 'access_temp_closed',
+    no_construido: 'access_unbuilt',
+    desaparecido: 'access_demolished',
+  };
+  const key = map[value];
+  return key ? t(key) : (value || '');
+}
 function getSelectedBuilding() {
   if (!state.selectedFeatureId) return null;
   const target = String(state.selectedFeatureId);
@@ -360,22 +377,22 @@ function organizerOptions(building, mode) {
   if (mode === 'collections') return state.userCollections.length ? state.userCollections.map((collection) => {
     const checked = state.userCollectionItems.some((item) => String(item.collection_id) === String(collection.id) && String(item.building_id) === String(building.id));
     return `<label class="personal-organizer-option"><input type="checkbox" value="${collection.id}" ${checked ? 'checked' : ''}><span>${collection.name}</span></label>`;
-  }).join('') : '<div class="nearby-empty">Todavia no tienes listas. Crea la primera abajo.</div>';
+  }).join('') : `<div class="nearby-empty">${t('sheet_no_collections_yet')}</div>`;
   const labels = [...new Set(state.userPrivateLabels.map((item) => item.label).filter(Boolean))];
   return labels.length ? labels.map((label) => {
     const checked = state.userPrivateLabels.some((item) => String(item.building_id) === String(building.id) && String(item.label).toLowerCase() === String(label).toLowerCase());
     return `<label class="personal-organizer-option"><input type="checkbox" value="${label}" ${checked ? 'checked' : ''}><span>#${label}</span></label>`;
-  }).join('') : '<div class="nearby-empty">Todavia no tienes etiquetas. Crea la primera abajo.</div>';
+  }).join('') : `<div class="nearby-empty">${t('sheet_no_tags_yet')}</div>`;
 }
 
 function openOrganizer(mode) {
   const building = getSelectedBuilding();
-  if (!building || !state.userId || !state.sessionToken) { showNeoToast('Inicia sesión para organizar tus obras.'); return; }
+  if (!building || !state.userId || !state.sessionToken) { showNeoToast(t('sheet_login_to_organize')); return; }
   organizerMode = mode;
-  document.getElementById('personal-organizer-title').textContent = mode === 'collections' ? 'GUARDAR EN LISTAS' : 'ANADIR ETIQUETAS';
+  document.getElementById('personal-organizer-title').textContent = mode === 'collections' ? t('sheet_save_in_lists') : t('sheet_add_tags');
   document.getElementById('personal-organizer-project').textContent = building.nombre_obra;
-  document.getElementById('personal-organizer-help').textContent = mode === 'collections' ? 'Selecciona una o varias listas. Una obra puede estar en varias listas.' : 'Selecciona una o varias etiquetas. Solo tu puedes verlas.';
-  document.getElementById('personal-new-name').placeholder = mode === 'collections' ? 'NOMBRE DE NUEVA LISTA' : 'NUEVA ETIQUETA';
+  document.getElementById('personal-organizer-help').textContent = mode === 'collections' ? t('sheet_select_lists_help') : t('sheet_select_tags_help');
+  document.getElementById('personal-new-name').placeholder = mode === 'collections' ? t('sheet_new_list_placeholder') : t('sheet_new_tag_placeholder');
   document.getElementById('personal-organizer-options').innerHTML = organizerOptions(building, mode);
   document.getElementById('personal-organizer-error').classList.add('hidden');
   document.getElementById('modal-personal-organizer').classList.add('open');
@@ -478,8 +495,8 @@ export function renderSheetStatusUI(building = getSelectedBuilding()) {
   if (favBtn) {
     favBtn.classList.toggle('active', isFav);
     favBtn.classList.toggle('favorite', isFav);
-    favBtn.title = isFav ? 'Quitar de favoritos' : 'Añadir a favoritos';
-    favBtn.setAttribute('aria-label', isFav ? 'Quitar de favoritos' : 'Añadir a favoritos');
+    favBtn.title = isFav ? t('sheet_fav_remove') : t('sheet_fav_add');
+    favBtn.setAttribute('aria-label', isFav ? t('sheet_fav_remove') : t('sheet_fav_add'));
     const heartSvg = favBtn.querySelector('svg');
     if (heartSvg) {
       heartSvg.style.fill = isFav ? 'currentColor' : 'none';
@@ -492,7 +509,7 @@ export function renderSheetStatusUI(building = getSelectedBuilding()) {
     visBtn.classList.toggle('active', isVis);
     visBtn.classList.toggle('visited', isVis);
     const span = visBtn.querySelector('span');
-    if (span) span.textContent = isVis ? 'VISITADO' : 'VISITAR';
+    if (span) span.textContent = isVis ? t('sheet_visited') : t('sheet_visit');
   }
 
   // 3. Botón de Guardar en Colecciones
@@ -501,7 +518,7 @@ export function renderSheetStatusUI(building = getSelectedBuilding()) {
     saveBtn.classList.toggle('active', isSaved);
     saveBtn.classList.toggle('saved', isSaved);
     const span = saveBtn.querySelector('span');
-    if (span) span.textContent = isSaved ? 'GUARDADO' : 'GUARDAR';
+    if (span) span.textContent = isSaved ? t('sheet_saved') : t('sheet_save');
     const bookmarkSvg = saveBtn.querySelector('svg');
     if (bookmarkSvg) {
       bookmarkSvg.style.fill = isSaved ? 'currentColor' : 'none';
@@ -530,7 +547,7 @@ async function saveStatus(status, value) {
   if (!building) return;
 
   if (!state.userId || !state.sessionToken) {
-    showNeoToast('Inicia sesión para guardar favoritos y visitas.');
+    showNeoToast(t('toast_login_required_fav'));
     return;
   }
 
@@ -566,7 +583,7 @@ async function saveStatus(status, value) {
 async function saveNote(button) {
   const building = getSelectedBuilding();
   if (!building || !state.userId || !state.sessionToken) {
-    showNeoToast('Inicia sesión para guardar notas privadas.');
+    showNeoToast(t('sheet_notes_login_required'));
     return;
   }
 
@@ -582,33 +599,33 @@ async function saveNote(button) {
   guardarZonaPersonalLocal(state.userId);
 
   button.disabled = true;
-  button.textContent = 'GUARDANDO...';
+  button.textContent = t('sheet_saving_note');
   try {
     await saveBuildingStatus(state.userId, building.id, next, state.sessionToken);
-    button.textContent = 'GUARDADO';
+    button.textContent = t('sheet_saved');
     document.dispatchEvent(new CustomEvent('radar:user-status-changed', { detail: { buildingId: key, status: 'notas', value: nota } }));
   } catch (error) {
     console.error('Error al guardar nota:', error);
-    button.textContent = 'GUARDADO LOCAL';
+    button.textContent = t('sheet_saved_note_local');
     document.dispatchEvent(new CustomEvent('radar:user-status-changed', { detail: { buildingId: key, status: 'notas', value: nota } }));
   } finally {
     setTimeout(() => {
       button.disabled = false;
-      button.textContent = 'GUARDAR NOTA';
+      button.textContent = t('sheet_save_note');
     }, 2000);
   }
 }
 
 async function deletePrivate() {
   const building = getSelectedBuilding();
-  if (!building?.private || !state.userId || String(building.user_id) !== String(state.userId) || !window.confirm(`¿Eliminar "${building.nombre_obra}" de tus chinchetas privadas?`)) return;
-  try { await deletePrivateBuilding(building.id, state.userId, state.sessionToken); state.OBRAS = state.OBRAS.filter((item) => item !== building); state.privateBuildings = state.privateBuildings.filter((item) => item !== building); cerrarFicha(); actualizarFuenteMapa(); } catch (error) { showNeoToast(error.message || 'Error al eliminar.'); }
+  if (!building?.private || !state.userId || String(building.user_id) !== String(state.userId) || !window.confirm(t('sheet_delete_private_confirm', { name: building.nombre_obra }))) return;
+  try { await deletePrivateBuilding(building.id, state.userId, state.sessionToken); state.OBRAS = state.OBRAS.filter((item) => item !== building); state.privateBuildings = state.privateBuildings.filter((item) => item !== building); cerrarFicha(); actualizarFuenteMapa(); } catch (error) { showNeoToast(error.message || t('toast_error_generic')); }
 }
 
 async function deleteBuildingFromSheet() {
   const building = getSelectedBuilding();
-  if (!building || !esRolAdmin(state.userRole) || !window.confirm(`¿Eliminar "${building.nombre_obra}"?`)) return;
-  try { await deleteBuilding(building.id, state.sessionToken); state.OBRAS = state.OBRAS.filter((item) => item !== building); cerrarFicha(); actualizarFuenteMapa(); generarFiltrosUI(); document.dispatchEvent(new CustomEvent('radar:buildings-changed')); } catch (error) { showNeoToast(error.message || 'Error al eliminar.'); }
+  if (!building || !esRolAdmin(state.userRole) || !window.confirm(t('sheet_delete_db_confirm', { name: building.nombre_obra }))) return;
+  try { await deleteBuilding(building.id, state.sessionToken); state.OBRAS = state.OBRAS.filter((item) => item !== building); cerrarFicha(); actualizarFuenteMapa(); generarFiltrosUI(); document.dispatchEvent(new CustomEvent('radar:buildings-changed')); } catch (error) { showNeoToast(error.message || t('toast_error_generic')); }
 }
 
 function openShareModal() {
@@ -622,14 +639,14 @@ function openShareModal() {
       const arq = building.arquitectos ? (Array.isArray(building.arquitectos) ? building.arquitectos.join(', ') : building.arquitectos) : (building.arquitecto || '');
       subtitle.textContent = `${building.nombre_obra} ${arq ? `· ${arq}` : ''}`;
     } else {
-      subtitle.textContent = 'Guía de arquitectura Nolli';
+      subtitle.textContent = t('share_subtitle_default');
     }
   }
 
   const copyBtn = document.getElementById('btn-share-copy');
   const copyText = document.getElementById('share-copy-text');
   if (copyBtn) copyBtn.classList.remove('copied');
-  if (copyText) copyText.textContent = 'COPIAR ENLACE';
+  if (copyText) copyText.textContent = t('share_copy_link');
 
   modal.classList.add('open');
   window.lucide?.createIcons({ context: sheet });
@@ -663,7 +680,7 @@ async function copiarAlPortapapeles(text) {
   }
 
   try {
-    window.prompt('Copia el enlace de la obra manualmente:', text);
+    window.prompt(t('toast_link_copied'), text);
     return true;
   } catch (err) {
     console.error('No se pudo abrir prompt de copia manual:', err);
@@ -677,7 +694,8 @@ async function handleShareAction(choice) {
 
   const origin = window.location.origin;
   const shareId = building.id || building.featureId;
-  const shareUrl = `${origin}/obra/${encodeURIComponent(shareId)}`;
+  const prefix = getUrlPrefix();
+  const shareUrl = `${origin}${prefix}/obra/${encodeURIComponent(shareId)}`;
   const [lng, lat] = building.coordenadas || [0, 0];
   const arq = building.arquitectos ? (Array.isArray(building.arquitectos) ? building.arquitectos.join(', ') : building.arquitectos) : (building.arquitecto || '');
 
@@ -687,13 +705,13 @@ async function handleShareAction(choice) {
     if (!copyBtn || !copyText) return;
     if (exito) {
       copyBtn.classList.add('copied');
-      copyText.textContent = '[ ¡ENLACE COPIADO! ]';
+      copyText.textContent = t('share_copied');
     } else {
-      copyText.textContent = '[ ERROR AL COPIAR ]';
+      copyText.textContent = t('share_copy_error');
     }
     setTimeout(() => {
       copyBtn.classList.remove('copied');
-      copyText.textContent = 'COPIAR ENLACE';
+      copyText.textContent = t('share_copy_link');
     }, 2000);
   };
 
@@ -707,7 +725,7 @@ async function handleShareAction(choice) {
     if (navigator.share) {
       navigator.share({
         title: building.nombre_obra,
-        text: `${building.nombre_obra} - Guía de Arquitectura Nolli`,
+        text: `${building.nombre_obra} - Nolli`,
         url: shareUrl
       }).catch(() => {});
     } else {
@@ -730,7 +748,7 @@ document.addEventListener('click', (event) => {
   if (target.closest('[data-delete-private]')) { deletePrivate(); return; }
   if (target.closest('[data-delete-building]')) { deleteBuildingFromSheet(); return; }
   const noteToggle = target.closest('[data-note-toggle]');
-  if (noteToggle) { noteToggle.nextElementSibling.classList.toggle('open'); noteToggle.textContent = noteToggle.nextElementSibling.classList.contains('open') ? 'OCULTAR NOTA' : 'ANADIR NOTA'; return; }
+  if (noteToggle) { noteToggle.nextElementSibling.classList.toggle('open'); noteToggle.textContent = noteToggle.nextElementSibling.classList.contains('open') ? t('sheet_hide_note') : t('sheet_add_private_note'); return; }
   const rating = target.closest('[data-rating]');
   if (rating) { saveStatus('valoracion', Number(rating.dataset.rating)); rating.parentElement.querySelectorAll('[data-rating]').forEach((star) => star.classList.toggle('active', Number(star.dataset.rating) <= Number(rating.dataset.rating))); return; }
   const status = target.closest('[data-status]');

@@ -185,6 +185,22 @@ export function extraerAnioDefensivo(valor) {
 }
 
 export function nombreCategoria(valor) {
+  const norm = normalizarCategoria(valor);
+  const mapKeys = {
+    residencial: 'cat_residential',
+    dotacional_equipamiento: 'cat_civic',
+    industrial_logistico: 'cat_industrial',
+    religioso_funerario: 'cat_religious',
+    comercial_terciario: 'cat_commercial',
+    espacio_publico_paisaje: 'cat_public_space',
+    infraestructura_urbanismo: 'cat_infrastructure',
+    otro: 'cat_other',
+  };
+  const key = mapKeys[norm];
+  if (key && typeof window !== 'undefined' && window.__nolli_t) {
+    const translated = window.__nolli_t(key);
+    if (translated && translated !== key) return translated.toUpperCase();
+  }
   return {
     residencial: 'RESIDENCIAL',
     dotacional_equipamiento: 'DOTACIONAL Y EQUIPAMIENTO',
@@ -194,7 +210,7 @@ export function nombreCategoria(valor) {
     espacio_publico_paisaje: 'ESPACIO PÚBLICO Y PAISAJE',
     infraestructura_urbanismo: 'INFRAESTRUCTURA Y URBANISMO',
     otro: 'OTRO',
-  }[normalizarCategoria(valor)] || 'OTRO';
+  }[norm] || 'OTRO';
 }
 
 export const CATEGORY_COLORS = {

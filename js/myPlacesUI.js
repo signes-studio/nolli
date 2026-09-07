@@ -17,6 +17,7 @@ import { abrirFicha } from './sheetUI.js';
 import { registrarIconosColecciones, actualizarVisibilidadIconosLista } from './mapController.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { showNeoToast } from './renderUtils.js';
+import { t } from './i18n.js';
 import {
   fetchUserCollections,
   fetchUserCollectionItems,
@@ -596,10 +597,10 @@ function copiarEnlaceLista(collectionId, btnElement = null) {
   navigator.clipboard.writeText(url).then(() => {
     if (btnElement) {
       const orig = btnElement.textContent;
-      btnElement.textContent = 'ENLACE COPIADO';
+      btnElement.textContent = t('collection_copied_short');
       setTimeout(() => { btnElement.textContent = orig; }, 2500);
     } else {
-      showNeoToast('¡Enlace de lista copiado al portapapeles!');
+      showNeoToast(t('toast_list_link_copied'));
     }
   }).catch(() => {
     prompt('Copia este enlace directo a la lista:', url);
@@ -609,7 +610,7 @@ function copiarEnlaceLista(collectionId, btnElement = null) {
 async function borrarLista(collectionId) {
   if (!state.userId || !state.sessionToken || !collectionId) return;
   const collection = state.userCollections.find((item) => String(item.id) === String(collectionId));
-  if (!window.confirm(`¿Eliminar la lista "${collection?.name || collectionId}"?`)) return;
+  if (!window.confirm(t('collection_delete_confirm', { name: collection?.name || collectionId }))) return;
   try {
     await deleteUserCollection(collectionId, state.userId, state.sessionToken);
     state.userCollections = state.userCollections.filter((item) => String(item.id) !== String(collectionId));
@@ -630,7 +631,7 @@ async function borrarLista(collectionId) {
 
 async function dejarDeSeguirLista(collectionId) {
   if (!state.userId || !state.sessionToken || !collectionId) return;
-  if (!window.confirm('¿Dejar de seguir esta lista pública?')) return;
+  if (!window.confirm(t('collection_unfollow_confirm'))) return;
   try {
     await unfollowCollection(collectionId, state.userId, state.sessionToken);
     state.userFollowedCollections = state.userFollowedCollections.filter((item) => String(item.collection_id) !== String(collectionId));
@@ -665,7 +666,7 @@ async function quitarGuardado(collectionId, buildingId) {
 
 function renderList() {
   if (!state.sessionToken) {
-    list.innerHTML = '<div class="nearby-empty">Inicia sesión para guardar y consultar tus edificios.</div>';
+    list.innerHTML = `<div class="nearby-empty">${t('nearby_empty_login')}</div>`;
     return;
   }
 
@@ -687,16 +688,16 @@ function renderList() {
     });
 
     if (countEnStatuses > 0 && precargaEnProgreso) {
-      list.innerHTML = '<div class="nearby-empty">Cargando tus edificios...</div>';
+      list.innerHTML = `<div class="nearby-empty">${t('nearby_empty_loading')}</div>`;
       return;
     }
 
     const emptyMessage = activeTab === 'favorite'
-      ? 'edificios favoritos'
+      ? t('empty_favs')
       : activeTab === 'visited'
-        ? 'edificios visitados'
-        : 'notas guardadas';
-    list.innerHTML = `<div class="nearby-empty">Todavía no tienes ${emptyMessage}.</div>`;
+        ? t('empty_visited')
+        : t('empty_notes');
+    list.innerHTML = `<div class="nearby-empty">${t('nearby_empty_tab', { emptyMessage })}</div>`;
     return;
   }
 
@@ -736,7 +737,7 @@ function renderCollections() {
           <button type="button" class="btn-remove-collection" data-collection-id="${collection.id}" data-remove-from-collection="${obra.id}" title="Quitar de la lista" aria-label="Quitar de la lista">✕</button>
         </div>
       `;
-    }).join('') || '<div class="nearby-empty" style="font-size:10px;">[ Lista sin obras añadidas aún ]</div>';
+    }).join('') || `<div class="nearby-empty" style="font-size:10px;">${t('empty_list_no_works')}</div>`;
 
     const collectionEmoji = collection.icon ? `<span style="margin-right: 6px;">${escapeHtml(collection.icon)}</span>` : '';
     const collectionDescription = collection.description ? `<div class="my-place-meta" style="margin-top: 2px; font-style: italic;">${escapeHtml(collection.description)}</div>` : '';
@@ -747,24 +748,24 @@ function renderCollections() {
           <div style="min-width:0; flex:1;">
             <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
               <span style="font-weight:700; color:var(--fg);">${collectionEmoji}${escapeHtml(collection.name)}</span>
-              <span style="font-size:8.5px; font-weight:800; font-family: 'Inter', sans-serif; padding:1px 4px; border:1px solid ${isPublic ? 'var(--accent, #E84E1B)' : 'var(--border-strong, #111111)'}; color:${isPublic ? 'var(--accent, #E84E1B)' : 'var(--fg-dim)'};">${isPublic ? 'PÚBLICA' : 'PRIVADA'}</span>
+              <span style="font-size:8.5px; font-weight:800; font-family: 'Inter', sans-serif; padding:1px 4px; border:1px solid ${isPublic ? 'var(--accent, #E84E1B)' : 'var(--border-strong, #111111)'}; color:${isPublic ? 'var(--accent, #E84E1B)' : 'var(--fg-dim)'};">${isPublic ? t('collection_status_public') : t('collection_status_private')}</span>
             </div>
             ${collectionDescription}
           </div>
           <div class="my-collection-tools">
             ${isPublic ? `
-              <button type="button" class="collection-tool-btn" data-copy-collection-link="${collection.id}" title="Copiar enlace compartible" aria-label="Copiar enlace compartible">
+              <button type="button" class="collection-tool-btn" data-copy-collection-link="${collection.id}" title="${t('collection_copy_link')}" aria-label="${t('collection_copy_link')}">
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
               </button>
             ` : ''}
-            <button type="button" class="collection-map-toggle ${isMapActive ? 'active' : ''}" data-toggle-map-collection="${collection.id}" title="${isMapActive ? 'Ocultar iconos en el mapa' : 'Mostrar iconos en el mapa'}" aria-label="${isMapActive ? 'Ocultar en mapa' : 'Mostrar en mapa'}">
+            <button type="button" class="collection-map-toggle ${isMapActive ? 'active' : ''}" data-toggle-map-collection="${collection.id}" title="${isMapActive ? t('collection_hide_map') : t('collection_show_map')}" aria-label="${isMapActive ? t('collection_hide_map') : t('collection_show_map')}">
               ${eyeIconSvg}
             </button>
             <span class="collection-counter" title="Total de obras">${collectionItems.length}</span>
-            <button type="button" class="collection-tool-btn" data-edit-collection="${collection.id}" title="Editar lista" aria-label="Editar lista">
+            <button type="button" class="collection-tool-btn" data-edit-collection="${collection.id}" title="${t('collection_edit_title')}" aria-label="${t('collection_edit_title')}">
               <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
             </button>
-            <button type="button" class="collection-tool-btn btn-delete" data-delete-collection="${collection.id}" title="Borrar lista" aria-label="Borrar lista">
+            <button type="button" class="collection-tool-btn btn-delete" data-delete-collection="${collection.id}" title="${t('collection_delete_title')}" aria-label="${t('collection_delete_title')}">
               <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
             </button>
           </div>
@@ -790,15 +791,15 @@ function renderCollections() {
           <div style="min-width:0; flex:1;">
             <div style="display:flex; align-items:center; gap:6px;">
               <span style="font-weight:700; color:var(--fg);">${escapeHtml(emoji)} ${escapeHtml(title)}</span>
-              <span style="font-size:8.5px; font-weight:800; font-family: 'Inter', sans-serif; padding:1px 4px; background:rgba(232,78,27,0.08); color:var(--accent, #E84E1B);">SEGUIDA</span>
+              <span style="font-size:8.5px; font-weight:800; font-family: 'Inter', sans-serif; padding:1px 4px; background:rgba(232,78,27,0.08); color:var(--accent, #E84E1B);">${t('collection_followed_badge')}</span>
             </div>
             <div class="my-place-meta" style="font-size:9.5px; color:var(--fg-dim); margin-top:2px;">Por ${escapeHtml(creatorName)}</div>
           </div>
           <div class="my-collection-tools">
-            <button type="button" class="collection-tool-btn" data-view-collection-map="${col.id}" title="Ver lista sobre el mapa" style="color:var(--accent); border-color:var(--accent);">
+            <button type="button" class="collection-tool-btn" data-view-collection-map="${col.id}" title="${t('collection_view_map')}" style="color:var(--accent); border-color:var(--accent);">
               <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" x2="9" y1="3" y2="18"/><line x1="15" x2="15" y1="6" y2="21"/></svg>
             </button>
-            <button type="button" class="collection-tool-btn btn-delete" data-unfollow-collection="${col.id}" title="Dejar de seguir" aria-label="Dejar de seguir">
+            <button type="button" class="collection-tool-btn btn-delete" data-unfollow-collection="${col.id}" title="${t('collection_unfollow_title')}" aria-label="${t('collection_unfollow_title')}">
               ✕
             </button>
           </div>
@@ -809,14 +810,14 @@ function renderCollections() {
 
   list.innerHTML = `
     <div class="my-collections-header">
-      <span style="font-size: 10px; color: var(--fg-dim); font-weight: 700; font-family: 'Inter', sans-serif;">MIS LISTAS (${(state.userCollections || []).length})</span>
-      <button type="button" class="btn-new-list" data-open-create-collection-modal style="padding: 5px 12px; font-size: 10px;">[ + NUEVA LISTA ]</button>
+      <span style="font-size: 10px; color: var(--fg-dim); font-weight: 700; font-family: 'Inter', sans-serif;">${t('my_lists_heading', { count: (state.userCollections || []).length })}</span>
+      <button type="button" class="btn-new-list" data-open-create-collection-modal style="padding: 5px 12px; font-size: 10px;">${t('new_list_btn')}</button>
     </div>
-    ${ownCards || '<div class="nearby-empty" style="padding:16px;">Crea tu primera lista para organizar obras.</div>'}
+    ${ownCards || `<div class="nearby-empty" style="padding:16px;">${t('first_list_hint')}</div>`}
 
     ${(state.userFollowedCollections || []).length > 0 ? `
       <div class="my-collections-header" style="margin-top:20px;">
-        <span style="font-size: 10px; color: var(--accent, #E84E1B); font-weight: 700; font-family: 'Inter', sans-serif;">LISTAS SEGUIDAS (${state.userFollowedCollections.length})</span>
+        <span style="font-size: 10px; color: var(--accent, #E84E1B); font-weight: 700; font-family: 'Inter', sans-serif;">${t('followed_lists_heading', { count: state.userFollowedCollections.length })}</span>
       </div>
       ${followedCards}
     ` : ''}

@@ -3,6 +3,7 @@ import { abrirFicha } from './sheetUI.js';
 import { searchPlaces, getBuildingsCatalog } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { renderInChunks } from './renderUtils.js';
+import { t } from './i18n.js';
 
 const searchPanel = document.getElementById('search-panel');
 const btnSearch = document.getElementById('btn-search');
@@ -25,8 +26,8 @@ function renderizarTarjetaObra(obra, distance = null) {
   const metaCat = CATEGORY_META[catClave] || CATEGORY_META['otro'];
   const catColor = metaCat?.color || '#E84E1B';
 
-  const titulo = escapeHtml(obra.nombre_obra || 'OBRA SIN TÍTULO').toUpperCase();
-  const arq = escapeHtml(obra.arquitecto || 'Desconocido');
+  const titulo = escapeHtml(obra.nombre_obra || t('sheet_untitled_work')).toUpperCase();
+  const arq = escapeHtml(obra.arquitecto || t('sheet_architect_unknown'));
   const anio = obra.año_construccion ? escapeHtml(String(obra.año_construccion)) : '';
   const ciudad = obra.ciudad || obra.place ? escapeHtml(String(obra.ciudad || obra.place).toUpperCase()) : '';
   
@@ -38,7 +39,7 @@ function renderizarTarjetaObra(obra, distance = null) {
   }
 
   return `
-    <button type="button" class="nearby-item search-work-card" data-feature-id="${escapeHtml(obra.featureId)}" data-lng="${obra.coordenadas[0]}" data-lat="${obra.coordenadas[1]}" aria-label="Ver obra ${titulo}">
+    <button type="button" class="nearby-item search-work-card" data-feature-id="${escapeHtml(obra.featureId)}" data-lng="${obra.coordenadas[0]}" data-lat="${obra.coordenadas[1]}" aria-label="${t('search_view_work_aria', { title: titulo })}">
       <div class="search-card-main">
         <div class="search-card-top-row">
           <span class="search-cat-tag" style="color:${catColor};">${escapeHtml(catTexto)}</span>
@@ -133,7 +134,7 @@ export function initSearchUI() {
 async function buscarUbicaciones(query) {
   if (!locationResults) return;
   const requestId = ++locationSearchRequest;
-  locationResults.innerHTML = '<div class="nearby-empty">BUSCANDO UBICACIONES...</div>';
+  locationResults.innerHTML = `<div class="nearby-empty">${t('search_searching_locations')}</div>`;
   try {
     const data = await searchPlaces(query);
     if (requestId !== locationSearchRequest) return;
@@ -143,11 +144,11 @@ async function buscarUbicaciones(query) {
         <span class="nearby-name">${escapeHtml(place.text || place.place_name)}</span>
         <span class="nearby-meta">${escapeHtml(place.place_name || '')}</span>
       </button>
-    `).join('') : '<div class="nearby-empty">No se encontraron ubicaciones.</div>';
+    `).join('') : `<div class="nearby-empty">${t('search_no_locations_found')}</div>`;
   } catch (error) {
     if (requestId !== locationSearchRequest) return;
     console.error('Error buscando ubicación:', error);
-    if (locationResults) locationResults.innerHTML = '<div class="nearby-empty">No se pudo buscar la ubicación.</div>';
+    if (locationResults) locationResults.innerHTML = `<div class="nearby-empty">${t('search_error_locations')}</div>`;
   }
 }
 
@@ -211,7 +212,7 @@ async function ejecutarBusquedaGlobal() {
   const obrasEncontradas = await obtenerObrasGlobales();
 
   if (!obrasEncontradas.length) {
-    searchResults.innerHTML = '<div class="nearby-empty">No hay resultados en la base de datos.</div>';
+    searchResults.innerHTML = `<div class="nearby-empty">${t('search_no_results_db')}</div>`;
     return;
   }
 
@@ -245,14 +246,14 @@ async function ejecutarBusquedaGlobal() {
     currentSearchResults = obrasFiltradas;
 
     if (!obrasFiltradas.length) {
-      searchResults.innerHTML = '<div class="nearby-empty">No se encontraron edificios ni lugares coincidentes.</div>';
+      searchResults.innerHTML = `<div class="nearby-empty">${t('search_no_buildings_matched')}</div>`;
       return;
     }
 
     const filterHeader = `
       <button type="button" class="nearby-item btn-apply-search-filter" data-action="filter-text-map">
         <i data-lucide="filter" class="filter-action-icon" width="14" height="14"></i>
-        <span>VER TODAS LAS ${obrasFiltradas.length} OBRAS EN EL MAPA</span>
+        <span>${t('search_filter_all_matches', { count: obrasFiltradas.length })}</span>
       </button>
     `;
 
@@ -292,14 +293,14 @@ async function ejecutarBusquedaGlobal() {
     .slice(0, 20);
 
   if (!arquitectosList.length) {
-    searchResults.innerHTML = '<div class="nearby-empty">No se encontraron arquitectos.</div>';
+    searchResults.innerHTML = `<div class="nearby-empty">${t('architect_no_works')}</div>`;
     return;
   }
 
   searchResults.innerHTML = arquitectosList.map(({ nombre, count }) => `
     <button type="button" class="nearby-item architect-result-item" data-architect-select="${escapeHtml(nombre)}">
       <span class="nearby-name">${escapeHtml(nombre)}</span>
-      <span class="nearby-meta">${count} ${count === 1 ? 'obra' : 'obras'}</span>
+      <span class="nearby-meta">${count} ${count === 1 ? t('architect_single_work_label').toLowerCase() : t('architect_multiple_works_label').toLowerCase()}</span>
     </button>
   `).join('');
 }

@@ -6,6 +6,7 @@ import { actualizarMarcadorUbicacion, actualizarVisibilidadIconosLista } from '.
 import { fetchBuildingsInRadius, fetchBuildings, getBuildingsCatalog, fetchItineraries, fetchBuildingsByIds } from './api.js';
 import { getOptimizedPhotoUrl } from './imageProxy.js';
 import { CURATED_ROUTES, matchWorksForRoute } from './itinerariesConfig.js';
+import { t } from './i18n.js';
 
 export { CURATED_ROUTES, matchWorksForRoute };
 
@@ -73,8 +74,8 @@ export function renderCuratedCarousel() {
     container.innerHTML = `
       <div class="radar-empty-state">
         <i data-lucide="compass" width="24" height="24" style="color:var(--accent, #E84E1B); margin-bottom:8px;"></i>
-        <div class="font-display text-sm font-bold">NINGUNA COLECCIÓN CERCA DE TU POSICIÓN</div>
-        <p class="text-xs text-dim">Desplázate por el mapa para descubrir selecciones curatoriales de otras zonas.</p>
+        <div class="font-display text-sm font-bold">${t('radar_no_collections_nearby')}</div>
+        <p class="text-xs text-dim">${t('radar_no_collections_nearby_desc')}</p>
       </div>
     `;
     window.lucide?.createIcons({ context: container });
@@ -87,12 +88,12 @@ export function renderCuratedCarousel() {
       <article class="radar-curated-card" data-route-id="${escapeHtml(route.id)}" role="button" tabindex="0" aria-label="${escapeHtml(route.title)}">
         <div class="radar-curated-header" style="border-color:${route.color};">
           <span class="radar-curated-tag" style="color:${route.color};">${escapeHtml(route.tag || 'RUTA')}</span>
-          <span class="radar-vermillon-badge">OBRA MÁS CERCANA: ${distText}</span>
+          <span class="radar-vermillon-badge">${t('radar_closest_work', { dist: distText })}</span>
         </div>
         <h4 class="radar-curated-title">${escapeHtml(route.title)}</h4>
         <p class="radar-curated-subtitle">${escapeHtml(route.subtitle || '')}</p>
         <div class="radar-curated-footer">
-          <span class="radar-curated-stops">${escapeHtml(route.stops || `${count} OBRAS`)}</span>
+          <span class="radar-curated-stops">${escapeHtml(route.stops || t('itinerary_works_count', { count }))}</span>
         </div>
       </article>
     `;
@@ -126,10 +127,10 @@ function getRadarCenter() {
 
 export function solicitarUbicacionGPS() {
   if (!navigator.geolocation) {
-    showNeoToast('GEOLOCALIZACIÓN NO DISPONIBLE EN ESTE NAVEGADOR');
+    showNeoToast(t('radar_gps_unavailable'));
     return;
   }
-  showNeoToast('BUSCANDO SEÑAL GPS...');
+  showNeoToast(t('radar_detecting'));
   navigator.geolocation.getCurrentPosition(
     (pos) => {
       const coords = [pos.coords.longitude, pos.coords.latitude];
@@ -138,12 +139,12 @@ export function solicitarUbicacionGPS() {
       actualizarEstadoGPSUI();
       renderRadarUI();
       renderCuratedCarousel();
-      showNeoToast('GPS ACTIVO: UBICACIÓN ACTUALIZADA');
+      showNeoToast(t('radar_gps_active'));
     },
     (err) => {
       console.warn('Error al solicitar GPS:', err.message);
       actualizarEstadoGPSUI();
-      showNeoToast('SIN ACCESO A GPS: REVISA LOS PERMISOS EN TU NAVEGADOR');
+      showNeoToast(t('radar_gps_denied'));
     },
     { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
   );
@@ -232,22 +233,23 @@ function iniciarGeolocalizacionEnSegundoPlano() {
 export function formatearDistanciaRadar(metros) {
   if (!isFinite(metros) || metros == null) return '';
   if (metros < 1000) {
-    return `A ${Math.round(metros)} METROS`;
+    return t('radar_distance_meters', { dist: Math.round(metros) });
   }
-  return `A ${(metros / 1000).toFixed(1)} KM`;
+  return t('radar_distance_km', { dist: (metros / 1000).toFixed(1) });
 }
 
 export function renderRadarList(works, container, countSpan) {
   if (countSpan) {
-    countSpan.textContent = `${works.length} DETECTADAS`;
+    countSpan.textContent = t('radar_detected_count', { count: works.length });
   }
 
   if (!works.length) {
+    const radLabel = radarRadius < 1000 ? `${radarRadius}M` : `${radarRadius / 1000}KM`;
     container.innerHTML = `
       <div class="radar-empty-state">
         <i data-lucide="crosshair" width="28" height="28" style="color:var(--accent, #E84E1B); margin-bottom:8px;"></i>
-        <div class="font-display text-sm font-bold">NINGUNA OBRA A MENOS DE ${radarRadius < 1000 ? radarRadius + 'M' : (radarRadius / 1000) + 'KM'}</div>
-        <p class="text-xs text-dim">Amplía el radio de búsqueda o desplázate por el mapa.</p>
+        <div class="font-display text-sm font-bold">${t('radar_no_works_radius', { radius: radLabel })}</div>
+        <p class="text-xs text-dim">${t('radar_expand_radius_hint')}</p>
       </div>
     `;
     window.lucide?.createIcons({ context: container });
@@ -261,7 +263,7 @@ export function renderRadarList(works, container, countSpan) {
     const distText = formatearDistanciaRadar(obra._dist);
     const photo = state.sessionToken ? getOptimizedPhotoUrl(obra.foto_url || obra.foto_miniatura || '', { width: 160 }) : '';
     const city = obra.place || obra.ciudad || '';
-    const architects = obra.arquitectos || 'AUTOR NO IDENTIFICADO';
+    const architects = obra.arquitectos || t('sheet_architect_unknown');
     const year = obra.año_construccion ? ` · ${escapeHtml(obra.año_construccion)}` : '';
 
     return `
