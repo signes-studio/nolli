@@ -84,63 +84,123 @@
       "destination": "/api/sitemap-buildings?page=:n"
     },
     {
-      "source": "/:lang(en|ca)/css/:path*",
+      "source": "/en/css/:path*",
       "destination": "/css/:path*"
     },
     {
-      "source": "/:lang(en|ca)/js/:path*",
+      "source": "/ca/css/:path*",
+      "destination": "/css/:path*"
+    },
+    {
+      "source": "/en/js/:path*",
       "destination": "/js/:path*"
     },
     {
-      "source": "/:lang(en|ca)/locales/:path*",
+      "source": "/ca/js/:path*",
+      "destination": "/js/:path*"
+    },
+    {
+      "source": "/en/locales/:path*",
       "destination": "/locales/:path*"
     },
     {
-      "source": "/:lang(en|ca)/icons/:path*",
+      "source": "/ca/locales/:path*",
+      "destination": "/locales/:path*"
+    },
+    {
+      "source": "/en/icons/:path*",
       "destination": "/icons/:path*"
     },
     {
-      "source": "/:lang(en|ca)/img/:path*",
+      "source": "/ca/icons/:path*",
+      "destination": "/icons/:path*"
+    },
+    {
+      "source": "/en/img/:path*",
       "destination": "/img/:path*"
     },
     {
-      "source": "/:lang(en|ca)/obra",
-      "destination": "/api/obra?lang=:lang"
+      "source": "/ca/img/:path*",
+      "destination": "/img/:path*"
     },
     {
-      "source": "/:lang(en|ca)/obra/",
-      "destination": "/api/obra?lang=:lang"
+      "source": "/en/obra",
+      "destination": "/api/obra?lang=en"
     },
     {
-      "source": "/:lang(en|ca)/obra/:id*",
-      "destination": "/api/obra?id=:id&lang=:lang"
+      "source": "/ca/obra",
+      "destination": "/api/obra?lang=ca"
     },
     {
-      "source": "/:lang(en|ca)/categoria/:slug",
-      "destination": "/api/categoria?slug=:slug&lang=:lang"
+      "source": "/en/obra/",
+      "destination": "/api/obra?lang=en"
     },
     {
-      "source": "/:lang(en|ca)/arquitecto/:nombre",
-      "destination": "/api/arquitecto?nombre=:nombre&lang=:lang"
+      "source": "/ca/obra/",
+      "destination": "/api/obra?lang=ca"
     },
     {
-      "source": "/:lang(en|ca)/perfil",
+      "source": "/en/obra/:id*",
+      "destination": "/api/obra?id=:id&lang=en"
+    },
+    {
+      "source": "/ca/obra/:id*",
+      "destination": "/api/obra?id=:id&lang=ca"
+    },
+    {
+      "source": "/en/categoria/:slug",
+      "destination": "/api/categoria?slug=:slug&lang=en"
+    },
+    {
+      "source": "/ca/categoria/:slug",
+      "destination": "/api/categoria?slug=:slug&lang=ca"
+    },
+    {
+      "source": "/en/arquitecto/:nombre",
+      "destination": "/api/arquitecto?nombre=:nombre&lang=en"
+    },
+    {
+      "source": "/ca/arquitecto/:nombre",
+      "destination": "/api/arquitecto?nombre=:nombre&lang=ca"
+    },
+    {
+      "source": "/en/perfil",
       "destination": "/perfil.html"
     },
     {
-      "source": "/:lang(en|ca)/itinerarios",
+      "source": "/ca/perfil",
+      "destination": "/perfil.html"
+    },
+    {
+      "source": "/en/itinerarios",
       "destination": "/itinerarios.html"
     },
     {
-      "source": "/:lang(en|ca)/admin",
+      "source": "/ca/itinerarios",
+      "destination": "/itinerarios.html"
+    },
+    {
+      "source": "/en/admin",
       "destination": "/admin.html"
     },
     {
-      "source": "/:lang(en|ca)",
+      "source": "/ca/admin",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/en",
       "destination": "/index.html"
     },
     {
-      "source": "/:lang(en|ca)/",
+      "source": "/en/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/ca",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/ca/",
       "destination": "/index.html"
     },
     {
