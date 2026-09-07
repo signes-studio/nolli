@@ -165,43 +165,51 @@
     },
     {
       "source": "/en/perfil",
-      "destination": "/perfil.html"
+      "destination": "/perfil"
     },
     {
       "source": "/ca/perfil",
-      "destination": "/perfil.html"
+      "destination": "/perfil"
     },
     {
       "source": "/en/itinerarios",
-      "destination": "/itinerarios.html"
+      "destination": "/itinerarios"
     },
     {
       "source": "/ca/itinerarios",
-      "destination": "/itinerarios.html"
+      "destination": "/itinerarios"
     },
     {
       "source": "/en/admin",
-      "destination": "/admin.html"
+      "destination": "/admin"
     },
     {
       "source": "/ca/admin",
-      "destination": "/admin.html"
+      "destination": "/admin"
     },
     {
       "source": "/en",
-      "destination": "/index.html"
+      "destination": "/index"
     },
     {
       "source": "/en/",
-      "destination": "/index.html"
+      "destination": "/index"
+    },
+    {
+      "source": "/en/:path*",
+      "destination": "/index"
     },
     {
       "source": "/ca",
-      "destination": "/index.html"
+      "destination": "/index"
     },
     {
       "source": "/ca/",
-      "destination": "/index.html"
+      "destination": "/index"
+    },
+    {
+      "source": "/ca/:path*",
+      "destination": "/index"
     },
     {
       "source": "/obra",
