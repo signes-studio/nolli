@@ -14,14 +14,24 @@ function checkRateLimit(ip) {
     }
   }
 
-  const record = rateLimitMap.get(ip);
+  let record = rateLimitMap.get(ip);
   if (!record || now > record.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
-    return false;
+    record = { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS };
+    rateLimitMap.set(ip, record);
+    return {
+      limited: false,
+      remaining: Math.max(0, RATE_LIMIT_MAX_REQUESTS - 1),
+      resetAt: record.resetAt,
+    };
   }
 
   record.count++;
-  return record.count > RATE_LIMIT_MAX_REQUESTS;
+  const limited = record.count > RATE_LIMIT_MAX_REQUESTS;
+  return {
+    limited,
+    remaining: Math.max(0, RATE_LIMIT_MAX_REQUESTS - record.count),
+    resetAt: record.resetAt,
+  };
 }
 
 module.exports = async function handler(req, res) {
@@ -33,8 +43,14 @@ module.exports = async function handler(req, res) {
     'anonymous'
   );
 
-  if (checkRateLimit(clientIp)) {
-    res.setHeader('Retry-After', '600');
+  const rate = checkRateLimit(clientIp);
+  res.setHeader('X-RateLimit-Limit', String(RATE_LIMIT_MAX_REQUESTS));
+  res.setHeader('X-RateLimit-Remaining', String(rate.remaining));
+  res.setHeader('X-RateLimit-Reset', String(Math.ceil(rate.resetAt / 1000)));
+
+  if (rate.limited) {
+    const retryAfter = Math.max(1, Math.ceil((rate.resetAt - Date.now()) / 1000));
+    res.setHeader('Retry-After', String(retryAfter));
     return res.status(429).json({
       error: 'Too Many Requests',
       message: 'Has superado el límite de solicitudes de catálogo. Por favor, espera unos minutos.',
