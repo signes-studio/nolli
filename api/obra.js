@@ -1,4 +1,5 @@
 const { categoryClass, categoryLabel } = require('./_lib/categories.js');
+const { detectServerLanguage, getLangPrefix, getSSRText, getHreflangTags } = require('./_lib/i18n.js');
 
 const SITE_URL = 'https://nollimap.app';
 const FALLBACK_SUPABASE_URL = 'https://ldtfvpjigzvcagtciipn.supabase.co';
@@ -53,23 +54,24 @@ async function fetchPublicBuilding(id) {
   return buildings[0] || null;
 }
 
-function renderBuildingPage(building) {
-  const canonicalUrl = `${SITE_URL}/obra/${encodeURIComponent(building.id)}`;
+function renderBuildingPage(building, lang = 'es') {
+  const prefix = getLangPrefix(lang);
+  const canonicalUrl = `${SITE_URL}${prefix}/obra/${encodeURIComponent(building.id)}`;
   const title = `${building.nombre_obra} | nolli.`;
-  const description = buildingDescription(building) || 'Ficha de obra en nolli, radar arquitectónico.';
+  const description = buildingDescription(building) || getSSRText('default_work_desc', lang);
   const image = building.foto_url || `${SITE_URL}/icon.svg`;
   const categoriaSlug = building.categoria || 'otro';
-  const categoriaText = categoryLabel(building.categoria);
+  const categoriaText = categoryLabel(building.categoria, lang);
 
   const architectHtml = building.arquitecto
-    ? `<a class="architect-link" href="${SITE_URL}/arquitecto/${encodeURIComponent(building.arquitecto)}">${escapeHtml(building.arquitecto)}</a>`
+    ? `<a class="architect-link" href="${SITE_URL}${prefix}/arquitecto/${encodeURIComponent(building.arquitecto)}">${escapeHtml(building.arquitecto)}</a>`
     : '';
 
   const details = [
-    building.arquitecto && ['Arquitectura', architectHtml, ''],
-    building.año_construccion && ['Año', escapeHtml(building.año_construccion), ''],
-    building.categoria && ['Categoría', escapeHtml(categoriaText), `detail-category category-${categoryClass(building.categoria)}`],
-    building.place && ['Lugar', escapeHtml(building.place), ''],
+    building.arquitecto && [getSSRText('label_architecture', lang), architectHtml, ''],
+    building.año_construccion && [getSSRText('label_year', lang), escapeHtml(building.año_construccion), ''],
+    building.categoria && [getSSRText('label_category', lang), escapeHtml(categoriaText), `detail-category category-${categoryClass(building.categoria)}`],
+    building.place && [getSSRText('label_place', lang), escapeHtml(building.place), ''],
   ].filter(Boolean).map(([label, value, className = '']) => (
     `<div class="detail-row"><dt>${escapeHtml(label)}</dt><dd class="${className}">${value}</dd></div>`
   )).join('');
@@ -117,13 +119,13 @@ function renderBuildingPage(building) {
         '@type': 'ListItem',
         position: 1,
         name: 'nolli.',
-        item: `${SITE_URL}/`,
+        item: `${SITE_URL}${prefix}/`,
       },
       {
         '@type': 'ListItem',
         position: 2,
         name: categoriaText,
-        item: `${SITE_URL}/categoria/${encodeURIComponent(categoriaSlug)}`,
+        item: `${SITE_URL}${prefix}/categoria/${encodeURIComponent(categoriaSlug)}`,
       },
       {
         '@type': 'ListItem',
@@ -138,14 +140,16 @@ function renderBuildingPage(building) {
   const breadcrumbJson = JSON.stringify(breadcrumbSchema).replace(/</g, '\\u003c');
 
   return `<!doctype html>
-<html lang="es">
+<html lang="${lang}">
 <head>
+  <base href="/">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${escapeHtml(title)}</title>
   <meta name="description" content="${escapeHtml(description)}">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="${escapeHtml(canonicalUrl)}">
+  ${getHreflangTags('/obra/' + encodeURIComponent(building.id))}
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="nolli.">
   <meta property="og:title" content="${escapeHtml(title)}">
@@ -237,12 +241,12 @@ function renderBuildingPage(building) {
   </style>
 </head>
 <body><main class="page">
-  <header class="site-header"><a href="${SITE_URL}/">nolli.</a><span>/ radar arquitectónico</span></header>
+  <header class="site-header"><a href="${SITE_URL}${prefix}/">nolli.</a><span>${getSSRText('tagline', lang)}</span></header>
   <nav aria-label="breadcrumb" class="breadcrumb-nav">
     <ol class="breadcrumb-list">
-      <li class="breadcrumb-item"><a href="${SITE_URL}/">nolli.</a></li>
+      <li class="breadcrumb-item"><a href="${SITE_URL}${prefix}/">nolli.</a></li>
       <li class="breadcrumb-separator" aria-hidden="true">/</li>
-      <li class="breadcrumb-item"><a href="${SITE_URL}/categoria/${encodeURIComponent(categoriaSlug)}">${escapeHtml(categoriaText)}</a></li>
+      <li class="breadcrumb-item"><a href="${SITE_URL}${prefix}/categoria/${encodeURIComponent(categoriaSlug)}">${escapeHtml(categoriaText)}</a></li>
       <li class="breadcrumb-separator" aria-hidden="true">/</li>
       <li class="breadcrumb-item active" aria-current="page">${escapeHtml(building.nombre_obra)}</li>
     </ol>
@@ -252,20 +256,22 @@ function renderBuildingPage(building) {
       <h1 class="work-title">${escapeHtml(building.nombre_obra)}</h1>
       <p class="work-intro">${escapeHtml(description)}</p>
       ${building.foto_url ? `<img class="work-image" src="${escapeHtml(getOptimizedUrl(building.foto_url, 1200))}" alt="${escapeHtml(building.nombre_obra)}" loading="eager" decoding="async" fetchpriority="high">` : ''}
-      <a class="map-link" href="${SITE_URL}/?obra=${encodeURIComponent(building.id)}">Ver en el mapa <span aria-hidden="true">&#8599;</span></a>
+      <a class="map-link" href="${SITE_URL}${prefix}/?obra=${encodeURIComponent(building.id)}">${getSSRText('view_on_map', lang)} <span aria-hidden="true">&#8599;</span></a>
     </section>
     ${details ? `<dl class="details">${details}</dl>` : ''}
   </div>
 </main></body></html>`;
 }
 
-function renderNotFoundPage() {
+function renderNotFoundPage(lang = 'es') {
+  const prefix = getLangPrefix(lang);
   return `<!DOCTYPE html>
-<html lang="es">
+<html lang="${lang}">
 <head>
+  <base href="/">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Obra no encontrada | nolli.</title>
+  <title>${escapeHtml(getSSRText('not_found_page_title', lang))}</title>
   <meta name="robots" content="noindex, follow">
   <link rel="icon" type="image/png" sizes="48x48" href="${SITE_URL}/icon.png">
   <link rel="icon" type="image/png" sizes="192x192" href="${SITE_URL}/icons/icon-192.png">
@@ -302,14 +308,14 @@ function renderNotFoundPage() {
 <body>
   <main class="page">
     <header class="site-header">
-      <a href="${SITE_URL}/">nolli.</a>
-      <span>/ radar arquitectónico</span>
+      <a href="${SITE_URL}${prefix}/">nolli.</a>
+      <span>${getSSRText('tagline', lang)}</span>
     </header>
     <div class="not-found-content">
-      <span class="not-found-tag">ERROR 404 // REGISTRO NO DISPONIBLE</span>
-      <h1 class="not-found-title">OBRA NO ENCONTRADA</h1>
-      <p class="not-found-text">La obra arquitectónica solicitada no existe, ha sido eliminada o el enlace no es válido. Puedes explorar miles de obras en el mapa interactivo.</p>
-      <a class="map-link" href="${SITE_URL}/">IR AL MAPA PRINCIPAL <span aria-hidden="true">&#8599;</span></a>
+      <span class="not-found-tag">${escapeHtml(getSSRText('not_found_tag', lang))}</span>
+      <h1 class="not-found-title">${escapeHtml(getSSRText('not_found_title', lang))}</h1>
+      <p class="not-found-text">${escapeHtml(getSSRText('not_found_text', lang))}</p>
+      <a class="map-link" href="${SITE_URL}${prefix}/">${escapeHtml(getSSRText('go_to_map', lang))} <span aria-hidden="true">&#8599;</span></a>
     </div>
   </main>
 </body>
@@ -318,22 +324,24 @@ function renderNotFoundPage() {
 
 module.exports = async (request, response) => {
   try {
+    const lang = detectServerLanguage(request);
     const id = String(request.query?.id || '').trim();
     if (!id) {
       response.setHeader('Content-Type', 'text/html; charset=utf-8');
-      return response.status(404).send(renderNotFoundPage());
+      return response.status(404).send(renderNotFoundPage(lang));
     }
     const building = await fetchPublicBuilding(id);
     if (!building) {
       response.setHeader('Content-Type', 'text/html; charset=utf-8');
-      return response.status(404).send(renderNotFoundPage());
+      return response.status(404).send(renderNotFoundPage(lang));
     }
     response.setHeader('Content-Type', 'text/html; charset=utf-8');
     response.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
-    return response.status(200).send(renderBuildingPage(building));
+    return response.status(200).send(renderBuildingPage(building, lang));
   } catch (error) {
     console.error('Error al generar la ficha de obra:', error);
+    const lang = detectServerLanguage(request);
     response.setHeader('Content-Type', 'text/html; charset=utf-8');
-    return response.status(404).send(renderNotFoundPage());
+    return response.status(404).send(renderNotFoundPage(lang));
   }
 };

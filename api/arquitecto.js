@@ -1,4 +1,5 @@
 const { categoryLabel } = require('./_lib/categories.js');
+const { detectServerLanguage, getLangPrefix, getSSRText, getHreflangTags } = require('./_lib/i18n.js');
 
 const SITE_URL = 'https://nollimap.app';
 const PAGE_SIZE = 60;
@@ -70,18 +71,20 @@ async function fetchArchitectBuildings(nombre, page) {
   return { buildings, totalCount };
 }
 
-function renderArchitectPage(nombre, page, buildings, totalCount) {
+function renderArchitectPage(nombre, page, buildings, totalCount, lang = 'es') {
+  const prefix = getLangPrefix(lang);
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
-  const canonicalUrl = `${SITE_URL}/arquitecto/${encodeURIComponent(nombre)}${page > 1 ? `?page=${page}` : ''}`;
-  const title = `Obras de ${nombre} | Catálogo de Arquitectura | nolli.`;
-  const description = `Explora ${totalCount} obras y proyectos de ${nombre}. Radar arquitectónico y mapa interactivo en nolli.`;
+  const pageParam = page > 1 ? `?page=${page}` : '';
+  const canonicalUrl = `${SITE_URL}${prefix}/arquitecto/${encodeURIComponent(nombre)}${pageParam}`;
+  const title = getSSRText('architect_title', lang, { nombre });
+  const description = getSSRText('architect_desc', lang, { count: totalCount, nombre });
   const image = `${SITE_URL}/icons/logo.png`;
 
   const cardsHtml = buildings.map((b) => {
-    const categoriaText = categoryLabel(b.categoria);
+    const categoriaText = categoryLabel(b.categoria, lang);
     return `
       <article class="work-card">
-        <a href="${SITE_URL}/obra/${encodeURIComponent(b.id)}" class="card-link">
+        <a href="${SITE_URL}${prefix}/obra/${encodeURIComponent(b.id)}" class="card-link">
           ${b.foto_url
             ? `<img class="card-img" src="${escapeHtml(getOptimizedUrl(b.foto_url, 480))}" alt="${escapeHtml(b.nombre_obra)}" loading="lazy" decoding="async">`
             : `<div class="card-img-placeholder"><span class="card-tag">${escapeHtml(categoriaText)}</span></div>`
@@ -99,7 +102,7 @@ function renderArchitectPage(nombre, page, buildings, totalCount) {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    name: `Obras y proyectos de ${nombre} | nolli.`,
+    name: getSSRText('architect_page_name', lang, { nombre }),
     description,
     url: canonicalUrl,
     about: {
@@ -115,7 +118,7 @@ function renderArchitectPage(nombre, page, buildings, totalCount) {
         item: {
           '@type': 'Place',
           name: b.nombre_obra,
-          url: `${SITE_URL}/obra/${encodeURIComponent(b.id)}`,
+          url: `${SITE_URL}${prefix}/obra/${encodeURIComponent(b.id)}`,
           ...(b.place ? { address: b.place } : {}),
         },
       })),
@@ -130,13 +133,13 @@ function renderArchitectPage(nombre, page, buildings, totalCount) {
         '@type': 'ListItem',
         position: 1,
         name: 'nolli.',
-        item: `${SITE_URL}/`,
+        item: `${SITE_URL}${prefix}/`,
       },
       {
         '@type': 'ListItem',
         position: 2,
         name: nombre,
-        item: `${SITE_URL}/arquitecto/${encodeURIComponent(nombre)}`,
+        item: canonicalUrl,
       },
     ],
   };
@@ -145,14 +148,16 @@ function renderArchitectPage(nombre, page, buildings, totalCount) {
   const breadcrumbJson = JSON.stringify(breadcrumbLd).replace(/</g, '\\u003c');
 
   return `<!doctype html>
-<html lang="es">
+<html lang="${lang}">
 <head>
+  <base href="/">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${escapeHtml(title)}</title>
   <meta name="description" content="${escapeHtml(description)}">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="${escapeHtml(canonicalUrl)}">
+  ${getHreflangTags('/arquitecto/' + encodeURIComponent(nombre) + pageParam)}
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="nolli.">
   <meta property="og:title" content="${escapeHtml(title)}">
@@ -229,10 +234,10 @@ function renderArchitectPage(nombre, page, buildings, totalCount) {
   </style>
 </head>
 <body><main class="page">
-  <header class="site-header"><a href="${SITE_URL}/">nolli.</a><span>/ radar arquitectónico</span></header>
+  <header class="site-header"><a href="${SITE_URL}${prefix}/">nolli.</a><span>${getSSRText('tagline', lang)}</span></header>
   <nav aria-label="breadcrumb" class="breadcrumb-nav">
     <ol class="breadcrumb-list">
-      <li class="breadcrumb-item"><a href="${SITE_URL}/">nolli.</a></li>
+      <li class="breadcrumb-item"><a href="${SITE_URL}${prefix}/">nolli.</a></li>
       <li class="breadcrumb-separator" aria-hidden="true">/</li>
       <li class="breadcrumb-item active" aria-current="page">${escapeHtml(nombre)}</li>
     </ol>
@@ -240,16 +245,16 @@ function renderArchitectPage(nombre, page, buildings, totalCount) {
 
   <section class="hub-header">
     <h1 class="hub-title">${escapeHtml(nombre)}</h1>
-    <p class="hub-subtitle">${totalCount} obras catalogadas · Página ${page} de ${totalPages}</p>
+    <p class="hub-subtitle">${totalCount} ${getSSRText('cataloged_works', lang)} · ${getSSRText('page_of', lang, { page, totalPages })}</p>
   </section>
 
-  ${buildings.length > 0 ? `<div class="cards-grid">${cardsHtml}</div>` : `<p class="empty-msg">No se han encontrado obras para este arquitecto.</p>`}
+  ${buildings.length > 0 ? `<div class="cards-grid">${cardsHtml}</div>` : `<p class="empty-msg">${getSSRText('empty_architect', lang)}</p>`}
 
   ${totalPages > 1 ? `
     <div class="pagination-wrap">
-      ${page > 1 ? `<a class="btn-page" href="${SITE_URL}/arquitecto/${encodeURIComponent(nombre)}?page=${page - 1}">← Página anterior</a>` : '<span></span>'}
-      <span class="page-indicator">Página ${page} de ${totalPages}</span>
-      ${page < totalPages ? `<a class="btn-page" href="${SITE_URL}/arquitecto/${encodeURIComponent(nombre)}?page=${page + 1}">Cargar más obras →</a>` : '<span></span>'}
+      ${page > 1 ? `<a class="btn-page" href="${SITE_URL}${prefix}/arquitecto/${encodeURIComponent(nombre)}?page=${page - 1}">${getSSRText('prev_page', lang)}</a>` : '<span></span>'}
+      <span class="page-indicator">${getSSRText('page_of', lang, { page, totalPages })}</span>
+      ${page < totalPages ? `<a class="btn-page" href="${SITE_URL}${prefix}/arquitecto/${encodeURIComponent(nombre)}?page=${page + 1}">${getSSRText('next_page', lang)}</a>` : '<span></span>'}
     </div>
   ` : ''}
 </main></body></html>`;
@@ -257,6 +262,7 @@ function renderArchitectPage(nombre, page, buildings, totalCount) {
 
 module.exports = async (request, response) => {
   try {
+    const lang = detectServerLanguage(request);
     const nombre = String(request.query?.nombre || '').trim();
     if (!nombre) {
       response.setHeader('Content-Type', 'text/plain; charset=utf-8');
@@ -269,7 +275,7 @@ module.exports = async (request, response) => {
 
     response.setHeader('Content-Type', 'text/html; charset=utf-8');
     response.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
-    return response.status(200).send(renderArchitectPage(nombre, page, buildings, totalCount));
+    return response.status(200).send(renderArchitectPage(nombre, page, buildings, totalCount, lang));
   } catch (error) {
     console.error('No se pudo generar la página de arquitecto:', error);
     response.setHeader('Content-Type', 'text/plain; charset=utf-8');

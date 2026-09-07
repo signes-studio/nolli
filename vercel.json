@@ -25,6 +25,15 @@
       ]
     },
     {
+      "source": "/locales/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400, stale-while-revalidate=604800"
+        }
+      ]
+    },
+    {
       "source": "/(icons|img)/(.*)",
       "headers": [
         {
@@ -73,6 +82,66 @@
     {
       "source": "/sitemap-buildings-:n.xml",
       "destination": "/api/sitemap-buildings?page=:n"
+    },
+    {
+      "source": "/:lang(en|ca)/css/:path*",
+      "destination": "/css/:path*"
+    },
+    {
+      "source": "/:lang(en|ca)/js/:path*",
+      "destination": "/js/:path*"
+    },
+    {
+      "source": "/:lang(en|ca)/locales/:path*",
+      "destination": "/locales/:path*"
+    },
+    {
+      "source": "/:lang(en|ca)/icons/:path*",
+      "destination": "/icons/:path*"
+    },
+    {
+      "source": "/:lang(en|ca)/img/:path*",
+      "destination": "/img/:path*"
+    },
+    {
+      "source": "/:lang(en|ca)/obra",
+      "destination": "/api/obra?lang=:lang"
+    },
+    {
+      "source": "/:lang(en|ca)/obra/",
+      "destination": "/api/obra?lang=:lang"
+    },
+    {
+      "source": "/:lang(en|ca)/obra/:id*",
+      "destination": "/api/obra?id=:id&lang=:lang"
+    },
+    {
+      "source": "/:lang(en|ca)/categoria/:slug",
+      "destination": "/api/categoria?slug=:slug&lang=:lang"
+    },
+    {
+      "source": "/:lang(en|ca)/arquitecto/:nombre",
+      "destination": "/api/arquitecto?nombre=:nombre&lang=:lang"
+    },
+    {
+      "source": "/:lang(en|ca)/perfil",
+      "destination": "/perfil.html"
+    },
+    {
+      "source": "/:lang(en|ca)/itinerarios",
+      "destination": "/itinerarios.html"
+    },
+    {
+      "source": "/:lang(en|ca)/admin",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/:lang(en|ca)",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/:lang(en|ca)/",
+      "destination": "/index.html"
     },
     {
       "source": "/obra",
