@@ -715,5 +715,7 @@
   "access_exterior": "EXTERIOR VISIBLE",
   "access_booking": "CON RESERVA",
   "access_closed": "CERRADO TEMPORALMENTE",
-  "cancel": "CANCELAR"
+  "cancel": "CANCELAR",
+  "lang_switcher_aria": "Seleccionar idioma",
+  "lang_settings_title": "IDIOMA // LANGUAGE"
 }

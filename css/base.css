@@ -385,3 +385,65 @@ body.dark-mode .admin-tab.active {
     font-size: 16px !important;
   }
 }
+
+/* =========================================================================
+   SELECTOR DE IDIOMA NEO-BAUHAUS (ES | EN | CA)
+   ========================================================================= */
+.lang-switcher-neo {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1.5px solid var(--border-strong, #141411);
+  background: var(--bg-panel, #F8F1DF);
+  height: 28px;
+  box-sizing: border-box;
+  vertical-align: middle;
+}
+
+body.dark-mode .lang-switcher-neo {
+  border-color: var(--border-strong, #4E4E48);
+  background: var(--bg-panel, #1C1C1A);
+}
+
+.lang-switcher-neo .lang-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  background: transparent;
+  border: none;
+  border-right: 1.5px solid var(--border-strong, #141411);
+  color: var(--fg-dim, #6B6B6B);
+  font-family: 'Inter', -apple-system, monospace, sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+  line-height: 1;
+}
+
+body.dark-mode .lang-switcher-neo .lang-btn {
+  border-right-color: var(--border-strong, #4E4E48);
+  color: var(--fg-dim, #9A9A9A);
+}
+
+.lang-switcher-neo .lang-btn:last-child {
+  border-right: none;
+}
+
+.lang-switcher-neo .lang-btn:hover {
+  background: rgba(232, 78, 27, 0.1);
+  color: var(--accent, #E84E1B);
+}
+
+.lang-switcher-neo .lang-btn.active {
+  background: var(--accent, #E84E1B);
+  color: #FFFFFF;
+  cursor: default;
+}
+
+body.dark-mode .lang-switcher-neo .lang-btn.active {
+  background: var(--accent, #FF7528);
+  color: #141411;
+}

@@ -6,6 +6,7 @@
 export const SUPPORTED_LANGS = ['es', 'en', 'ca'];
 export const DEFAULT_LANG = 'es';
 export const STORAGE_LANG_KEY = 'nolli:lang';
+export const COOKIE_LANG_KEY = 'nolli_lang';
 
 let currentLang = DEFAULT_LANG;
 let translations = {};
@@ -13,10 +14,28 @@ let fallbackTranslations = {};
 let isInitialized = false;
 
 /**
- * Detecta el idioma inicial según la jerarquía establecida:
- * 1. Prefijo en URL (/en/ o /ca/)
- * 2. Preferencia manual guardada en localStorage
- * 3. Idioma del dispositivo/navegador (navigator.languages)
+ * Obtiene el valor de una cookie por su nombre.
+ */
+function getCookie(name) {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + '=([^;]*)'));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+/**
+ * Guarda una cookie con expiración en días y Path=/.
+ */
+function setCookie(name, value, days = 365) {
+  if (typeof document === 'undefined') return;
+  const maxAge = days * 24 * 60 * 60;
+  document.cookie = `${name}=${encodeURIComponent(value)}; max-age=${maxAge}; path=/; SameSite=Lax`;
+}
+
+/**
+ * Detecta el idioma inicial según la jerarquía estricta:
+ * 1. Prefijo en URL (/en/ o /ca/) — Manda absolutamente sobre todo lo demás
+ * 2. Cookie o localStorage de preferencia manual guardada
+ * 3. Configuración Accept-Language del dispositivo (navigator.languages)
  * 4. Fallback: español ('es')
  */
 export function detectLanguage() {
@@ -27,15 +46,18 @@ export function detectLanguage() {
   if (pathname.startsWith('/en/') || pathname === '/en') return 'en';
   if (pathname.startsWith('/ca/') || pathname === '/ca') return 'ca';
 
-  // 2. Preferencia en localStorage
+  // 2. Cookie o localStorage de preferencia guardada
   try {
+    const cookieLang = getCookie(COOKIE_LANG_KEY);
+    if (cookieLang && SUPPORTED_LANGS.includes(cookieLang)) return cookieLang;
+
     const saved = localStorage.getItem(STORAGE_LANG_KEY);
     if (saved && SUPPORTED_LANGS.includes(saved)) {
       return saved;
     }
   } catch {}
 
-  // 3. navigator.languages
+  // 3. Cabecera Accept-Language / navigator.languages
   try {
     const browserLangs = navigator.languages || [navigator.language || ''];
     for (const lang of browserLangs) {
@@ -50,7 +72,11 @@ export function detectLanguage() {
 }
 
 /**
- * Comprueba si debe realizarse redirección automática 302 al entrar en raíz (/)
+ * Comprueba si debe realizarse redirección automática en primera visita a la raíz (/):
+ * - Si el usuario llega a / sin cookie/preferencia previa y su navegador pide en (o derivado), redirigir a /en/.
+ * - Si pide ca (o valenciano), redirigir a /ca/.
+ * - Si pide es (o cualquier otro idioma no soportado), quedarse en / (español por defecto).
+ * - Si YA tiene preferencia guardada (localStorage o cookie), NO redirigir si eligió español, o respetar su elección.
  */
 export function handleRootRedirection() {
   if (typeof window === 'undefined') return;
@@ -61,30 +87,41 @@ export function handleRootRedirection() {
 
   let savedPref = null;
   try {
-    savedPref = localStorage.getItem(STORAGE_LANG_KEY);
+    savedPref = getCookie(COOKIE_LANG_KEY) || localStorage.getItem(STORAGE_LANG_KEY);
   } catch {}
 
-  // Si el usuario ya eligió idioma manualmente, respetarlo
-  if (savedPref) {
-    if (savedPref === 'en' && !pathname.startsWith('/en')) {
-      const target = `/en/${window.location.search}${window.location.hash}`;
-      window.location.replace(target);
+  // Si el usuario ya tiene preferencia guardada, respetarla
+  if (savedPref && SUPPORTED_LANGS.includes(savedPref)) {
+    if (savedPref === 'en') {
+      window.location.replace(`/en/${window.location.search}${window.location.hash}`);
       return;
     }
-    if (savedPref === 'ca' && !pathname.startsWith('/ca')) {
-      const target = `/ca/${window.location.search}${window.location.hash}`;
-      window.location.replace(target);
+    if (savedPref === 'ca') {
+      window.location.replace(`/ca/${window.location.search}${window.location.hash}`);
       return;
     }
+    // Si savedPref === 'es', se queda en /
     return;
   }
 
-  // Si no hay preferencia previa, detectar según dispositivo
-  const detected = detectLanguage();
-  if (detected === 'en' || detected === 'ca') {
-    const target = `/${detected}/${window.location.search}${window.location.hash}`;
-    window.location.replace(target);
-  }
+  // Primera visita sin preferencia previa: detectar idioma del navegador
+  try {
+    const browserLangs = navigator.languages || [navigator.language || ''];
+    for (const lang of browserLangs) {
+      const code = String(lang).toLowerCase();
+      if (code.startsWith('ca') || code.startsWith('val')) {
+        window.location.replace(`/ca/${window.location.search}${window.location.hash}`);
+        return;
+      }
+      if (code.startsWith('en')) {
+        window.location.replace(`/en/${window.location.search}${window.location.hash}`);
+        return;
+      }
+      if (code.startsWith('es')) {
+        return; // Quedarse en /
+      }
+    }
+  } catch {}
 }
 
 /**
@@ -213,41 +250,77 @@ export function applyI18nToDOM(root = document) {
     const key = el.getAttribute('data-i18n-title');
     if (key) el.title = t(key);
   });
+
+  // 6. Configurar y sincronizar selectores de idioma en el DOM
+  setupLanguageSwitchers(root);
 }
 
 /**
- * Cambia manualmente el idioma, guarda la preferencia y navega a la URL con el nuevo prefijo.
- * @param {'es'|'en'|'ca'} newLang - Nuevo código de idioma
+ * Conecta los botones de selector Neo-Bauhaus (.lang-switcher-neo [data-lang-btn])
+ * y actualiza su estado activo según el idioma actual.
+ * @param {HTMLElement|Document} root - Contenedor donde buscar selectores
+ */
+export function setupLanguageSwitchers(root = document) {
+  const current = getLanguage();
+  root.querySelectorAll('.lang-switcher-neo').forEach((container) => {
+    container.querySelectorAll('[data-lang-btn]').forEach((btn) => {
+      const lang = btn.dataset.langBtn;
+      const isActive = lang === current;
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-pressed', String(isActive));
+
+      btn.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (lang !== current) {
+          switchLanguage(lang);
+        }
+      };
+    });
+  });
+}
+
+/**
+ * Cambia manualmente el idioma, guarda la preferencia en localStorage y cookie,
+ * y redirige a la URL equivalente en el nuevo idioma.
+ * @param {'es'|'en'|'ca'} newLang - Nuevo código de idioma ('es', 'en', 'ca')
  */
 export function switchLanguage(newLang) {
   if (!SUPPORTED_LANGS.includes(newLang)) return;
 
+  // 1. Guardar preferencia en localStorage y cookie (1 año, Path=/)
   try {
     localStorage.setItem(STORAGE_LANG_KEY, newLang);
   } catch {}
+  setCookie(COOKIE_LANG_KEY, newLang, 365);
 
+  // 2. Resolver ruta limpia despojando prefijos conocidos (/en/ o /ca/)
   const currentPath = window.location.pathname;
   let cleanPath = currentPath;
 
-  // Quitar prefijo previo si existía
   if (cleanPath.startsWith('/en/')) cleanPath = cleanPath.slice(3);
   else if (cleanPath === '/en') cleanPath = '/';
   else if (cleanPath.startsWith('/ca/')) cleanPath = cleanPath.slice(3);
   else if (cleanPath === '/ca') cleanPath = '/';
 
-  // Añadir nuevo prefijo si no es español
-  let newPath = cleanPath;
+  if (!cleanPath.startsWith('/')) cleanPath = '/' + cleanPath;
+
+  // 3. Añadir nuevo prefijo según el idioma destino
+  let targetPath = cleanPath;
   if (newLang === 'en') {
-    newPath = '/en' + (cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`);
+    targetPath = '/en' + (cleanPath === '/' ? '/' : cleanPath);
   } else if (newLang === 'ca') {
-    newPath = '/ca' + (cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`);
+    targetPath = '/ca' + (cleanPath === '/' ? '/' : cleanPath);
+  } else {
+    // 'es' vive en la raíz
+    targetPath = cleanPath;
   }
 
   // Normalizar barras repetidas
-  newPath = newPath.replace(/\/+/g, '/');
-  if (newPath === '') newPath = '/';
+  targetPath = targetPath.replace(/\/+/g, '/');
+  if (targetPath === '') targetPath = '/';
 
-  const newUrl = `${newPath}${window.location.search}${window.location.hash}`;
+  const newUrl = `${targetPath}${window.location.search}${window.location.hash}`;
   window.location.href = newUrl;
 }
 
@@ -260,6 +333,7 @@ if (typeof window !== 'undefined') {
     switchLanguage,
     initI18n,
     applyI18nToDOM,
+    setupLanguageSwitchers,
     detectLanguage,
   };
 }

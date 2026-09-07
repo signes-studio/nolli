@@ -715,5 +715,7 @@
   "access_exterior": "EXTERIOR VISIBLE",
   "access_booking": "AMB RESERVA",
   "access_closed": "TANCAT TEMPORALMENT",
-  "cancel": "CANCEL·LAR"
+  "cancel": "CANCEL·LAR",
+  "lang_switcher_aria": "Seleccionar idioma",
+  "lang_settings_title": "IDIOMA // LLENGUA"
 }
