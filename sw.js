@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nolli-shell-v70';
+const CACHE_NAME = 'nolli-shell-v71';
 const CATALOG_FRESHNESS_MINUTES = 60;
 const CATALOG_CACHE_TTL_MS = CATALOG_FRESHNESS_MINUTES * 60 * 1000;
 const APP_SHELL = [
@@ -44,6 +44,10 @@ const APP_SHELL = [
   './js/siteFooter.js',
   './js/imageProxy.js',
   './js/state.js',
+  './js/i18n.js',
+  './locales/es.json',
+  './locales/en.json',
+  './locales/ca.json',
   './img/light-thumb.webp',
   './img/dark-thumb.webp',
   './img/hybrid-thumb.webp',
@@ -72,7 +76,7 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   if (!event.request.url.startsWith(self.location.origin)) return;
   const url = new URL(event.request.url);
-  const isStaticAsset = /^\/(?:css|js|icons|img)\//.test(url.pathname) || /\.(?:webp|png|svg|ico|webmanifest|json)$/.test(url.pathname);
+  const isStaticAsset = /^\/(?:css|js|icons|img|locales)\//.test(url.pathname) || /\.(?:webp|png|svg|ico|webmanifest|json)$/.test(url.pathname);
 
   if (isStaticAsset) {
     event.respondWith(
@@ -155,6 +159,33 @@ self.addEventListener('fetch', (event) => {
         }
         return response;
       })
-      .catch(() => caches.match(event.request)),
+      .catch(async () => {
+        const cached = await caches.match(event.request);
+        if (cached) return cached;
+
+        // Fallback para navegación offline en rutas con o sin prefijo (/en/, /ca/, etc.)
+        if (event.request.mode === 'navigate' || event.request.headers.get('accept')?.includes('text/html')) {
+          const path = url.pathname;
+          if (path.includes('/perfil')) {
+            return (await caches.match('./perfil.html')) || (await caches.match('/perfil.html'));
+          }
+          if (path.includes('/itinerarios')) {
+            return (await caches.match('./itinerarios.html')) || (await caches.match('/itinerarios.html'));
+          }
+          if (path.includes('/admin')) {
+            return (await caches.match('./admin.html')) || (await caches.match('/admin.html'));
+          }
+          if (path.includes('/landing')) {
+            return (await caches.match('./landing.html')) || (await caches.match('/landing.html'));
+          }
+          if (path.includes('/legal')) {
+            return (await caches.match('./legal.html')) || (await caches.match('/legal.html'));
+          }
+          // Rutas principales /en/, /ca/, /obra/..., etc. -> index.html (SPA Shell)
+          return (await caches.match('./index.html')) || (await caches.match('/index.html')) || (await caches.match('./'));
+        }
+
+        return undefined;
+      }),
   );
 });
