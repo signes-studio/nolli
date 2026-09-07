@@ -1,5 +1,5 @@
 const { categoryLabel, categoryClass, isValidCategory } = require('./_lib/categories.js');
-const { detectServerLanguage, getLangPrefix, getSSRText, getHreflangTags } = require('./_lib/i18n.js');
+const { detectServerLanguage, getLangPrefix, getSSRText, getHreflangTags, getOgLocaleTags } = require('./_lib/i18n.js');
 
 const SITE_URL = 'https://nollimap.app';
 const PAGE_SIZE = 60;
@@ -159,6 +159,7 @@ function renderCategoryPage(slug, page, buildings, totalCount, lang = 'es') {
   <meta property="og:description" content="${escapeHtml(description)}">
   <meta property="og:url" content="${escapeHtml(canonicalUrl)}">
   <meta property="og:image" content="${escapeHtml(image)}">
+  ${getOgLocaleTags(lang)}
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" type="image/png" sizes="48x48" href="${SITE_URL}/icon.png">
   <link rel="icon" type="image/png" sizes="192x192" href="${SITE_URL}/icons/icon-192.png">

@@ -140,6 +140,63 @@ function getHreflangTags(cleanPath, siteUrl = 'https://nollimap.app') {
   ].join('\n  ');
 }
 
+/**
+ * Genera las etiquetas Open Graph og:locale y og:locale:alternate
+ */
+function getOgLocaleTags(lang = 'es') {
+  const LOCALES = {
+    es: { primary: 'es_ES', alternates: ['en_US', 'ca_ES'] },
+    en: { primary: 'en_US', alternates: ['es_ES', 'ca_ES'] },
+    ca: { primary: 'ca_ES', alternates: ['es_ES', 'en_US'] },
+  };
+  const config = LOCALES[lang] || LOCALES.es;
+  const tags = [
+    `<meta property="og:locale" content="${config.primary}">`,
+    ...config.alternates.map((alt) => `<meta property="og:locale:alternate" content="${alt}">`),
+  ];
+  return tags.join('\n  ');
+}
+
+function escapeXml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+/**
+ * Genera bloques <url> para sitemaps con etiquetas xhtml:link según estándar Google
+ */
+function getMultilingualSitemapEntries(cleanPath, lastmod, changefreq, priority, siteUrl = 'https://nollimap.app') {
+  const rawPath = cleanPath.startsWith('/') ? cleanPath : '/' + cleanPath;
+  const path = rawPath === '/' ? '' : rawPath;
+  const esUrl = `${siteUrl}${path || '/'}`;
+  const enUrl = `${siteUrl}/en${path || '/'}`;
+  const caUrl = `${siteUrl}/ca${path || '/'}`;
+  const xDefaultUrl = esUrl;
+
+  const alternateLinks = [
+    `    <xhtml:link rel="alternate" hreflang="es" href="${escapeXml(esUrl)}"/>`,
+    `    <xhtml:link rel="alternate" hreflang="en" href="${escapeXml(enUrl)}"/>`,
+    `    <xhtml:link rel="alternate" hreflang="ca" href="${escapeXml(caUrl)}"/>`,
+    `    <xhtml:link rel="alternate" hreflang="x-default" href="${escapeXml(xDefaultUrl)}"/>`,
+  ].join('\n');
+
+  const variants = [esUrl, enUrl, caUrl];
+
+  return variants.map((loc) => [
+    '  <url>',
+    `    <loc>${escapeXml(loc)}</loc>`,
+    alternateLinks,
+    `    <lastmod>${lastmod}</lastmod>`,
+    `    <changefreq>${changefreq}</changefreq>`,
+    `    <priority>${priority}</priority>`,
+    '  </url>',
+  ].join('\n')).join('\n');
+}
+
 module.exports = {
   SUPPORTED_LANGS,
   DEFAULT_LANG,
@@ -147,4 +204,7 @@ module.exports = {
   getLangPrefix,
   getSSRText,
   getHreflangTags,
+  getOgLocaleTags,
+  escapeXml,
+  getMultilingualSitemapEntries,
 };

@@ -1,28 +1,10 @@
+const { getMultilingualSitemapEntries } = require('./_lib/i18n.js');
+
 const SITE_URL = 'https://nollimap.app';
 const CHUNK_SIZE = 1000;
 const FALLBACK_SUPABASE_URL = 'https://ldtfvpjigzvcagtciipn.supabase.co';
 const FALLBACK_SUPABASE_KEY = 'sb_publishable_kYQ7Fa8nBsrkp1f8C4AuAg_4-5uBFm0';
 const FALLBACK_SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkdGZ2cGppZ3p2Y2FndGNpaXBuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NzU3OTg2NywiZXhwIjoyMTAzMTU1ODY3fQ.iRn-X5EzmW9eoKqL5qdW3s6I7NfcLfnJRmXTNwjCNnY';
-
-function escapeXml(value) {
-  return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
-}
-
-function urlEntry(location, lastModified, changeFrequency, priority) {
-  return [
-    '  <url>',
-    `    <loc>${escapeXml(location)}</loc>`,
-    `    <lastmod>${lastModified}</lastmod>`,
-    `    <changefreq>${changeFrequency}</changefreq>`,
-    `    <priority>${priority}</priority>`,
-    '  </url>',
-  ].join('\n');
-}
 
 async function fetchBuildingPage(page) {
   const supabaseUrl = process.env.SUPABASE_URL || FALLBACK_SUPABASE_URL;
@@ -62,12 +44,12 @@ module.exports = async (request, response) => {
     const buildingEntries = (buildings || []).map((building) => {
       const rawDate = building.updated_at || today;
       const lastmod = String(rawDate).slice(0, 10);
-      return urlEntry(`${SITE_URL}/obra/${encodeURIComponent(building.id)}`, lastmod, 'weekly', '0.8');
+      return getMultilingualSitemapEntries(`/obra/${encodeURIComponent(building.id)}`, lastmod, 'weekly', '0.8', SITE_URL);
     });
 
     const sitemap = [
       '<?xml version="1.0" encoding="UTF-8"?>',
-      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
       ...buildingEntries,
       '</urlset>',
     ].join('\n');

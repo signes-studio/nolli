@@ -165,6 +165,7 @@ export async function initI18n() {
   // 2. Resolver idioma activo
   currentLang = detectLanguage();
   document.documentElement.lang = currentLang;
+  updateMetaTags(currentLang);
 
   // 3. Cargar traducciones en paralelo (idioma activo + fallback 'es' si es distinto)
   const loadTasks = [fetchLocale(currentLang).then((dict) => { translations = dict; })];
@@ -322,6 +323,22 @@ export function switchLanguage(newLang) {
 
   const newUrl = `${targetPath}${window.location.search}${window.location.hash}`;
   window.location.href = newUrl;
+}
+
+/**
+ * Sincroniza las etiquetas canonical y og:locale del head en el cliente.
+ */
+function updateMetaTags(lang) {
+  if (typeof document === 'undefined' || typeof window === 'undefined') return;
+  const canonical = document.querySelector('link[rel="canonical"]');
+  if (canonical) {
+    canonical.href = `${window.location.origin}${window.location.pathname}`;
+  }
+  const ogLocale = document.querySelector('meta[property="og:locale"]');
+  if (ogLocale) {
+    const map = { es: 'es_ES', en: 'en_US', ca: 'ca_ES' };
+    ogLocale.content = map[lang] || 'es_ES';
+  }
 }
 
 if (typeof window !== 'undefined') {

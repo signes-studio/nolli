@@ -1,44 +1,26 @@
 const { getCategorySlugs } = require('./_lib/categories.js');
+const { getMultilingualSitemapEntries, escapeXml } = require('./_lib/i18n.js');
 
 const SITE_URL = 'https://nollimap.app';
-
-function escapeXml(value) {
-  return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
-}
-
-function urlEntry(location, lastModified, changeFrequency, priority) {
-  return [
-    '  <url>',
-    `    <loc>${escapeXml(location)}</loc>`,
-    `    <lastmod>${lastModified}</lastmod>`,
-    `    <changefreq>${changeFrequency}</changefreq>`,
-    `    <priority>${priority}</priority>`,
-    '  </url>',
-  ].join('\n');
-}
 
 module.exports = async (request, response) => {
   try {
     const lastModified = new Date().toISOString().slice(0, 10);
     const staticEntries = [
-      urlEntry(`${SITE_URL}/`, lastModified, 'daily', '1.0'),
-      urlEntry(`${SITE_URL}/landing`, lastModified, 'weekly', '0.9'),
-      urlEntry(`${SITE_URL}/perfil`, lastModified, 'weekly', '0.8'),
-      urlEntry(`${SITE_URL}/public-profile`, lastModified, 'weekly', '0.7'),
-      urlEntry(`${SITE_URL}/legal`, lastModified, 'monthly', '0.3'),
+      getMultilingualSitemapEntries('/', lastModified, 'daily', '1.0', SITE_URL),
+      getMultilingualSitemapEntries('/landing', lastModified, 'weekly', '0.9', SITE_URL),
+      getMultilingualSitemapEntries('/perfil', lastModified, 'weekly', '0.8', SITE_URL),
+      getMultilingualSitemapEntries('/itinerarios', lastModified, 'weekly', '0.8', SITE_URL),
+      getMultilingualSitemapEntries('/public-profile', lastModified, 'weekly', '0.7', SITE_URL),
+      getMultilingualSitemapEntries('/legal', lastModified, 'monthly', '0.3', SITE_URL),
       ...getCategorySlugs().map((slug) => (
-        urlEntry(`${SITE_URL}/categoria/${encodeURIComponent(slug)}`, lastModified, 'weekly', '0.6')
+        getMultilingualSitemapEntries(`/categoria/${encodeURIComponent(slug)}`, lastModified, 'weekly', '0.6', SITE_URL)
       )),
     ];
 
     const sitemap = [
       '<?xml version="1.0" encoding="UTF-8"?>',
-      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
       ...staticEntries,
       '</urlset>',
     ].join('\n');
