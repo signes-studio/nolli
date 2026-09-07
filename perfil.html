@@ -132,11 +132,6 @@
     <header class="profile-header">
       <a href="./" class="profile-logo">nolli<span>.</span></a>
       <div class="profile-header-actions">
-        <div class="lang-switcher-neo" role="group" aria-label="Idioma" data-i18n-aria="lang_switcher_aria">
-          <button type="button" class="lang-btn" data-lang-btn="es" aria-label="Español" title="Español">ES</button>
-          <button type="button" class="lang-btn" data-lang-btn="en" aria-label="English" title="English">EN</button>
-          <button type="button" class="lang-btn" data-lang-btn="ca" aria-label="Català" title="Català">CA</button>
-        </div>
         <a href="./admin.html" id="btn-profile-admin" class="profile-minimal-btn hidden" style="color:var(--accent-2); border-color:var(--accent-2); font-weight:700;" title="Abrir Panel de Administración" data-i18n="admin_panel_title" data-i18n-title="admin_panel_title">PANEL ADMIN</a>
         <button type="button" id="btn-theme-toggle" class="profile-minimal-btn" title="Cambiar tema claro / oscuro" aria-label="Cambiar tema" data-i18n-title="profile_theme_toggle_aria" data-i18n-aria="profile_theme_toggle_aria">
           <i data-lucide="moon" width="16" height="16" id="theme-icon"></i>
@@ -201,6 +196,17 @@
 
       <!-- 5. Feed de Obras (Archivo con padding-bottom de 160px para scroll fluido) -->
       <section id="profile-content" class="profile-feed-list" aria-live="polite"></section>
+
+      <!-- Pie de página sutil: selector discreto de idioma -->
+      <footer class="profile-footer-lang" aria-label="Idioma de la interfaz" data-i18n-aria="lang_switcher_aria">
+        <span data-i18n="lang_footer_label">IDIOMA</span>
+        <span>·</span>
+        <button type="button" class="lang-link" data-lang-btn="es" data-i18n="lang_castellano">Castellano</button>
+        <span>·</span>
+        <button type="button" class="lang-link" data-lang-btn="en" data-i18n="lang_english">English</button>
+        <span>·</span>
+        <button type="button" class="lang-link" data-lang-btn="ca" data-i18n="lang_catala">Català</button>
+      </footer>
     </main>
   </div>
 
@@ -278,6 +284,16 @@
         <div class="profile-form-group">
           <label class="profile-form-label" for="edit-profile-website" data-i18n="profile_edit_website">SITIO WEB / PORTFOLIO</label>
           <input type="url" id="edit-profile-website" class="tech-input" placeholder="https://signes.studio" autocomplete="url">
+        </div>
+
+        <div class="profile-form-group">
+          <label class="profile-form-label" data-i18n="profile_language_label">IDIOMA // PREFERENCIA DE INTERFAZ</label>
+          <p class="filter-lang-note" data-i18n="lang_device_hint">Por defecto se adapta al idioma del dispositivo. Puedes fijar una preferencia:</p>
+          <div class="lang-switcher-pills" role="group" aria-label="Idioma de la interfaz" data-i18n-aria="lang_switcher_aria">
+            <button type="button" class="lang-pill" data-lang-btn="es" data-i18n="lang_castellano">Castellano</button>
+            <button type="button" class="lang-pill" data-lang-btn="en" data-i18n="lang_english">English</button>
+            <button type="button" class="lang-pill" data-lang-btn="ca" data-i18n="lang_catala">Català</button>
+          </div>
         </div>
 
         <div id="profile-edit-status" class="profile-edit-status hidden"></div>

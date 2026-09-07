@@ -40,7 +40,7 @@ import {
 
 import { renderInChunks } from './renderUtils.js';
 import { getOptimizedPhotoUrl } from './imageProxy.js';
-import { t, initI18n, getUrlPrefix, applyI18nToDOM } from './i18n.js';
+import { t, initI18n, getUrlPrefix, applyI18nToDOM, setupLanguageSwitchers } from './i18n.js';
 
 const SESSION_KEY = 'nolli_admin_session_token';
 const content = document.getElementById('profile-content');
@@ -1254,6 +1254,7 @@ function setupEditProfileModal() {
       if (inputWeb) inputWeb.value = db.website || metadata.website || '';
 
       if (editStatus) editStatus.classList.add('hidden');
+      setupLanguageSwitchers(modalEditProfile);
       modalEditProfile.classList.add('open');
       if (window.lucide) window.lucide.createIcons();
     });

@@ -93,11 +93,11 @@ export function handleRootRedirection() {
   // Si el usuario ya tiene preferencia guardada, respetarla
   if (savedPref && SUPPORTED_LANGS.includes(savedPref)) {
     if (savedPref === 'en') {
-      window.location.replace(`/en/${window.location.search}${window.location.hash}`);
+      window.location.replace(`/en${window.location.search}${window.location.hash}`);
       return;
     }
     if (savedPref === 'ca') {
-      window.location.replace(`/ca/${window.location.search}${window.location.hash}`);
+      window.location.replace(`/ca${window.location.search}${window.location.hash}`);
       return;
     }
     // Si savedPref === 'es', se queda en /
@@ -110,11 +110,11 @@ export function handleRootRedirection() {
     for (const lang of browserLangs) {
       const code = String(lang).toLowerCase();
       if (code.startsWith('ca') || code.startsWith('val')) {
-        window.location.replace(`/ca/${window.location.search}${window.location.hash}`);
+        window.location.replace(`/ca${window.location.search}${window.location.hash}`);
         return;
       }
       if (code.startsWith('en')) {
-        window.location.replace(`/en/${window.location.search}${window.location.hash}`);
+        window.location.replace(`/en${window.location.search}${window.location.hash}`);
         return;
       }
       if (code.startsWith('es')) {
@@ -257,13 +257,13 @@ export function applyI18nToDOM(root = document) {
 }
 
 /**
- * Conecta los botones de selector Neo-Bauhaus (.lang-switcher-neo [data-lang-btn])
+ * Conecta los botones de selectores de idioma (neo, sutil, píldoras)
  * y actualiza su estado activo según el idioma actual.
  * @param {HTMLElement|Document} root - Contenedor donde buscar selectores
  */
 export function setupLanguageSwitchers(root = document) {
   const current = getLanguage();
-  root.querySelectorAll('.lang-switcher-neo').forEach((container) => {
+  root.querySelectorAll('.lang-switcher-neo, .lang-switcher-subtle, .lang-switcher-pills, [data-lang-switcher]').forEach((container) => {
     container.querySelectorAll('[data-lang-btn]').forEach((btn) => {
       const lang = btn.dataset.langBtn;
       const isActive = lang === current;
@@ -278,6 +278,21 @@ export function setupLanguageSwitchers(root = document) {
         }
       };
     });
+  });
+
+  // Botones sueltos o enlaces con [data-lang-btn] fuera de contenedores conocidos
+  root.querySelectorAll('button[data-lang-btn]:not(.lang-switcher-neo *):not(.lang-switcher-subtle *):not(.lang-switcher-pills *)').forEach((btn) => {
+    const lang = btn.dataset.langBtn;
+    const isActive = lang === current;
+    btn.classList.toggle('active', isActive);
+    btn.setAttribute('aria-pressed', String(isActive));
+    btn.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (lang !== current) {
+        switchLanguage(lang);
+      }
+    };
   });
 }
 
@@ -295,7 +310,7 @@ export function switchLanguage(newLang) {
   } catch {}
   setCookie(COOKIE_LANG_KEY, newLang, 365);
 
-  // 2. Resolver ruta limpia despojando prefijos conocidos (/en/ o /ca/)
+  // 2. Resolver ruta limpia despojando prefijos conocidos (/en/ o /ca/ o /en o /ca)
   const currentPath = window.location.pathname;
   let cleanPath = currentPath;
 
@@ -306,20 +321,23 @@ export function switchLanguage(newLang) {
 
   if (!cleanPath.startsWith('/')) cleanPath = '/' + cleanPath;
 
-  // 3. Añadir nuevo prefijo según el idioma destino
+  // 3. Añadir nuevo prefijo según el idioma destino (sin trailing slash innecesaria)
   let targetPath = cleanPath;
   if (newLang === 'en') {
-    targetPath = '/en' + (cleanPath === '/' ? '/' : cleanPath);
+    targetPath = cleanPath === '/' ? '/en' : '/en' + cleanPath;
   } else if (newLang === 'ca') {
-    targetPath = '/ca' + (cleanPath === '/' ? '/' : cleanPath);
+    targetPath = cleanPath === '/' ? '/ca' : '/ca' + cleanPath;
   } else {
     // 'es' vive en la raíz
     targetPath = cleanPath;
   }
 
-  // Normalizar barras repetidas
+  // Normalizar barras repetidas y evitar trailing slash en rutas no raíz
   targetPath = targetPath.replace(/\/+/g, '/');
   if (targetPath === '') targetPath = '/';
+  if (targetPath.length > 1 && targetPath.endsWith('/')) {
+    targetPath = targetPath.slice(0, -1);
+  }
 
   const newUrl = `${targetPath}${window.location.search}${window.location.hash}`;
   window.location.href = newUrl;

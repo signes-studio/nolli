@@ -3,7 +3,7 @@
    ========================================================================= */
 
 import { state, nombreCategoria, esRolAdmin, CATEGORY_META } from './state.js';
-import { t } from './i18n.js';
+import { t, getLanguage, setupLanguageSwitchers } from './i18n.js';
 
 const filterPanel = document.getElementById('filter-panel');
 const btnFilters = document.getElementById('btn-filters');
@@ -35,6 +35,8 @@ export function generarFiltrosUI() {
   asegurarEstadoFiltros();
   
   if (!filterPanel) return;
+
+  const currentLang = getLanguage();
 
   filterPanel.innerHTML = `
     <div class="filter-head">
@@ -82,9 +84,28 @@ export function generarFiltrosUI() {
         </div>
       </div>
     </div>
+
+    <div class="filter-group filter-group-lang collapsed" data-filter-group="language">
+      <button type="button" class="filter-group-head" aria-expanded="false">
+        <span style="display:flex; align-items:center; gap:6px;">
+          <i data-lucide="globe" width="13" height="13" style="color:var(--accent, #E84E1B)"></i>
+          <span>${t('lang_settings_title')}</span>
+        </span>
+        <span class="filter-chevron filter-lang-badge">[ ${currentLang.toUpperCase()} ]</span>
+      </button>
+      <div class="filter-group-body" style="padding: 10px 14px 14px; background: var(--bg-panel, #F8F1DF);">
+        <p class="filter-lang-note">${t('lang_device_hint')}</p>
+        <div class="lang-switcher-pills" role="group" aria-label="${t('lang_switcher_aria')}">
+          <button type="button" class="lang-pill ${currentLang === 'es' ? 'active' : ''}" data-lang-btn="es">${t('lang_castellano')}</button>
+          <button type="button" class="lang-pill ${currentLang === 'en' ? 'active' : ''}" data-lang-btn="en">${t('lang_english')}</button>
+          <button type="button" class="lang-pill ${currentLang === 'ca' ? 'active' : ''}" data-lang-btn="ca">${t('lang_catala')}</button>
+        </div>
+      </div>
+    </div>
   `;
 
   window.lucide?.createIcons({ context: filterPanel });
+  setupLanguageSwitchers(filterPanel);
   actualizarResumenFiltros();
 }
 
@@ -136,7 +157,10 @@ function initFiltersUI() {
       const group = groupHead.closest('.filter-group');
       const isOpen = group.classList.toggle('collapsed') === false;
       groupHead.setAttribute('aria-expanded', String(isOpen));
-      group.querySelector('.filter-chevron').textContent = isOpen ? '−' : '+';
+      const chev = group.querySelector('.filter-chevron');
+      if (chev && !chev.classList.contains('filter-lang-badge')) {
+        chev.textContent = isOpen ? '−' : '+';
+      }
       return;
     }
 

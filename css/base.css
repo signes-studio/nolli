@@ -447,3 +447,123 @@ body.dark-mode .lang-switcher-neo .lang-btn.active {
   background: var(--accent, #FF7528);
   color: #141411;
 }
+
+/* =========================================================================
+   SELECTOR DE IDIOMA SUTIL / PÍLDORAS (PANEL FILTROS & PERFIL)
+   ========================================================================= */
+.lang-switcher-pills,
+.lang-switcher-subtle {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+
+.lang-pill {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  background: var(--bg-raised, #ECE6D8);
+  border: 1px solid var(--border-strong, #141411);
+  color: var(--fg-dim, #555550);
+  font-family: 'League Spartan', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  border-radius: 0;
+  line-height: 1.2;
+}
+
+body.dark-mode .lang-pill {
+  background: #262622;
+  border-color: var(--border-strong, #4E4E48);
+  color: var(--fg-dim, #A3A39C);
+}
+
+.lang-pill:hover {
+  border-color: var(--accent, #E84E1B);
+  color: var(--accent, #E84E1B);
+}
+
+.lang-pill.active {
+  background: var(--accent, #E84E1B);
+  border-color: var(--accent, #E84E1B);
+  color: #FFFFFF;
+  box-shadow: 1px 1px 0px var(--border-strong, #141411);
+  cursor: default;
+}
+
+body.dark-mode .lang-pill.active {
+  background: var(--accent, #FF7528);
+  border-color: var(--accent, #FF7528);
+  color: #141411;
+  box-shadow: 1px 1px 0px #000;
+}
+
+/* Nota explicativa de idioma del dispositivo */
+.filter-lang-note {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  line-height: 1.4;
+  color: var(--fg-dim, #666660);
+  margin: 0 0 8px 0;
+}
+
+body.dark-mode .filter-lang-note {
+  color: #9A9A92;
+}
+
+.filter-lang-badge {
+  font-family: 'Inter', sans-serif;
+  font-size: 10.5px;
+  font-weight: 800;
+  color: var(--accent, #E84E1B);
+  letter-spacing: 0.04em;
+}
+
+/* Enlace discreto de idioma en pie de página de perfil */
+.profile-footer-lang {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--border, #D8D6CE);
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  color: var(--fg-dim, #888880);
+}
+
+body.dark-mode .profile-footer-lang {
+  border-top-color: var(--border, #333330);
+  color: #888882;
+}
+
+.profile-footer-lang button.lang-link {
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--fg-dim, #888880);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.profile-footer-lang button.lang-link:hover {
+  color: var(--accent, #E84E1B);
+}
+
+.profile-footer-lang button.lang-link.active {
+  font-weight: 900;
+  color: var(--accent, #E84E1B);
+  text-decoration: none;
+  cursor: default;
+}

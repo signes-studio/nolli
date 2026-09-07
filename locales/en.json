@@ -717,5 +717,11 @@
   "access_closed": "TEMPORARILY CLOSED",
   "cancel": "CANCEL",
   "lang_switcher_aria": "Select language",
-  "lang_settings_title": "LANGUAGE // IDIOMA"
+  "lang_settings_title": "LANGUAGE // IDIOMA",
+  "lang_device_hint": "Default follows your device language. You can set a manual preference:",
+  "profile_language_label": "LANGUAGE // INTERFACE PREFERENCE",
+  "lang_footer_label": "LANGUAGE",
+  "lang_castellano": "Castellano",
+  "lang_english": "English",
+  "lang_catala": "Català"
 }

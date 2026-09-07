@@ -717,5 +717,11 @@
   "access_closed": "TANCAT TEMPORALMENT",
   "cancel": "CANCEL·LAR",
   "lang_switcher_aria": "Seleccionar idioma",
-  "lang_settings_title": "IDIOMA // LLENGUA"
+  "lang_settings_title": "IDIOMA // LLENGUA",
+  "lang_device_hint": "Per defecte s'adapta a l'idioma del dispositiu. Pots fixar una preferència:",
+  "profile_language_label": "IDIOMA // PREFERÈNCIA D'INTERFÍCIE",
+  "lang_footer_label": "IDIOMA",
+  "lang_castellano": "Castellà",
+  "lang_english": "English",
+  "lang_catala": "Català"
 }
