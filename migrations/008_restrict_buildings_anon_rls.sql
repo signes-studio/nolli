@@ -17,6 +17,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public."Buildings" TO authenticate
 
 -- 4. Eliminar políticas permisivas de lectura anónima anteriores
 DROP POLICY IF EXISTS "Public can read published buildings" ON public."Buildings";
+DROP POLICY IF EXISTS "Anyone can read published buildings" ON public."Buildings";
 DROP POLICY IF EXISTS "Authenticated users can read published or own buildings" ON public."Buildings";
 
 -- 5. Nueva política de LECTURA (SELECT): Exclusiva para usuarios autenticados
