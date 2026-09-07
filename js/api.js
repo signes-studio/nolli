@@ -841,7 +841,23 @@ export async function fetchBuildingStatuses(userId, sessionToken) {
   return buildingStatusesPromise;
 }
 
-export async function saveBuildingStatus(userId, buildingId, status, sessionToken) {
+export async function saveBuildingStatus(arg1, arg2, arg3, arg4) {
+  let userId, buildingId, status, sessionToken;
+
+  if (typeof arg2 === 'object' && arg2 !== null) {
+    // Si se invocó como (buildingId, status, userId, sessionToken)
+    buildingId = arg1;
+    status = arg2;
+    userId = arg3;
+    sessionToken = arg4;
+  } else {
+    // Firma estándar (userId, buildingId, status, sessionToken)
+    userId = arg1;
+    buildingId = arg2;
+    status = arg3;
+    sessionToken = arg4;
+  }
+
   const response = await fetch(`${SUPABASE_URL}/rest/v1/user_building_status`, {
     method: 'POST',
     headers: {

@@ -548,7 +548,7 @@ async function saveStatus(status, value) {
 
   // 3. Sincronización Asíncrona con el Servidor
   try {
-    await saveBuildingStatus(building.id, next, state.userId, state.sessionToken);
+    await saveBuildingStatus(state.userId, building.id, next, state.sessionToken);
   } catch (error) {
     console.error('Error al guardar estado:', error);
     // Rollback en caso de error de red
@@ -570,17 +570,27 @@ async function saveNote(button) {
   const textarea = editor ? editor.querySelector('textarea') : null;
   const nota = textarea ? textarea.value.trim() : '';
 
+  const key = String(building.id);
+  const previous = state.buildingStatuses.get(key) || { favorite: false, visited: false };
+  const next = { ...previous, notas: nota };
+  state.buildingStatuses.set(key, next);
+  guardarZonaPersonalLocal(state.userId);
+
   button.disabled = true;
   button.textContent = 'GUARDANDO...';
   try {
     await saveBuildingStatus(state.userId, building.id, next, state.sessionToken);
     button.textContent = 'GUARDADO';
-    document.dispatchEvent(new CustomEvent('radar:user-status-changed'));
+    document.dispatchEvent(new CustomEvent('radar:user-status-changed', { detail: { buildingId: key, status: 'notas', value: nota } }));
   } catch (error) {
-    button.textContent = 'GUARDADO LOCALMENTE';
-    document.dispatchEvent(new CustomEvent('radar:user-status-changed'));
+    console.error('Error al guardar nota:', error);
+    button.textContent = 'GUARDADO LOCAL';
+    document.dispatchEvent(new CustomEvent('radar:user-status-changed', { detail: { buildingId: key, status: 'notas', value: nota } }));
   } finally {
-    button.disabled = false;
+    setTimeout(() => {
+      button.disabled = false;
+      button.textContent = 'GUARDAR NOTA';
+    }, 2000);
   }
 }
 
