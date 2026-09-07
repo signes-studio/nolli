@@ -742,8 +742,90 @@ h1, h2, h3, h4, h5, h6, .font-display {
 }
 
 /* =========================================================================
-   RESPONSIVE (MÓVIL)
+   BOTONES ESPECIALES NEO-BAUHAUS
    ========================================================================= */
+.admin-btn-danger {
+  background: var(--admin-red) !important;
+  color: #FFFFFF !important;
+  border-color: var(--admin-red) !important;
+}
+
+.admin-btn-danger:hover {
+  background: #B51A17 !important;
+  color: #FFFFFF !important;
+}
+
+/* =========================================================================
+   NOTIFICACIONES TOAST NEO-BAUHAUS
+   ========================================================================= */
+.admin-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 2000;
+  background: var(--admin-fg);
+  color: var(--admin-bg);
+  border: 2px solid var(--admin-border);
+  box-shadow: 4px 4px 0px var(--admin-accent);
+  padding: 12px 18px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  opacity: 0;
+  transform: translateY(12px);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  max-width: min(420px, calc(100vw - 48px));
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-toast.show {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.admin-toast-success {
+  border-color: var(--admin-green);
+  box-shadow: 4px 4px 0px var(--admin-green);
+}
+
+.admin-toast-error {
+  border-color: var(--admin-red);
+  box-shadow: 4px 4px 0px var(--admin-red);
+}
+
+.admin-toast-info {
+  border-color: var(--admin-accent);
+  box-shadow: 4px 4px 0px var(--admin-accent);
+}
+
+/* =========================================================================
+   RESPONSIVE (TABLET Y MÓVIL)
+   ========================================================================= */
+@media (max-width: 1024px) {
+  .admin-work-card {
+    grid-template-columns: 130px 1fr;
+    gap: 16px;
+  }
+
+  .admin-work-actions {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    flex-wrap: wrap;
+    border-top: 1px solid var(--admin-border-light);
+    padding-top: 12px;
+    width: 100%;
+  }
+
+  .admin-work-actions .admin-btn {
+    flex: 1 1 auto;
+  }
+}
+
 @media (max-width: 768px) {
   .admin-header {
     padding: 10px 14px;
@@ -753,6 +835,10 @@ h1, h2, h3, h4, h5, h6, .font-display {
     display: none;
   }
 
+  .admin-header-actions {
+    gap: 6px;
+  }
+
   .admin-container {
     padding: 14px 14px 80px;
   }
@@ -760,6 +846,7 @@ h1, h2, h3, h4, h5, h6, .font-display {
   .admin-work-card {
     grid-template-columns: 1fr;
     gap: 14px;
+    padding: 14px;
   }
 
   .admin-work-thumb,
@@ -769,17 +856,69 @@ h1, h2, h3, h4, h5, h6, .font-display {
   }
 
   .admin-work-actions {
+    grid-column: 1;
     flex-direction: row;
     flex-wrap: wrap;
     width: 100%;
+    gap: 8px;
   }
 
   .admin-work-actions .admin-btn {
-    flex: 1 1 45%;
+    flex: 1 1 calc(50% - 4px);
+    justify-content: center;
+    padding: 8px 6px;
   }
 
   .admin-form-grid {
     grid-template-columns: 1fr;
   }
+
+  .admin-users-table {
+    min-width: 600px;
+  }
 }
+
+@media (max-width: 640px) {
+  .admin-header-btn-text {
+    display: none;
+  }
+
+  .admin-header-btn {
+    padding: 6px 8px;
+  }
+
+  #admin-user-email {
+    max-width: 90px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .admin-tab {
+    padding: 8px 10px;
+    font-size: 10px;
+  }
+
+  .admin-toast {
+    left: 14px;
+    right: 14px;
+    bottom: 14px;
+    max-width: none;
+  }
+}
+
+@media (max-width: 440px) {
+  #admin-user-email {
+    display: none;
+  }
+
+  .admin-user-pill {
+    padding: 4px 6px;
+  }
+
+  .admin-work-actions .admin-btn {
+    flex: 1 1 100%;
+  }
+}
+
 

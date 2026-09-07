@@ -253,6 +253,20 @@
     <button type="button" id="btn-mobile-identity-action" class="mobile-identity-btn" aria-label="Acceder o ver cuenta" data-i18n-aria="mobile_identity_btn_aria">
       <span id="mobile-identity-badge" class="mobile-identity-badge" data-i18n="mobile_identity_access">ACCEDER</span>
     </button>
+    <div id="mobile-admin-quickmenu" class="mobile-admin-quickmenu" hidden>
+      <button type="button" id="btn-mobile-quick-admin-panel" class="mobile-admin-quickmenu-item">
+        <i data-lucide="layout-dashboard" width="13" height="13"></i>
+        <span data-i18n="admin_panel_title">PANEL ADMIN</span>
+      </button>
+      <a href="./admin.html" class="mobile-admin-quickmenu-item">
+        <i data-lucide="external-link" width="13" height="13"></i>
+        <span data-i18n="admin_console_btn">CONSOLA ↗</span>
+      </a>
+      <a href="./perfil.html" class="mobile-admin-quickmenu-item">
+        <i data-lucide="user" width="13" height="13"></i>
+        <span data-i18n="topbar_profile">MI PERFIL</span>
+      </a>
+    </div>
   </aside>
 
   <!-- Buscador flotante y expansivo (Desktop y Móvil) -->
@@ -877,6 +891,11 @@
       <div id="wrap-add-enlace">
         <label for="add-enlace" class="tech-label" data-i18n="add_label_link">ENLACE DEL PROYECTO_</label>
         <input type="url" id="add-enlace" class="tech-input" placeholder="https://...">
+      </div>
+
+      <div id="wrap-add-place">
+        <label for="add-place" class="tech-label" data-i18n="add_label_place">CIUDAD / LOCALIZACIÓN_</label>
+        <input type="text" id="add-place" class="tech-input" placeholder="p.ej. Barcelona, España" data-i18n-placeholder="add_placeholder_place">
       </div>
 
       <div class="flex gap-2" id="wrap-add-arq-ano">

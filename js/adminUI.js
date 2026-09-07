@@ -401,7 +401,7 @@ async function renderList() {
       const isPending = obra.estado_revision === 'pendiente';
 
       return `
-        <div class="admin-project ${isPending ? 'admin-project-pending' : ''}" style="${isPending ? 'border-left: 3px solid var(--accent-2, #EFBC02); background: rgba(239, 188, 2, 0.05);' : ''}">
+        <div class="admin-project ${isPending ? 'admin-project-pending' : ''}">
           <div class="admin-project-info">
             <div style="display:flex; align-items:center; gap:6px;">
               <strong>${safeNombre}</strong>
@@ -415,8 +415,8 @@ async function renderList() {
           <div class="admin-project-actions">
             <button type="button" class="btn admin-action-edit" data-admin-edit="${safeId}" title="Editar ficha de obra">EDITAR</button>
             ${isPending ? `
-              <button type="button" class="btn admin-action-review" data-admin-review="${safeId}" data-review-status="publicada" style="color:var(--accent-2); border-color:var(--accent-2); font-weight:700;">APROBAR</button>
-              <button type="button" class="btn admin-action-reject" data-admin-review="${safeId}" data-review-status="rechazada" style="color:var(--red); border-color:var(--red);">RECHAZAR</button>
+              <button type="button" class="btn admin-action-approve" data-admin-review="${safeId}" data-review-status="publicada">APROBAR</button>
+              <button type="button" class="btn admin-action-reject" data-admin-review="${safeId}" data-review-status="rechazada">RECHAZAR</button>
             ` : ''}
             <button type="button" class="btn admin-action-delete" data-admin-delete="${safeId}" title="Eliminar del catálogo">BORRAR</button>
           </div>
@@ -564,14 +564,14 @@ async function renderUsers() {
             <small class="admin-user-presence ${presence.isOnline ? 'online' : ''}">${safePresenceLabel}</small>
           </div>
           ${isSuper ? `
-            <select class="admin-user-role-select tech-input" data-user-id="${escapeHtml(user.id)}" style="font-size: 10px; font-weight: 700; padding: 3px 6px; border: 1.5px solid var(--accent-2); background: #111; color: var(--accent-2); width: auto; max-width: 120px;">
+            <select class="admin-user-role-select tech-input" data-user-id="${escapeHtml(user.id)}">
               <option value="user" ${userRole === 'user' ? 'selected' : ''}>USER</option>
               <option value="tester" ${userRole === 'tester' ? 'selected' : ''}>TESTER</option>
               <option value="admin" ${userRole === 'admin' ? 'selected' : ''}>ADMIN</option>
               <option value="superadmin" ${userRole === 'superadmin' ? 'selected' : ''}>SUPERADMIN</option>
             </select>
           ` : `
-            <span class="admin-user-role" style="border: 1px solid var(--accent-2); padding: 2px 6px; font-size: 8.5px;">${safeRole}</span>
+            <span class="admin-user-role" style="border: 1px solid var(--accent); padding: 2px 6px; font-size: 8.5px;">${safeRole}</span>
           `}
         </article>
       `;
@@ -586,8 +586,9 @@ async function renderUsers() {
             await updateUserRole(targetId, nextRole, state.sessionToken);
             const found = cachedUsers.find((u) => String(u.id) === String(targetId));
             if (found) found.role = nextRole;
+            mostrarAlertaSeguridad('ROL ACTUALIZADO', `El rol del usuario ha sido actualizado a ${nextRole.toUpperCase()}.`);
           } catch (err) {
-            alert(`Error al actualizar rol: ${err.message}`);
+            mostrarAlertaSeguridad('ERROR AL ACTUALIZAR ROL', err.message);
             renderUsers();
           }
         });
@@ -604,8 +605,9 @@ async function actualizarReporte(id, estado) {
   try {
     await updateBuildingReport(id, estado, state.sessionToken);
     await renderReports();
+    mostrarAlertaSeguridad('INCIDENCIA', `Estado de la incidencia actualizado a ${estado}.`);
   } catch (error) {
-    alert(error.message);
+    mostrarAlertaSeguridad('ERROR', error.message);
   }
 }
 
@@ -633,8 +635,9 @@ async function revisarProyecto(id, estadoRevision) {
     obra.estado_revision = estadoRevision;
     actualizarFuenteMapa();
     renderList();
+    mostrarAlertaSeguridad('CURADURÍA', `Obra "${obra.nombre_obra}" marcada como ${estadoRevision === 'publicada' ? 'PUBLICADA' : 'RECHAZADA'}.`);
   } catch (error) {
-    alert(error.message);
+    mostrarAlertaSeguridad('ERROR', error.message);
   }
 }
 
@@ -668,7 +671,7 @@ async function eliminarProyecto(id) {
     return;
   }
   const obra = state.OBRAS.find((item) => String(item.id) === String(id));
-  if (!obra || !window.confirm(`¿Borrar "${obra.nombre_obra}"?`)) return;
+  if (!obra || !window.confirm(`¿Borrar definitivamente "${obra.nombre_obra}" de la base de datos?`)) return;
   try {
     await deleteBuilding(id, state.sessionToken);
     state.OBRAS = state.OBRAS.filter((item) => String(item.id) !== String(id));
@@ -677,7 +680,8 @@ async function eliminarProyecto(id) {
     actualizarFuenteMapa();
     generarFiltrosUI();
     renderList();
+    mostrarAlertaSeguridad('OBRA ELIMINADA', `La obra "${obra.nombre_obra}" ha sido eliminada del catálogo.`);
   } catch (error) {
-    alert(error.message);
+    mostrarAlertaSeguridad('ERROR', error.message);
   }
 }

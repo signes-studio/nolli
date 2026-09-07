@@ -57,18 +57,18 @@
           <span id="admin-user-role" class="admin-role-badge">ADMIN</span>
         </div>
 
-        <button type="button" id="btn-theme-toggle" class="admin-header-btn" title="Alternar Modo Oscuro / Claro">
+        <button type="button" id="btn-theme-toggle" class="admin-header-btn" title="Alternar Modo Oscuro / Claro" aria-label="Alternar tema">
           <i data-lucide="sun-moon" width="14" height="14"></i>
         </button>
 
-        <a href="./itinerarios.html" class="admin-header-btn" style="border-color: var(--admin-accent); color: var(--admin-accent);">
+        <a href="./itinerarios.html" class="admin-header-btn" style="border-color: var(--admin-accent); color: var(--admin-accent);" title="Gestionar Itinerarios" aria-label="Gestionar Itinerarios">
           <i data-lucide="compass" width="14" height="14"></i>
-          <span>GESTIONAR ITINERARIOS</span>
+          <span class="admin-header-btn-text">GESTIONAR ITINERARIOS</span>
         </a>
 
-        <a href="./" class="admin-header-btn">
+        <a href="./" class="admin-header-btn" title="Volver al Mapa" aria-label="Volver al Mapa">
           <i data-lucide="arrow-left" width="14" height="14"></i>
-          <span>VOLVER AL MAPA</span>
+          <span class="admin-header-btn-text">VOLVER AL MAPA</span>
         </a>
       </div>
     </div>
@@ -217,7 +217,9 @@
     <div class="admin-modal-box">
       <div class="admin-modal-head">
         <h3 class="font-display" style="font-size: 18px; margin: 0;">EDITAR FICHA DE OBRA</h3>
-        <button type="button" id="btn-modal-close" class="admin-btn" style="padding: 4px 8px;">✕</button>
+        <button type="button" id="btn-modal-close" class="admin-btn" aria-label="Cerrar modal">
+          <i data-lucide="x" width="16" height="16"></i>
+        </button>
       </div>
 
       <form id="form-edit-work">
@@ -241,13 +243,12 @@
             <label for="edit-categoria" class="admin-form-label">Categoría:</label>
             <select id="edit-categoria" class="admin-input">
               <option value="residencial">Residencial</option>
-              <option value="cultural">Cultural</option>
-              <option value="comercial">Comercial</option>
-              <option value="publico">Público / Cívico</option>
-              <option value="educativo">Educativo</option>
-              <option value="religioso">Religioso</option>
-              <option value="industrial">Industrial</option>
-              <option value="paisaje">Paisaje / Espacio Público</option>
+              <option value="dotacional_equipamiento">Dotacional y Equipamiento</option>
+              <option value="industrial_logistico">Industrial y Logístico</option>
+              <option value="religioso_funerario">Religioso y Funerario</option>
+              <option value="comercial_terciario">Comercial y Terciario</option>
+              <option value="espacio_publico_paisaje">Espacio Público y Paisaje</option>
+              <option value="infraestructura_urbanismo">Infraestructura y Urbanismo</option>
               <option value="otro">Otro</option>
             </select>
           </div>
@@ -256,8 +257,12 @@
             <label for="edit-acceso" class="admin-form-label">Estado de Acceso:</label>
             <select id="edit-acceso" class="admin-input">
               <option value="publico">Público</option>
+              <option value="exterior_visible">Exterior Visible</option>
+              <option value="con_reserva">Con Reserva</option>
               <option value="privado">Privado</option>
-              <option value="restringido">Restringido / Cita</option>
+              <option value="cerrado_temporalmente">Cerrado Temporalmente</option>
+              <option value="no_construido">No Construido</option>
+              <option value="desaparecido">Desaparecido</option>
             </select>
           </div>
 
@@ -294,6 +299,22 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL DE CONFIRMACIÓN NEO-BAUHAUS
+       ========================================================================= -->
+  <div id="admin-confirm-dialog" class="admin-modal-overlay" aria-hidden="true">
+    <div class="admin-modal-box" style="max-width: 440px;">
+      <div class="admin-modal-head">
+        <h3 id="admin-confirm-title" class="font-display" style="font-size: 16px; margin: 0; color: var(--admin-accent);">CONFIRMACIÓN REQUERIDA</h3>
+      </div>
+      <p id="admin-confirm-message" style="font-size: 12px; line-height: 1.5; color: var(--admin-fg); margin: 0 0 20px;"></p>
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" id="btn-admin-confirm-cancel" class="admin-btn">CANCELAR</button>
+        <button type="button" id="btn-admin-confirm-ok" class="admin-btn admin-btn-danger">CONFIRMAR</button>
+      </div>
     </div>
   </div>
 

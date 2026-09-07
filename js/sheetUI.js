@@ -5,7 +5,7 @@
 import { state, separarArquitectos, normalizarCategoria, normalizarImportancia, nombreCategoria, esRolAdmin, guardarZonaPersonalLocal, CATEGORY_META } from './state.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { cerrarFiltros, generarFiltrosUI } from './filtersUI.js';
-import { fetchBuildings, saveBuildingStatus, deleteBuilding, deletePrivateBuilding, createUserCollection, addUserCollectionItem, createUserPrivateLabel, deleteUserPrivateLabel } from './api.js';
+import { fetchBuildings, saveBuildingStatus, reviewBuilding, deleteBuilding, deletePrivateBuilding, createUserCollection, addUserCollectionItem, createUserPrivateLabel, deleteUserPrivateLabel } from './api.js';
 import { getOptimizedPhotoUrl } from './imageProxy.js';
 import { showNeoToast } from './renderUtils.js';
 import { t, getUrlPrefix } from './i18n.js';
@@ -163,6 +163,7 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
   const catKey = building.categoria || 'otro';
   const catColor = CATEGORY_META[catKey]?.color || '#E95C0C';
   const canDeletePrivate = Boolean(selected?.private && state.userId && String(selected.user_id) === String(state.userId));
+  const isPending = adminActive && building.estado_revision === 'pendiente';
 
   document.getElementById('sheet-title').textContent = building.nombre_obra;
 
@@ -274,7 +275,17 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
     ${adminActive || canDeletePrivate ? `
       <div class="sheet-admin-block">
         <div class="sheet-admin-head">${t('sheet_building_management')}</div>
+        ${isPending ? `
+          <div class="sheet-admin-pending-alert">
+            <i data-lucide="clock" width="14" height="14" style="color:var(--accent-2);"></i>
+            <span>OBRA PENDIENTE DE REVISIÓN</span>
+          </div>
+        ` : ''}
         <div class="sheet-admin-actions">
+          ${isPending ? `
+            <button type="button" class="btn btn-admin-approve" data-review-building="publicada"><i data-lucide="check" width="13" height="13"></i> APROBAR</button>
+            <button type="button" class="btn btn-admin-reject" data-review-building="rechazada"><i data-lucide="x" width="13" height="13"></i> RECHAZAR</button>
+          ` : ''}
           ${adminActive ? `
             <button type="button" class="btn btn-admin-action" data-edit-building><i data-lucide="pencil" width="14" height="14"></i> ${t('sheet_edit_building')}</button>
             <button type="button" class="btn btn-admin-delete" data-delete-building><i data-lucide="trash-2" width="14" height="14"></i> ${t('sheet_delete_db')}</button>
@@ -628,6 +639,26 @@ async function deleteBuildingFromSheet() {
   try { await deleteBuilding(building.id, state.sessionToken); state.OBRAS = state.OBRAS.filter((item) => item !== building); cerrarFicha(); actualizarFuenteMapa(); generarFiltrosUI(); document.dispatchEvent(new CustomEvent('radar:buildings-changed')); } catch (error) { showNeoToast(error.message || t('toast_error_generic')); }
 }
 
+async function reviewBuildingFromSheet(status) {
+  const building = getSelectedBuilding();
+  if (!building || !esRolAdmin(state.userRole)) return;
+  const isApprove = status === 'publicada';
+  const actionLabel = isApprove ? 'aprobar y publicar en el mapa' : 'rechazar';
+  if (!window.confirm(`¿Deseas ${actionLabel} la obra "${building.nombre_obra}"?`)) return;
+  try {
+    await reviewBuilding(building.id, status, state.sessionToken);
+    building.estado_revision = status;
+    const itemInState = state.OBRAS.find((item) => String(item.id) === String(building.id));
+    if (itemInState) itemInState.estado_revision = status;
+    actualizarFuenteMapa();
+    showNeoToast(isApprove ? 'Obra aprobada y publicada en el catálogo.' : 'Obra rechazada.');
+    const coords = building.coordenadas || [0, 0];
+    abrirFicha(building, coords, building.featureId);
+  } catch (error) {
+    showNeoToast(error.message || t('toast_error_generic'));
+  }
+}
+
 function openShareModal() {
   const building = getSelectedBuilding();
   const modal = document.getElementById('modal-share');
@@ -747,6 +778,7 @@ document.addEventListener('click', (event) => {
   if (target.closest('#btn-personal-organizer-save')) { saveOrganizerSelection(); return; }
   if (target.closest('[data-delete-private]')) { deletePrivate(); return; }
   if (target.closest('[data-delete-building]')) { deleteBuildingFromSheet(); return; }
+  if (target.closest('[data-review-building]')) { reviewBuildingFromSheet(target.closest('[data-review-building]').dataset.reviewBuilding); return; }
   const noteToggle = target.closest('[data-note-toggle]');
   if (noteToggle) { noteToggle.nextElementSibling.classList.toggle('open'); noteToggle.textContent = noteToggle.nextElementSibling.classList.contains('open') ? t('sheet_hide_note') : t('sheet_add_private_note'); return; }
   const rating = target.closest('[data-rating]');

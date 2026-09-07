@@ -597,6 +597,67 @@ function setupSearchAndFilters() {
   });
 }
 
+// =========================================================================
+// FEEDBACK VISUAL INTEGRADO (TOASTS & DIÁLOGOS NEO-BAUHAUS)
+// =========================================================================
+function showAdminToast(message, type = 'info') {
+  let toast = document.getElementById('admin-console-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'admin-console-toast';
+    document.body.appendChild(toast);
+  }
+  toast.className = `admin-toast admin-toast-${type} show`;
+  toast.innerHTML = `
+    <i data-lucide="${type === 'success' ? 'check-circle' : type === 'error' ? 'alert-octagon' : 'info'}" width="16" height="16"></i>
+    <span>${escapeHtml(message)}</span>
+  `;
+  if (window.lucide) window.lucide.createIcons({ context: toast });
+
+  clearTimeout(toast._timeout);
+  toast._timeout = setTimeout(() => {
+    toast.classList.remove('show');
+  }, 4000);
+}
+
+function confirmAdminAction(title, message) {
+  return new Promise((resolve) => {
+    const dialog = document.getElementById('admin-confirm-dialog');
+    const titleEl = document.getElementById('admin-confirm-title');
+    const msgEl = document.getElementById('admin-confirm-message');
+    const btnCancel = document.getElementById('btn-admin-confirm-cancel');
+    const btnOk = document.getElementById('btn-admin-confirm-ok');
+
+    if (!dialog || !btnCancel || !btnOk) {
+      resolve(confirm(`${title}\n\n${message}`));
+      return;
+    }
+
+    if (titleEl) titleEl.textContent = title;
+    if (msgEl) msgEl.textContent = message;
+
+    dialog.classList.add('open');
+
+    const cleanUp = (result) => {
+      dialog.classList.remove('open');
+      btnCancel.removeEventListener('click', onCancel);
+      btnOk.removeEventListener('click', onOk);
+      dialog.removeEventListener('click', onBackdrop);
+      resolve(result);
+    };
+
+    const onCancel = () => cleanUp(false);
+    const onOk = () => cleanUp(true);
+    const onBackdrop = (e) => {
+      if (e.target === dialog) cleanUp(false);
+    };
+
+    btnCancel.addEventListener('click', onCancel);
+    btnOk.addEventListener('click', onOk);
+    dialog.addEventListener('click', onBackdrop);
+  });
+}
+
 // Acciones de Obras
 async function handleApproveWork(id) {
   try {
@@ -606,29 +667,33 @@ async function handleApproveWork(id) {
     adminConsoleState.pendingWorks = adminConsoleState.allWorks.filter((w) => w.estado_revision === 'pendiente');
     updateBadges();
     renderModulePending();
+    showAdminToast('Obra aprobada y publicada correctamente en el catálogo.', 'success');
   } catch (err) {
-    alert(`Error al aprobar obra: ${err.message}`);
+    showAdminToast(`Error al aprobar obra: ${err.message}`, 'error');
   }
 }
 
 async function handleRejectWork(id) {
-  if (!confirm('¿Marcar esta propuesta como rechazada?')) return;
+  const confirmed = await confirmAdminAction('RECHAZAR OBRA', '¿Marcar esta propuesta como rechazada? Dejará de ser visible en el catálogo público.');
+  if (!confirmed) return;
   try {
     await reviewBuilding(id, 'rechazada', adminConsoleState.token);
-    const item = adminConsoleState.allWorks.find((w) => String(item.id) === String(id));
+    const item = adminConsoleState.allWorks.find((w) => String(w.id) === String(id));
     if (item) item.estado_revision = 'rechazada';
     adminConsoleState.pendingWorks = adminConsoleState.allWorks.filter((w) => w.estado_revision === 'pendiente');
     updateBadges();
     renderModulePending();
+    showAdminToast('Propuesta marcada como rechazada.', 'info');
   } catch (err) {
-    alert(`Error al rechazar obra: ${err.message}`);
+    showAdminToast(`Error al rechazar obra: ${err.message}`, 'error');
   }
 }
 
 async function handleDeleteWork(id) {
   const item = adminConsoleState.allWorks.find((w) => String(w.id) === String(id));
   const name = item ? item.nombre_obra : `#${id}`;
-  if (!confirm(`¿Eliminar definitivamente la obra "${name}" de la base de datos? Esta acción es irreversible.`)) return;
+  const confirmed = await confirmAdminAction('ELIMINAR DEFINITIVAMENTE', `¿Eliminar definitivamente la obra "${name}" de la base de datos? Esta acción es irreversible.`);
+  if (!confirmed) return;
 
   try {
     await deleteBuilding(id, adminConsoleState.token);
@@ -636,8 +701,9 @@ async function handleDeleteWork(id) {
     adminConsoleState.pendingWorks = adminConsoleState.allWorks.filter((w) => w.estado_revision === 'pendiente');
     updateBadges();
     renderModulePending();
+    showAdminToast('Obra eliminada permanentemente de la base de datos.', 'success');
   } catch (err) {
-    alert(`Error al eliminar obra: ${err.message}`);
+    showAdminToast(`Error al eliminar obra: ${err.message}`, 'error');
   }
 }
 
@@ -648,8 +714,9 @@ async function handleResolveReport(id) {
     adminConsoleState.reports = adminConsoleState.reports.filter((r) => String(r.id) !== String(id));
     updateBadges();
     renderModuleReports();
+    showAdminToast('Incidencia marcada como resuelta.', 'success');
   } catch (err) {
-    alert(`Error al resolver reporte: ${err.message}`);
+    showAdminToast(`Error al resolver reporte: ${err.message}`, 'error');
   }
 }
 
@@ -659,8 +726,9 @@ async function handleDismissReport(id) {
     adminConsoleState.reports = adminConsoleState.reports.filter((r) => String(r.id) !== String(id));
     updateBadges();
     renderModuleReports();
+    showAdminToast('Incidencia descartada.', 'info');
   } catch (err) {
-    alert(`Error al descartar reporte: ${err.message}`);
+    showAdminToast(`Error al descartar reporte: ${err.message}`, 'error');
   }
 }
 
@@ -711,9 +779,9 @@ function setupModalEvents() {
         modal.classList.remove('open');
         updateBadges();
         renderModulePending();
-        alert('Ficha de obra actualizada correctamente.');
+        showAdminToast('Ficha de obra actualizada correctamente.', 'success');
       } catch (err) {
-        alert(`Error al guardar cambios: ${err.message}`);
+        showAdminToast(`Error al guardar cambios: ${err.message}`, 'error');
       }
     });
   }
@@ -736,6 +804,9 @@ function openEditModal(id) {
   document.getElementById('edit-place').value = obra.place || '';
   document.getElementById('edit-estado-revision').value = obra.estado_revision || 'publicada';
 
-  if (modal) modal.classList.add('open');
+  if (modal) {
+    modal.classList.add('open');
+    if (window.lucide) window.lucide.createIcons({ context: modal });
+  }
 }
 

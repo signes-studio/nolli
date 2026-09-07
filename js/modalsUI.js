@@ -478,6 +478,8 @@ function initAddBuildingModal() {
     document.getElementById('add-nombre').value = obra.nombre_obra || '';
     document.getElementById('add-foto').value = obra.foto_url || '';
     document.getElementById('add-enlace').value = obra.enlace_url || '';
+    const placeEl = document.getElementById('add-place');
+    if (placeEl) placeEl.value = obra.place || obra.ciudad || '';
     document.getElementById('add-arquitecto').value = obra.arquitecto || '';
     document.getElementById('add-ano').value = obra.año_construccion || '';
     document.getElementById('add-importancia').value = String(obra.importancia || 1);
@@ -495,6 +497,7 @@ function initAddBuildingModal() {
     const nombre = document.getElementById('add-nombre').value.trim();
     const fotoUrl = document.getElementById('add-foto').value.trim();
     const enlaceUrl = document.getElementById('add-enlace').value.trim();
+    const place = document.getElementById('add-place')?.value.trim() || null;
     const arq = document.getElementById('add-arquitecto').value.trim();
     const ano = parseInt(document.getElementById('add-ano').value, 10);
     const importancia = Number(document.getElementById('add-importancia').value);
@@ -526,6 +529,8 @@ function initAddBuildingModal() {
       nombre_obra: nombre,
       foto_url: fotoUrl || null,
       enlace_url: enlaceUrl || null,
+      place: place,
+      ciudad: place,
       arquitecto: finalArq,
       año_construccion: Number.isNaN(ano) ? null : String(ano),
       importancia,
@@ -550,7 +555,8 @@ function initAddBuildingModal() {
         const edificioUpdate = {
           ...edificio,
           estado_revision: estadoRevision,
-          place: obraExistente?.place || null,
+          place: place || obraExistente?.place || null,
+          ciudad: place || obraExistente?.ciudad || null,
         };
 
         const updatedData = await updateBuilding(state.editingBuildingId, edificioUpdate, state.sessionToken);
@@ -645,6 +651,8 @@ function handleMapLongPress(lngLat) {
   document.getElementById('add-nombre').value = '';
   document.getElementById('add-foto').value = '';
   document.getElementById('add-enlace').value = '';
+  const pEl = document.getElementById('add-place');
+  if (pEl) pEl.value = '';
   document.getElementById('add-arquitecto').value = '';
   document.getElementById('add-ano').value = '';
   document.getElementById('add-importancia').value = '1';

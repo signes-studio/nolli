@@ -288,7 +288,7 @@ export function initMobileBottomNav() {
   });
 
   // Inicializar sub-componentes táctiles
-  initMobileIdentityWidget();
+  initMobileIdentityWidget(toggleMobilePanel);
   initMobileSearchWidget();
   initSheetTouchGestures();
   initMobileSplashScreen();
@@ -344,13 +344,11 @@ function initMobileSplashScreen() {
 /* =========================================================================
    WIDGET FLOTANTE DE IDENTIDAD Y SESIÓN (SUPERIOR IZQUIERDA)
    ========================================================================= */
-function initMobileIdentityWidget() {
+function initMobileIdentityWidget(toggleMobilePanel) {
   const badge = document.getElementById('mobile-identity-badge');
   const actionBtn = document.getElementById('btn-mobile-identity-action');
   const quickMenu = document.getElementById('mobile-admin-quickmenu');
-  const btnCloseQuickMenu = document.getElementById('btn-close-quick-admin');
   const btnQuickAdminPanel = document.getElementById('btn-mobile-quick-admin-panel');
-  const btnQuickReports = document.getElementById('btn-mobile-quick-reports');
 
   if (!badge || !actionBtn) return;
 
@@ -389,6 +387,7 @@ function initMobileIdentityWidget() {
       const inits = computeInitials();
       badge.textContent = `${inits}`;
       actionBtn.title = t('topbar_profile');
+      if (quickMenu) quickMenu.hidden = true;
     }
   }
 
@@ -397,11 +396,40 @@ function initMobileIdentityWidget() {
     e.stopPropagation();
 
     const isLogged = Boolean(state.sessionToken);
+    const isAdmin = esRolAdmin(state.userRole);
     if (!isLogged) {
       const loginModal = document.getElementById('modal-login');
       if (loginModal) loginModal.classList.add('open');
+    } else if (isAdmin && quickMenu) {
+      quickMenu.hidden = !quickMenu.hidden;
+      if (!quickMenu.hidden && window.lucide) {
+        window.lucide.createIcons({ context: quickMenu });
+      }
     } else {
       window.location.href = './perfil';
+    }
+  });
+
+  if (btnQuickAdminPanel) {
+    btnQuickAdminPanel.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (quickMenu) quickMenu.hidden = true;
+      const adminPanel = document.getElementById('admin-panel');
+      if (adminPanel) {
+        if (toggleMobilePanel) {
+          toggleMobilePanel(adminPanel);
+        } else {
+          adminPanel.classList.toggle('open');
+        }
+        window.nolliCargarPanelBajoDemanda?.('adminUI', 'initAdminUI');
+      }
+    });
+  }
+
+  document.addEventListener('click', (e) => {
+    if (quickMenu && !quickMenu.hidden && !e.target.closest('#mobile-identity-widget')) {
+      quickMenu.hidden = true;
     }
   });
 
