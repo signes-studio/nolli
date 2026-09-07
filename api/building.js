@@ -1,5 +1,6 @@
 const FALLBACK_SUPABASE_URL = 'https://ldtfvpjigzvcagtciipn.supabase.co';
 const FALLBACK_SUPABASE_KEY = 'sb_publishable_kYQ7Fa8nBsrkp1f8C4AuAg_4-5uBFm0';
+const FALLBACK_SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkdGZ2cGppZ3p2Y2FndGNpaXBuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NzU3OTg2NywiZXhwIjoyMTAzMTU1ODY3fQ.iRn-X5EzmW9eoKqL5qdW3s6I7NfcLfnJRmXTNwjCNnY';
 
 const ADMIN_EMAILS = [
   'office@signes.studio',
@@ -210,17 +211,59 @@ async function purgeCatalogCdnCache() {
 
 module.exports = async function handler(req, res) {
   const supabaseUrl = process.env.SUPABASE_URL || FALLBACK_SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || FALLBACK_SUPABASE_KEY;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || FALLBACK_SERVICE_ROLE_KEY;
 
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
-  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
 
   // Permitir preflight CORS si aplica
   if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Methods', 'POST, PATCH, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, apikey');
     return res.status(204).end();
   }
+
+  // 1. Consulta pública de obras por ID o lotes de IDs (ej: ?ids=id1,id2 o ?id=id1)
+  if (req.method === 'GET') {
+    const idsParam = req.query?.ids || req.query?.id || '';
+    const ids = String(idsParam)
+      .split(',')
+      .map((id) => id.trim())
+      .filter(Boolean)
+      .slice(0, 50); // Límite de seguridad por lote
+
+    if (ids.length === 0) {
+      return res.status(400).json({ error: 'Debes proporcionar al menos un ID de obra (parámetro ?id= o ?ids=).' });
+    }
+
+    const fields = 'id,nombre_obra,foto_url,enlace_url,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,añadido_por,estado_revision,longitud,latitud,place';
+    const params = new URLSearchParams({
+      select: fields,
+      id: `in.(${ids.map(encodeURIComponent).join(',')})`,
+      or: '(estado_revision.eq.publicada,estado_revision.is.null)',
+    });
+
+    try {
+      const response = await fetch(`${supabaseUrl}/rest/v1/Buildings?${params.toString()}`, {
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+        },
+      });
+
+      if (!response.ok) {
+        return res.status(response.status).json({ error: 'Error al consultar obras en Supabase.' });
+      }
+
+      const data = await response.json();
+      res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+      return res.status(200).json(data);
+    } catch (err) {
+      console.error('Error al obtener obras por ID en edge:', err);
+      return res.status(500).json({ error: 'Error de servidor al obtener las obras solicitadas.' });
+    }
+  }
+
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
 
   // Extraer token de cabecera Authorization
   const authHeader = req.headers.authorization || req.headers.Authorization || '';
