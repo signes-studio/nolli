@@ -75,7 +75,15 @@
       "destination": "/api/sitemap-buildings?page=:n"
     },
     {
-      "source": "/obra/:id",
+      "source": "/obra",
+      "destination": "/api/obra"
+    },
+    {
+      "source": "/obra/",
+      "destination": "/api/obra"
+    },
+    {
+      "source": "/obra/:id*",
       "destination": "/api/obra?id=:id"
     },
     {
