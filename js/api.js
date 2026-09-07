@@ -51,20 +51,28 @@ export async function fetchBuildingsByIds(ids) {
 
   if (missing.length === 0) return found;
 
-  const publicFields = 'id,nombre_obra,foto_url,enlace_url,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,añadido_por,estado_revision,longitud,latitud,place';
   try {
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?id=in.(${missing.map(encodeURIComponent).join(',')})&select=${publicFields}`, {
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`,
-      },
-    });
+    // 1. Intentar a través del endpoint serverless propio con CDN edge (/api/building?ids=...)
+    const response = await fetch(`./api/building?ids=${missing.map(encodeURIComponent).join(',')}`);
     if (response.ok) {
       const remote = await response.json();
       if (Array.isArray(remote)) found.push(...remote);
+    } else if (response.status === 404 || response.status >= 500) {
+      // Fallback solo en entorno local sin serverless
+      const publicFields = 'id,nombre_obra,foto_url,enlace_url,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,añadido_por,estado_revision,longitud,latitud,place';
+      const fbRes = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?id=in.(${missing.map(encodeURIComponent).join(',')})&select=${publicFields}`, {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+        },
+      });
+      if (fbRes.ok) {
+        const remote = await fbRes.json();
+        if (Array.isArray(remote)) found.push(...remote);
+      }
     }
   } catch (e) {
-    console.warn('Error al buscar obras faltantes por ID en Supabase:', e);
+    console.warn('Error al buscar obras faltantes por ID:', e);
   }
 
   return found;
@@ -128,6 +136,10 @@ export async function fetchBuildings({ bounds, zoom, architect, includeAllImport
   return [];
 }
 
+const CATALOG_FALLBACK_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutos de cooldown tras fallo de /api/catalog
+const CATALOG_FALLBACK_STORAGE_KEY = 'nolli:catalog-fallback-cooldown';
+let lastFallbackAttemptTime = 0;
+
 let bypassNextCatalogCache = false;
 
 /** Descarga el catálogo completo optimizado con CDN Edge de Vercel (0 egress de Supabase). */
@@ -135,24 +147,58 @@ export async function fetchBuildingFacets(forceBypass = false) {
   const shouldBypass = forceBypass || bypassNextCatalogCache;
   bypassNextCatalogCache = false;
 
-  try {
-    // 1. Intentar descargar el catálogo comprimido (Brotli) y cacheado en CDN Edge de Vercel (0 egress de Supabase)
-    const catalogUrl = shouldBypass ? `./api/catalog?ts=${Date.now()}` : './api/catalog';
-    const edgeRes = await fetch(catalogUrl);
-    if (edgeRes.ok) {
-      const data = await edgeRes.json();
-      if (Array.isArray(data) && data.length > 0) {
-        return data;
+  // 1. Intentar descargar desde el endpoint propio en CDN Edge con reintentos y backoff exponencial (1s, 2s)
+  const maxEdgeAttempts = 3;
+  let lastEdgeError = null;
+
+  for (let attempt = 1; attempt <= maxEdgeAttempts; attempt++) {
+    try {
+      const catalogUrl = shouldBypass ? `./api/catalog?ts=${Date.now()}` : './api/catalog';
+      const edgeRes = await fetch(catalogUrl);
+      if (edgeRes.ok) {
+        const data = await edgeRes.json();
+        if (Array.isArray(data) && data.length > 0) {
+          return data;
+        }
       }
+      lastEdgeError = new Error(`HTTP ${edgeRes.status}`);
+    } catch (err) {
+      lastEdgeError = err;
     }
-  } catch {
-    // Continuar con fallback directo si estamos en entorno local sin serverless
+
+    if (attempt < maxEdgeAttempts) {
+      const delayMs = attempt * 1000;
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
   }
 
-  // 2. Fallback de emergencia a Supabase directo paginado
+  console.warn('Aviso: /api/catalog no respondió tras 3 intentos con backoff:', lastEdgeError?.message);
+
+  // 2. Comprobar cooldown antes de recurrir al fallback directo a Supabase
+  const now = Date.now();
+  let storedCooldown = 0;
+  try {
+    storedCooldown = Number(localStorage.getItem(CATALOG_FALLBACK_STORAGE_KEY) || 0);
+  } catch {}
+  const lastAttempt = Math.max(lastFallbackAttemptTime, storedCooldown);
+
+  if (now - lastAttempt < CATALOG_FALLBACK_COOLDOWN_MS) {
+    console.warn('Aviso: Fallback directo a Supabase en cooldown (5 min). Se usará la caché existente si está disponible.');
+    if (catalogCache && catalogCache.length > 0) return catalogCache;
+    return [];
+  }
+
+  // Registrar el intento en cooldown para frenar bucles en recargas/redeploys
+  lastFallbackAttemptTime = now;
+  try {
+    localStorage.setItem(CATALOG_FALLBACK_STORAGE_KEY, String(now));
+  } catch {}
+
+  // 3. Fallback de emergencia a Supabase directo paginado (limitado con seguridad)
   const pageSize = 1000;
   const facets = [];
   let start = 0;
+  const maxPages = 15;
   const params = new URLSearchParams({
     select: 'id,nombre_obra,foto_url,enlace_url,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,añadido_por,longitud,latitud,place',
     order: 'id.asc',
@@ -160,7 +206,9 @@ export async function fetchBuildingFacets(forceBypass = false) {
   });
 
   try {
-    while (true) {
+    let pageCount = 0;
+    while (pageCount < maxPages) {
+      pageCount++;
       const response = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?${params.toString()}`, {
         headers: {
           'apikey': SUPABASE_KEY,
@@ -170,14 +218,15 @@ export async function fetchBuildingFacets(forceBypass = false) {
       });
       if (!response.ok) break;
       const page = await response.json();
-      if (!Array.isArray(page)) break;
+      if (!Array.isArray(page) || page.length === 0) break;
       facets.push(...page);
       if (page.length < pageSize) return facets;
       start += pageSize;
     }
   } catch (err) {
-    console.warn('Aviso al consultar catálogo global (se continuará con catálogo local):', err);
+    console.warn('Aviso al consultar catálogo global directo (fallback interrumpido):', err);
   }
+
   return facets;
 }
 
