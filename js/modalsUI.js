@@ -39,18 +39,27 @@ function clearSessionAndUserCaches() {
   state.privateBuildings = [];
 }
 
+let userInteractedSinceLastPresence = true;
+if (typeof window !== 'undefined') {
+  const markActive = () => { userInteractedSinceLastPresence = true; };
+  window.addEventListener('pointerdown', markActive, { passive: true });
+  window.addEventListener('keydown', markActive, { passive: true });
+}
+
 function iniciarLatidoPresencia() {
   if (presenceTimer) clearInterval(presenceTimer);
   if (state.sessionToken) {
     updateUserPresence(state.sessionToken, state.userId);
+    userInteractedSinceLastPresence = false;
     presenceTimer = setInterval(() => {
       if (!state.sessionToken) {
         clearInterval(presenceTimer);
         return;
       }
-      if (document.hidden) return; // Ahorro de egress: no emitir latidos con la pestaña en segundo plano
+      if (document.hidden || !userInteractedSinceLastPresence) return; // Ahorro de egress: no emitir si la pestaña está oculta o si el usuario no ha interactuado
+      userInteractedSinceLastPresence = false;
       updateUserPresence(state.sessionToken, state.userId);
-    }, 15 * 60 * 1000);
+    }, 25 * 60 * 1000);
   }
 }
 

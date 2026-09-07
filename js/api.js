@@ -683,11 +683,33 @@ export async function upsertCurrentProfile(user, profile = {}, sessionToken) {
   return response.json();
 }
 
-export async function updateUserPresence(sessionToken, userId = null) {
+const PRESENCE_COOLDOWN_MS = 25 * 60 * 1000; // 25 minutos de intervalo mínimo entre actualizaciones de presencia
+let lastPresenceUpdate = 0;
+const PRESENCE_STORAGE_KEY = 'nolli:last-presence-at';
+
+export async function updateUserPresence(sessionToken, userId = null, force = false) {
   if (!sessionToken) return;
+  const now = Date.now();
+  if (!force) {
+    let storedLast = 0;
+    try {
+      storedLast = Number(localStorage.getItem(PRESENCE_STORAGE_KEY) || 0);
+    } catch {}
+    const lastAt = Math.max(lastPresenceUpdate, storedLast);
+    if (now - lastAt < PRESENCE_COOLDOWN_MS) {
+      return; // Ahorro de egress: ignorar si ya se actualizó en los últimos 25 minutos
+    }
+  }
+
   try {
     const targetUserId = userId || (await fetchCurrentUser(sessionToken))?.id;
     if (!targetUserId) return;
+
+    lastPresenceUpdate = now;
+    try {
+      localStorage.setItem(PRESENCE_STORAGE_KEY, String(now));
+    } catch {}
+
     await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(targetUserId)}`, {
       method: 'PATCH',
       headers: {
@@ -696,7 +718,7 @@ export async function updateUserPresence(sessionToken, userId = null) {
         'Content-Type': 'application/json',
         'Prefer': 'return=minimal',
       },
-      body: JSON.stringify({ last_seen_at: new Date().toISOString() }),
+      body: JSON.stringify({ last_seen_at: new Date(now).toISOString() }),
     });
   } catch {
     // Silencioso: si no se ha migrado aún la columna last_seen_at

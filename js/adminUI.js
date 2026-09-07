@@ -525,7 +525,7 @@ async function renderUsers() {
 
   const onlineCount = cachedUsers.filter((u) => {
     if (!u.last_seen_at) return false;
-    return (Date.now() - new Date(u.last_seen_at).getTime()) < 5 * 60 * 1000;
+    return (Date.now() - new Date(u.last_seen_at).getTime()) < 30 * 60 * 1000;
   }).length;
 
   if (userCount) {

@@ -153,18 +153,27 @@ function renderAdminIdentity(user, role) {
   if (roleEl) roleEl.textContent = `${role.toUpperCase()}`;
 }
 
+let adminInteractedSinceLastPresence = true;
+if (typeof window !== 'undefined') {
+  const markAdminActive = () => { adminInteractedSinceLastPresence = true; };
+  window.addEventListener('pointerdown', markAdminActive, { passive: true });
+  window.addEventListener('keydown', markAdminActive, { passive: true });
+}
+
 function iniciarPresencia() {
   if (presenceTimer) clearInterval(presenceTimer);
   if (adminConsoleState.token) {
     updateUserPresence(adminConsoleState.token, adminConsoleState.user?.id);
+    adminInteractedSinceLastPresence = false;
     presenceTimer = setInterval(() => {
       if (!adminConsoleState.token) {
         clearInterval(presenceTimer);
         return;
       }
-      if (document.hidden) return;
+      if (document.hidden || !adminInteractedSinceLastPresence) return; // Ahorro de egress: no emitir si oculta o inactiva
+      adminInteractedSinceLastPresence = false;
       updateUserPresence(adminConsoleState.token, adminConsoleState.user?.id);
-    }, 15 * 60 * 1000);
+    }, 25 * 60 * 1000);
   }
 }
 
@@ -247,7 +256,7 @@ function updateBadges() {
 
   const onlineCount = adminConsoleState.users.filter((u) => {
     if (!u.last_seen_at) return false;
-    return (Date.now() - new Date(u.last_seen_at).getTime()) < 5 * 60 * 1000;
+    return (Date.now() - new Date(u.last_seen_at).getTime()) < 30 * 60 * 1000;
   }).length;
 
   if (badgeUsers) badgeUsers.textContent = `${onlineCount} on / ${adminConsoleState.users.length}`;
@@ -522,7 +531,7 @@ function calculateUserPresence(lastSeenAt) {
   const diffMs = Date.now() - new Date(lastSeenAt).getTime();
   const diffMin = Math.floor(diffMs / 60000);
 
-  if (diffMin < 5) {
+  if (diffMin < 30) {
     return { isOnline: true, label: 'Activo ahora', title: 'En línea en este momento' };
   }
   if (diffMin < 60) {

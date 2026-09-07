@@ -276,7 +276,7 @@ async function init() {
   if (logoutBtn) logoutBtn.classList.remove('hidden');
   if (mobileLogoutBtn) mobileLogoutBtn.classList.remove('hidden');
   if (settingsBtn) settingsBtn.classList.remove('hidden');
-  updateUserPresence(token);
+  updateUserPresence(token, profileState.user?.id || state.userId);
 
   // 3. Restauración instantánea desde caché local
   const cachedUserStr = localStorage.getItem('nolli_cached_user');
