@@ -333,9 +333,9 @@ export function cargarMapaMapbox() {
           {
             'font-scale': 0.25,
           },
-          ['get', 'arquitecto'],
+          ['upcase', ['get', 'arquitecto']],
           {
-            'font-scale': 0.80,
+            'font-scale': 0.78,
             'text-font': ['literal', architectFont],
             'text-color': architectColor,
           }
@@ -392,9 +392,9 @@ export function cargarMapaMapbox() {
       const textFieldExpr = ['step', ['zoom'], ['format', ''], labelCfg.minzoom, formattedLabelExpr];
       const textPaint = {
         'text-color': isDark ? '#FFFFFF' : '#04070B',
-        'text-halo-color': isDark ? 'rgba(18, 18, 18, 0.95)' : 'rgba(248, 241, 223, 0.95)',
-        'text-halo-width': 1.5,
-        'text-halo-blur': 0.5,
+        'text-halo-color': isDark ? '#121212' : '#F8F1DF',
+        'text-halo-width': 1.8,
+        'text-halo-blur': 0.2,
       };
       const textLayout = {
         'text-field': textFieldExpr,
@@ -650,9 +650,9 @@ export function cargarMapaMapbox() {
       },
       paint: {
         'text-color': isDark ? '#FFFFFF' : '#04070B',
-        'text-halo-color': isDark ? 'rgba(18, 18, 18, 0.95)' : 'rgba(248, 241, 223, 0.95)',
-        'text-halo-width': 2,
-        'text-halo-blur': 0.5,
+        'text-halo-color': isDark ? '#121212' : '#F8F1DF',
+        'text-halo-width': 2.2,
+        'text-halo-blur': 0.2,
       },
     });
 
@@ -678,9 +678,9 @@ export function cargarMapaMapbox() {
       },
       paint: {
         'text-color': isDark ? '#FFFFFF' : '#04070B',
-        'text-halo-color': isDark ? 'rgba(18, 18, 18, 0.95)' : 'rgba(248, 241, 223, 0.95)',
-        'text-halo-width': 2,
-        'text-halo-blur': 0.5,
+        'text-halo-color': isDark ? '#121212' : '#F8F1DF',
+        'text-halo-width': 2.2,
+        'text-halo-blur': 0.2,
       },
     });
 

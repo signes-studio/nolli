@@ -105,9 +105,10 @@ export function actualizarFuenteMapa() {
 
         const nombreObra = String(obra.nombre_obra || '').trim();
         const arqNombre = String(obra.arquitecto || (Array.isArray(obra.arquitectos) ? obra.arquitectos.join(', ') : '')).trim();
-        const textoEtiqueta = (nombreObra && arqNombre)
-          ? `${nombreObra}\n${arqNombre}`
-          : (nombreObra || arqNombre || '');
+        const arqNombreUpper = arqNombre.toUpperCase();
+        const textoEtiqueta = (nombreObra && arqNombreUpper)
+          ? `${nombreObra}\n${arqNombreUpper}`
+          : (nombreObra || arqNombreUpper || '');
 
         const feature = {
           type: 'Feature',
@@ -118,7 +119,7 @@ export function actualizarFuenteMapa() {
             nombre_obra: nombreObra || 'Obra de arquitectura',
             alpha_rank: alphaRank,
             texto_etiqueta: textoEtiqueta,
-            arquitecto: arqNombre,
+            arquitecto: arqNombreUpper,
             arquitectos: obra.arquitectos || [],
             estado_acceso: obra.estado_acceso || 'privado',
             estado_revision: obra.private ? 'privada' : (obra.estado_revision || 'publicada'),
