@@ -85,3 +85,4 @@ module.exports = async (request, response) => {
     return response.status(500).send('No se pudo generar el sitemap de ciudades.');
   }
 };
+
