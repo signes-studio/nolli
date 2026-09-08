@@ -3,7 +3,7 @@
    Arquitectura Serverless Blindada + Frontend Vanilla Neo-Bauhaus
    ========================================================================= */
 
-import { state, separarArquitectos, esRolAdmin, escapeHtml } from './state.js';
+import { state, separarArquitectos, esRolAdmin, escapeHtml, formatearImportancia } from './state.js';
 import { 
   deleteBuilding, 
   fetchRatingAverages, 
@@ -518,12 +518,14 @@ async function renderList() {
       const isPending = obra.estado_revision === 'pendiente';
       const rawDate = obra.created_at || obra.updated_at;
       const formattedDate = rawDate ? new Date(rawDate).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : null;
+      const impInfo = formatearImportancia(obra.importancia);
 
       return `
         <div class="admin-project ${isPending ? 'admin-project-pending' : ''}">
           <div class="admin-project-info">
-            <div style="display:flex; align-items:center; gap:6px;">
+            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
               <strong>${safeNombre}</strong>
+              <span class="admin-importance-tag imp-${impInfo.level}" title="${escapeHtml(impInfo.title)}">${escapeHtml(impInfo.label)}</span>
               ${isPending ? '<span style="font-size:9px; font-weight:800; background:var(--accent-2, #EFBC02); color:#141411; padding:1px 4px;">PENDIENTE</span>' : ''}
             </div>
             <span>${safeArquitecto}</span>
@@ -694,12 +696,14 @@ async function renderArchitects() {
             const year = obra.año_construccion ? escapeHtml(obra.año_construccion) : null;
             const place = obra.place ? escapeHtml(obra.place) : '';
             const isPending = obra.estado_revision === 'pendiente';
+            const impInfo = formatearImportancia(obra.importancia);
 
             return `
               <div class="admin-floating-work-row ${isPending ? 'pending' : ''}">
                 <div style="min-width:0; flex:1;">
-                  <div style="display:flex; align-items:center; gap:5px;">
+                  <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
                     <span style="font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${title}">${title}</span>
+                    <span class="admin-importance-tag imp-${impInfo.level}" title="${escapeHtml(impInfo.title)}">${escapeHtml(impInfo.label)}</span>
                     ${isPending ? '<span style="font-size:8px; font-weight:800; background:var(--accent-2, #EFBC02); color:#141411; padding:0 3px;">PENDIENTE</span>' : ''}
                   </div>
                   <div style="color:var(--fg-dim); font-size:9px;">

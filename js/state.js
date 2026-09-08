@@ -336,6 +336,30 @@ export function normalizarImportancia(valor) {
   return Number.isFinite(importancia) && importancia >= 0 && importancia <= 3 ? importancia : 1;
 }
 
+export function formatearImportancia(valor) {
+  const imp = normalizarImportancia(valor);
+  const key = `add_importance_${imp}`;
+  let desc = {
+    0: 'MAESTRA',
+    1: 'ALTA',
+    2: 'MEDIA',
+    3: 'BAJA',
+  }[imp] || 'ALTA';
+
+  if (typeof window !== 'undefined' && window.__nolli_t) {
+    const translated = window.__nolli_t(key);
+    if (translated && translated !== key && translated.includes('—')) {
+      desc = translated.split('—')[1].trim().toUpperCase();
+    }
+  }
+
+  return {
+    level: imp,
+    label: `IMP. ${imp} · ${desc}`,
+    title: `Nivel de importancia: ${imp} (${desc})`,
+  };
+}
+
 export function transformarEdificio(fila, index = 0) {
   if (!fila) return null;
   const idStr = String(fila.id ?? `obra-${index}`);
