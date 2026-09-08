@@ -63,6 +63,8 @@
   "admin_tab_all": "Catàleg Complet",
   "admin_tab_pending": "Obres Pendents",
   "admin_tab_projects": "PROJECTES",
+  "admin_tab_architects": "ARQUITECTES",
+  "admin_architects_title": "DIRECTORI // ARQUITECTES",
   "admin_tab_reports": "Incidències",
   "admin_tab_reports_aria": "Obrir bústia d'incidències",
   "admin_tab_users": "USUARIS",

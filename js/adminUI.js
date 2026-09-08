@@ -26,6 +26,11 @@ const sortFilter = document.getElementById('admin-sort-filter');
 const count = document.getElementById('admin-count');
 const list = document.getElementById('admin-project-list');
 const projectsView = document.getElementById('admin-projects-view');
+const architectsView = document.getElementById('admin-architects-view');
+const architectList = document.getElementById('admin-architect-list');
+const architectSearch = document.getElementById('admin-architect-search');
+const architectSort = document.getElementById('admin-architect-sort');
+const architectCount = document.getElementById('admin-architects-count');
 const reportsView = document.getElementById('admin-reports-view');
 const reportList = document.getElementById('admin-report-list');
 const reportCount = document.getElementById('admin-inbox-count');
@@ -42,6 +47,7 @@ let ratingAverages = new Map();
 let cachedReports = [];
 let cachedUsers = [];
 let currentAdminTab = 'projects';
+const expandedFloatingArqs = new Set();
 
 function getAdminButtons() {
   return [
@@ -72,8 +78,21 @@ export function initAdminUI() {
     });
   }
   if (sortFilter) sortFilter.addEventListener('change', renderList);
+  if (architectSearch) architectSearch.addEventListener('input', renderArchitects);
+  if (architectSort) architectSort.addEventListener('change', renderArchitects);
   if (reportFilter) reportFilter.addEventListener('change', renderReports);
   if (userSearch) userSearch.addEventListener('input', renderUsers);
+
+  document.getElementById('btn-admin-expand-all-arqs')?.addEventListener('click', () => {
+    document.querySelectorAll('.admin-floating-arq-item').forEach((el) => {
+      el.classList.add('open');
+      if (el.dataset.arqKey) expandedFloatingArqs.add(el.dataset.arqKey);
+    });
+  });
+  document.getElementById('btn-admin-collapse-all-arqs')?.addEventListener('click', () => {
+    document.querySelectorAll('.admin-floating-arq-item').forEach((el) => el.classList.remove('open'));
+    expandedFloatingArqs.clear();
+  });
 
   // Navegación por pestañas del panel
   document.addEventListener('click', (event) => {
@@ -99,6 +118,54 @@ export function initAdminUI() {
       const loginModal = document.getElementById('modal-login');
       if (loginModal) loginModal.classList.add('open');
       toggleAdminPanel(false);
+      return;
+    }
+
+    const mapBtn = event.target.closest('[data-admin-map]');
+    if (mapBtn) {
+      const obraId = mapBtn.dataset.adminMap;
+      const obra = state.OBRAS.find((item) => String(item.id) === String(obraId) || String(item.featureId) === String(obraId));
+      if (obra) {
+        const coords = (Array.isArray(obra.coordenadas) && obra.coordenadas.length === 2 && !isNaN(obra.coordenadas[0]) && obra.coordenadas[0] !== 0)
+          ? obra.coordenadas
+          : (obra.longitud && obra.latitud ? [Number(obra.longitud), Number(obra.latitud)] : null);
+        if (state.map && coords) {
+          state.map.flyTo({ center: coords, zoom: Math.max(state.map.getZoom(), 17) });
+        }
+        document.dispatchEvent(new CustomEvent('radar:open-building', { detail: { obra } }));
+        if (panel) panel.classList.remove('open');
+      }
+      return;
+    }
+
+    const arqHead = event.target.closest('.admin-floating-arq-head');
+    const interactiveElem = event.target.closest('button, a');
+    if (arqHead && !interactiveElem) {
+      const item = arqHead.closest('.admin-floating-arq-item');
+      if (item) {
+        item.classList.toggle('open');
+        const key = item.dataset.arqKey;
+        if (item.classList.contains('open')) {
+          expandedFloatingArqs.add(key);
+        } else {
+          expandedFloatingArqs.delete(key);
+        }
+      }
+      return;
+    }
+
+    const arqChevron = event.target.closest('.admin-floating-arq-chevron');
+    if (arqChevron) {
+      const item = arqChevron.closest('.admin-floating-arq-item');
+      if (item) {
+        item.classList.toggle('open');
+        const key = item.dataset.arqKey;
+        if (item.classList.contains('open')) {
+          expandedFloatingArqs.add(key);
+        } else {
+          expandedFloatingArqs.delete(key);
+        }
+      }
       return;
     }
 
@@ -182,8 +249,14 @@ export function initAdminUI() {
     cachedUsers = [];
   });
 
-  document.addEventListener('radar:data-ready', renderList);
-  document.addEventListener('radar:buildings-changed', renderList);
+  document.addEventListener('radar:data-ready', () => {
+    renderList();
+    if (currentAdminTab === 'architects') renderArchitects();
+  });
+  document.addEventListener('radar:buildings-changed', () => {
+    renderList();
+    if (currentAdminTab === 'architects') renderArchitects();
+  });
 
   checkAdminVisibility();
 }
@@ -307,6 +380,7 @@ function mostrarAlertaSeguridad(titulo, mensaje) {
 function renderAuthRequired() {
   if (toolbar) toolbar.classList.add('admin-view-hidden');
   if (projectsView) projectsView.classList.remove('admin-view-hidden');
+  if (architectsView) architectsView.classList.add('admin-view-hidden');
   if (reportsView) reportsView.classList.add('admin-view-hidden');
   if (usersView) usersView.classList.add('admin-view-hidden');
 
@@ -374,15 +448,18 @@ function renderCurrentTab() {
   }
 
   const isProjects = currentAdminTab === 'projects';
+  const isArchitects = currentAdminTab === 'architects';
   const isReports = currentAdminTab === 'reports';
   const isUsers = currentAdminTab === 'users';
 
   if (toolbar) toolbar.classList.toggle('admin-view-hidden', !isProjects);
   if (projectsView) projectsView.classList.toggle('admin-view-hidden', !isProjects);
+  if (architectsView) architectsView.classList.toggle('admin-view-hidden', !isArchitects);
   if (reportsView) reportsView.classList.toggle('admin-view-hidden', !isReports);
   if (usersView) usersView.classList.toggle('admin-view-hidden', !isUsers);
 
   if (isProjects) renderList();
+  else if (isArchitects) renderArchitects();
   else if (isReports) renderReports();
   else if (isUsers) renderUsers();
 }
@@ -456,6 +533,7 @@ async function renderList() {
             <span class="admin-project-status ${isPending ? 'pending' : ''}">${safeStatus}</span>
           </div>
           <div class="admin-project-actions">
+            <button type="button" class="btn admin-action-map" data-admin-map="${safeId}" title="Ir a la obra en el mapa">IR AL MAPA</button>
             <button type="button" class="btn admin-action-edit" data-admin-edit="${safeId}" title="Editar ficha de obra">EDITAR</button>
             ${isPending ? `
               <button type="button" class="btn admin-action-approve" data-admin-review="${safeId}" data-review-status="publicada">APROBAR</button>
@@ -475,6 +553,176 @@ async function renderList() {
       cityElement.textContent = await obtenerCiudad(obra);
     });
   }
+}
+
+async function renderArchitects() {
+  if (!state.sessionToken || !esRolAdmin(state.userRole)) {
+    renderAuthRequired();
+    return;
+  }
+
+  const searchVal = (architectSearch?.value || '').trim().toLowerCase();
+  const filterSort = architectSort?.value || 'count-desc';
+
+  // 1. Agrupación de obras por arquitecto
+  const architectMap = new Map();
+
+  for (const obra of state.OBRAS) {
+    const rawNames = separarArquitectos(obra.arquitecto);
+    const names = rawNames.length > 0 ? rawNames : ['Sin arquitecto asignado'];
+
+    for (const name of names) {
+      const trimmedName = name.trim();
+      const normKey = trimmedName.toLowerCase();
+
+      if (!architectMap.has(normKey)) {
+        architectMap.set(normKey, {
+          key: normKey,
+          name: trimmedName,
+          works: [],
+          cities: new Set(),
+          years: [],
+          pendingCount: 0,
+          publishedCount: 0,
+          rejectedCount: 0,
+        });
+      }
+
+      const item = architectMap.get(normKey);
+      if (!item.works.some((w) => String(w.id) === String(obra.id))) {
+        item.works.push(obra);
+        if (obra.place) item.cities.add(obra.place);
+        if (obra.año_construccion) {
+          const y = parseInt(obra.año_construccion, 10);
+          if (!isNaN(y)) item.years.push(y);
+        }
+        if (obra.estado_revision === 'pendiente') item.pendingCount++;
+        else if (obra.estado_revision === 'rechazada') item.rejectedCount++;
+        else item.publishedCount++;
+      }
+    }
+  }
+
+  let arqList = Array.from(architectMap.values());
+
+  // 2. Filtrado por búsqueda (nombre de arquitecto, ciudad o título de obra)
+  if (searchVal) {
+    arqList = arqList.filter((item) => {
+      const nameMatch = item.name.toLowerCase().includes(searchVal);
+      const cityMatch = Array.from(item.cities).some((c) => c.toLowerCase().includes(searchVal));
+      const workMatch = item.works.some((w) => (w.nombre_obra || '').toLowerCase().includes(searchVal));
+      return nameMatch || cityMatch || workMatch;
+    });
+  }
+
+  // 3. Ordenación
+  arqList.sort((a, b) => {
+    if (filterSort === 'count-desc') {
+      const diff = b.works.length - a.works.length;
+      if (diff !== 0) return diff;
+      return a.name.localeCompare(b.name, 'es', { sensitivity: 'base' });
+    }
+    if (filterSort === 'count-asc') {
+      const diff = a.works.length - b.works.length;
+      if (diff !== 0) return diff;
+      return a.name.localeCompare(b.name, 'es', { sensitivity: 'base' });
+    }
+    if (filterSort === 'alpha-desc') {
+      return b.name.localeCompare(a.name, 'es', { sensitivity: 'base' });
+    }
+    // 'alpha-asc' por defecto
+    return a.name.localeCompare(b.name, 'es', { sensitivity: 'base' });
+  });
+
+  // 4. Conteo de obras y arquitectos
+  const totalWorksListed = arqList.reduce((acc, curr) => acc + curr.works.length, 0);
+  if (architectCount) {
+    architectCount.textContent = `${arqList.length} ARQS · ${totalWorksListed} OBRAS`;
+  }
+
+  if (!architectList) return;
+
+  if (!arqList.length) {
+    architectList.innerHTML = '<div class="nearby-empty" style="padding: 24px; text-align: center; color: var(--fg-dim);">No hay arquitectos que coincidan con la búsqueda.</div>';
+    return;
+  }
+
+  const autoExpand = Boolean(searchVal);
+
+  architectList.innerHTML = arqList.map((item) => {
+    const isExpanded = autoExpand || expandedFloatingArqs.has(item.key);
+    const minYear = item.years.length ? Math.min(...item.years) : null;
+    const maxYear = item.years.length ? Math.max(...item.years) : null;
+    const period = minYear ? (minYear === maxYear ? `${minYear}` : `${minYear} — ${maxYear}`) : '';
+    const citiesArray = Array.from(item.cities);
+    const citiesStr = citiesArray.slice(0, 3).join(', ');
+    const moreCities = citiesArray.length > 3 ? ` +${citiesArray.length - 3}` : '';
+    const safeKey = escapeHtml(item.key);
+    const safeName = escapeHtml(item.name);
+
+    return `
+      <article class="admin-floating-arq-item ${isExpanded ? 'open' : ''} ${item.pendingCount > 0 ? 'has-pending' : ''}" data-arq-key="${safeKey}">
+        <header class="admin-floating-arq-head" title="Pulsar para desplegar obras de ${safeName}">
+          <div style="display:flex; flex-direction:column; gap:2px; min-width:0; flex:1;">
+            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+              <strong style="font-size:11px; font-weight:800; color:var(--fg);">${safeName}</strong>
+              <span style="font-size:9px; font-weight:800; background:var(--accent); color:#ffffff; padding:1px 5px; border-radius:2px;">
+                ${item.works.length} ${item.works.length === 1 ? 'OBRA' : 'OBRAS'}
+              </span>
+              ${item.pendingCount > 0 ? `
+                <span style="font-size:8.5px; font-weight:800; background:var(--accent-2, #EFBC02); color:#141411; padding:1px 5px; border-radius:2px;">${item.pendingCount} PENDIENTE${item.pendingCount > 1 ? 'S' : ''}</span>
+              ` : ''}
+              ${item.publishedCount > 0 ? `
+                <span style="font-size:8.5px; font-weight:700; background:var(--bg-raised); color:var(--fg-dim); padding:1px 5px; border:1px solid var(--border);">${item.publishedCount} PUB</span>
+              ` : ''}
+            </div>
+            <div style="font-size:9.5px; color:var(--fg-dim); display:flex; gap:6px; flex-wrap:wrap;">
+              ${period ? `<span>${escapeHtml(period)}</span>` : ''}
+              ${period && citiesStr ? `<span>·</span>` : ''}
+              ${citiesStr ? `<span>${escapeHtml(citiesStr)}${escapeHtml(moreCities)}</span>` : ''}
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+            <span class="admin-floating-arq-chevron" style="color:var(--fg-dim);">▼</span>
+          </div>
+        </header>
+
+        <div class="admin-floating-arq-works">
+          ${item.works.map((obra) => {
+            const safeId = escapeHtml(obra.id);
+            const title = escapeHtml(obra.nombre_obra || 'Sin título');
+            const year = obra.año_construccion ? escapeHtml(obra.año_construccion) : null;
+            const place = obra.place ? escapeHtml(obra.place) : '';
+            const isPending = obra.estado_revision === 'pendiente';
+
+            return `
+              <div class="admin-floating-work-row ${isPending ? 'pending' : ''}">
+                <div style="min-width:0; flex:1;">
+                  <div style="display:flex; align-items:center; gap:5px;">
+                    <span style="font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${title}">${title}</span>
+                    ${isPending ? '<span style="font-size:8px; font-weight:800; background:var(--accent-2, #EFBC02); color:#141411; padding:0 3px;">PENDIENTE</span>' : ''}
+                  </div>
+                  <div style="color:var(--fg-dim); font-size:9px;">
+                    ${year ? `<span>${year}</span>` : ''}
+                    ${year && place ? `<span> · </span>` : ''}
+                    ${place ? `<span>${place}</span>` : ''}
+                  </div>
+                </div>
+                <div style="display:flex; align-items:center; gap:4px; flex-shrink:0;">
+                  <button type="button" class="btn admin-action-map" data-admin-map="${safeId}" style="padding:2px 6px; font-size:9px;" title="Ir a la obra en el mapa">IR AL MAPA</button>
+                  <button type="button" class="btn admin-action-edit" data-admin-edit="${safeId}" style="padding:2px 6px; font-size:9px;" title="Editar obra">EDITAR</button>
+                  ${isPending ? `
+                    <button type="button" class="btn admin-action-approve" data-admin-review="${safeId}" data-review-status="publicada" style="padding:2px 5px; font-size:8.5px;" title="Aprobar obra">APROBAR</button>
+                    <button type="button" class="btn admin-action-reject" data-admin-review="${safeId}" data-review-status="rechazada" style="padding:2px 5px; font-size:8.5px;" title="Rechazar obra">RECHAZAR</button>
+                  ` : ''}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </article>
+    `;
+  }).join('');
 }
 
 async function renderReports() {
@@ -726,6 +974,7 @@ async function revisarProyecto(id, estadoRevision) {
     obra.estado_revision = estadoRevision;
     actualizarFuenteMapa();
     renderList();
+    if (currentAdminTab === 'architects') renderArchitects();
     mostrarAlertaSeguridad('CURADURÍA', `Obra "${obra.nombre_obra}" marcada como ${estadoRevision === 'publicada' ? 'PUBLICADA' : 'RECHAZADA'}.`);
   } catch (error) {
     mostrarAlertaSeguridad('ERROR', error.message);
@@ -771,6 +1020,7 @@ async function eliminarProyecto(id) {
     actualizarFuenteMapa();
     generarFiltrosUI();
     renderList();
+    if (currentAdminTab === 'architects') renderArchitects();
     mostrarAlertaSeguridad('OBRA ELIMINADA', `La obra "${obra.nombre_obra}" ha sido eliminada del catálogo.`);
   } catch (error) {
     mostrarAlertaSeguridad('ERROR', error.message);

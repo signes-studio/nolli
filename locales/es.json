@@ -63,6 +63,8 @@
   "admin_tab_all": "Catálogo Completo",
   "admin_tab_pending": "Obras Pendientes",
   "admin_tab_projects": "PROYECTOS",
+  "admin_tab_architects": "ARQUITECTOS",
+  "admin_architects_title": "DIRECTORIO // ARQUITECTOS",
   "admin_tab_reports": "Incidencias",
   "admin_tab_reports_aria": "Abrir buzón de reportes",
   "admin_tab_users": "USUARIOS",

@@ -459,11 +459,34 @@
     </div>
     <div class="admin-tabs">
       <button type="button" class="admin-tab active" data-admin-tab="projects" data-i18n="admin_tab_projects">PROYECTOS</button>
+      <button type="button" class="admin-tab" data-admin-tab="architects" data-i18n="admin_tab_architects">ARQUITECTOS</button>
       <button type="button" class="admin-tab admin-inbox-button" data-admin-tab="reports" title="Buzón de reportes" aria-label="Abrir buzón de reportes" data-i18n-title="admin_tab_reports_aria" data-i18n-aria="admin_tab_reports_aria"><i data-lucide="inbox" width="15" height="15"></i><span id="admin-report-badge" class="admin-report-badge">0</span></button>
       <button type="button" class="admin-tab" data-admin-tab="users" data-i18n="admin_tab_users">USUARIOS</button>
     </div>
     <div id="admin-projects-view" class="admin-projects-view">
       <div id="admin-project-list" class="admin-project-list"></div>
+    </div>
+    <div id="admin-architects-view" class="admin-architects-view admin-view-hidden">
+      <div class="admin-inbox-head">
+        <span data-i18n="admin_architects_title">DIRECTORIO // ARQUITECTOS</span>
+        <span id="admin-architects-count" class="admin-count"></span>
+      </div>
+      <div style="padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid var(--border-strong); background: var(--bg-raised);">
+        <input id="admin-architect-search" class="tech-input" type="search" placeholder="BUSCAR ARQUITECTO O CIUDAD..." aria-label="Buscar arquitectos">
+        <div style="display: flex; gap: 8px; align-items: center; justify-content: space-between;">
+          <select id="admin-architect-sort" class="tech-input" style="flex: 1; font-size: 10px;" aria-label="Ordenar arquitectos">
+            <option value="count-desc" selected>MÁS OBRAS</option>
+            <option value="count-asc">MENOS OBRAS</option>
+            <option value="alpha-asc">NOMBRE (A-Z)</option>
+            <option value="alpha-desc">NOMBRE (Z-A)</option>
+          </select>
+          <div style="display: flex; gap: 4px;">
+            <button type="button" id="btn-admin-expand-all-arqs" class="btn" style="font-size: 9px; padding: 4px 6px;">EXPANDIR</button>
+            <button type="button" id="btn-admin-collapse-all-arqs" class="btn" style="font-size: 9px; padding: 4px 6px;">COLAPSAR</button>
+          </div>
+        </div>
+      </div>
+      <div id="admin-architect-list" class="admin-architect-list"></div>
     </div>
     <div id="admin-reports-view" class="admin-reports-view admin-view-hidden">
       <div class="admin-inbox-head"><span data-i18n="admin_inbox_title">BUZÓN DE INCIDENCIAS</span><span id="admin-inbox-count" class="admin-count"></span></div>

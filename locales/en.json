@@ -63,6 +63,8 @@
   "admin_tab_all": "Full Catalog",
   "admin_tab_pending": "Pending Works",
   "admin_tab_projects": "PROJECTS",
+  "admin_tab_architects": "ARCHITECTS",
+  "admin_architects_title": "DIRECTORY // ARCHITECTS",
   "admin_tab_reports": "Reports",
   "admin_tab_reports_aria": "Open reports inbox",
   "admin_tab_users": "USERS",
