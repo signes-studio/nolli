@@ -259,6 +259,8 @@ async function init() {
   setupNoteModal();
   setupFeedActionHandlers();
   setupLoginModal();
+  syncBottomNavLinks();
+  if (window.lucide) window.lucide.createIcons();
 
   const token = getSessionToken();
 
@@ -450,10 +452,34 @@ function syncAdminBadge() {
   const metaRole = String(profileState.user?.app_metadata?.role || profileState.user?.user_metadata?.role || '').toLowerCase();
   const dbRole = String(profileState.dbProfile?.role || '').toLowerCase();
   const isMasterOwner = userEmail === 'studio.signes@gmail.com' || userEmail.includes('signes.studio') || userEmail.includes('studio.signes');
-  const isCurator = role === 'admin' || role === 'superadmin' || role === 'editor';
-  if (btnAdmin) btnAdmin.classList.toggle('hidden', !isCurator);
-  if (btnMobileAdmin) btnMobileAdmin.classList.toggle('hidden', !isCurator);
-  if (cardAdmin) cardAdmin.classList.toggle('hidden', !isCurator);
+  const role = dbRole || metaRole || (isMasterOwner ? 'superadmin' : 'user');
+  const isAdmin = isMasterOwner || role === 'admin' || role === 'superadmin';
+  if (btnAdmin) btnAdmin.classList.toggle('hidden', !isAdmin);
+  if (btnMobileAdmin) btnMobileAdmin.classList.toggle('hidden', !isAdmin);
+  if (cardAdmin) cardAdmin.classList.toggle('hidden', !isAdmin);
+}
+
+function syncBottomNavLinks() {
+  const prefix = getUrlPrefix();
+  const bottomBar = document.getElementById('mobile-bottom-bar');
+  if (!bottomBar) return;
+  const links = bottomBar.querySelectorAll('a.mobile-nav-btn');
+  links.forEach((a) => {
+    const rawHref = a.getAttribute('href') || '';
+    if (rawHref.includes('admin.html')) {
+      a.setAttribute('href', `${prefix}/admin.html`);
+    } else if (rawHref.includes('perfil.html') || rawHref === './perfil.html') {
+      a.setAttribute('href', `${prefix}/perfil.html`);
+    } else if (rawHref.includes('#explore')) {
+      a.setAttribute('href', `${prefix}/#explore`);
+    } else if (rawHref.includes('#radar')) {
+      a.setAttribute('href', `${prefix}/#radar`);
+    } else if (rawHref.includes('#places')) {
+      a.setAttribute('href', `${prefix}/#places`);
+    } else if (rawHref === './' || rawHref === '/') {
+      a.setAttribute('href', `${prefix}/` || '/');
+    }
+  });
 }
 
 // -------------------------------------------------------------------------

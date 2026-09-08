@@ -293,6 +293,22 @@ export function initMobileBottomNav() {
   initSheetTouchGestures();
   initMobileSplashScreen();
 
+  // Manejo de navegación hash inicial (#explore, #radar, #places) desde perfil u otros enlaces
+  const handleHashRoute = () => {
+    if (!isMobile()) return;
+    const hash = window.location.hash;
+    if (hash === '#explore') {
+      setTimeout(() => btnExplore?.click(), 150);
+    } else if (hash === '#radar') {
+      setTimeout(() => btnRadar?.click(), 150);
+    } else if (hash === '#places') {
+      setTimeout(() => btnPlaces?.click(), 150);
+    }
+  };
+
+  handleHashRoute();
+  window.addEventListener('hashchange', handleHashRoute);
+
   window.lucide?.createIcons({ context: document.querySelector('main') });
 }
 

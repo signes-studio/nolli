@@ -115,9 +115,7 @@ body.dark-mode .profile-logo span {
 }
 
 .profile-minimal-btn i,
-.profile-minimal-btn svg,
-.mobile-nav-btn i,
-.mobile-nav-btn svg {
+.profile-minimal-btn svg {
   display: inline-block;
   width: 16px;
   height: 16px;
