@@ -63,12 +63,16 @@ async function verifyUserPermissions(supabaseUrl, serviceRoleKey, sessionToken) 
       if (dbRole === 'editor') {
         return { ...user, is_admin: false, is_editor: true, role: 'editor' };
       }
+      if (dbRole) {
+        return { ...user, is_admin: false, is_editor: false, role: dbRole };
+      }
     }
   } catch (err) {
     console.error('Error al comprobar perfil de permisos:', err);
   }
 
-  return null;
+  // Usuario autenticado en Supabase con rol de usuario estándar
+  return { ...user, is_admin: false, is_editor: false, role: metaRole || 'user' };
 }
 
 function sanitizeBuildingPayload(data, isUpdate = false) {
@@ -284,10 +288,10 @@ module.exports = async function handler(req, res) {
     return res.status(401).json({ error: 'Se requiere autorización de sesión para realizar esta operación.' });
   }
 
-  // Validar permisos de editor o administrador
+  // Validar sesión de usuario
   const userPerms = await verifyUserPermissions(supabaseUrl, supabaseKey, token);
-  if (!userPerms || (!userPerms.is_admin && !userPerms.is_editor)) {
-    return res.status(403).json({ error: 'Acceso denegado: Se requieren permisos de editor o administrador.' });
+  if (!userPerms) {
+    return res.status(401).json({ error: 'Sesión no válida o expirada. Por favor, inicia sesión nuevamente.' });
   }
 
   try {
@@ -302,6 +306,22 @@ module.exports = async function handler(req, res) {
 
       if (!cleanPayload.id) {
         cleanPayload.id = Math.random().toString(36).substring(2, 10).toUpperCase();
+      }
+
+      // Reglas de permisos para creación:
+      // Si el usuario no es admin ni editor (rol 'user'), la obra DEBE quedar como 'pendiente' y asociada a su UID
+      if (!userPerms.is_admin && !userPerms.is_editor) {
+        cleanPayload.estado_revision = 'pendiente';
+        cleanPayload.propuesto_por = userPerms.id;
+        cleanPayload.añadido_por = userPerms.email || cleanPayload.añadido_por || 'usuario';
+      } else {
+        // Admins o editores pueden definir si la obra entra directa ('publicada') o a revisión ('pendiente')
+        if (!cleanPayload.estado_revision) {
+          cleanPayload.estado_revision = 'publicada';
+        }
+        if (!cleanPayload.añadido_por) {
+          cleanPayload.añadido_por = userPerms.is_admin ? 'administrador' : 'editor';
+        }
       }
 
       const response = await fetch(`${supabaseUrl}/rest/v1/Buildings`, {
@@ -324,7 +344,9 @@ module.exports = async function handler(req, res) {
       }
 
       const inserted = await response.json();
-      await purgeCatalogCdnCache();
+      if (cleanPayload.estado_revision === 'publicada') {
+        await purgeCatalogCdnCache();
+      }
       return res.status(201).json(inserted);
     }
 
@@ -337,6 +359,32 @@ module.exports = async function handler(req, res) {
 
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
       const cleanPayload = sanitizeBuildingPayload(body, true);
+
+      // Si el usuario no es admin ni editor: solo puede editar una propuesta suya que siga pendiente
+      if (!userPerms.is_admin && !userPerms.is_editor) {
+        const checkRes = await fetch(`${supabaseUrl}/rest/v1/Buildings?id=eq.${encodeURIComponent(id)}&select=id,propuesto_por,estado_revision`, {
+          headers: {
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`,
+          },
+        });
+
+        if (!checkRes.ok) {
+          return res.status(403).json({ error: 'Acceso denegado: Se requieren permisos de editor o administrador.' });
+        }
+
+        const existingWorks = await checkRes.json().catch(() => []);
+        const existing = existingWorks[0];
+
+        if (!existing || existing.propuesto_por !== userPerms.id || existing.estado_revision !== 'pendiente') {
+          return res.status(403).json({
+            error: 'Acceso denegado: Se requieren permisos de editor o administrador para editar obras del catálogo.',
+          });
+        }
+
+        cleanPayload.estado_revision = 'pendiente';
+        cleanPayload.propuesto_por = userPerms.id;
+      }
 
       const response = await fetch(`${supabaseUrl}/rest/v1/Buildings?id=eq.${encodeURIComponent(id)}`, {
         method: 'PATCH',
@@ -370,7 +418,7 @@ module.exports = async function handler(req, res) {
       // ELIMINAR OBRA (Estrictamente restringido a administradores; editores no pueden borrar)
       if (!userPerms.is_admin) {
         return res.status(403).json({
-          error: 'Acceso denegado: El rol de editor no tiene permisos para eliminar obras. Se requiere rol de administrador.',
+          error: 'Acceso denegado: Se requieren permisos de administrador para eliminar obras.',
         });
       }
 
