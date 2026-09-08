@@ -98,7 +98,7 @@ async function checkAccessAndInit() {
 
     const userEmail = String(user.email || '').toLowerCase().trim();
     const isMasterFounder = userEmail === 'studio.signes@gmail.com';
-    const isAuthorized = role === 'admin' || role === 'superadmin' || role === 'editor' || isMasterFounder;
+    const isAuthorized = role === 'admin' || role === 'superadmin' || isMasterFounder;
 
     if (!isAuthorized) {
       showLockScreen('PRIVILEGIOS INSUFICIENTES', `Tu cuenta (${userEmail}) no tiene los permisos necesarios (Rol actual: ${role.toUpperCase()}).`);

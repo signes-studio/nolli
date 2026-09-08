@@ -100,7 +100,7 @@ async function initLoginModal() {
   let registerMode = false;
 
   const marcarSesionIniciada = (role) => {
-    const canUseAdminTools = esRolEditor(role);
+    const canUseAdminTools = esRolAdmin(role);
     state.adminMode = canUseAdminTools;
     if (adminModeControl) adminModeControl.classList.toggle('hidden', !canUseAdminTools);
     if (adminModeToggle) adminModeToggle.checked = state.adminMode;
@@ -113,14 +113,14 @@ async function initLoginModal() {
     ].filter(Boolean);
     adminButtons.forEach((btn) => btn.classList.toggle('hidden', !canUseAdminTools));
 
-    bLoginT.textContent = canUseAdminTools ? t('nav_admin_unlocked') : t('nav_session_active');
+    bLoginT.textContent = canUseAdminTools ? t('nav_admin_unlocked') : (role === 'editor' ? 'EDITOR' : t('nav_session_active'));
     bLoginT.style.color = 'var(--accent-2)';
     bLoginT.style.borderColor = 'var(--accent-2)';
     bLoginT.style.background = 'rgba(239, 188, 2, 0.12)';
 
     const mobileBadge = document.getElementById('mobile-identity-badge');
     if (mobileBadge) {
-      mobileBadge.textContent = canUseAdminTools ? t('nav_admin') : t('nav_session');
+      mobileBadge.textContent = canUseAdminTools ? t('nav_admin') : (role === 'editor' ? 'EDITOR' : t('nav_session'));
     }
 
     logoutButton.classList.remove('hidden');
@@ -131,7 +131,7 @@ async function initLoginModal() {
   };
 
   adminModeToggle.addEventListener('change', () => {
-    if (!esRolEditor(state.userRole)) return;
+    if (!esRolAdmin(state.userRole)) return;
     state.adminMode = adminModeToggle.checked;
     document.dispatchEvent(new CustomEvent('radar:admin-mode-change'));
   });
@@ -438,7 +438,7 @@ function initAddBuildingModal() {
 
     if (selectedVal && Array.from(selectVisibility.options).some((o) => o.value === selectedVal)) {
       selectVisibility.value = selectedVal;
-    } else if (esEditorOrAdmin && state.adminMode) {
+    } else if (esEditorOrAdmin) {
       selectVisibility.value = 'direct';
     } else {
       selectVisibility.value = 'review';
@@ -683,12 +683,12 @@ function handleMapLongPress(lngLat) {
     optPrivate.textContent = t('add_vis_private');
     select.appendChild(optPrivate);
 
-    select.value = (esEditorOrAdmin && state.adminMode) ? 'direct' : 'review';
+    select.value = esEditorOrAdmin ? 'direct' : 'review';
   }
 
   const modalTitle = document.getElementById('modal-add-title');
   const btnSave = document.getElementById('btn-add-save');
-  const isDirect = (esRolEditor(state.userRole) && state.adminMode);
+  const isDirect = esRolEditor(state.userRole);
   if (modalTitle) modalTitle.textContent = isDirect ? t('add_modal_direct_title') : t('add_modal_review_title');
   if (btnSave) btnSave.innerHTML = isDirect
     ? `<span class="inline-flex items-center gap-1"><i data-lucide="database" width="13" height="13"></i> ${t('add_btn_publish_direct')}</span>`

@@ -3,7 +3,7 @@
    Arquitectura Serverless Blindada + Frontend Vanilla Neo-Bauhaus
    ========================================================================= */
 
-import { state, separarArquitectos, esRolAdmin, esRolEditor, escapeHtml } from './state.js';
+import { state, separarArquitectos, esRolAdmin, escapeHtml } from './state.js';
 import { 
   deleteBuilding, 
   fetchRatingAverages, 
@@ -146,7 +146,7 @@ export function initAdminUI() {
   // Atajo de teclado: Alt + A para alternar panel admin
   window.addEventListener('keydown', (e) => {
     if (e.altKey && (e.key === 'a' || e.key === 'A')) {
-      if (esRolEditor(state.userRole)) {
+      if (esRolAdmin(state.userRole)) {
         e.preventDefault();
         toggleAdminPanel();
       }
@@ -199,8 +199,8 @@ export async function toggleAdminPanel(forceOpen = null) {
       return;
     }
 
-    if (!esRolEditor(state.userRole)) {
-      mostrarAlertaSeguridad('ACCESO DENEGADO', 'Se requieren privilegios de curaduría o administración para abrir este panel.');
+    if (!esRolAdmin(state.userRole)) {
+      mostrarAlertaSeguridad('ACCESO DENEGADO', 'Se requieren privilegios de administración para abrir este panel.');
       return;
     }
 
@@ -241,9 +241,9 @@ export async function handleAdminHashRoute() {
       state.userRole = role;
     }
 
-    if (!esRolEditor(role)) {
+    if (!esRolAdmin(role)) {
       window.history.replaceState(null, '', window.location.pathname + window.location.search);
-      mostrarAlertaSeguridad('ACCESO DENEGADO', `Tu cuenta no tiene privilegios de curaduría (Rol: ${role.toUpperCase()}).`);
+      mostrarAlertaSeguridad('ACCESO DENEGADO', `Tu cuenta no tiene privilegios de administración (Rol: ${role.toUpperCase()}).`);
       return;
     }
 
@@ -255,11 +255,10 @@ export async function handleAdminHashRoute() {
 }
 
 function checkAdminVisibility() {
-  const isEditorOrAdmin = esRolEditor(state.userRole);
   const isAdmin = esRolAdmin(state.userRole);
   const buttons = getAdminButtons();
   buttons.forEach((btn) => {
-    btn.classList.toggle('hidden', !isEditorOrAdmin);
+    btn.classList.toggle('hidden', !isAdmin);
   });
   const userTab = document.querySelector('[data-admin-tab="users"]');
   if (userTab) {
@@ -328,7 +327,7 @@ function renderAuthRequired() {
 }
 
 async function syncAllAdminData() {
-  if (!state.sessionToken || !esRolEditor(state.userRole)) return;
+  if (!state.sessionToken || !esRolAdmin(state.userRole)) return;
 
   // 1. Cargar obras completas (incluidas pendientes)
   try {
@@ -389,7 +388,7 @@ function renderCurrentTab() {
 }
 
 async function renderList() {
-  if (!state.sessionToken || !esRolEditor(state.userRole)) {
+  if (!state.sessionToken || !esRolAdmin(state.userRole)) {
     renderAuthRequired();
     return;
   }
@@ -479,7 +478,7 @@ async function renderList() {
 }
 
 async function renderReports() {
-  if (!state.sessionToken || !esRolEditor(state.userRole)) {
+  if (!state.sessionToken || !esRolAdmin(state.userRole)) {
     renderAuthRequired();
     return;
   }
@@ -663,8 +662,8 @@ async function renderUsers() {
 }
 
 async function actualizarReporte(id, estado) {
-  if (!state.sessionToken || !esRolEditor(state.userRole)) {
-    mostrarAlertaSeguridad('ACCESO RESTRINGIDO', 'Acción reservada a editores y administradores autenticados.');
+  if (!state.sessionToken || !esRolAdmin(state.userRole)) {
+    mostrarAlertaSeguridad('ACCESO RESTRINGIDO', 'Acción reservada a administradores autenticados.');
     return;
   }
   try {

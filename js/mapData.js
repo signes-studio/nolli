@@ -2,7 +2,7 @@
    MAPDATA.JS — Sincroniza OBRAS (state) con la fuente GeoJSON de Mapbox
    ========================================================================= */
 
-import { state, esRolAdmin, esRolEditor } from './state.js';
+import { state, esRolAdmin } from './state.js';
 
 
 
@@ -41,7 +41,7 @@ export function actualizarFuenteMapa() {
           return false;
         }
         if (obra.private) return true; // Las etiquetas/obras privadas del usuario son siempre visibles en su mapa
-        if (esRolEditor(state.userRole) && state.adminMode) {
+        if (esRolAdmin(state.userRole) && state.adminMode) {
           return obra.estado_revision !== 'rechazada';
         }
         return obra.estado_revision !== 'pendiente' && obra.estado_revision !== 'rechazada';
