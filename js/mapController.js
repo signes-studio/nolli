@@ -140,8 +140,9 @@ export function cargarMapaMapbox() {
     categoryColors[key] = meta.color;
   });
 
-    const isDark = state.mapStyle === 'dark' || document.body.classList.contains('dark-mode');
-    const selectedColor = isDark ? '#FFFFFF' : '#141411';
+    const isSatellite = state.mapStyle === 'satellite';
+    const isDark = !isSatellite && (state.mapStyle === 'dark' || document.body.classList.contains('dark-mode'));
+    const selectedColor = (isDark || isSatellite) ? '#FFFFFF' : '#141411';
 
     [0, 1, 2, 3].forEach((importance) => {
       Object.entries(categoryColors).forEach(([cat, color]) => {
@@ -313,9 +314,17 @@ export function cargarMapaMapbox() {
       },
     });
 
-    function crearExpresionEtiquetaFormateada(titleFont, isDark) {
-      const titleColor = isDark ? '#FFFFFF' : '#04070B';
-      const architectColor = isDark ? '#A3ADC2' : '#525866';
+    function crearExpresionEtiquetaFormateada(titleFont, isDark, isSatellite) {
+      let titleColor = '#04070B';
+      let architectColor = '#525866';
+
+      if (isSatellite) {
+        titleColor = '#FFFFFF';
+        architectColor = '#FFFFFF';
+      } else if (isDark) {
+        titleColor = '#FFFFFF';
+        architectColor = '#A3ADC2';
+      }
       const architectFont = ['Inter Regular', 'Open Sans Regular', 'Inter Regular'];
 
       return [
@@ -388,12 +397,13 @@ export function cargarMapaMapbox() {
         : importance;
 
       const labelCfg = IMPORTANCE_LABEL_CONFIG[importance];
-      const formattedLabelExpr = crearExpresionEtiquetaFormateada(labelCfg.font, isDark);
+      const formattedLabelExpr = crearExpresionEtiquetaFormateada(labelCfg.font, isDark, isSatellite);
       const textFieldExpr = ['step', ['zoom'], ['format', ''], labelCfg.minzoom, formattedLabelExpr];
+      const haloColor = isSatellite ? '#000000' : (isDark ? '#121212' : '#F8F1DF');
       const textPaint = {
-        'text-color': isDark ? '#FFFFFF' : '#04070B',
-        'text-halo-color': isDark ? '#121212' : '#F8F1DF',
-        'text-halo-width': 1.8,
+        'text-color': isSatellite ? '#FFFFFF' : (isDark ? '#FFFFFF' : '#04070B'),
+        'text-halo-color': haloColor,
+        'text-halo-width': isSatellite ? 2.0 : 1.8,
         'text-halo-blur': 0.2,
       };
       const textLayout = {
@@ -626,7 +636,8 @@ export function cargarMapaMapbox() {
 
     // Capa de etiqueta de la obra seleccionada (siempre visible y destacada)
     const selectedTitleFont = ['Inter Bold', 'Open Sans Bold', 'Inter Bold'];
-    const selectedLabelExpr = crearExpresionEtiquetaFormateada(selectedTitleFont, isDark);
+    const selectedLabelExpr = crearExpresionEtiquetaFormateada(selectedTitleFont, isDark, isSatellite);
+    const selectedHaloColor = isSatellite ? '#000000' : (isDark ? '#121212' : '#F8F1DF');
 
     state.map.addLayer({
       id: 'obras-labels-selected',
@@ -649,9 +660,9 @@ export function cargarMapaMapbox() {
         'symbol-sort-key': 100,
       },
       paint: {
-        'text-color': isDark ? '#FFFFFF' : '#04070B',
-        'text-halo-color': isDark ? '#121212' : '#F8F1DF',
-        'text-halo-width': 2.2,
+        'text-color': isSatellite ? '#FFFFFF' : (isDark ? '#FFFFFF' : '#04070B'),
+        'text-halo-color': selectedHaloColor,
+        'text-halo-width': isSatellite ? 2.4 : 2.2,
         'text-halo-blur': 0.2,
       },
     });
@@ -677,9 +688,9 @@ export function cargarMapaMapbox() {
         'symbol-sort-key': 100,
       },
       paint: {
-        'text-color': isDark ? '#FFFFFF' : '#04070B',
-        'text-halo-color': isDark ? '#121212' : '#F8F1DF',
-        'text-halo-width': 2.2,
+        'text-color': isSatellite ? '#FFFFFF' : (isDark ? '#FFFFFF' : '#04070B'),
+        'text-halo-color': selectedHaloColor,
+        'text-halo-width': isSatellite ? 2.4 : 2.2,
         'text-halo-blur': 0.2,
       },
     });
