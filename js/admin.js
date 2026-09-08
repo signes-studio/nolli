@@ -19,7 +19,7 @@ import {
   updateUserPresence,
   updateUserRole
 } from './api.js';
-import { escapeHtml, normalizarCategoria, nombreCategoria } from './state.js';
+import { escapeHtml, normalizarCategoria, nombreCategoria, separarArquitectos } from './state.js';
 
 const SESSION_KEY = 'nolli_admin_session_token';
 
@@ -28,12 +28,13 @@ const adminConsoleState = {
   token: null,
   user: null,
   role: null,
-  activeTab: 'pending', // 'pending' | 'reports' | 'users'
+  activeTab: 'pending', // 'pending' | 'architects' | 'reports' | 'users'
   pendingWorks: [],
   allWorks: [],
   reports: [],
   users: [],
   editingWorkId: null,
+  expandedArchitects: new Set(),
 };
 
 let presenceTimer = null;
@@ -41,10 +42,15 @@ let presenceTimer = null;
 // =========================================================================
 // 1. INICIALIZACIÓN Y SEGURIDAD (GUARDIA DE ACCESO)
 // =========================================================================
-document.addEventListener('DOMContentLoaded', async () => {
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', async () => {
+    initTheme();
+    await checkAccessAndInit();
+  });
+} else {
   initTheme();
-  await checkAccessAndInit();
-});
+  checkAccessAndInit();
+}
 
 function initTheme() {
   const saved = localStorage.getItem('nolli_theme');
@@ -205,6 +211,7 @@ function setupTabNavigation() {
       if (activeView) activeView.classList.remove('hidden');
 
       if (target === 'pending') renderModulePending();
+      else if (target === 'architects') renderModuleArchitects();
       else if (target === 'reports') renderModuleReports();
       else if (target === 'users') renderModuleUsers();
 
@@ -262,10 +269,18 @@ async function loadUsersData() {
 
 function updateBadges() {
   const badgePending = document.getElementById('badge-count-pending');
+  const badgeArchitects = document.getElementById('badge-count-architects');
   const badgeReports = document.getElementById('badge-count-reports');
   const badgeUsers = document.getElementById('badge-count-users');
 
   if (badgePending) badgePending.textContent = adminConsoleState.pendingWorks.length;
+
+  const architectsSet = new Set();
+  (adminConsoleState.allWorks || []).forEach((w) => {
+    separarArquitectos(w.arquitecto).forEach((a) => architectsSet.add(a));
+  });
+  if (badgeArchitects) badgeArchitects.textContent = architectsSet.size;
+
   const pendingReportsTotal = adminConsoleState.reports.filter((r) => (r.estado || r.status || 'pendiente') === 'pendiente').length;
   if (badgeReports) badgeReports.textContent = pendingReportsTotal;
 
@@ -333,6 +348,9 @@ function renderModulePending() {
     const photo = obra.foto_url || obra.foto_miniatura || '';
     const rawDate = obra.created_at || obra.updated_at;
     const createdDateStr = rawDate ? new Date(rawDate).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : null;
+    const lat = obra.latitud ?? (Array.isArray(obra.coordenadas) ? obra.coordenadas[1] : '');
+    const lng = obra.longitud ?? (Array.isArray(obra.coordenadas) ? obra.coordenadas[0] : '');
+    const mapUrl = `./?obra=${safeId}${lat && lng ? `&lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}&zoom=17` : ''}`;
 
     return `
       <article class="admin-work-card ${isPending ? 'pending-border' : ''}" data-work-id="${safeId}">
@@ -377,9 +395,9 @@ function renderModulePending() {
             <i data-lucide="edit-3" width="14" height="14"></i>
             <span>EDITAR</span>
           </button>
-          <a href="./?obra=${safeId}" target="_blank" rel="noopener noreferrer" class="admin-btn" style="text-decoration:none;">
+          <a href="${mapUrl}" target="_blank" rel="noopener noreferrer" class="admin-btn" style="text-decoration:none;" title="Ver y centrar en el mapa interactivo">
             <i data-lucide="map-pin" width="14" height="14"></i>
-            <span>VER MAPA</span>
+            <span>IR AL MAPA</span>
           </a>
           ${adminConsoleState.role !== 'editor' ? `
           <button type="button" class="admin-btn admin-btn-reject" data-action="delete" data-id="${safeId}">
@@ -396,7 +414,219 @@ function renderModulePending() {
 }
 
 // =========================================================================
-// 5. MÓDULO 02: REPORTES DE ERROR
+// 5. MÓDULO 02: DIRECTORIO DE ARQUITECTOS & DESGLOSE DE OBRAS
+// =========================================================================
+function renderModuleArchitects() {
+  const container = document.getElementById('architects-list');
+  const summaryEl = document.getElementById('architects-summary-bar');
+  if (!container) return;
+
+  const searchVal = (document.getElementById('search-architects')?.value || '').trim().toLowerCase();
+  const filterSort = document.getElementById('filter-architects-sort')?.value || 'count-desc';
+
+  // 1. Agrupación de obras por arquitecto
+  const architectMap = new Map();
+
+  for (const obra of adminConsoleState.allWorks) {
+    const rawNames = separarArquitectos(obra.arquitecto);
+    const names = rawNames.length > 0 ? rawNames : ['Sin arquitecto asignado'];
+
+    for (const name of names) {
+      const trimmedName = name.trim();
+      const normKey = trimmedName.toLowerCase();
+
+      if (!architectMap.has(normKey)) {
+        architectMap.set(normKey, {
+          key: normKey,
+          name: trimmedName,
+          works: [],
+          cities: new Set(),
+          years: [],
+          pendingCount: 0,
+          publishedCount: 0,
+          rejectedCount: 0,
+        });
+      }
+
+      const item = architectMap.get(normKey);
+      if (!item.works.some((w) => String(w.id) === String(obra.id))) {
+        item.works.push(obra);
+        if (obra.place) item.cities.add(obra.place);
+        if (obra.año_construccion) {
+          const y = parseInt(obra.año_construccion, 10);
+          if (!isNaN(y)) item.years.push(y);
+        }
+        if (obra.estado_revision === 'pendiente') item.pendingCount++;
+        else if (obra.estado_revision === 'rechazada') item.rejectedCount++;
+        else item.publishedCount++;
+      }
+    }
+  }
+
+  let list = Array.from(architectMap.values());
+
+  // 2. Filtrado por búsqueda (nombre de arquitecto, ciudad o título de obra)
+  if (searchVal) {
+    list = list.filter((item) => {
+      const nameMatch = item.name.toLowerCase().includes(searchVal);
+      const cityMatch = Array.from(item.cities).some((c) => c.toLowerCase().includes(searchVal));
+      const workMatch = item.works.some((w) => (w.nombre_obra || '').toLowerCase().includes(searchVal));
+      return nameMatch || cityMatch || workMatch;
+    });
+  }
+
+  // 3. Ordenación
+  list.sort((a, b) => {
+    if (filterSort === 'count-desc') {
+      const diff = b.works.length - a.works.length;
+      if (diff !== 0) return diff;
+      return a.name.localeCompare(b.name, 'es', { sensitivity: 'base' });
+    }
+    if (filterSort === 'count-asc') {
+      const diff = a.works.length - b.works.length;
+      if (diff !== 0) return diff;
+      return a.name.localeCompare(b.name, 'es', { sensitivity: 'base' });
+    }
+    if (filterSort === 'alpha-desc') {
+      return b.name.localeCompare(a.name, 'es', { sensitivity: 'base' });
+    }
+    // 'alpha-asc' por defecto
+    return a.name.localeCompare(b.name, 'es', { sensitivity: 'base' });
+  });
+
+  // 4. Actualizar barra de resumen
+  const totalWorksListed = list.reduce((acc, curr) => acc + curr.works.length, 0);
+  if (summaryEl) {
+    summaryEl.textContent = `MOSTRANDO ${list.length} ARQUITECTOS // ${totalWorksListed} REFERENCIAS DE OBRAS REGISTRADAS`;
+  }
+
+  if (!list.length) {
+    container.innerHTML = `
+      <div style="border:2px dashed var(--admin-border-light); padding:40px; text-align:center; font-family: 'Inter', sans-serif; font-size:12px; color:var(--admin-fg-dim);">
+        NO SE ENCONTRARON ARQUITECTOS BAJO ESTE CRITERIO // CATÁLOGO FILTRADO
+      </div>
+    `;
+    return;
+  }
+
+  const autoExpand = Boolean(searchVal);
+
+  container.innerHTML = list.map((item) => {
+    const isExpanded = autoExpand || adminConsoleState.expandedArchitects.has(item.key);
+    const minYear = item.years.length ? Math.min(...item.years) : null;
+    const maxYear = item.years.length ? Math.max(...item.years) : null;
+    const period = minYear ? (minYear === maxYear ? `${minYear}` : `${minYear} — ${maxYear}`) : '';
+    const citiesArray = Array.from(item.cities);
+    const citiesStr = citiesArray.slice(0, 3).join(', ');
+    const moreCities = citiesArray.length > 3 ? ` +${citiesArray.length - 3}` : '';
+    const safeKey = escapeHtml(item.key);
+    const safeName = escapeHtml(item.name);
+
+    return `
+      <article class="admin-architect-card ${isExpanded ? 'open' : ''} ${item.pendingCount > 0 ? 'has-pending' : ''}" data-architect-key="${safeKey}">
+        <header class="admin-architect-header" title="Pulsar para desplegar obras de ${safeName}">
+          <div class="admin-architect-info">
+            <div class="admin-architect-name-row">
+              <h3 class="admin-architect-name">${safeName}</h3>
+              <span class="admin-work-tag" style="background:var(--admin-accent); color:#FFFFFF; font-weight:800; border-color:var(--admin-accent);">
+                ${item.works.length} ${item.works.length === 1 ? 'OBRA' : 'OBRAS'}
+              </span>
+              ${item.pendingCount > 0 ? `
+                <span class="admin-badge-pending">${item.pendingCount} PENDIENTE${item.pendingCount > 1 ? 'S' : ''}</span>
+              ` : ''}
+              ${item.publishedCount > 0 ? `
+                <span class="admin-work-tag" style="background:var(--admin-bg-raised);">${item.publishedCount} PUBLICADA${item.publishedCount > 1 ? 'S' : ''}</span>
+              ` : ''}
+            </div>
+
+            <div class="admin-architect-meta">
+              ${period ? `<span><i data-lucide="calendar" width="12" height="12"></i> ${period}</span>` : ''}
+              ${citiesStr ? `<span><i data-lucide="map-pin" width="12" height="12"></i> ${escapeHtml(citiesStr)}${moreCities}</span>` : ''}
+            </div>
+          </div>
+
+          <div class="admin-architect-header-actions">
+            <a href="./?q=${encodeURIComponent(item.name)}" target="_blank" rel="noopener noreferrer" class="admin-btn" title="Ver obras en el mapa interactivo" style="text-decoration:none;">
+              <i data-lucide="compass" width="13" height="13"></i>
+              <span class="admin-header-btn-text">VER EN WEB</span>
+            </a>
+            <button type="button" class="admin-architect-chevron" aria-label="Desplegar u ocultar obras">
+              <i data-lucide="chevron-down" width="16" height="16"></i>
+            </button>
+          </div>
+        </header>
+
+        <div class="admin-architect-body">
+          <div class="admin-architect-works-grid">
+            ${item.works.map((obra) => {
+              const safeId = escapeHtml(obra.id);
+              const title = escapeHtml(obra.nombre_obra || 'Sin título');
+              const year = obra.año_construccion ? escapeHtml(obra.año_construccion) : null;
+              const category = nombreCategoria(obra.categoria);
+              const place = obra.place ? escapeHtml(obra.place) : 'Ubicación registrada';
+              const photo = obra.foto_url || obra.foto_miniatura || '';
+              const isPending = obra.estado_revision === 'pendiente';
+              const lat = obra.latitud ?? (Array.isArray(obra.coordenadas) ? obra.coordenadas[1] : '');
+              const lng = obra.longitud ?? (Array.isArray(obra.coordenadas) ? obra.coordenadas[0] : '');
+              const mapUrl = `./?obra=${safeId}${lat && lng ? `&lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}&zoom=17` : ''}`;
+
+              return `
+                <div class="admin-architect-work-item ${isPending ? 'pending-border' : ''}">
+                  ${photo ? `
+                    <img src="${escapeHtml(photo)}" alt="${title}" class="admin-architect-work-thumb" loading="lazy" onerror="this.outerHTML='<div class=\\'admin-architect-work-thumb-fallback\\'>🏛️</div>'">
+                  ` : `
+                    <div class="admin-architect-work-thumb-fallback">🏛️</div>
+                  `}
+
+                  <div class="admin-architect-work-details">
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:6px;">
+                      <h4 class="admin-architect-work-title" title="${title}">${title}</h4>
+                      <span class="admin-work-tag" style="font-size:8.5px; ${isPending ? 'background:var(--admin-accent-2); color:#111111; font-weight:800;' : ''}">
+                        ${escapeHtml((obra.estado_revision || 'publicada').toUpperCase())}
+                      </span>
+                    </div>
+
+                    <div class="admin-architect-work-sub">
+                      ${year ? `<strong>${year}</strong> · ` : ''}
+                      <span>${place}</span> · 
+                      <span>${escapeHtml(category)}</span>
+                    </div>
+
+                    <div class="admin-architect-work-actions">
+                      <a href="${mapUrl}" target="_blank" rel="noopener noreferrer" class="admin-btn admin-btn-sm" style="text-decoration:none;" title="Ver y centrar en el mapa">
+                        <i data-lucide="map-pin" width="12" height="12"></i>
+                        <span>IR AL MAPA</span>
+                      </a>
+                      <button type="button" class="admin-btn admin-btn-sm" data-action="edit" data-id="${safeId}">
+                        <i data-lucide="edit-3" width="12" height="12"></i>
+                        <span>EDITAR</span>
+                      </button>
+                      ${isPending ? `
+                        <button type="button" class="admin-btn admin-btn-sm admin-btn-approve" data-action="approve" data-id="${safeId}">
+                          <i data-lucide="check" width="12" height="12"></i>
+                          <span>APROBAR</span>
+                        </button>
+                        <button type="button" class="admin-btn admin-btn-sm admin-btn-reject" data-action="reject" data-id="${safeId}">
+                          <i data-lucide="x" width="12" height="12"></i>
+                          <span>RECHAZAR</span>
+                        </button>
+                      ` : ''}
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      </article>
+    `;
+  }).join('');
+
+  if (window.lucide) window.lucide.createIcons({ context: container });
+}
+
+// =========================================================================
+// 6. MÓDULO 03: REPORTES DE ERROR
 // =========================================================================
 function renderModuleReports() {
   const container = document.getElementById('reports-list');
@@ -647,6 +877,61 @@ function setupSearchAndFilters() {
   document.getElementById('filter-pending-state')?.addEventListener('change', renderModulePending);
   document.getElementById('filter-pending-sort')?.addEventListener('change', renderModulePending);
 
+  // Módulo de Arquitectos
+  document.getElementById('search-architects')?.addEventListener('input', renderModuleArchitects);
+  document.getElementById('filter-architects-sort')?.addEventListener('change', renderModuleArchitects);
+
+  document.getElementById('btn-expand-all-architects')?.addEventListener('click', () => {
+    document.querySelectorAll('.admin-architect-card').forEach((card) => {
+      card.classList.add('open');
+      if (card.dataset.architectKey) {
+        adminConsoleState.expandedArchitects.add(card.dataset.architectKey);
+      }
+    });
+  });
+
+  document.getElementById('btn-collapse-all-architects')?.addEventListener('click', () => {
+    document.querySelectorAll('.admin-architect-card').forEach((card) => {
+      card.classList.remove('open');
+    });
+    adminConsoleState.expandedArchitects.clear();
+  });
+
+  // Delegación de eventos en el listado de arquitectos
+  document.getElementById('architects-list')?.addEventListener('click', async (e) => {
+    const actionBtn = e.target.closest('button[data-action]');
+    if (actionBtn) {
+      const action = actionBtn.dataset.action;
+      const id = actionBtn.dataset.id;
+      if (action === 'approve') {
+        await handleApproveWork(id);
+      } else if (action === 'reject') {
+        await handleRejectWork(id);
+      } else if (action === 'delete') {
+        await handleDeleteWork(id);
+      } else if (action === 'edit') {
+        openEditModal(id);
+      }
+      return;
+    }
+
+    const header = e.target.closest('.admin-architect-header');
+    const chevron = e.target.closest('.admin-architect-chevron');
+    const externalLink = e.target.closest('a');
+    if ((header && !externalLink) || chevron) {
+      const card = (header || chevron).closest('.admin-architect-card');
+      if (card) {
+        card.classList.toggle('open');
+        const key = card.dataset.architectKey;
+        if (card.classList.contains('open')) {
+          adminConsoleState.expandedArchitects.add(key);
+        } else {
+          adminConsoleState.expandedArchitects.delete(key);
+        }
+      }
+    }
+  });
+
   document.getElementById('search-reports')?.addEventListener('input', renderModuleReports);
   document.getElementById('filter-reports-state')?.addEventListener('change', renderModuleReports);
 
@@ -758,6 +1043,7 @@ async function handleApproveWork(id) {
     adminConsoleState.pendingWorks = adminConsoleState.allWorks.filter((w) => w.estado_revision === 'pendiente');
     updateBadges();
     renderModulePending();
+    renderModuleArchitects();
     showAdminToast('Obra aprobada y publicada correctamente en el catálogo.', 'success');
   } catch (err) {
     showAdminToast(`Error al aprobar obra: ${err.message}`, 'error');
@@ -774,6 +1060,7 @@ async function handleRejectWork(id) {
     adminConsoleState.pendingWorks = adminConsoleState.allWorks.filter((w) => w.estado_revision === 'pendiente');
     updateBadges();
     renderModulePending();
+    renderModuleArchitects();
     showAdminToast('Propuesta marcada como rechazada.', 'info');
   } catch (err) {
     showAdminToast(`Error al rechazar obra: ${err.message}`, 'error');
@@ -797,6 +1084,7 @@ async function handleDeleteWork(id) {
     adminConsoleState.pendingWorks = adminConsoleState.allWorks.filter((w) => w.estado_revision === 'pendiente');
     updateBadges();
     renderModulePending();
+    renderModuleArchitects();
     showAdminToast('Obra eliminada permanentemente de la base de datos.', 'success');
   } catch (err) {
     showAdminToast(`Error al eliminar obra: ${err.message}`, 'error');
@@ -901,6 +1189,7 @@ function setupModalEvents() {
         modal.classList.remove('open');
         updateBadges();
         renderModulePending();
+        renderModuleArchitects();
         showAdminToast('Ficha de obra actualizada correctamente.', 'success');
       } catch (err) {
         showAdminToast(`Error al guardar cambios: ${err.message}`, 'error');
@@ -925,6 +1214,14 @@ function openEditModal(id) {
   document.getElementById('edit-enlace').value = obra.enlace_url || '';
   document.getElementById('edit-place').value = obra.place || '';
   document.getElementById('edit-estado-revision').value = obra.estado_revision || 'publicada';
+
+  // Configurar enlace para ir a la obra en el mapa
+  const btnModalMap = document.getElementById('btn-modal-view-map');
+  if (btnModalMap) {
+    const lat = obra.latitud ?? (Array.isArray(obra.coordenadas) ? obra.coordenadas[1] : '');
+    const lng = obra.longitud ?? (Array.isArray(obra.coordenadas) ? obra.coordenadas[0] : '');
+    btnModalMap.href = `./?obra=${encodeURIComponent(obra.id)}${lat && lng ? `&lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}&zoom=17` : ''}`;
+  }
 
   if (modal) {
     modal.classList.add('open');

@@ -106,11 +106,28 @@ function extraerObraIdDeURL() {
 async function cargarYMostrarObra(obraId) {
   if (!obraId) return;
 
+  const params = new URLSearchParams(window.location.search);
+  const urlLat = parseFloat(params.get('lat'));
+  const urlLng = parseFloat(params.get('lng'));
+  const urlZoom = parseFloat(params.get('zoom')) || 17;
+
+  if (state.map && !isNaN(urlLat) && !isNaN(urlLng)) {
+    state.map.flyTo({ center: [urlLng, urlLat], zoom: Math.max(state.map.getZoom(), urlZoom) });
+  }
+
   let obra = state.OBRAS.find((item) => String(item.id) === String(obraId) || String(item.featureId) === String(obraId));
   if (!obra) {
     try {
       const catalog = await getBuildingsCatalog();
-      const found = catalog.find((item) => String(item.id) === String(obraId));
+      let found = catalog.find((item) => String(item.id) === String(obraId));
+      if (!found) {
+        // Fallback para obras pendientes o privadas buscando directamente por ID
+        const { fetchBuildingsByIds } = await import('./api.js');
+        const items = await fetchBuildingsByIds([obraId]);
+        if (items && items.length > 0) {
+          found = items[0];
+        }
+      }
       if (found) {
         obra = transformarEdificio(found, state.OBRAS.length);
         state.OBRAS.push(obra);
@@ -122,12 +139,24 @@ async function cargarYMostrarObra(obraId) {
   }
 
   if (obra && state.map) {
-    state.map.flyTo({ center: obra.coordenadas, zoom: Math.max(state.map.getZoom(), 15) });
-    abrirFicha(obra, obra.coordenadas, obra.featureId || obra.id, true);
+    const coords = (obra.coordenadas && obra.coordenadas.length === 2 && !isNaN(obra.coordenadas[0]) && obra.coordenadas[0] !== 0)
+      ? obra.coordenadas
+      : (!isNaN(urlLng) && !isNaN(urlLat) ? [urlLng, urlLat] : null);
+    if (coords) {
+      state.map.flyTo({ center: coords, zoom: Math.max(state.map.getZoom(), urlZoom) });
+      abrirFicha(obra, coords, obra.featureId || obra.id, true);
+    } else {
+      abrirFicha(obra, [0, 0], obra.featureId || obra.id, true);
+    }
+  } else if (!isNaN(urlLng) && !isNaN(urlLat) && state.map) {
+    state.map.flyTo({ center: [urlLng, urlLat], zoom: urlZoom });
   } else if (!obra) {
     showNeoToast(t('toast_work_not_found'), { type: 'alert', duration: 4000 });
     const url = new URL(window.location.href);
     url.searchParams.delete('obra');
+    url.searchParams.delete('lat');
+    url.searchParams.delete('lng');
+    url.searchParams.delete('zoom');
     window.history.replaceState(null, '', url.pathname + (url.searchParams.toString() ? '?' + url.searchParams.toString() : '') + url.hash);
   }
 }
@@ -145,6 +174,13 @@ async function verificarParametrosURL() {
   if (obraId) {
     await cargarYMostrarObra(obraId);
     return;
+  }
+  const params = new URLSearchParams(window.location.search);
+  const urlLat = parseFloat(params.get('lat'));
+  const urlLng = parseFloat(params.get('lng'));
+  const urlZoom = parseFloat(params.get('zoom')) || 17;
+  if (state.map && !isNaN(urlLat) && !isNaN(urlLng)) {
+    state.map.flyTo({ center: [urlLng, urlLat], zoom: urlZoom });
   }
   const searchQuery = extraerQueryBusquedaURL();
   if (searchQuery) {

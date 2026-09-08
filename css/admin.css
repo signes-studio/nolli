@@ -509,7 +509,219 @@ h1, h2, h3, h4, h5, h6, .font-display {
 }
 
 /* =========================================================================
-   REPORTES DE ERROR (MÓDULO 02)
+   DIRECTORIO DE ARQUITECTOS (MÓDULO 02)
+   ========================================================================= */
+.admin-architects-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.admin-architect-card {
+  border: 2px solid var(--admin-border);
+  background: var(--admin-bg-surface);
+  box-shadow: var(--admin-shadow);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  overflow: hidden;
+}
+
+.admin-architect-card:hover {
+  box-shadow: var(--admin-shadow-hover);
+}
+
+.admin-architect-card.has-pending {
+  border-left: 6px solid var(--admin-accent-2);
+}
+
+.admin-architect-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  cursor: pointer;
+  user-select: none;
+  background: var(--admin-bg-surface);
+  border-bottom: 2px solid transparent;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  gap: 16px;
+}
+
+.admin-architect-header:hover {
+  background: var(--admin-bg-raised);
+}
+
+.admin-architect-card.open .admin-architect-header {
+  border-bottom-color: var(--admin-border);
+  background: var(--admin-bg-raised);
+}
+
+.admin-architect-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.admin-architect-name-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.admin-architect-name {
+  font-family: 'League Spartan', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--admin-fg);
+  margin: 0;
+}
+
+.admin-architect-meta {
+  font-size: 11px;
+  color: var(--admin-fg-dim);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.admin-architect-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.admin-architect-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.admin-architect-chevron {
+  background: none;
+  border: 1.5px solid var(--admin-border);
+  color: var(--admin-fg);
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background 0.15s ease;
+}
+
+.admin-architect-header:hover .admin-architect-chevron {
+  background: var(--admin-bg);
+}
+
+.admin-architect-card.open .admin-architect-chevron {
+  transform: rotate(180deg);
+  background: var(--admin-fg);
+  color: var(--admin-bg);
+}
+
+.admin-architect-body {
+  display: none;
+  padding: 18px 20px;
+  background: var(--admin-bg);
+}
+
+.admin-architect-card.open .admin-architect-body {
+  display: block;
+}
+
+.admin-architect-works-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 14px;
+}
+
+.admin-architect-work-item {
+  border: 1.5px solid var(--admin-border);
+  background: var(--admin-bg-surface);
+  padding: 12px 14px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  box-shadow: var(--admin-shadow-sm);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.admin-architect-work-item:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: var(--admin-shadow);
+}
+
+.admin-architect-work-item.pending-border {
+  border-left: 4px solid var(--admin-accent-2);
+}
+
+.admin-architect-work-thumb {
+  width: 68px;
+  height: 68px;
+  object-fit: cover;
+  border: 1.5px solid var(--admin-border);
+  background: var(--admin-bg-raised);
+  flex-shrink: 0;
+}
+
+.admin-architect-work-thumb-fallback {
+  width: 68px;
+  height: 68px;
+  border: 1.5px solid var(--admin-border);
+  background: var(--admin-bg-raised);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 20px;
+}
+
+.admin-architect-work-details {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin-architect-work-title {
+  font-family: 'League Spartan', sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  margin: 0;
+  color: var(--admin-fg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-architect-work-sub {
+  font-size: 11px;
+  color: var(--admin-fg-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-architect-work-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.admin-btn-sm {
+  padding: 5px 8px;
+  font-size: 9.5px;
+  gap: 4px;
+}
+
+/* =========================================================================
+   REPORTES DE ERROR (MÓDULO 03)
    ========================================================================= */
 .admin-reports-grid {
   display: grid;
@@ -881,6 +1093,21 @@ h1, h2, h3, h4, h5, h6, .font-display {
 
   .admin-users-table {
     min-width: 600px;
+  }
+
+  .admin-architects-works-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-architect-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .admin-architect-header-actions {
+    width: 100%;
+    justify-content: space-between;
+    margin-top: 6px;
   }
 }
 

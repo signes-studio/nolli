@@ -111,23 +111,28 @@
     <!-- Menú de Navegación Curatorial de Texto Puro -->
     <nav class="admin-curatorial-nav" aria-label="Secciones de administración">
       <button type="button" class="admin-nav-tab active" data-tab-target="pending">
-        <span>01. OBRAS PENDIENTES</span>
+        <span>01. OBRAS & CATÁLOGO</span>
         <span id="badge-count-pending" class="admin-tab-count">0</span>
       </button>
 
+      <button type="button" class="admin-nav-tab" data-tab-target="architects">
+        <span>02. ARQUITECTOS</span>
+        <span id="badge-count-architects" class="admin-tab-count">0</span>
+      </button>
+
       <button type="button" class="admin-nav-tab" data-tab-target="reports">
-        <span>02. REPORTES DE ERROR</span>
+        <span>03. REPORTES DE ERROR</span>
         <span id="badge-count-reports" class="admin-tab-count">0</span>
       </button>
 
       <button type="button" class="admin-nav-tab" data-tab-target="users">
-        <span>03. DIRECTORIO DE USUARIOS</span>
+        <span>04. DIRECTORIO DE USUARIOS</span>
         <span id="badge-count-users" class="admin-tab-count">0</span>
       </button>
     </nav>
 
     <!-- =======================================================================
-         VISTA 01: OBRAS PENDIENTES & MODERACIÓN
+         VISTA 01: OBRAS PENDIENTES & CATÁLOGO
          ======================================================================= -->
     <section id="view-pending" class="admin-tab-view">
       <div class="admin-control-bar">
@@ -162,7 +167,48 @@
     </section>
 
     <!-- =======================================================================
-         VISTA 02: REPORTES DE ERROR E INCIDENCIAS
+         VISTA 02: DIRECTORIO DE ARQUITECTOS & DESGLOSE DE OBRAS
+         ======================================================================= -->
+    <section id="view-architects" class="admin-tab-view hidden">
+      <div class="admin-control-bar">
+        <div class="admin-search-wrapper">
+          <i data-lucide="search" width="14" height="14" style="color:var(--admin-fg-dim);"></i>
+          <input type="text" id="search-architects" class="admin-input" placeholder="Buscar por nombre de arquitecto, ciudad o título de obra...">
+        </div>
+
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <label for="filter-architects-sort" class="font-mono" style="font-size: 10px; font-weight: 800; color: var(--admin-fg-dim);">ORDEN:</label>
+          <select id="filter-architects-sort" class="admin-filter-select">
+            <option value="count-desc" selected>Más Obras</option>
+            <option value="count-asc">Menos Obras</option>
+            <option value="alpha-asc">Nombre (A-Z)</option>
+            <option value="alpha-desc">Nombre (Z-A)</option>
+          </select>
+        </div>
+
+        <div style="display: flex; gap: 8px;">
+          <button type="button" id="btn-expand-all-architects" class="admin-btn" title="Expandir todos los arquitectos">
+            <i data-lucide="chevrons-down" width="13" height="13"></i>
+            <span>EXPANDIR TODOS</span>
+          </button>
+          <button type="button" id="btn-collapse-all-architects" class="admin-btn" title="Colapsar todos los arquitectos">
+            <i data-lucide="chevrons-up" width="13" height="13"></i>
+            <span>COLAPSAR TODOS</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="architects-summary-bar" class="admin-architects-summary" style="margin-bottom: 16px; font-size: 11px; font-weight: 700; color: var(--admin-fg-dim); font-family: 'Inter', sans-serif;">
+        <!-- Resumen dinámico -->
+      </div>
+
+      <div id="architects-list" class="admin-architects-list">
+        <!-- Renderizado dinámico desde admin.js -->
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         VISTA 03: REPORTES DE ERROR E INCIDENCIAS
          ======================================================================= -->
     <section id="view-reports" class="admin-tab-view hidden">
       <div class="admin-control-bar">
@@ -188,7 +234,7 @@
     </section>
 
     <!-- =======================================================================
-         VISTA 03: DIRECTORIO DE USUARIOS & CONECTIVIDAD
+         VISTA 04: DIRECTORIO DE USUARIOS & CONECTIVIDAD
          ======================================================================= -->
     <section id="view-users" class="admin-tab-view hidden">
       <div class="admin-control-bar">
@@ -310,12 +356,18 @@
           </div>
         </div>
 
-        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; border-top: 1.5px solid var(--admin-border-light); padding-top: 16px;">
-          <button type="button" onclick="document.getElementById('modal-edit-work').classList.remove('open')" class="admin-btn">CANCELAR</button>
-          <button type="submit" class="admin-btn admin-btn-approve">
-            <i data-lucide="save" width="14" height="14"></i>
-            <span>GUARDAR CAMBIOS</span>
-          </button>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 24px; border-top: 1.5px solid var(--admin-border-light); padding-top: 16px; flex-wrap: wrap; gap: 10px;">
+          <a id="btn-modal-view-map" href="#" target="_blank" rel="noopener noreferrer" class="admin-btn" style="text-decoration:none;">
+            <i data-lucide="map-pin" width="14" height="14"></i>
+            <span>IR A LA OBRA EN EL MAPA</span>
+          </a>
+          <div style="display: flex; gap: 10px;">
+            <button type="button" onclick="document.getElementById('modal-edit-work').classList.remove('open')" class="admin-btn">CANCELAR</button>
+            <button type="submit" class="admin-btn admin-btn-approve">
+              <i data-lucide="save" width="14" height="14"></i>
+              <span>GUARDAR CAMBIOS</span>
+            </button>
+          </div>
         </div>
       </form>
     </div>
