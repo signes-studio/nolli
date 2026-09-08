@@ -313,26 +313,65 @@ export function cargarMapaMapbox() {
       },
     });
 
+    function crearExpresionEtiquetaFormateada(titleFont, isDark) {
+      const titleColor = isDark ? '#FFFFFF' : '#04070B';
+      const architectColor = isDark ? '#A3ADC2' : '#525866';
+      const architectFont = ['Inter Regular', 'Open Sans Regular', 'Inter Regular'];
+
+      return [
+        'case',
+        ['all', ['has', 'arquitecto'], ['!=', ['get', 'arquitecto'], '']],
+        [
+          'format',
+          ['get', 'nombre_obra'],
+          {
+            'font-scale': 1.0,
+            'text-font': ['literal', titleFont],
+            'text-color': titleColor,
+          },
+          '\n',
+          {
+            'font-scale': 0.25,
+          },
+          ['get', 'arquitecto'],
+          {
+            'font-scale': 0.80,
+            'text-font': ['literal', architectFont],
+            'text-color': architectColor,
+          }
+        ],
+        [
+          'format',
+          ['get', 'nombre_obra'],
+          {
+            'font-scale': 1.0,
+            'text-font': ['literal', titleFont],
+            'text-color': titleColor,
+          }
+        ]
+      ];
+    }
+
     const IMPORTANCE_LABEL_CONFIG = {
       0: {
         font: ['Inter Bold', 'Open Sans Bold', 'Inter Bold'],
         size: 12.5,
-        minzoom: 8.0,
+        minzoom: 6.5,
       },
       1: {
         font: ['Inter Medium', 'Open Sans Semibold', 'Inter Bold'],
         size: 11.5,
-        minzoom: 8.0,
+        minzoom: 7.5,
       },
       2: {
-        font: ['Inter Regular', 'Open Sans Regular', 'Inter Regular'],
+        font: ['Inter Medium', 'Open Sans Semibold', 'Inter Bold'],
         size: 11,
-        minzoom: 13.0,
+        minzoom: 11.0,
       },
       3: {
-        font: ['Inter Light', 'Open Sans Light', 'Inter Regular'],
+        font: ['Inter Regular', 'Open Sans Regular', 'Inter Regular'],
         size: 10,
-        minzoom: 16.0,
+        minzoom: 13.5,
       },
     };
 
@@ -349,17 +388,8 @@ export function cargarMapaMapbox() {
         : importance;
 
       const labelCfg = IMPORTANCE_LABEL_CONFIG[importance];
-      const labelTextExpr = [
-        'coalesce',
-        ['get', 'texto_etiqueta'],
-        [
-          'case',
-          ['all', ['has', 'arquitecto'], ['!=', ['get', 'arquitecto'], '']],
-          ['concat', ['get', 'nombre_obra'], '\n', ['get', 'arquitecto']],
-          ['get', 'nombre_obra']
-        ]
-      ];
-      const textFieldExpr = ['step', ['zoom'], '', labelCfg.minzoom, labelTextExpr];
+      const formattedLabelExpr = crearExpresionEtiquetaFormateada(labelCfg.font, isDark);
+      const textFieldExpr = ['step', ['zoom'], ['format', ''], labelCfg.minzoom, formattedLabelExpr];
       const textPaint = {
         'text-color': isDark ? '#FFFFFF' : '#04070B',
         'text-halo-color': isDark ? 'rgba(18, 18, 18, 0.95)' : 'rgba(248, 241, 223, 0.95)',
@@ -370,12 +400,12 @@ export function cargarMapaMapbox() {
         'text-field': textFieldExpr,
         'text-font': labelCfg.font,
         'text-size': labelCfg.size,
-        'text-offset': [1.25, 0],
+        'text-offset': [1.15, 0],
         'text-anchor': 'left',
         'text-justify': 'left',
-        'text-max-width': 13.5,
-        'text-line-height': 1.2,
-        'text-padding': 4,
+        'text-max-width': 13.0,
+        'text-line-height': 1.15,
+        'text-padding': 2,
         'text-allow-overlap': false,
         'text-ignore-placement': false,
         'text-optional': true,
@@ -595,16 +625,8 @@ export function cargarMapaMapbox() {
     });
 
     // Capa de etiqueta de la obra seleccionada (siempre visible y destacada)
-    const selectedLabelTextExpr = [
-      'coalesce',
-      ['get', 'texto_etiqueta'],
-      [
-        'case',
-        ['all', ['has', 'arquitecto'], ['!=', ['get', 'arquitecto'], '']],
-        ['concat', ['get', 'nombre_obra'], '\n', ['get', 'arquitecto']],
-        ['get', 'nombre_obra']
-      ]
-    ];
+    const selectedTitleFont = ['Inter Bold', 'Open Sans Bold', 'Inter Bold'];
+    const selectedLabelExpr = crearExpresionEtiquetaFormateada(selectedTitleFont, isDark);
 
     state.map.addLayer({
       id: 'obras-labels-selected',
@@ -612,14 +634,14 @@ export function cargarMapaMapbox() {
       source: 'obras',
       filter: ['==', ['get', 'selected'], 1],
       layout: {
-        'text-field': selectedLabelTextExpr,
-        'text-font': ['Inter Bold', 'Open Sans Bold', 'Inter Bold'],
+        'text-field': selectedLabelExpr,
+        'text-font': selectedTitleFont,
         'text-size': 13,
-        'text-offset': [1.2, 0],
+        'text-offset': [1.15, 0],
         'text-anchor': 'left',
         'text-justify': 'left',
         'text-max-width': 15,
-        'text-line-height': 1.2,
+        'text-line-height': 1.15,
         'text-allow-overlap': true,
         'text-ignore-placement': true,
         'text-optional': false,
@@ -640,14 +662,14 @@ export function cargarMapaMapbox() {
       source: 'obras-maestras',
       filter: ['==', ['get', 'selected'], 1],
       layout: {
-        'text-field': selectedLabelTextExpr,
-        'text-font': ['Inter Bold', 'Open Sans Bold', 'Inter Bold'],
+        'text-field': selectedLabelExpr,
+        'text-font': selectedTitleFont,
         'text-size': 13.5,
-        'text-offset': [1.2, 0],
+        'text-offset': [1.15, 0],
         'text-anchor': 'left',
         'text-justify': 'left',
         'text-max-width': 15,
-        'text-line-height': 1.2,
+        'text-line-height': 1.15,
         'text-allow-overlap': true,
         'text-ignore-placement': true,
         'text-optional': false,

@@ -115,6 +115,7 @@ export function actualizarFuenteMapa() {
           geometry: { type: 'Point', coordinates: coordenadasVisuales(obra, sharedCount > 1) },
           properties: {
             ...obra,
+            nombre_obra: nombreObra || 'Obra de arquitectura',
             alpha_rank: alphaRank,
             texto_etiqueta: textoEtiqueta,
             arquitecto: arqNombre,
