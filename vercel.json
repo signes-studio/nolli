@@ -80,6 +80,18 @@
       "destination": "/api/sitemap-static"
     },
     {
+      "source": "/sitemap-categories.xml",
+      "destination": "/api/sitemap-categories"
+    },
+    {
+      "source": "/sitemap-architects.xml",
+      "destination": "/api/sitemap-architects"
+    },
+    {
+      "source": "/sitemap-cities.xml",
+      "destination": "/api/sitemap-cities"
+    },
+    {
       "source": "/sitemap-buildings-:n.xml",
       "destination": "/api/sitemap-buildings?page=:n"
     },
@@ -156,12 +168,28 @@
       "destination": "/api/categoria?slug=:slug&lang=ca"
     },
     {
-      "source": "/en/arquitecto/:nombre",
-      "destination": "/api/arquitecto?nombre=:nombre&lang=en"
+      "source": "/en/arquitecto/:slug",
+      "destination": "/api/arquitecto?slug=:slug&lang=en"
     },
     {
-      "source": "/ca/arquitecto/:nombre",
-      "destination": "/api/arquitecto?nombre=:nombre&lang=ca"
+      "source": "/ca/arquitecto/:slug",
+      "destination": "/api/arquitecto?slug=:slug&lang=ca"
+    },
+    {
+      "source": "/en/ciudad/:slug",
+      "destination": "/api/ciudad?slug=:slug&lang=en"
+    },
+    {
+      "source": "/ca/ciudad/:slug",
+      "destination": "/api/ciudad?slug=:slug&lang=ca"
+    },
+    {
+      "source": "/en/lugar/:slug",
+      "destination": "/api/ciudad?slug=:slug&lang=en"
+    },
+    {
+      "source": "/ca/lugar/:slug",
+      "destination": "/api/ciudad?slug=:slug&lang=ca"
     },
     {
       "source": "/en/perfil",
@@ -236,9 +264,16 @@
       "destination": "/api/categoria?slug=:slug"
     },
     {
-      "source": "/arquitecto/:nombre",
-      "destination": "/api/arquitecto?nombre=:nombre"
+      "source": "/arquitecto/:slug",
+      "destination": "/api/arquitecto?slug=:slug"
+    },
+    {
+      "source": "/ciudad/:slug",
+      "destination": "/api/ciudad?slug=:slug"
+    },
+    {
+      "source": "/lugar/:slug",
+      "destination": "/api/ciudad?slug=:slug"
     }
   ]
 }
-

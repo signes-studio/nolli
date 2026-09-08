@@ -1,8 +1,4 @@
 const SITE_URL = 'https://nollimap.app';
-const CHUNK_SIZE = 1000;
-const FALLBACK_SUPABASE_URL = 'https://ldtfvpjigzvcagtciipn.supabase.co';
-const FALLBACK_SUPABASE_KEY = 'sb_publishable_kYQ7Fa8nBsrkp1f8C4AuAg_4-5uBFm0';
-const FALLBACK_SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkdGZ2cGppZ3p2Y2FndGNpaXBuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NzU3OTg2NywiZXhwIjoyMTAzMTU1ODY3fQ.iRn-X5EzmW9eoKqL5qdW3s6I7NfcLfnJRmXTNwjCNnY';
 
 function escapeXml(value) {
   return String(value)
@@ -13,55 +9,6 @@ function escapeXml(value) {
     .replace(/'/g, '&apos;');
 }
 
-async function fetchTotalPublicBuildingsCount() {
-  const supabaseUrl = process.env.SUPABASE_URL || FALLBACK_SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || FALLBACK_SERVICE_ROLE_KEY;
-
-  const params = new URLSearchParams({
-    select: 'id',
-    or: '(estado_revision.eq.publicada,estado_revision.is.null)',
-    limit: '1',
-  });
-
-  const response = await fetch(`${supabaseUrl}/rest/v1/Buildings?${params}`, {
-    headers: {
-      apikey: supabaseKey,
-      Authorization: `Bearer ${supabaseKey}`,
-      Prefer: 'count=exact',
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`Supabase devolvió ${response.status}.`);
-  }
-
-  const contentRange = response.headers.get('content-range');
-  if (contentRange && contentRange.includes('/')) {
-    const totalPart = contentRange.split('/')[1];
-    if (totalPart && totalPart !== '*') {
-      return parseInt(totalPart, 10) || 0;
-    }
-  }
-
-  // Fallback si no está presente Content-Range
-  const allParams = new URLSearchParams({
-    select: 'id',
-    or: '(estado_revision.eq.publicada,estado_revision.is.null)',
-  });
-  const allRes = await fetch(`${supabaseUrl}/rest/v1/Buildings?${allParams}`, {
-    headers: {
-      apikey: supabaseKey,
-      Authorization: `Bearer ${supabaseKey}`,
-    },
-  });
-  if (allRes.ok) {
-    const data = await allRes.json();
-    return data.length;
-  }
-
-  return 0;
-}
-
 module.exports = async (request, response) => {
   try {
     const today = new Date().toISOString().slice(0, 10);
@@ -69,6 +16,18 @@ module.exports = async (request, response) => {
     const sitemaps = [
       '  <sitemap>',
       `    <loc>${escapeXml(`${SITE_URL}/sitemap-static.xml`)}</loc>`,
+      `    <lastmod>${today}</lastmod>`,
+      '  </sitemap>',
+      '  <sitemap>',
+      `    <loc>${escapeXml(`${SITE_URL}/sitemap-categories.xml`)}</loc>`,
+      `    <lastmod>${today}</lastmod>`,
+      '  </sitemap>',
+      '  <sitemap>',
+      `    <loc>${escapeXml(`${SITE_URL}/sitemap-architects.xml`)}</loc>`,
+      `    <lastmod>${today}</lastmod>`,
+      '  </sitemap>',
+      '  <sitemap>',
+      `    <loc>${escapeXml(`${SITE_URL}/sitemap-cities.xml`)}</loc>`,
       `    <lastmod>${today}</lastmod>`,
       '  </sitemap>',
     ];

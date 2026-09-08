@@ -1,5 +1,4 @@
-const { getCategorySlugs } = require('./_lib/categories.js');
-const { getMultilingualSitemapEntries, escapeXml } = require('./_lib/i18n.js');
+const { getMultilingualSitemapEntries } = require('./_lib/i18n.js');
 
 const SITE_URL = 'https://nollimap.app';
 
@@ -13,9 +12,6 @@ module.exports = async (request, response) => {
       getMultilingualSitemapEntries('/itinerarios', lastModified, 'weekly', '0.8', SITE_URL),
       getMultilingualSitemapEntries('/public-profile', lastModified, 'weekly', '0.7', SITE_URL),
       getMultilingualSitemapEntries('/legal', lastModified, 'monthly', '0.3', SITE_URL),
-      ...getCategorySlugs().map((slug) => (
-        getMultilingualSitemapEntries(`/categoria/${encodeURIComponent(slug)}`, lastModified, 'weekly', '0.6', SITE_URL)
-      )),
     ];
 
     const sitemap = [

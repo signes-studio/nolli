@@ -1,10 +1,10 @@
 /* =========================================================================
-   API/ARQUITECTO.JS — Página de Agregación por Arquitecto (SSR)
+   API/CIUDAD.JS — Página de Agregación por Ciudad / Lugar (SSR)
    ========================================================================= */
 
 const { categoryLabel } = require('./_lib/categories.js');
 const { detectServerLanguage, getLangPrefix, getSSRText, getHreflangTags, getOgLocaleTags } = require('./_lib/i18n.js');
-const { slugify, slugToRegex, extractCityName, escapeHtml, getOptimizedUrl } = require('./_lib/slugs.js');
+const { slugify, slugToRegex, extractCityName, extractCountry, isIgnoredArchitect, escapeHtml, getOptimizedUrl } = require('./_lib/slugs.js');
 
 const SITE_URL = 'https://nollimap.app';
 const PAGE_SIZE = 50;
@@ -12,7 +12,7 @@ const FALLBACK_SUPABASE_URL = 'https://ldtfvpjigzvcagtciipn.supabase.co';
 const FALLBACK_SUPABASE_KEY = 'sb_publishable_kYQ7Fa8nBsrkp1f8C4AuAg_4-5uBFm0';
 const FALLBACK_SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkdGZ2cGppZ3p2Y2FndGNpaXBuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NzU3OTg2NywiZXhwIjoyMTAzMTU1ODY3fQ.iRn-X5EzmW9eoKqL5qdW3s6I7NfcLfnJRmXTNwjCNnY';
 
-async function fetchArchitectData(rawInput, page) {
+async function fetchCityData(rawInput, page) {
   const supabaseUrl = process.env.SUPABASE_URL || FALLBACK_SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || FALLBACK_SERVICE_ROLE_KEY;
 
@@ -25,15 +25,15 @@ async function fetchArchitectData(rawInput, page) {
   // 1. Consulta paginada para las tarjetas de la página actual
   const pageParams = new URLSearchParams({
     select: 'id,nombre_obra,arquitecto,año_construccion,place,foto_url,categoria,latitud,longitud',
-    arquitecto: `imatch.${regex}`,
+    place: `imatch.${regex}`,
     or: '(estado_revision.eq.publicada,estado_revision.is.null)',
     order: 'año_construccion.desc.nullslast,id.asc',
   });
 
-  // 2. Consulta ligera para enlazado cruzado (ciudades y categorías)
+  // 2. Consulta ligera para enlazado cruzado (arquitectos, categorías y coordenadas de centro)
   const metaParams = new URLSearchParams({
-    select: 'arquitecto,place,categoria,año_construccion',
-    arquitecto: `imatch.${regex}`,
+    select: 'arquitecto,place,categoria,latitud,longitud',
+    place: `imatch.${regex}`,
     or: '(estado_revision.eq.publicada,estado_revision.is.null)',
     limit: '300',
   });
@@ -56,7 +56,7 @@ async function fetchArchitectData(rawInput, page) {
   ]);
 
   if (!pageRes.ok) {
-    throw new Error(`Supabase devolvió ${pageRes.status} al consultar arquitecto.`);
+    throw new Error(`Supabase devolvió ${pageRes.status} al consultar ciudad.`);
   }
 
   let totalCount = 0;
@@ -73,90 +73,113 @@ async function fetchArchitectData(rawInput, page) {
 
   const allMetadata = metaRes.ok ? await metaRes.json() : buildings;
 
-  // Determinar nombre canónico del arquitecto más frecuente en los registros
-  const nameCounts = new Map();
-  const cityMap = new Map();
+  // Extraer ciudad canónica, país, centro geográfico, arquitectos y categorías
+  const cityCounts = new Map();
+  const countryCounts = new Map();
+  const archMap = new Map();
   const catMap = new Map();
-  const years = [];
+  let sumLat = 0;
+  let sumLng = 0;
+  let geoCount = 0;
 
   allMetadata.forEach((b) => {
-    if (b.arquitecto) {
-      const archName = b.arquitecto.trim();
-      nameCounts.set(archName, (nameCounts.get(archName) || 0) + 1);
-    }
     if (b.place) {
-      const city = extractCityName(b.place);
-      const cSlug = slugify(city);
-      if (cSlug && cSlug.length > 1) {
-        if (!cityMap.has(cSlug)) {
-          cityMap.set(cSlug, { name: city, count: 1 });
-        } else {
-          cityMap.get(cSlug).count++;
-        }
-      }
+      const cName = extractCityName(b.place);
+      if (cName) cityCounts.set(cName, (cityCounts.get(cName) || 0) + 1);
+      const cCountry = extractCountry(b.place);
+      if (cCountry) countryCounts.set(cCountry, (countryCounts.get(cCountry) || 0) + 1);
     }
+
+    if (b.arquitecto) {
+      // Un registro puede tener múltiples arquitectos separados por coma o punto y coma
+      const parts = b.arquitecto.split(/[;,]/).map((p) => p.trim()).filter(Boolean);
+      parts.forEach((name) => {
+        if (!isIgnoredArchitect(name)) {
+          const aSlug = slugify(name);
+          if (aSlug && aSlug.length > 1) {
+            if (!archMap.has(aSlug)) {
+              archMap.set(aSlug, { name, count: 1 });
+            } else {
+              archMap.get(aSlug).count++;
+            }
+          }
+        }
+      });
+    }
+
     if (b.categoria) {
       catMap.set(b.categoria, (catMap.get(b.categoria) || 0) + 1);
     }
-    if (b.año_construccion) {
-      const y = parseInt(b.año_construccion, 10);
-      if (y > 1000 && y < 2100) years.push(y);
+
+    if (b.latitud && b.longitud) {
+      const lat = Number(b.latitud);
+      const lng = Number(b.longitud);
+      if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+        sumLat += lat;
+        sumLng += lng;
+        geoCount++;
+      }
     }
   });
 
-  // Ordenar nombre canónico
-  const sortedNames = [...nameCounts.entries()].sort((a, b) => b[1] - a[1]);
-  const canonicalName = sortedNames.length > 0 ? sortedNames[0][0] : rawInput;
-  const canonicalSlug = slugify(canonicalName) || cleanSlug;
+  // Ciudad canónica más frecuente
+  const sortedCities = [...cityCounts.entries()].sort((a, b) => b[1] - a[1]);
+  const canonicalCity = sortedCities.length > 0 ? sortedCities[0][0] : rawInput;
+  const canonicalSlug = slugify(canonicalCity) || cleanSlug;
 
-  // Top ciudades (hasta 12)
-  const topCities = [...cityMap.entries()]
+  // País
+  const sortedCountries = [...countryCounts.entries()].sort((a, b) => b[1] - a[1]);
+  const country = sortedCountries.length > 0 ? sortedCountries[0][0] : '';
+
+  // Centroide
+  const centerLat = geoCount > 0 ? (sumLat / geoCount).toFixed(4) : null;
+  const centerLng = geoCount > 0 ? (sumLng / geoCount).toFixed(4) : null;
+
+  // Top arquitectos (hasta 12)
+  const topArchitects = [...archMap.entries()]
     .map(([slug, data]) => ({ slug, ...data }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 12);
 
-  // Categorías presentes
+  // Categorías
   const categoriesList = [...catMap.entries()]
     .map(([slug, count]) => ({ slug, count }))
     .sort((a, b) => b.count - a.count);
 
-  let activeYears = '';
-  if (years.length > 0) {
-    const minYear = Math.min(...years);
-    const maxYear = Math.max(...years);
-    activeYears = minYear === maxYear ? `${minYear}` : `${minYear} – ${maxYear}`;
-  }
-
   return {
     buildings,
     totalCount,
-    canonicalName,
+    canonicalCity,
     canonicalSlug,
-    topCities,
+    country,
+    centerLat,
+    centerLng,
+    topArchitects,
     categoriesList,
-    activeYears,
   };
 }
 
-function renderArchitectPage(data, page, lang = 'es') {
+function renderCityPage(data, page, lang = 'es') {
   const {
     buildings,
     totalCount,
-    canonicalName,
+    canonicalCity,
     canonicalSlug,
-    topCities,
+    country,
+    centerLat,
+    centerLng,
+    topArchitects,
     categoriesList,
-    activeYears,
   } = data;
 
   const prefix = getLangPrefix(lang);
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
   const pageParam = page > 1 ? `?page=${page}` : '';
-  const canonicalUrl = `${SITE_URL}${prefix}/arquitecto/${encodeURIComponent(canonicalSlug)}${pageParam}`;
+  const canonicalUrl = `${SITE_URL}${prefix}/ciudad/${encodeURIComponent(canonicalSlug)}${pageParam}`;
 
-  const title = getSSRText('architect_title', lang, { nombre: canonicalName });
-  const description = getSSRText('architect_desc', lang, {
-    nombre: canonicalName,
+  const title = getSSRText('city_title', lang, { city: canonicalCity });
+  const description = getSSRText('city_desc', lang, {
+    city: canonicalCity,
     count: totalCount,
   });
 
@@ -167,7 +190,7 @@ function renderArchitectPage(data, page, lang = 'es') {
   // Renderizado de tarjetas de obra
   const cardsHtml = buildings.map((b) => {
     const catLabel = categoryLabel(b.categoria, lang);
-    const metaItems = [b.place, b.año_construccion].filter(Boolean).join(' · ');
+    const metaParts = [b.arquitecto, b.año_construccion].filter(Boolean).join(' · ');
     return `
       <article class="work-card">
         <a href="${SITE_URL}${prefix}/obra/${encodeURIComponent(b.id)}" class="card-link">
@@ -178,17 +201,17 @@ function renderArchitectPage(data, page, lang = 'es') {
           <div class="card-body">
             <h2 class="card-title">${escapeHtml(b.nombre_obra)}</h2>
             ${b.categoria ? `<p class="card-category">${escapeHtml(catLabel)}</p>` : ''}
-            ${metaItems ? `<p class="card-meta">${escapeHtml(metaItems)}</p>` : ''}
+            ${metaParts ? `<p class="card-meta">${escapeHtml(metaParts)}</p>` : ''}
           </div>
         </a>
       </article>
     `;
   }).join('');
 
-  // Enlazado cruzado a ciudades
-  const citiesChipsHtml = topCities.map((c) => `
-    <a href="${SITE_URL}${prefix}/ciudad/${encodeURIComponent(c.slug)}" class="chip">
-      ${escapeHtml(c.name)} <span class="chip-count">${c.count}</span>
+  // Enlazado cruzado a arquitectos
+  const architectsChipsHtml = topArchitects.map((a) => `
+    <a href="${SITE_URL}${prefix}/arquitecto/${encodeURIComponent(a.slug)}" class="chip">
+      ${escapeHtml(a.name)} <span class="chip-count">${a.count}</span>
     </a>
   `).join('');
 
@@ -199,16 +222,23 @@ function renderArchitectPage(data, page, lang = 'es') {
     </a>
   `).join('');
 
+  // Enlace al mapa interactivo (con coordenadas centradas en la ciudad si existen)
+  const mapUrl = centerLat && centerLng
+    ? `${SITE_URL}${prefix}/?lat=${centerLat}&lng=${centerLng}&zoom=12`
+    : `${SITE_URL}${prefix}/?q=${encodeURIComponent(canonicalCity)}`;
+
   // Datos estructurados JSON-LD ItemList con LandmarksOrHistoricalBuildings / Place
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    name: getSSRText('architect_page_name', lang, { nombre: canonicalName }),
+    name: getSSRText('city_page_name', lang, { city: canonicalCity }),
     description,
     url: canonicalUrl,
     about: {
-      '@type': 'Person',
-      name: canonicalName,
+      '@type': 'City',
+      name: canonicalCity,
+      ...(country ? { containedInPlace: { '@type': 'Country', name: country } } : {}),
+      ...(centerLat && centerLng ? { geo: { '@type': 'GeoCoordinates', latitude: Number(centerLat), longitude: Number(centerLng) } } : {}),
     },
     mainEntity: {
       '@type': 'ItemList',
@@ -217,7 +247,7 @@ function renderArchitectPage(data, page, lang = 'es') {
         const itemObj = {
           '@type': ['Place', 'LandmarksOrHistoricalBuildings'],
           name: b.nombre_obra,
-          description: `Obra arquitectónica proyectada por ${canonicalName}${b.place ? ` en ${b.place}` : ''}${b.año_construccion ? ` (${b.año_construccion})` : ''}.`,
+          description: `Obra arquitectónica en ${canonicalCity}${b.arquitecto ? ` proyectada por ${b.arquitecto}` : ''}${b.año_construccion ? ` (${b.año_construccion})` : ''}.`,
           url: `${SITE_URL}${prefix}/obra/${encodeURIComponent(b.id)}`,
         };
         if (b.foto_url) {
@@ -258,13 +288,13 @@ function renderArchitectPage(data, page, lang = 'es') {
       {
         '@type': 'ListItem',
         position: 2,
-        name: getSSRText('breadcrumb_architects', lang),
+        name: getSSRText('breadcrumb_cities', lang),
         item: `${SITE_URL}${prefix}/`,
       },
       {
         '@type': 'ListItem',
         position: 3,
-        name: canonicalName,
+        name: canonicalCity,
         item: canonicalUrl,
       },
     ],
@@ -283,7 +313,7 @@ function renderArchitectPage(data, page, lang = 'es') {
   <meta name="description" content="${escapeHtml(description)}">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="${escapeHtml(canonicalUrl)}">
-  ${getHreflangTags('/arquitecto/' + encodeURIComponent(canonicalSlug) + pageParam)}
+  ${getHreflangTags('/ciudad/' + encodeURIComponent(canonicalSlug) + pageParam)}
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="nolli.">
   <meta property="og:title" content="${escapeHtml(title)}">
@@ -386,37 +416,37 @@ function renderArchitectPage(data, page, lang = 'es') {
     <ol class="breadcrumb-list">
       <li class="breadcrumb-item"><a href="${SITE_URL}${prefix}/">nolli.</a></li>
       <li class="breadcrumb-separator" aria-hidden="true">/</li>
-      <li class="breadcrumb-item"><a href="${SITE_URL}${prefix}/">${getSSRText('breadcrumb_architects', lang)}</a></li>
+      <li class="breadcrumb-item"><a href="${SITE_URL}${prefix}/">${getSSRText('breadcrumb_cities', lang)}</a></li>
       <li class="breadcrumb-separator" aria-hidden="true">/</li>
-      <li class="breadcrumb-item active" aria-current="page">${escapeHtml(canonicalName)}</li>
+      <li class="breadcrumb-item active" aria-current="page">${escapeHtml(canonicalCity)}</li>
     </ol>
   </nav>
 
   <section class="hub-header">
-    <span class="hub-badge">${getSSRText('breadcrumb_architects', lang)}</span>
-    <h1 class="hub-title">${escapeHtml(canonicalName)}</h1>
+    <span class="hub-badge">${getSSRText('breadcrumb_cities', lang)}</span>
+    <h1 class="hub-title">${escapeHtml(canonicalCity)}</h1>
     <p class="hub-subtitle">
-      ${totalCount} ${getSSRText('cataloged_works', lang)}${activeYears ? ` · ${activeYears}` : ''} · ${getSSRText('page_of', lang, { page, totalPages })}
+      ${totalCount} ${getSSRText('cataloged_works', lang)}${country ? ` · ${country}` : ''} · ${getSSRText('page_of', lang, { page, totalPages })}
     </p>
 
     <div class="hub-actions">
-      <a href="${SITE_URL}${prefix}/?q=${encodeURIComponent(canonicalName)}" class="btn-action-primary">
-        ⚡ ${getSSRText('explore_on_map', lang)}
+      <a href="${escapeHtml(mapUrl)}" class="btn-action-primary">
+        📍 ${getSSRText('view_city_map', lang, { city: canonicalCity })}
       </a>
     </div>
   </section>
 
-  ${(topCities.length > 0 || categoriesList.length > 0) ? `
+  ${(topArchitects.length > 0 || categoriesList.length > 0) ? `
     <section class="cross-links-section">
-      ${topCities.length > 0 ? `
-        <h2 class="cross-links-title">${getSSRText('cross_cities_by_architect', lang, { nombre: canonicalName })}</h2>
+      ${topArchitects.length > 0 ? `
+        <h2 class="cross-links-title">${getSSRText('cross_architects_in_city', lang, { city: canonicalCity })}</h2>
         <div class="chips-group">
-          ${citiesChipsHtml}
+          ${architectsChipsHtml}
         </div>
       ` : ''}
 
       ${categoriesList.length > 0 ? `
-        <h2 class="cross-links-title" style="margin-top: ${topCities.length > 0 ? 'var(--space-3)' : '0'};">${getSSRText('cross_categories_by_architect', lang, { nombre: canonicalName })}</h2>
+        <h2 class="cross-links-title" style="margin-top: ${topArchitects.length > 0 ? 'var(--space-3)' : '0'};">${getSSRText('cross_categories_in_city', lang, { city: canonicalCity })}</h2>
         <div class="chips-group">
           ${categoriesChipsHtml}
         </div>
@@ -426,14 +456,14 @@ function renderArchitectPage(data, page, lang = 'es') {
 
   ${buildings.length > 0
     ? `<div class="cards-grid">${cardsHtml}</div>`
-    : `<p class="empty-msg">${getSSRText('empty_architect', lang)}</p>`
+    : `<p class="empty-msg">${getSSRText('empty_city', lang)}</p>`
   }
 
   ${totalPages > 1 ? `
     <div class="pagination-wrap">
-      ${page > 1 ? `<a class="btn-page" href="${SITE_URL}${prefix}/arquitecto/${encodeURIComponent(canonicalSlug)}?page=${page - 1}">${getSSRText('prev_page', lang)}</a>` : '<span></span>'}
+      ${page > 1 ? `<a class="btn-page" href="${SITE_URL}${prefix}/ciudad/${encodeURIComponent(canonicalSlug)}?page=${page - 1}">${getSSRText('prev_page', lang)}</a>` : '<span></span>'}
       <span class="page-indicator">${getSSRText('page_of', lang, { page, totalPages })}</span>
-      ${page < totalPages ? `<a class="btn-page" href="${SITE_URL}${prefix}/arquitecto/${encodeURIComponent(canonicalSlug)}?page=${page + 1}">${getSSRText('next_page', lang)}</a>` : '<span></span>'}
+      ${page < totalPages ? `<a class="btn-page" href="${SITE_URL}${prefix}/ciudad/${encodeURIComponent(canonicalSlug)}?page=${page + 1}">${getSSRText('next_page', lang)}</a>` : '<span></span>'}
     </div>
   ` : ''}
 
@@ -453,22 +483,22 @@ function renderArchitectPage(data, page, lang = 'es') {
 module.exports = async (request, response) => {
   try {
     const lang = detectServerLanguage(request);
-    const rawInput = String(request.query?.slug || request.query?.nombre || '').trim();
+    const rawInput = String(request.query?.slug || request.query?.lugar || request.query?.ciudad || '').trim();
     if (!rawInput) {
       response.setHeader('Content-Type', 'text/plain; charset=utf-8');
-      return response.status(400).send('Falta el nombre o slug del arquitecto.');
+      return response.status(400).send('Falta el nombre o slug de la ciudad.');
     }
 
     const page = Math.max(1, parseInt(String(request.query?.page || '1'), 10) || 1);
 
-    const architectData = await fetchArchitectData(rawInput, page);
+    const cityData = await fetchCityData(rawInput, page);
 
     response.setHeader('Content-Type', 'text/html; charset=utf-8');
     response.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
-    return response.status(200).send(renderArchitectPage(architectData, page, lang));
+    return response.status(200).send(renderCityPage(cityData, page, lang));
   } catch (error) {
-    console.error('No se pudo generar la página de arquitecto:', error);
+    console.error('No se pudo generar la página de ciudad:', error);
     response.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    return response.status(500).send('No se pudo cargar la página de arquitecto.');
+    return response.status(500).send('No se pudo cargar la página de ciudad.');
   }
 };
