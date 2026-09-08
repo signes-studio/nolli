@@ -349,7 +349,17 @@ export function cargarMapaMapbox() {
         : importance;
 
       const labelCfg = IMPORTANCE_LABEL_CONFIG[importance];
-      const textFieldExpr = ['step', ['zoom'], '', labelCfg.minzoom, ['get', 'nombre_obra']];
+      const labelTextExpr = [
+        'coalesce',
+        ['get', 'texto_etiqueta'],
+        [
+          'case',
+          ['all', ['has', 'arquitecto'], ['!=', ['get', 'arquitecto'], '']],
+          ['concat', ['get', 'nombre_obra'], '\n', ['get', 'arquitecto']],
+          ['get', 'nombre_obra']
+        ]
+      ];
+      const textFieldExpr = ['step', ['zoom'], '', labelCfg.minzoom, labelTextExpr];
       const textPaint = {
         'text-color': isDark ? '#FFFFFF' : '#04070B',
         'text-halo-color': isDark ? 'rgba(18, 18, 18, 0.95)' : 'rgba(248, 241, 223, 0.95)',
@@ -363,7 +373,8 @@ export function cargarMapaMapbox() {
         'text-offset': [1.25, 0],
         'text-anchor': 'left',
         'text-justify': 'left',
-        'text-max-width': 11,
+        'text-max-width': 13.5,
+        'text-line-height': 1.2,
         'text-padding': 4,
         'text-allow-overlap': false,
         'text-ignore-placement': false,
@@ -584,19 +595,31 @@ export function cargarMapaMapbox() {
     });
 
     // Capa de etiqueta de la obra seleccionada (siempre visible y destacada)
+    const selectedLabelTextExpr = [
+      'coalesce',
+      ['get', 'texto_etiqueta'],
+      [
+        'case',
+        ['all', ['has', 'arquitecto'], ['!=', ['get', 'arquitecto'], '']],
+        ['concat', ['get', 'nombre_obra'], '\n', ['get', 'arquitecto']],
+        ['get', 'nombre_obra']
+      ]
+    ];
+
     state.map.addLayer({
       id: 'obras-labels-selected',
       type: 'symbol',
       source: 'obras',
       filter: ['==', ['get', 'selected'], 1],
       layout: {
-        'text-field': ['get', 'nombre_obra'],
+        'text-field': selectedLabelTextExpr,
         'text-font': ['Inter Bold', 'Open Sans Bold', 'Inter Bold'],
         'text-size': 13,
         'text-offset': [1.2, 0],
         'text-anchor': 'left',
         'text-justify': 'left',
-        'text-max-width': 14,
+        'text-max-width': 15,
+        'text-line-height': 1.2,
         'text-allow-overlap': true,
         'text-ignore-placement': true,
         'text-optional': false,
@@ -617,13 +640,14 @@ export function cargarMapaMapbox() {
       source: 'obras-maestras',
       filter: ['==', ['get', 'selected'], 1],
       layout: {
-        'text-field': ['get', 'nombre_obra'],
+        'text-field': selectedLabelTextExpr,
         'text-font': ['Inter Bold', 'Open Sans Bold', 'Inter Bold'],
         'text-size': 13.5,
         'text-offset': [1.2, 0],
         'text-anchor': 'left',
         'text-justify': 'left',
-        'text-max-width': 14,
+        'text-max-width': 15,
+        'text-line-height': 1.2,
         'text-allow-overlap': true,
         'text-ignore-placement': true,
         'text-optional': false,
