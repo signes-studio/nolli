@@ -27,6 +27,10 @@ import {
   refreshUserSession,
   updateUserPresence,
   getBuildingsCatalog,
+  fetchUserSocialCounts,
+  fetchIncomingFriendRequests,
+  fetchUserFriends,
+  respondFriendshipRpc,
 } from './api.js';
 
 import {
@@ -441,6 +445,53 @@ function renderHero() {
     const website = websiteRaw ? ` · ${websiteRaw.replace(/^https?:\/\//, '')}` : '';
     subEl.textContent = `${bio} | ${location}${website}`;
   }
+
+  // Badges y datos sociales
+  const verifiedBadge = document.getElementById('profile-verified-badge');
+  if (verifiedBadge) {
+    verifiedBadge.classList.toggle('hidden', !db.is_verified_pro);
+    if (db.verified_pro_title) verifiedBadge.textContent = `✓ ${db.verified_pro_title.toUpperCase()}`;
+  }
+
+  const schoolBadge = document.getElementById('profile-school-badge');
+  if (schoolBadge) {
+    if (db.school) {
+      schoolBadge.textContent = `🏛️ ${db.school}`;
+      schoolBadge.classList.remove('hidden');
+    } else {
+      schoolBadge.classList.add('hidden');
+    }
+  }
+
+  const pointsDisplay = document.getElementById('profile-points-display');
+  if (pointsDisplay) {
+    pointsDisplay.textContent = `⭐ ${db.total_points || 0} PTS NOLLI`;
+    pointsDisplay.title = `Visitas: ${db.points_visitor || 0} pts | Aportaciones: ${db.points_contributor || 0} pts`;
+  }
+
+  // Cargar métricas sociales del usuario autenticado
+  const token = getSessionToken();
+  if (token && profileState.user?.id) {
+    fetchUserSocialCounts(profileState.user.id).then((counts) => {
+      const summaryEl = document.getElementById('profile-social-summary');
+      if (summaryEl) {
+        summaryEl.textContent = `${counts.followers} seguidores · ${counts.following} siguiendo · ${counts.friends} amigos`;
+      }
+    }).catch(() => {});
+
+    fetchIncomingFriendRequests(token).then((reqs) => {
+      const badge = document.getElementById('badge-network-requests');
+      if (badge) {
+        if (reqs.length > 0) {
+          badge.textContent = reqs.length;
+          badge.classList.remove('hidden');
+        } else {
+          badge.classList.add('hidden');
+        }
+      }
+    }).catch(() => {});
+  }
+
   syncAdminBadge();
 }
 
@@ -546,11 +597,165 @@ function renderFeedContent() {
     renderBuildingsFeed(statusBuildings('favorite'), 'favorite');
   } else if (activeTab === 'notes') {
     renderNotesFeed();
+  } else if (activeTab === 'network') {
+    renderNetworkFeed();
   } else {
     renderCollectionsFeed();
   }
 
   if (window.lucide) window.lucide.createIcons();
+}
+
+async function renderNetworkFeed() {
+  if (!content) return;
+  const token = getSessionToken();
+  if (!token) return;
+
+  content.innerHTML = `
+    <div class="profile-feed-loading" style="padding: 24px; text-align: center; font-size: 11px; font-family: 'Inter', sans-serif;">
+      CARGANDO MI RED SOCIAL...
+    </div>
+  `;
+
+  try {
+    const [requests, friends] = await Promise.all([
+      fetchIncomingFriendRequests(token).catch(() => []),
+      fetchUserFriends(token).catch(() => []),
+    ]);
+
+    const badge = document.getElementById('badge-network-requests');
+    if (badge) {
+      if (requests.length > 0) {
+        badge.textContent = requests.length;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+    }
+
+    let html = '';
+
+    if (requests.length > 0) {
+      html += `
+        <div style="margin-bottom: 24px;">
+          <h3 style="font-family: 'League Spartan', sans-serif; font-size: 16px; margin: 0 0 12px; color: var(--accent, #E84E1B); letter-spacing: 0.04em;">
+            SOLICITUDES DE AMISTAD RECIBIDAS (${requests.length})
+          </h3>
+          <div style="display: grid; gap: 10px;">
+            ${requests.map(req => {
+              const s = req.sender || {};
+              const name = s.first_name || s.nick || 'Usuario';
+              const nick = s.nick ? `@${s.nick}` : '';
+              const school = s.school ? ` · 🏛️ ${escapeHtml(s.school)}` : '';
+              return `
+                <div class="my-collection-card" style="background: var(--bg-panel); border: 1.5px solid var(--border-strong); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                  <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 38px; height: 38px; border-radius: 50%; background: var(--accent); color:#fff; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 1px solid var(--border-strong);">
+                      ${escapeHtml(name[0].toUpperCase())}
+                    </div>
+                    <div>
+                      <strong style="font-size: 12px; display: block;">${escapeHtml(name)} ${s.is_verified_pro ? '<span style="color:var(--accent); font-size:10px;">✓ PRO</span>' : ''}</strong>
+                      <span style="font-size: 10px; color: var(--fg-dim);">${escapeHtml(nick)}${school}</span>
+                    </div>
+                  </div>
+                  <div style="display: flex; gap: 8px;">
+                    <button type="button" class="btn-accept-friend filter-action" data-friendship-id="${req.friendshipId}" style="padding: 6px 12px; font-size: 10px; font-weight: 800; background: var(--fg); color: var(--bg); border: 1px solid var(--border-strong); cursor: pointer;">
+                      ✓ ACEPTAR
+                    </button>
+                    <button type="button" class="btn-decline-friend filter-action" data-friendship-id="${req.friendshipId}" style="padding: 6px 12px; font-size: 10px; font-weight: 800; background: var(--bg-raised); color: var(--fg); border: 1px solid var(--border-strong); cursor: pointer;">
+                      ✕ RECHAZAR
+                    </button>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    html += `
+      <div>
+        <h3 style="font-family: 'League Spartan', sans-serif; font-size: 16px; margin: 0 0 12px; color: var(--fg); letter-spacing: 0.04em;">
+          AMIGOS (${friends.length})
+        </h3>
+    `;
+
+    if (!friends.length) {
+      html += `
+        <div class="profile-feed-empty" style="padding: 24px; text-align: center; border: 1px dashed var(--border); font-size: 11px;">
+          AÚN NO TIENES AMIGOS EN NOLLI.<br>
+          <span style="font-size: 10px; color: var(--fg-dim); margin-top: 6px; display: block;">
+            Visita perfiles públicos para enviar solicitudes de amistad y conectar con otros arquitectos.
+          </span>
+        </div>
+      `;
+    } else {
+      html += `
+        <div style="display: grid; gap: 10px;">
+          ${friends.map(f => {
+            const name = f.first_name || f.nick || 'Usuario';
+            const nick = f.nick ? `@${f.nick}` : '';
+            const school = f.school ? ` · 🏛️ ${escapeHtml(f.school)}` : '';
+            const location = [f.city, f.country].filter(Boolean).join(', ');
+            return `
+              <div class="my-collection-card" style="background: var(--bg-panel); border: 1px solid var(--border-strong); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <div style="width: 38px; height: 38px; border-radius: 50%; background: var(--fg); color: var(--bg); display: flex; align-items: center; justify-content: center; font-weight: bold; border: 1px solid var(--border-strong);">
+                    ${escapeHtml(name[0].toUpperCase())}
+                  </div>
+                  <div>
+                    <strong style="font-size: 12px; display: block;">${escapeHtml(name)} ${f.is_verified_pro ? '<span style="color:var(--accent); font-size:10px;">✓ PRO</span>' : ''}</strong>
+                    <span style="font-size: 10px; color: var(--fg-dim);">${escapeHtml(nick)}${school}${location ? ` · ${escapeHtml(location)}` : ''}</span>
+                  </div>
+                </div>
+                <a href="./public-profile.html?id=${encodeURIComponent(f.id)}" class="filter-action" style="text-decoration: none; padding: 6px 12px; font-size: 10px; font-weight: 800; border: 1px solid var(--border-strong); background: var(--bg-panel); color: var(--fg);">
+                  VER PERFIL ↗
+                </a>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    html += '</div>';
+    content.innerHTML = html;
+
+    content.querySelectorAll('.btn-accept-friend').forEach(btn => {
+      btn.onclick = async () => {
+        const id = btn.dataset.friendshipId;
+        btn.disabled = true;
+        btn.textContent = 'ACEPTANDO...';
+        try {
+          await respondFriendshipRpc(id, true, token);
+          renderNetworkFeed();
+        } catch (e) {
+          alert(e.message);
+          btn.disabled = false;
+        }
+      };
+    });
+
+    content.querySelectorAll('.btn-decline-friend').forEach(btn => {
+      btn.onclick = async () => {
+        const id = btn.dataset.friendshipId;
+        btn.disabled = true;
+        btn.textContent = 'RECHAZANDO...';
+        try {
+          await respondFriendshipRpc(id, false, token);
+          renderNetworkFeed();
+        } catch (e) {
+          alert(e.message);
+          btn.disabled = false;
+        }
+      };
+    });
+
+  } catch (err) {
+    console.error('Error al cargar red social:', err);
+    content.innerHTML = `<div class="profile-feed-empty">Error al cargar la red social: ${escapeHtml(err.message)}</div>`;
+  }
 }
 
 function renderBuildingsFeed(buildings, tabKey) {
@@ -1270,6 +1475,7 @@ function setupEditProfileModal() {
       const inputCity = document.getElementById('edit-profile-city');
       const inputCountry = document.getElementById('edit-profile-country');
       const inputWeb = document.getElementById('edit-profile-website');
+      const inputSchool = document.getElementById('edit-profile-school');
 
       if (inputFirst) inputFirst.value = db.first_name || metadata.first_name || '';
       if (inputLast) inputLast.value = db.last_name || metadata.last_name || '';
@@ -1277,6 +1483,7 @@ function setupEditProfileModal() {
       if (inputCity) inputCity.value = db.city || metadata.city || '';
       if (inputCountry) inputCountry.value = db.country || metadata.country || '';
       if (inputWeb) inputWeb.value = db.website || metadata.website || '';
+      if (inputSchool) inputSchool.value = db.school || metadata.school || '';
 
       if (editStatus) editStatus.classList.add('hidden');
       setupLanguageSwitchers(modalEditProfile);
@@ -1310,6 +1517,7 @@ function setupEditProfileModal() {
       const city = document.getElementById('edit-profile-city')?.value || '';
       const country = document.getElementById('edit-profile-country')?.value || '';
       const website = document.getElementById('edit-profile-website')?.value || '';
+      const school = document.getElementById('edit-profile-school')?.value || '';
 
       const submitBtn = document.getElementById('btn-save-profile');
       if (submitBtn) {
@@ -1324,6 +1532,7 @@ function setupEditProfileModal() {
         city,
         country,
         website,
+        school,
       };
 
       try {
@@ -1341,6 +1550,7 @@ function setupEditProfileModal() {
           city,
           country,
           website,
+          school,
         };
         localStorage.setItem('nolli_cached_db_profile', JSON.stringify(profileState.dbProfile));
 
@@ -1352,6 +1562,7 @@ function setupEditProfileModal() {
           city,
           country,
           website,
+          school,
         };
         localStorage.setItem('nolli_cached_user', JSON.stringify(user));
         state.userProfile = updatedProfile;

@@ -79,19 +79,49 @@
       <a href="./" class="filter-action" style="text-decoration: none; padding: 6px 12px; border: 1px solid var(--border-strong, #141411); font-family: 'Inter', sans-serif; font-size: 11px;">VOLVER AL MAPA</a>
     </div>
 
-    <!-- Tarjeta de cabecera del usuario (Avatar, Nick, Nombre y Bio) -->
+    <!-- Tarjeta de cabecera del usuario (Avatar, Nick, Nombre, Badges, Red y Bio) -->
     <section class="my-collection-card" style="background: var(--bg-panel, #F8F1DF); border: 1px solid var(--border-strong, #141411); padding: 20px; display: grid; gap: 14px; margin-bottom: 20px; font-family: 'Inter', sans-serif;">
-      <div style="display: flex; gap: 16px; align-items: center;">
-        <div id="user-avatar" style="width: 64px; height: 64px; border-radius: 50%; background: var(--accent, #E95C0C); color: #FFF; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; border: 1px solid var(--border-strong, #141411);">
+      <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+        <div id="user-avatar" style="width: 68px; height: 68px; border-radius: 50%; background: var(--accent, #E95C0C); color: #FFF; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; border: 1.5px solid var(--border-strong, #141411); flex-shrink: 0;">
           ?
         </div>
-        <div style="display: grid; gap: 4px;">
-          <h2 id="user-display-name" class="font-display" style="font-size: 18px; margin: 0; color: var(--fg, #141411);">Cargando...</h2>
-          <span id="user-nick-handle" style="font-size: 11px; color: var(--fg-dim, #666);">@...</span>
-          <span id="user-location" style="font-size: 10px; color: var(--fg-dim, #666);">--</span>
+        <div style="display: grid; gap: 4px; flex: 1; min-width: 220px;">
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <h2 id="user-display-name" class="font-display" style="font-size: 20px; margin: 0; color: var(--fg, #141411); letter-spacing: -0.02em;">Cargando...</h2>
+            <span id="user-verified-badge" class="hidden" style="background: var(--accent, #E95C0C); color: #fff; font-size: 9px; font-weight: 800; padding: 2px 7px; letter-spacing: 0.06em; border: 1px solid var(--border-strong, #141411); text-transform: uppercase;">✓ PRO VERIFICADO</span>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 11px; color: var(--fg-dim, #666);">
+            <span id="user-nick-handle">@...</span>
+            <span>·</span>
+            <span id="user-location">--</span>
+            <span id="user-school-chip" class="hidden" style="color: var(--fg, #141411); background: var(--bg-raised, #F0E9D2); padding: 2px 7px; border: 1px solid var(--border-strong, #141411); font-weight: 700; font-size: 10px;"></span>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: center; margin-top: 4px; flex-wrap: wrap;">
+            <span id="user-points-badge" style="font-size: 11px; font-weight: 800; color: var(--accent, #E95C0C); letter-spacing: 0.04em;">0 PTS NOLLI</span>
+            <span id="user-pro-title" class="hidden" style="font-size: 10px; color: var(--fg-dim, #666); font-style: italic;"></span>
+          </div>
         </div>
       </div>
-      <div id="user-bio" style="font-size: 11px; color: var(--fg, #141411); line-height: 1.4; border-top: 1px dashed var(--border, #D8D6CE); padding-top: 10px;">
+
+      <!-- Barra de estadísticas sociales públicas -->
+      <div style="display: flex; gap: 20px; border-top: 1px dashed var(--border, #D8D6CE); padding-top: 12px; font-size: 11px; flex-wrap: wrap;">
+        <div><strong id="stat-followers-num" style="font-size: 13px;">0</strong> <span style="color:var(--fg-dim, #666); font-size: 10px; letter-spacing: 0.05em;">SEGUIDORES</span></div>
+        <div><strong id="stat-following-num" style="font-size: 13px;">0</strong> <span style="color:var(--fg-dim, #666); font-size: 10px; letter-spacing: 0.05em;">SIGUIENDO</span></div>
+        <div><strong id="stat-friends-num" style="font-size: 13px;">0</strong> <span style="color:var(--fg-dim, #666); font-size: 10px; letter-spacing: 0.05em;">AMIGOS</span></div>
+      </div>
+
+      <!-- Botones de Acción Social -->
+      <div id="social-action-toolbar" style="display: flex; gap: 10px; border-top: 1px dashed var(--border, #D8D6CE); padding-top: 12px; align-items: center; flex-wrap: wrap;">
+        <button type="button" id="btn-social-follow" class="filter-action" style="display: inline-flex; align-items: center; justify-content: center; padding: 7px 16px; border: 1.5px solid var(--border-strong, #141411); font-size: 10px; font-weight: 800; letter-spacing: 0.06em; background: var(--fg, #141411); color: var(--bg, #F8F1DF); cursor: pointer; text-decoration: none;">
+          + SEGUIR
+        </button>
+        <button type="button" id="btn-social-friend" class="filter-action" style="display: inline-flex; align-items: center; justify-content: center; padding: 7px 16px; border: 1.5px solid var(--border-strong, #141411); font-size: 10px; font-weight: 800; letter-spacing: 0.06em; background: var(--bg-panel, #F8F1DF); color: var(--fg, #141411); cursor: pointer; text-decoration: none;">
+          + AÑADIR AMIGO
+        </button>
+        <span id="social-status-feedback" style="font-size: 11px; font-weight: 600; color: var(--accent, #E95C0C);"></span>
+      </div>
+
+      <div id="user-bio" style="font-size: 11px; color: var(--fg, #141411); line-height: 1.45; border-top: 1px dashed var(--border, #D8D6CE); padding-top: 12px;">
         Sin biografía disponible.
       </div>
     </section>
@@ -113,13 +143,38 @@
 
   <script type="module">
     import { state } from './state.js';
-    import { searchUserByNick, fetchPublicProfileById, fetchPublicUserCollections, fetchPublicUserBuildingStatuses, fetchBuildings } from './api.js';
+    import { 
+      searchUserByNick, 
+      fetchPublicProfileById, 
+      fetchPublicUserCollections, 
+      fetchPublicUserBuildingStatuses, 
+      fetchBuildings,
+      fetchCurrentUser,
+      fetchUserSocialCounts,
+      followUser,
+      unfollowUser,
+      checkIsFollowing,
+      getFriendshipState,
+      requestFriendshipRpc,
+      respondFriendshipRpc
+    } from './api.js';
 
     let profileUser = null;
     let publicCollections = [];
     let publicStatuses = [];
     let allBuildings = [];
     let activeTab = 'collections';
+
+    function getStoredToken() {
+      const stored = localStorage.getItem('nolli_admin_session_token') || sessionStorage.getItem('nolli_admin_session_token');
+      if (!stored) return null;
+      try {
+        const parsed = JSON.parse(stored);
+        return parsed.access_token || stored;
+      } catch {
+        return stored;
+      }
+    }
 
     async function initProfileView() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -147,6 +202,7 @@
         }
 
         renderUserInfo(profileUser);
+        initSocialActions(profileUser);
 
         [publicCollections, publicStatuses] = await Promise.all([
           fetchPublicUserCollections(profileUser.id),
@@ -183,6 +239,159 @@
         avatar.textContent = '';
       }
       document.getElementById('profile-header-title').textContent = `nolli. (${nick || displayName})`;
+
+      // Badges y datos profesionales
+      if (user.is_verified_pro) {
+        document.getElementById('user-verified-badge')?.classList.remove('hidden');
+      }
+      if (user.verified_pro_title) {
+        const proTitle = document.getElementById('user-pro-title');
+        if (proTitle) {
+          proTitle.textContent = user.verified_pro_title;
+          proTitle.classList.remove('hidden');
+        }
+      }
+      if (user.school) {
+        const schoolChip = document.getElementById('user-school-chip');
+        if (schoolChip) {
+          schoolChip.textContent = `🏛️ ${user.school}`;
+          schoolChip.classList.remove('hidden');
+        }
+      }
+
+      // Puntos Nolli
+      const pointsBadge = document.getElementById('user-points-badge');
+      if (pointsBadge) {
+        pointsBadge.textContent = `⭐ ${user.total_points || 0} PTS NOLLI`;
+        pointsBadge.title = `Visitas: ${user.points_visitor || 0} pts | Aportaciones: ${user.points_contributor || 0} pts`;
+      }
+    }
+
+    async function initSocialActions(targetUser) {
+      const token = getStoredToken();
+      const btnFollow = document.getElementById('btn-social-follow');
+      const btnFriend = document.getElementById('btn-social-friend');
+      const feedback = document.getElementById('social-status-feedback');
+      const toolbar = document.getElementById('social-action-toolbar');
+
+      // 1. Cargar contadores sociales públicos
+      fetchUserSocialCounts(targetUser.id).then(counts => {
+        document.getElementById('stat-followers-num').textContent = counts.followers;
+        document.getElementById('stat-following-num').textContent = counts.following;
+        document.getElementById('stat-friends-num').textContent = counts.friends;
+      });
+
+      // 2. Si no está logueado
+      if (!token) {
+        btnFollow?.addEventListener('click', () => {
+          feedback.textContent = 'Inicia sesión en Nolli para seguir perfiles.';
+          setTimeout(() => { window.location.href = './perfil.html'; }, 900);
+        });
+        btnFriend?.addEventListener('click', () => {
+          feedback.textContent = 'Inicia sesión en Nolli para conectar como amigo.';
+          setTimeout(() => { window.location.href = './perfil.html'; }, 900);
+        });
+        return;
+      }
+
+      // 3. Usuario autenticado
+      const currentUser = await fetchCurrentUser(token).catch(() => null);
+      if (currentUser?.id === targetUser.id) {
+        toolbar.innerHTML = `
+          <a href="./perfil.html" class="filter-action" style="display: inline-flex; align-items: center; padding: 7px 16px; border: 1.5px solid var(--border-strong, #141411); font-size: 10px; font-weight: 800; background: var(--bg-raised, #F0E9D2); color: var(--fg, #141411); text-decoration: none;">
+            EDITAR MI PERFIL ↗
+          </a>`;
+        return;
+      }
+
+      // Estado de seguimiento
+      let isFollowing = await checkIsFollowing(targetUser.id, token);
+      const updateFollowBtn = () => {
+        if (isFollowing) {
+          btnFollow.textContent = '✓ SIGUIENDO';
+          btnFollow.style.background = 'var(--bg-raised, #F0E9D2)';
+          btnFollow.style.color = 'var(--fg, #141411)';
+        } else {
+          btnFollow.textContent = '+ SEGUIR';
+          btnFollow.style.background = 'var(--fg, #141411)';
+          btnFollow.style.color = 'var(--bg, #F8F1DF)';
+        }
+      };
+      updateFollowBtn();
+
+      btnFollow?.addEventListener('click', async () => {
+        btnFollow.disabled = true;
+        try {
+          if (isFollowing) {
+            await unfollowUser(targetUser.id, token);
+            isFollowing = false;
+            const el = document.getElementById('stat-followers-num');
+            if (el) el.textContent = Math.max(0, parseInt(el.textContent || '0', 10) - 1);
+          } else {
+            await followUser(targetUser.id, token);
+            isFollowing = true;
+            const el = document.getElementById('stat-followers-num');
+            if (el) el.textContent = parseInt(el.textContent || '0', 10) + 1;
+          }
+          updateFollowBtn();
+        } catch (e) {
+          feedback.textContent = e.message;
+        } finally {
+          btnFollow.disabled = false;
+        }
+      });
+
+      // Estado de amistad
+      let friendship = await getFriendshipState(targetUser.id, token);
+      const updateFriendBtn = () => {
+        if (!friendship) {
+          btnFriend.textContent = '+ AÑADIR AMIGO';
+          btnFriend.disabled = false;
+          btnFriend.style.background = 'var(--bg-panel, #F8F1DF)';
+          btnFriend.style.color = 'var(--fg, #141411)';
+        } else if (friendship.status === 'accepted') {
+          btnFriend.textContent = '✓ AMIGOS';
+          btnFriend.disabled = true;
+          btnFriend.style.background = 'var(--accent, #E95C0C)';
+          btnFriend.style.color = '#fff';
+        } else if (friendship.status === 'pending') {
+          if (friendship.isActionByMe) {
+            btnFriend.textContent = 'SOLICITUD ENVIADA';
+            btnFriend.disabled = true;
+            btnFriend.style.background = 'var(--bg-raised, #F0E9D2)';
+            btnFriend.style.color = 'var(--fg-dim, #666)';
+          } else {
+            btnFriend.textContent = 'ACEPTAR AMISTAD';
+            btnFriend.disabled = false;
+            btnFriend.style.background = 'var(--fg, #141411)';
+            btnFriend.style.color = 'var(--bg, #F8F1DF)';
+          }
+        }
+      };
+      updateFriendBtn();
+
+      btnFriend?.addEventListener('click', async () => {
+        btnFriend.disabled = true;
+        try {
+          if (!friendship) {
+            await requestFriendshipRpc(targetUser.id, token);
+            friendship = { status: 'pending', isActionByMe: true };
+            updateFriendBtn();
+            feedback.textContent = 'Solicitud de amistad enviada con éxito.';
+          } else if (friendship.status === 'pending' && !friendship.isActionByMe) {
+            await respondFriendshipRpc(friendship.id, true, token);
+            friendship = { status: 'accepted', isActionByMe: false };
+            updateFriendBtn();
+            const el = document.getElementById('stat-friends-num');
+            if (el) el.textContent = parseInt(el.textContent || '0', 10) + 1;
+            feedback.textContent = '¡Ahora sois amigos!';
+          }
+        } catch (e) {
+          feedback.textContent = e.message;
+        } finally {
+          btnFriend.disabled = false;
+        }
+      });
     }
 
     document.addEventListener('click', (e) => {
@@ -240,6 +449,5 @@
 
     initProfileView();
   </script>
-
 </body>
 </html>

@@ -157,8 +157,16 @@
     <main id="profile-app" class="profile-main">
       <!-- 2. Hero Monumental (Identidad) -->
       <section class="profile-hero">
-        <h1 id="profile-hero-name" class="profile-hero-name" data-i18n="profile_default_name">TU NOMBRE</h1>
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <h1 id="profile-hero-name" class="profile-hero-name" data-i18n="profile_default_name">TU NOMBRE</h1>
+          <span id="profile-verified-badge" class="hidden" style="background: var(--accent, #E95C0C); color: #fff; font-size: 10px; font-weight: 800; padding: 3px 8px; letter-spacing: 0.06em; border: 1px solid var(--border-strong, #141411); text-transform: uppercase;">✓ PRO VERIFICADO</span>
+        </div>
         <p id="profile-hero-sub" class="profile-hero-sub" data-i18n="profile_default_bio">Tu biografía</p>
+        <div style="display: flex; gap: 12px; align-items: center; margin-top: 6px; flex-wrap: wrap; font-size: 11px;">
+          <span id="profile-school-badge" class="hidden" style="background: var(--bg-raised, #F0E9D2); padding: 2px 8px; border: 1px solid var(--border-strong, #141411); font-weight: 700;"></span>
+          <span id="profile-points-display" style="font-weight: 800; color: var(--accent, #E95C0C); letter-spacing: 0.03em;">⭐ 0 PTS NOLLI</span>
+          <span id="profile-social-summary" style="color: var(--fg-dim, #666);">0 seguidores · 0 siguiendo · 0 amigos</span>
+        </div>
       </section>
 
       <!-- 3. Métricas (Grid Invisible) -->
@@ -192,6 +200,7 @@
         <button type="button" class="profile-curatorial-tab" data-profile-tab="favorite" data-i18n="places_tab_favorites">FAVORITOS</button>
         <button type="button" class="profile-curatorial-tab" data-profile-tab="visited" data-i18n="places_tab_visited">VISITADOS</button>
         <button type="button" class="profile-curatorial-tab" data-profile-tab="notes" data-i18n="places_tab_notes">NOTAS</button>
+        <button type="button" class="profile-curatorial-tab" data-profile-tab="network" id="tab-profile-network">MI RED <span id="badge-network-requests" class="hidden" style="background:var(--accent, #E95C0C); color:#fff; border-radius:10px; font-size:9px; padding:1px 6px; margin-left:4px; font-weight:bold;">0</span></button>
       </nav>
 
       <!-- 5. Feed de Obras (Archivo con padding-bottom de 160px para scroll fluido) -->
@@ -284,6 +293,11 @@
         <div class="profile-form-group">
           <label class="profile-form-label" for="edit-profile-website" data-i18n="profile_edit_website">SITIO WEB / PORTFOLIO</label>
           <input type="url" id="edit-profile-website" class="tech-input" placeholder="https://signes.studio" autocomplete="url">
+        </div>
+
+        <div class="profile-form-group">
+          <label class="profile-form-label" for="edit-profile-school">ESCUELA / FACULTAD DE ARQUITECTURA</label>
+          <input type="text" id="edit-profile-school" class="tech-input" placeholder="p.ej. ETSAM, ETSAB, Architectural Association..." autocomplete="organization">
         </div>
 
         <div class="profile-form-group">

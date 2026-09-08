@@ -659,6 +659,7 @@ export async function updateCurrentUserProfile(sessionToken, profile = {}) {
     website: String(profile.website || '').trim(),
     city: String(profile.city || '').trim(),
     country: String(profile.country || '').trim(),
+    school: String(profile.school || '').trim(),
   };
   const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
     method: 'PUT',
@@ -707,6 +708,11 @@ export async function upsertCurrentProfile(user, profile = {}, sessionToken) {
   const webVal = profile.website !== undefined ? profile.website : metadata.website;
   if (webVal !== undefined) {
     payload.website = webVal !== null ? String(webVal).trim() : null;
+  }
+
+  const schoolVal = profile.school !== undefined ? profile.school : metadata.school;
+  if (schoolVal !== undefined) {
+    payload.school = schoolVal !== null ? String(schoolVal).trim() : null;
   }
 
   if (userEmail === 'studio.signes@gmail.com') {
@@ -1314,7 +1320,7 @@ export async function reviewBuilding(id, estadoRevision, sessionToken = null) {
 export async function searchUserByNick(nick) {
   const cleanNick = String(nick || '').trim().replace(/^@/, '');
   if (!cleanNick) return null;
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/public_profiles?nick=eq.${encodeURIComponent(cleanNick)}&select=id,nick,first_name,city,country,bio,website,avatar_url`, {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/public_profiles?nick=eq.${encodeURIComponent(cleanNick)}&select=*`, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
   });
   if (!response.ok) return null;
@@ -1324,7 +1330,7 @@ export async function searchUserByNick(nick) {
 
 export async function fetchPublicProfileById(userId) {
   if (!userId) return null;
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/public_profiles?id=eq.${encodeURIComponent(userId)}&select=id,nick,first_name,city,country,bio,website,avatar_url`, {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/public_profiles?id=eq.${encodeURIComponent(userId)}&select=*`, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
   });
   if (!response.ok) return null;
@@ -1695,4 +1701,219 @@ export async function deleteItinerary(id, sessionToken) {
   deleteLocalStorageItinerary(id);
   window.dispatchEvent(new CustomEvent('nolli:itineraries-updated', { detail: { id, deleted: true } }));
   return true;
+}
+
+/* =========================================================================
+   CAPA SOCIAL (FASE 1: RELACIONES, SEGUIMIENTOS Y AMISTADES)
+   ========================================================================= */
+
+// 1. SEGUIMIENTO (FOLLOWS - ASIMÉTRICO)
+export async function followUser(targetUserId, sessionToken) {
+  if (!sessionToken || !targetUserId) throw new Error('Debes iniciar sesión para seguir a un usuario.');
+  const user = await fetchCurrentUser(sessionToken);
+  if (!user?.id) throw new Error('Sesión no válida.');
+  
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_follows`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation',
+    },
+    body: JSON.stringify({
+      follower_id: user.id,
+      following_id: targetUserId,
+    }),
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.message || 'No se pudo seguir al usuario.');
+  }
+  return true;
+}
+
+export async function unfollowUser(targetUserId, sessionToken) {
+  if (!sessionToken || !targetUserId) throw new Error('Debes iniciar sesión.');
+  const user = await fetchCurrentUser(sessionToken);
+  if (!user?.id) throw new Error('Sesión no válida.');
+
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_follows?follower_id=eq.${encodeURIComponent(user.id)}&following_id=eq.${encodeURIComponent(targetUserId)}`, {
+    method: 'DELETE',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+    },
+  });
+  return response.ok;
+}
+
+export async function checkIsFollowing(targetUserId, sessionToken) {
+  if (!sessionToken || !targetUserId) return false;
+  const user = await fetchCurrentUser(sessionToken);
+  if (!user?.id) return false;
+
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_follows?follower_id=eq.${encodeURIComponent(user.id)}&following_id=eq.${encodeURIComponent(targetUserId)}&select=follower_id`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+    },
+  });
+  if (!response.ok) return false;
+  const rows = await response.json().catch(() => []);
+  return rows.length > 0;
+}
+
+// 2. CONTADORES SOCIALES PÚBLICOS
+export async function fetchUserSocialCounts(userId) {
+  if (!userId) return { followers: 0, following: 0, friends: 0 };
+  try {
+    const [followersRes, followingRes, friendsRes] = await Promise.all([
+      // Seguidores
+      fetch(`${SUPABASE_URL}/rest/v1/user_follows?following_id=eq.${encodeURIComponent(userId)}&select=follower_id`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Prefer': 'count=exact', 'Range': '0-0' },
+      }),
+      // Siguiendo
+      fetch(`${SUPABASE_URL}/rest/v1/user_follows?follower_id=eq.${encodeURIComponent(userId)}&select=following_id`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Prefer': 'count=exact', 'Range': '0-0' },
+      }),
+      // Amigos (user_friendships aceptados donde participa el usuario)
+      fetch(`${SUPABASE_URL}/rest/v1/user_friendships?or=(user_id_1.eq.${encodeURIComponent(userId)},user_id_2.eq.${encodeURIComponent(userId)})&status=eq.accepted&select=id`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Prefer': 'count=exact', 'Range': '0-0' },
+      }),
+    ]);
+
+    const getCount = (res) => {
+      const cr = res.headers.get('content-range');
+      if (cr) {
+        const parts = cr.split('/');
+        if (parts[1] && parts[1] !== '*') return parseInt(parts[1], 10) || 0;
+      }
+      return 0;
+    };
+
+    return {
+      followers: getCount(followersRes),
+      following: getCount(followingRes),
+      friends: getCount(friendsRes),
+    };
+  } catch (err) {
+    console.warn('Error al obtener contadores sociales:', err);
+    return { followers: 0, following: 0, friends: 0 };
+  }
+}
+
+// 3. AMISTAD (FRIENDSHIPS - MUTUO CON RPCs CANÓNICAS)
+export async function getFriendshipState(targetUserId, sessionToken) {
+  if (!sessionToken || !targetUserId) return null;
+  const user = await fetchCurrentUser(sessionToken);
+  if (!user?.id) return null;
+
+  const u1 = user.id < targetUserId ? user.id : targetUserId;
+  const u2 = user.id < targetUserId ? targetUserId : user.id;
+
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_friendships?user_id_1=eq.${encodeURIComponent(u1)}&user_id_2=eq.${encodeURIComponent(u2)}&select=*`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+    },
+  });
+  if (!response.ok) return null;
+  const rows = await response.json().catch(() => []);
+  if (!rows.length) return null;
+
+  const rel = rows[0];
+  return {
+    id: rel.id,
+    status: rel.status, // 'pending' | 'accepted' | 'declined' | 'blocked'
+    isActionByMe: rel.action_user_id === user.id,
+    actionUserId: rel.action_user_id,
+  };
+}
+
+export async function requestFriendshipRpc(targetUserId, sessionToken) {
+  if (!sessionToken || !targetUserId) throw new Error('Debes iniciar sesión para solicitar amistad.');
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/request_friendship`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ target_user_id: targetUserId }),
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.message || 'Error al enviar solicitud de amistad.');
+  }
+  return response.json();
+}
+
+export async function respondFriendshipRpc(friendshipId, accept, sessionToken) {
+  if (!sessionToken || !friendshipId) throw new Error('Debes iniciar sesión.');
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/respond_friendship`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ friendship_id: friendshipId, accept: Boolean(accept) }),
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.message || 'Error al responder a la solicitud de amistad.');
+  }
+  return response.json();
+}
+
+export async function fetchIncomingFriendRequests(sessionToken) {
+  if (!sessionToken) return [];
+  const user = await fetchCurrentUser(sessionToken);
+  if (!user?.id) return [];
+
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_friendships?status=eq.pending&action_user_id=neq.${encodeURIComponent(user.id)}&or=(user_id_1.eq.${encodeURIComponent(user.id)},user_id_2.eq.${encodeURIComponent(user.id)})&select=id,user_id_1,user_id_2,action_user_id,created_at`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+    },
+  });
+  if (!response.ok) return [];
+  const rows = await response.json().catch(() => []);
+  if (!rows.length) return [];
+
+  const requesterIds = rows.map(r => r.action_user_id);
+  const profilesRes = await fetch(`${SUPABASE_URL}/rest/v1/public_profiles?id=in.(${requesterIds.map(id => `"${id}"`).join(',')})&select=*`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
+  });
+  const profiles = await profilesRes.json().catch(() => []);
+  const profileMap = new Map(profiles.map(p => [p.id, p]));
+
+  return rows.map(r => ({
+    friendshipId: r.id,
+    sender: profileMap.get(r.action_user_id) || { id: r.action_user_id, nick: 'Usuario' },
+    createdAt: r.created_at,
+  }));
+}
+
+export async function fetchUserFriends(sessionToken) {
+  if (!sessionToken) return [];
+  const user = await fetchCurrentUser(sessionToken);
+  if (!user?.id) return [];
+
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_friendships?status=eq.accepted&or=(user_id_1.eq.${encodeURIComponent(user.id)},user_id_2.eq.${encodeURIComponent(user.id)})&select=id,user_id_1,user_id_2`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+    },
+  });
+  if (!response.ok) return [];
+  const rows = await response.json().catch(() => []);
+  const friendIds = rows.map(r => r.user_id_1 === user.id ? r.user_id_2 : r.user_id_1);
+  if (!friendIds.length) return [];
+
+  const profilesRes = await fetch(`${SUPABASE_URL}/rest/v1/public_profiles?id=in.(${friendIds.map(id => `"${id}"`).join(',')})&select=*`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
+  });
+  return profilesRes.json().catch(() => []);
 }
