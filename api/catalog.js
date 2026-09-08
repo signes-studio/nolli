@@ -67,7 +67,7 @@ module.exports = async function handler(req, res) {
   const isLight = req.query?.light === 'true' || req.query?.light === '1';
   const fields = isLight
     ? 'id,nombre_obra,categoria,importancia,longitud,latitud'
-    : 'id,nombre_obra,foto_url,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,longitud,latitud,place';
+    : 'id,nombre_obra,foto_url,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,longitud,latitud,place,created_at';
 
   const params = new URLSearchParams({
     select: fields,

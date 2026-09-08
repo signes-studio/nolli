@@ -574,16 +574,19 @@ function initAddBuildingModal() {
         const isPrivate = visibility === 'private';
         const isDirect = visibility === 'direct' && esRolEditor(state.userRole);
         const nuevoId = generarIdAlfanumerico(8);
+        const nowIso = new Date().toISOString();
 
         const nuevoEdificio = {
           ...edificio,
           id: nuevoId,
+          created_at: nowIso,
           añadido_por: isDirect ? (esRolAdmin(state.userRole) ? 'administrador' : 'editor') : (state.userEmail || 'usuario'),
           estado_revision: isDirect ? 'publicada' : 'pendiente',
         };
         const privateData = {
           ...edificio,
           id: nuevoId,
+          created_at: nowIso,
           user_id: state.userId,
         };
 
@@ -596,6 +599,7 @@ function initAddBuildingModal() {
           ...(isPrivate ? privateData : nuevoEdificio),
           arquitectos: separarArquitectos(finalArq),
           añadido_por: nuevoEdificio.añadido_por,
+          created_at: inserted?.created_at || nowIso,
           estado_revision: isPrivate ? 'privada' : nuevoEdificio.estado_revision,
           id: inserted?.id || nuevoId,
           featureId: String(inserted?.id ?? `obra-${nuevoId}`),

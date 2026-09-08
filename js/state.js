@@ -169,8 +169,9 @@ export function esRolEditor(role = state.userRole) {
   return false;
 }
 
-export function esRolTester(role = state.userRole) {
-  return role === 'tester' || role === 'admin' || role === 'superadmin';
+export function esRolTester(_role = state.userRole) {
+  // Obsoleto: rol 'tester' eliminado formalmente del sistema en favor de 'editor'
+  return false;
 }
 
 export function esRolSuperadmin(role = state.userRole) {
@@ -356,6 +357,8 @@ export function transformarEdificio(fila, index = 0) {
     estado_acceso: fila.estado_acceso || (fila.visitable ? 'publico' : 'privado'),
     añadido_por: fila.añadido_por || null,
     estado_revision: fila.estado_revision || 'publicada',
+    created_at: fila.created_at || null,
+    updated_at: fila.updated_at || null,
     coordenadas: [lon, lat],
     selected: Boolean(fila.selected),
     private: Boolean(fila.private),

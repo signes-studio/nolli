@@ -11,11 +11,13 @@ import {
   fetchAllBuildingsForAdmin, 
   fetchBuildingReports, 
   updateBuildingReport, 
+  deleteBuildingReport,
   fetchUserDirectory, 
   reviewBuilding, 
   deleteBuilding, 
   updateBuilding,
-  updateUserPresence 
+  updateUserPresence,
+  updateUserRole
 } from './api.js';
 import { escapeHtml, normalizarCategoria, nombreCategoria } from './state.js';
 
@@ -264,7 +266,8 @@ function updateBadges() {
   const badgeUsers = document.getElementById('badge-count-users');
 
   if (badgePending) badgePending.textContent = adminConsoleState.pendingWorks.length;
-  if (badgeReports) badgeReports.textContent = adminConsoleState.reports.length;
+  const pendingReportsTotal = adminConsoleState.reports.filter((r) => (r.estado || r.status || 'pendiente') === 'pendiente').length;
+  if (badgeReports) badgeReports.textContent = pendingReportsTotal;
 
   const onlineCount = adminConsoleState.users.filter((u) => {
     if (!u.last_seen_at) return false;
@@ -283,6 +286,7 @@ function renderModulePending() {
 
   const searchVal = (document.getElementById('search-pending')?.value || '').trim().toLowerCase();
   const filterState = document.getElementById('filter-pending-state')?.value || 'pendiente';
+  const filterSort = document.getElementById('filter-pending-sort')?.value || 'recent';
 
   let works = adminConsoleState.allWorks;
   if (filterState !== 'todos') {
@@ -292,6 +296,24 @@ function renderModulePending() {
   if (searchVal) {
     works = works.filter((w) => `${w.nombre_obra || ''} ${w.arquitecto || ''} ${w.place || ''}`.toLowerCase().includes(searchVal));
   }
+
+  // Ordenación por fecha de creación o alfabética
+  works = [...works].sort((a, b) => {
+    // Si se están viendo todas, las pendientes siempre van primero
+    if (a.estado_revision === 'pendiente' && b.estado_revision !== 'pendiente') return -1;
+    if (b.estado_revision === 'pendiente' && a.estado_revision !== 'pendiente') return 1;
+
+    if (filterSort === 'alpha') {
+      return (a.nombre_obra || '').localeCompare(b.nombre_obra || '', 'es', { sensitivity: 'base' });
+    }
+    const timeA = a.created_at ? new Date(a.created_at).getTime() : (a.updated_at ? new Date(a.updated_at).getTime() : 0);
+    const timeB = b.created_at ? new Date(b.created_at).getTime() : (b.updated_at ? new Date(b.updated_at).getTime() : 0);
+    if (filterSort === 'oldest') {
+      return timeA - timeB;
+    }
+    // Por defecto: 'recent' (más recientes primero)
+    return timeB - timeA;
+  });
 
   if (!works.length) {
     container.innerHTML = `
@@ -309,6 +331,8 @@ function renderModulePending() {
     const place = obra.place ? escapeHtml(obra.place) : 'Ubicación registrada';
     const isPending = obra.estado_revision === 'pendiente';
     const photo = obra.foto_url || obra.foto_miniatura || '';
+    const rawDate = obra.created_at || obra.updated_at;
+    const createdDateStr = rawDate ? new Date(rawDate).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : null;
 
     return `
       <article class="admin-work-card ${isPending ? 'pending-border' : ''}" data-work-id="${safeId}">
@@ -334,6 +358,7 @@ function renderModulePending() {
             <span class="admin-work-tag">${escapeHtml(category)}</span>
             ${obra.estado_acceso ? `<span class="admin-work-tag">${escapeHtml(obra.estado_acceso)}</span>` : ''}
             ${obra.añadido_por ? `<span class="admin-work-tag">Por: ${escapeHtml(obra.añadido_por)}</span>` : ''}
+            ${createdDateStr ? `<span class="admin-work-tag" style="background:var(--admin-bg-raised); font-family:monospace;">Alta: ${escapeHtml(createdDateStr)}</span>` : ''}
           </div>
         </div>
 
@@ -378,8 +403,13 @@ function renderModuleReports() {
   if (!container) return;
 
   const searchVal = (document.getElementById('search-reports')?.value || '').trim().toLowerCase();
+  const filterReportState = document.getElementById('filter-reports-state')?.value || 'pendiente';
 
   let reports = adminConsoleState.reports;
+  if (filterReportState !== 'todos') {
+    reports = reports.filter((r) => (r.estado || r.status || 'pendiente') === filterReportState);
+  }
+
   if (searchVal) {
     reports = reports.filter((r) => {
       const desc = (r.descripcion || r.description || '').toLowerCase();
@@ -390,7 +420,7 @@ function renderModuleReports() {
 
   if (!reports.length) {
     container.innerHTML = `
-      <div style="border:2px dashed var(--admin-border-light); padding:40px; text-align:center; font-family: 'Inter', sans-serif; font-size:12px; color:var(--admin-fg-dim);">NO HAY INCIDENCIAS PENDIENTES // BUZÓN VACÍO</div>
+      <div style="border:2px dashed var(--admin-border-light); padding:40px; text-align:center; font-family: 'Inter', sans-serif; font-size:12px; color:var(--admin-fg-dim);">NO HAY INCIDENCIAS CON ESTADO "${escapeHtml(filterReportState.toUpperCase())}" // BANDEJA LIMPIA</div>
     `;
     return;
   }
@@ -403,12 +433,18 @@ function renderModuleReports() {
     const desc = escapeHtml(report.descripcion || report.description || 'Sin descripción detallada.');
     const date = new Date(report.created_at).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' });
     const user = escapeHtml(report.user_email || (report.user_id ? `Usuario ID: ${report.user_id.slice(0, 8)}...` : 'Usuario anónimo'));
+    const status = report.estado || report.status || 'pendiente';
+    const isPending = status === 'pendiente';
+    const statusColor = status === 'revisado' ? 'var(--admin-green)' : status === 'descartado' ? 'var(--admin-fg-dim)' : 'var(--admin-accent)';
 
     return `
       <article class="admin-report-card" data-report-id="${safeId}">
         <div class="admin-report-head">
           <div>
-            <h3 class="admin-report-building">${buildingTitle}</h3>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <h3 class="admin-report-building">${buildingTitle}</h3>
+              <span class="admin-work-tag" style="border:1px solid ${statusColor}; color:${statusColor}; font-weight:800; font-family:monospace;">${escapeHtml(status.toUpperCase())}</span>
+            </div>
             ${architect ? `<div style="font-size:11px; color:var(--admin-fg-dim); font-family: 'Inter', sans-serif;">${architect}</div>` : ''}
           </div>
           <span class="admin-report-date">${date}</span>
@@ -426,14 +462,22 @@ function renderModuleReports() {
               <i data-lucide="compass" width="13" height="13"></i>
               <span>VER EN EL MAPA</span>
             </a>
-            <button type="button" class="admin-btn admin-btn-approve" data-report-action="resolve" data-id="${safeId}">
-              <i data-lucide="check-check" width="13" height="13"></i>
-              <span>RESOLVER / ARCHIVAR</span>
-            </button>
-            <button type="button" class="admin-btn admin-btn-reject" data-report-action="dismiss" data-id="${safeId}">
-              <i data-lucide="trash-2" width="13" height="13"></i>
-              <span>DESCARTAR</span>
-            </button>
+            ${isPending ? `
+              <button type="button" class="admin-btn admin-btn-approve" data-report-action="resolve" data-id="${safeId}">
+                <i data-lucide="check-check" width="13" height="13"></i>
+                <span>RESOLVER / ARCHIVAR</span>
+              </button>
+              <button type="button" class="admin-btn admin-btn-reject" data-report-action="dismiss" data-id="${safeId}">
+                <i data-lucide="x" width="13" height="13"></i>
+                <span>DESCARTAR</span>
+              </button>
+            ` : ''}
+            ${adminConsoleState.role !== 'editor' ? `
+              <button type="button" class="admin-btn admin-btn-reject" data-report-action="delete" data-id="${safeId}" title="Eliminar reporte definitivamente">
+                <i data-lucide="trash-2" width="13" height="13"></i>
+                <span>BORRAR</span>
+              </button>
+            ` : ''}
           </div>
         </div>
       </article>
@@ -496,6 +540,8 @@ function renderModuleUsers() {
     return;
   }
 
+  const canEditRole = adminConsoleState.role === 'admin' || adminConsoleState.role === 'superadmin' || String(adminConsoleState.user?.email).toLowerCase().trim() === 'studio.signes@gmail.com';
+
   container.innerHTML = users.map((user) => {
     const firstName = escapeHtml(user.first_name || '');
     const lastName = escapeHtml(user.last_name || '');
@@ -519,7 +565,16 @@ function renderModuleUsers() {
           </div>
         </td>
         <td>
-          <span class="admin-role-tag ${role}">${role.toUpperCase()}</span>
+          ${canEditRole ? `
+            <select class="admin-user-role-select" data-user-id="${escapeHtml(user.id)}" style="background:var(--admin-bg-raised); color:var(--admin-fg); border:1px solid var(--admin-border-light); font-size:10px; font-weight:700; padding:2px 6px; font-family:'Inter', sans-serif; cursor:pointer;">
+              <option value="user" ${role === 'user' ? 'selected' : ''}>USER</option>
+              <option value="editor" ${role === 'editor' ? 'selected' : ''}>EDITOR</option>
+              <option value="admin" ${role === 'admin' ? 'selected' : ''}>ADMIN</option>
+              <option value="superadmin" ${role === 'superadmin' ? 'selected' : ''}>SUPERADMIN</option>
+            </select>
+          ` : `
+            <span class="admin-role-tag ${role}">${role.toUpperCase()}</span>
+          `}
         </td>
         <td>${location}</td>
         <td>
@@ -535,6 +590,24 @@ function renderModuleUsers() {
       </tr>
     `;
   }).join('');
+
+  if (canEditRole) {
+    container.querySelectorAll('.admin-user-role-select').forEach((sel) => {
+      sel.addEventListener('change', async () => {
+        const targetId = sel.dataset.userId;
+        const nextRole = sel.value;
+        try {
+          await updateUserRole(targetId, nextRole, adminConsoleState.token);
+          const u = adminConsoleState.users.find((user) => String(user.id) === String(targetId));
+          if (u) u.role = nextRole;
+          showAdminToast(`Rol de usuario actualizado a ${nextRole.toUpperCase()}.`, 'success');
+        } catch (err) {
+          showAdminToast(`Error al actualizar rol: ${err.message}`, 'error');
+          renderModuleUsers();
+        }
+      });
+    });
+  }
 }
 
 function calculateUserPresence(lastSeenAt) {
@@ -572,8 +645,10 @@ function calculateUserPresence(lastSeenAt) {
 function setupSearchAndFilters() {
   document.getElementById('search-pending')?.addEventListener('input', renderModulePending);
   document.getElementById('filter-pending-state')?.addEventListener('change', renderModulePending);
+  document.getElementById('filter-pending-sort')?.addEventListener('change', renderModulePending);
 
   document.getElementById('search-reports')?.addEventListener('input', renderModuleReports);
+  document.getElementById('filter-reports-state')?.addEventListener('change', renderModuleReports);
 
   document.getElementById('search-users')?.addEventListener('input', renderModuleUsers);
   document.getElementById('filter-users-role')?.addEventListener('change', renderModuleUsers);
@@ -607,6 +682,8 @@ function setupSearchAndFilters() {
       await handleResolveReport(id);
     } else if (action === 'dismiss') {
       await handleDismissReport(id);
+    } else if (action === 'delete') {
+      await handleDeleteReport(id);
     }
   });
 }
@@ -730,7 +807,11 @@ async function handleDeleteWork(id) {
 async function handleResolveReport(id) {
   try {
     await updateBuildingReport(id, 'revisado', adminConsoleState.token);
-    adminConsoleState.reports = adminConsoleState.reports.filter((r) => String(r.id) !== String(id));
+    const item = adminConsoleState.reports.find((r) => String(r.id) === String(id));
+    if (item) {
+      item.estado = 'revisado';
+      item.status = 'revisado';
+    }
     updateBadges();
     renderModuleReports();
     showAdminToast('Incidencia marcada como resuelta.', 'success');
@@ -742,12 +823,34 @@ async function handleResolveReport(id) {
 async function handleDismissReport(id) {
   try {
     await updateBuildingReport(id, 'descartado', adminConsoleState.token);
-    adminConsoleState.reports = adminConsoleState.reports.filter((r) => String(r.id) !== String(id));
+    const item = adminConsoleState.reports.find((r) => String(r.id) === String(id));
+    if (item) {
+      item.estado = 'descartado';
+      item.status = 'descartado';
+    }
     updateBadges();
     renderModuleReports();
     showAdminToast('Incidencia descartada.', 'info');
   } catch (err) {
     showAdminToast(`Error al descartar reporte: ${err.message}`, 'error');
+  }
+}
+
+async function handleDeleteReport(id) {
+  if (adminConsoleState.role === 'editor') {
+    showAdminToast('Acceso denegado: Se requieren permisos de administrador para eliminar reportes.', 'error');
+    return;
+  }
+  const confirmed = await confirmAdminAction('ELIMINAR REPORTE', '¿Eliminar definitivamente este reporte de la base de datos?');
+  if (!confirmed) return;
+  try {
+    await deleteBuildingReport(id, adminConsoleState.token);
+    adminConsoleState.reports = adminConsoleState.reports.filter((r) => String(r.id) !== String(id));
+    updateBadges();
+    renderModuleReports();
+    showAdminToast('Reporte eliminado permanentemente de la base de datos.', 'success');
+  } catch (err) {
+    showAdminToast(`Error al eliminar reporte: ${err.message}`, 'error');
   }
 }
 

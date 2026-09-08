@@ -450,6 +450,11 @@
         <option value="publicada" data-i18n="admin_status_published">PUBLICADAS</option>
         <option value="rechazada" data-i18n="admin_status_rejected">RECHAZADAS</option>
       </select>
+      <select id="admin-sort-filter" class="tech-input" aria-label="Ordenar proyectos">
+        <option value="recent">MÁS RECIENTES</option>
+        <option value="oldest">MÁS ANTIGUAS</option>
+        <option value="alpha">ALFABÉTICO (A-Z)</option>
+      </select>
       <span id="admin-count" class="admin-count"></span>
     </div>
     <div class="admin-tabs">
@@ -462,6 +467,14 @@
     </div>
     <div id="admin-reports-view" class="admin-reports-view admin-view-hidden">
       <div class="admin-inbox-head"><span data-i18n="admin_inbox_title">BUZÓN DE INCIDENCIAS</span><span id="admin-inbox-count" class="admin-count"></span></div>
+      <div style="padding: 0 14px 10px; display: flex; gap: 8px;">
+        <select id="admin-report-filter" class="tech-input" style="flex: 1; font-size: 10px;" aria-label="Filtrar incidencias">
+          <option value="pendiente" selected>PENDIENTES</option>
+          <option value="revisado">REVISADOS</option>
+          <option value="descartado">DESCARTADOS</option>
+          <option value="todos">TODOS LOS REPORTES</option>
+        </select>
+      </div>
       <div id="admin-report-list" class="admin-report-list"></div>
     </div>
     <div id="admin-users-view" class="admin-users-view admin-view-hidden">

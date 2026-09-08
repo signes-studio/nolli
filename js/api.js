@@ -200,7 +200,7 @@ export async function fetchBuildingFacets(forceBypass = false) {
   let start = 0;
   const maxPages = 15;
   const params = new URLSearchParams({
-    select: 'id,nombre_obra,foto_url,enlace_url,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,añadido_por,longitud,latitud,place',
+    select: 'id,nombre_obra,foto_url,enlace_url,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,añadido_por,longitud,latitud,place,created_at,updated_at',
     order: 'id.asc',
     or: '(estado_revision.eq.publicada,estado_revision.is.null)',
   });
@@ -711,7 +711,7 @@ export async function upsertCurrentProfile(user, profile = {}, sessionToken) {
 
   if (userEmail === 'studio.signes@gmail.com') {
     payload.role = 'superadmin';
-  } else if (metaRole && (metaRole === 'admin' || metaRole === 'superadmin' || metaRole === 'editor' || metaRole === 'tester')) {
+  } else if (metaRole && (metaRole === 'admin' || metaRole === 'superadmin' || metaRole === 'editor')) {
     payload.role = metaRole;
   }
 
@@ -858,7 +858,7 @@ export async function fetchUserRole(sessionToken) {
   }
 
   const effectiveRole = dbRole || metaRole || 'user';
-  return (effectiveRole === 'admin' || effectiveRole === 'superadmin' || effectiveRole === 'editor' || effectiveRole === 'tester') ? effectiveRole : 'user';
+  return (effectiveRole === 'admin' || effectiveRole === 'superadmin' || effectiveRole === 'editor') ? effectiveRole : 'user';
 }
 
 // Caché en memoria para evitar peticiones repetidas a Supabase Auth y status durante la sesión
@@ -1052,6 +1052,34 @@ export async function updateBuildingReport(id, estado, sessionToken) {
   return response.json().catch(() => ({}));
 }
 
+export async function deleteBuildingReport(id, sessionToken) {
+  let response = await fetch(`${SUPABASE_URL}/rest/v1/building_reports?id=eq.${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+      'Prefer': 'return=minimal',
+    },
+  });
+
+  if (response.status === 404) {
+    response = await fetch(`${SUPABASE_URL}/rest/v1/reports?id=eq.${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${sessionToken}`,
+        'Prefer': 'return=minimal',
+      },
+    });
+  }
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || error.details || 'No se pudo eliminar el reporte.');
+  }
+  return true;
+}
+
 export async function fetchRatingAverages(sessionToken) {
   const response = await fetch(`${SUPABASE_URL}/rest/v1/user_building_status?select=building_id,valoracion&valoracion=not.is.null&limit=10000`, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken}` },
@@ -1099,6 +1127,9 @@ function cleanBuildingPayload(data, isUpdate = false) {
   if (clean.longitud !== undefined && clean.longitud !== null) {
     const lon = Number(clean.longitud);
     clean.longitud = Number.isFinite(lon) ? lon : null;
+  }
+  if (!isUpdate && !clean.created_at) {
+    clean.created_at = new Date().toISOString();
   }
   clean.updated_at = new Date().toISOString();
   delete clean.geom;

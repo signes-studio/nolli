@@ -145,6 +145,15 @@
             <option value="todos">Todas las Obras</option>
           </select>
         </div>
+
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <label for="filter-pending-sort" class="font-mono" style="font-size: 10px; font-weight: 800; color: var(--admin-fg-dim);">ORDEN:</label>
+          <select id="filter-pending-sort" class="admin-filter-select">
+            <option value="recent" selected>Más Recientes</option>
+            <option value="oldest">Más Antiguas</option>
+            <option value="alpha">Alfabético (A-Z)</option>
+          </select>
+        </div>
       </div>
 
       <div id="pending-works-list" class="admin-works-grid">
@@ -160,6 +169,16 @@
         <div class="admin-search-wrapper">
           <i data-lucide="search" width="14" height="14" style="color:var(--admin-fg-dim);"></i>
           <input type="text" id="search-reports" class="admin-input" placeholder="Buscar reporte por descripción, ID de obra o remitente...">
+        </div>
+
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <label for="filter-reports-state" class="font-mono" style="font-size: 10px; font-weight: 800; color: var(--admin-fg-dim);">ESTADO:</label>
+          <select id="filter-reports-state" class="admin-filter-select">
+            <option value="pendiente" selected>Solo Pendientes</option>
+            <option value="revisado">Revisados / Resueltos</option>
+            <option value="descartado">Descartados</option>
+            <option value="todos">Todos los Reportes</option>
+          </select>
         </div>
       </div>
 
@@ -185,7 +204,6 @@
             <option value="superadmin">Superadmin</option>
             <option value="admin">Admin</option>
             <option value="editor">Editor</option>
-            <option value="tester">Tester</option>
             <option value="user">Usuario</option>
           </select>
         </div>

@@ -11,6 +11,7 @@ import {
   fetchBuildingReports, 
   fetchUserDirectory, 
   updateBuildingReport, 
+  deleteBuildingReport,
   fetchAllBuildingsForAdmin,
   fetchUserRole,
   updateUserRole
@@ -21,6 +22,7 @@ import { generarFiltrosUI } from './filtersUI.js';
 const panel = document.getElementById('admin-panel');
 const search = document.getElementById('admin-search');
 const reviewFilter = document.getElementById('admin-review-filter');
+const sortFilter = document.getElementById('admin-sort-filter');
 const count = document.getElementById('admin-count');
 const list = document.getElementById('admin-project-list');
 const projectsView = document.getElementById('admin-projects-view');
@@ -28,6 +30,7 @@ const reportsView = document.getElementById('admin-reports-view');
 const reportList = document.getElementById('admin-report-list');
 const reportCount = document.getElementById('admin-inbox-count');
 const reportBadge = document.getElementById('admin-report-badge');
+const reportFilter = document.getElementById('admin-report-filter');
 const usersView = document.getElementById('admin-users-view');
 const userList = document.getElementById('admin-user-list');
 const userSearch = document.getElementById('admin-user-search');
@@ -68,6 +71,8 @@ export function initAdminUI() {
       actualizarFuenteMapa();
     });
   }
+  if (sortFilter) sortFilter.addEventListener('change', renderList);
+  if (reportFilter) reportFilter.addEventListener('change', renderReports);
   if (userSearch) userSearch.addEventListener('input', renderUsers);
 
   // Navegación por pestañas del panel
@@ -122,6 +127,12 @@ export function initAdminUI() {
     const report = event.target.closest('[data-report-id]');
     if (report) {
       actualizarReporte(report.dataset.reportId, report.dataset.reportStatus);
+      return;
+    }
+
+    const reportDelete = event.target.closest('[data-report-delete]');
+    if (reportDelete) {
+      eliminarReporte(reportDelete.dataset.reportDelete);
       return;
     }
 
@@ -344,8 +355,9 @@ async function syncAllAdminData() {
   // 3. Cargar reportes
   try {
     cachedReports = await fetchBuildingReports(state.sessionToken);
-    if (reportBadge) reportBadge.textContent = cachedReports.length;
-    if (reportCount) reportCount.textContent = `${cachedReports.length} pendientes`;
+    const pendingTotal = (cachedReports || []).filter((r) => (r.estado || r.status || 'pendiente') === 'pendiente').length;
+    if (reportBadge) reportBadge.textContent = pendingTotal;
+    if (reportCount) reportCount.textContent = `${pendingTotal} pendientes`;
   } catch {}
 
   // 4. Cargar usuarios (solo administradores)
@@ -384,11 +396,24 @@ async function renderList() {
 
   const text = (search?.value || '').trim().toLowerCase();
   const filterVal = reviewFilter?.value || '';
+  const sortMode = sortFilter?.value || 'recent';
 
   const allProjects = [...state.OBRAS].sort((a, b) => {
+    // 1. Obras pendientes siempre prioritarias al inicio
     if (a.estado_revision === 'pendiente' && b.estado_revision !== 'pendiente') return -1;
     if (b.estado_revision === 'pendiente' && a.estado_revision !== 'pendiente') return 1;
-    return 0;
+
+    // 2. Ordenación según el filtro seleccionado
+    if (sortMode === 'alpha') {
+      return (a.nombre_obra || '').localeCompare(b.nombre_obra || '', 'es', { sensitivity: 'base' });
+    }
+    const timeA = a.created_at ? new Date(a.created_at).getTime() : (a.updated_at ? new Date(a.updated_at).getTime() : 0);
+    const timeB = b.created_at ? new Date(b.created_at).getTime() : (b.updated_at ? new Date(b.updated_at).getTime() : 0);
+    if (sortMode === 'oldest') {
+      return timeA - timeB;
+    }
+    // Por defecto: 'recent' (más recientes primero)
+    return timeB - timeA;
   });
 
   const filtered = allProjects
@@ -415,6 +440,8 @@ async function renderList() {
       const safeRating = escapeHtml(formatearMedia(obra.id));
       const safeStatus = escapeHtml(formatearEstadoRevision(obra.estado_revision));
       const isPending = obra.estado_revision === 'pendiente';
+      const rawDate = obra.created_at || obra.updated_at;
+      const formattedDate = rawDate ? new Date(rawDate).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : null;
 
       return `
         <div class="admin-project ${isPending ? 'admin-project-pending' : ''}">
@@ -425,6 +452,7 @@ async function renderList() {
             </div>
             <span>${safeArquitecto}</span>
             <span class="admin-project-city" data-city-for="${safeFeatureId}">LOCALIZACIÓN...</span>
+            ${formattedDate ? `<span style="font-size:9px; color:var(--fg-dim); font-family:monospace;">ALTA: ${escapeHtml(formattedDate)}</span>` : ''}
             <span class="admin-project-rating" style="font-size:9.5px;">${safeRating}</span>
             <span class="admin-project-status ${isPending ? 'pending' : ''}">${safeStatus}</span>
           </div>
@@ -451,7 +479,7 @@ async function renderList() {
 }
 
 async function renderReports() {
-  if (!state.sessionToken || !esRolAdmin(state.userRole)) {
+  if (!state.sessionToken || !esRolEditor(state.userRole)) {
     renderAuthRequired();
     return;
   }
@@ -460,34 +488,53 @@ async function renderReports() {
     cachedReports = await fetchBuildingReports(state.sessionToken);
   } catch {}
 
-  if (reportCount) reportCount.textContent = `${cachedReports.length} incidencias`;
-  if (reportBadge) reportBadge.textContent = cachedReports.length;
+  const pendingTotal = (cachedReports || []).filter((r) => (r.estado || r.status || 'pendiente') === 'pendiente').length;
+  if (reportCount) reportCount.textContent = `${pendingTotal} pendientes`;
+  if (reportBadge) reportBadge.textContent = pendingTotal;
 
-  if (!cachedReports.length) {
-    if (reportList) reportList.innerHTML = '<div class="nearby-empty" style="padding: 24px; text-align: center; color: var(--fg-dim);">No hay reportes de incidencias pendientes.</div>';
+  const currentFilter = reportFilter?.value || 'pendiente';
+  const filteredReports = currentFilter === 'todos'
+    ? cachedReports
+    : cachedReports.filter((r) => (r.estado || r.status || 'pendiente') === currentFilter);
+
+  if (!filteredReports.length) {
+    if (reportList) {
+      reportList.innerHTML = `<div class="nearby-empty" style="padding: 24px; text-align: center; color: var(--fg-dim);">No hay reportes con el estado "${escapeHtml(currentFilter.toUpperCase())}".</div>`;
+    }
     return;
   }
 
   if (reportList) {
-    reportList.innerHTML = cachedReports.map((report) => {
+    reportList.innerHTML = filteredReports.map((report) => {
       const obra = state.OBRAS.find((item) => String(item.id) === String(report.building_id));
       const safeTitle = escapeHtml(obra?.nombre_obra || report.Buildings?.nombre_obra || `Obra #${report.building_id}`);
       const safeDesc = escapeHtml(report.descripcion || report.description || 'Sin descripción');
       const safeDate = escapeHtml(new Date(report.created_at).toLocaleString('es-ES'));
       const safeBuildingId = escapeHtml(report.building_id);
       const safeReportId = escapeHtml(report.id);
+      const status = report.estado || report.status || 'pendiente';
+      const isPending = status === 'pendiente';
+      const statusColor = status === 'revisado' ? '#008844' : status === 'descartado' ? 'var(--fg-dim)' : 'var(--accent-2, #EFBC02)';
 
       return `
         <article class="admin-report">
           <div class="admin-report-copy">
-            <strong>${safeTitle}</strong>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <strong>${safeTitle}</strong>
+              <span style="font-size:8.5px; font-weight:800; padding:1px 5px; border:1px solid ${statusColor}; color:${statusColor}; font-family:monospace;">${escapeHtml(status.toUpperCase())}</span>
+            </div>
             <span style="font-size: 11px; color: var(--fg); margin: 4px 0;">${safeDesc}</span>
             <small style="color: var(--fg-dim); font-size: 9px;">${safeDate}</small>
           </div>
           <div class="admin-report-actions">
             <button type="button" class="btn admin-action-open" data-report-building="${safeBuildingId}">VER OBRA</button>
-            <button type="button" class="btn admin-action-review" data-report-id="${safeReportId}" data-report-status="revisado" style="color:var(--accent-2); border-color:var(--accent-2);">REVISADO</button>
-            <button type="button" class="btn admin-action-reject" data-report-id="${safeReportId}" data-report-status="descartado">DESCARTAR</button>
+            ${isPending ? `
+              <button type="button" class="btn admin-action-review" data-report-id="${safeReportId}" data-report-status="revisado" style="color:var(--accent-2); border-color:var(--accent-2);">REVISADO</button>
+              <button type="button" class="btn admin-action-reject" data-report-id="${safeReportId}" data-report-status="descartado">DESCARTAR</button>
+            ` : ''}
+            ${esRolAdmin(state.userRole) ? `
+              <button type="button" class="btn admin-action-delete" data-report-delete="${safeReportId}" title="Eliminar reporte permanentemente">BORRAR</button>
+            ` : ''}
           </div>
         </article>
       `;
@@ -556,7 +603,7 @@ async function renderUsers() {
   }
 
   if (userList) {
-    const isSuper = state.userRole === 'superadmin' || String(state.userEmail).toLowerCase().trim() === 'studio.signes@gmail.com';
+    const canManageRoles = esRolAdmin(state.userRole);
     userList.innerHTML = filtered.map((user) => {
       const safeFirstName = escapeHtml(user.first_name || '');
       const safeLastName = escapeHtml(user.last_name || '');
@@ -581,10 +628,9 @@ async function renderUsers() {
             <span>${safeCity} · ${safeCountry}</span>
             <small class="admin-user-presence ${presence.isOnline ? 'online' : ''}">${safePresenceLabel}</small>
           </div>
-          ${isSuper ? `
+          ${canManageRoles ? `
             <select class="admin-user-role-select tech-input" data-user-id="${escapeHtml(user.id)}">
               <option value="user" ${userRole === 'user' ? 'selected' : ''}>USER</option>
-              <option value="tester" ${userRole === 'tester' ? 'selected' : ''}>TESTER</option>
               <option value="editor" ${userRole === 'editor' ? 'selected' : ''}>EDITOR</option>
               <option value="admin" ${userRole === 'admin' ? 'selected' : ''}>ADMIN</option>
               <option value="superadmin" ${userRole === 'superadmin' ? 'selected' : ''}>SUPERADMIN</option>
@@ -596,7 +642,7 @@ async function renderUsers() {
       `;
     }).join('');
 
-    if (isSuper) {
+    if (canManageRoles) {
       userList.querySelectorAll('.admin-user-role-select').forEach((select) => {
         select.addEventListener('change', async () => {
           const targetId = select.dataset.userId;
@@ -617,14 +663,41 @@ async function renderUsers() {
 }
 
 async function actualizarReporte(id, estado) {
-  if (!state.sessionToken || !esRolAdmin(state.userRole)) {
-    mostrarAlertaSeguridad('ACCESO RESTRINGIDO', 'Acción reservada a administradores autenticados.');
+  if (!state.sessionToken || !esRolEditor(state.userRole)) {
+    mostrarAlertaSeguridad('ACCESO RESTRINGIDO', 'Acción reservada a editores y administradores autenticados.');
     return;
   }
   try {
     await updateBuildingReport(id, estado, state.sessionToken);
-    await renderReports();
-    mostrarAlertaSeguridad('INCIDENCIA', `Estado de la incidencia actualizado a ${estado}.`);
+    const found = cachedReports.find((r) => String(r.id) === String(id));
+    if (found) {
+      found.estado = estado;
+      found.status = estado;
+    }
+    const pendingTotal = (cachedReports || []).filter((r) => (r.estado || r.status || 'pendiente') === 'pendiente').length;
+    if (reportBadge) reportBadge.textContent = pendingTotal;
+    if (reportCount) reportCount.textContent = `${pendingTotal} pendientes`;
+    renderReports();
+    mostrarAlertaSeguridad('INCIDENCIA ACTUALIZADA', `Reporte marcado como ${estado.toUpperCase()}.`);
+  } catch (error) {
+    mostrarAlertaSeguridad('ERROR', error.message);
+  }
+}
+
+async function eliminarReporte(id) {
+  if (!state.sessionToken || !esRolAdmin(state.userRole)) {
+    mostrarAlertaSeguridad('ACCESO DENEGADO', 'Se requieren privilegios de administrador para eliminar reportes.');
+    return;
+  }
+  if (!window.confirm('¿Eliminar definitivamente este reporte de incidencia de la base de datos?')) return;
+  try {
+    await deleteBuildingReport(id, state.sessionToken);
+    cachedReports = cachedReports.filter((r) => String(r.id) !== String(id));
+    const pendingTotal = (cachedReports || []).filter((r) => (r.estado || r.status || 'pendiente') === 'pendiente').length;
+    if (reportBadge) reportBadge.textContent = pendingTotal;
+    if (reportCount) reportCount.textContent = `${pendingTotal} pendientes`;
+    renderReports();
+    mostrarAlertaSeguridad('REPORTE ELIMINADO', 'El reporte ha sido eliminado permanentemente.');
   } catch (error) {
     mostrarAlertaSeguridad('ERROR', error.message);
   }

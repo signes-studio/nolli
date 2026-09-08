@@ -122,6 +122,11 @@ function sanitizeBuildingPayload(data, isUpdate = false) {
     payload.propuesto_por = data.propuesto_por || null;
   }
 
+  // Registrar fecha y hora exacta de alta si es una inserción nueva
+  if (!isUpdate) {
+    payload.created_at = data.created_at ? new Date(data.created_at).toISOString() : new Date().toISOString();
+  }
+
   // Marcar siempre updated_at con la fecha actual del servidor
   payload.updated_at = new Date().toISOString();
 
@@ -241,7 +246,7 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: 'Debes proporcionar al menos un ID de obra (parámetro ?id= o ?ids=).' });
     }
 
-    const fields = 'id,nombre_obra,foto_url,enlace_url,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,añadido_por,estado_revision,longitud,latitud,place';
+    const fields = 'id,nombre_obra,foto_url,enlace_url,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,añadido_por,estado_revision,longitud,latitud,place,created_at,updated_at';
     const params = new URLSearchParams({
       select: fields,
       id: `in.(${ids.map(encodeURIComponent).join(',')})`,
