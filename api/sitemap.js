@@ -64,8 +64,6 @@ async function fetchTotalPublicBuildingsCount() {
 
 module.exports = async (request, response) => {
   try {
-    const totalCount = await fetchTotalPublicBuildingsCount();
-    const totalPages = Math.max(1, Math.ceil(totalCount / CHUNK_SIZE));
     const today = new Date().toISOString().slice(0, 10);
 
     const sitemaps = [
@@ -74,15 +72,6 @@ module.exports = async (request, response) => {
       `    <lastmod>${today}</lastmod>`,
       '  </sitemap>',
     ];
-
-    for (let page = 0; page < totalPages; page++) {
-      sitemaps.push([
-        '  <sitemap>',
-        `    <loc>${escapeXml(`${SITE_URL}/sitemap-buildings-${page}.xml`)}</loc>`,
-        `    <lastmod>${today}</lastmod>`,
-        '  </sitemap>',
-      ].join('\n'));
-    }
 
     const sitemapIndex = [
       '<?xml version="1.0" encoding="UTF-8"?>',

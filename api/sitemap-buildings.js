@@ -35,31 +35,7 @@ async function fetchBuildingPage(page) {
 }
 
 module.exports = async (request, response) => {
-  try {
-    const rawPage = request.query?.page;
-    const page = Math.max(0, parseInt(rawPage || '0', 10) || 0);
-    const buildings = await fetchBuildingPage(page);
-    const today = new Date().toISOString().slice(0, 10);
-
-    const buildingEntries = (buildings || []).map((building) => {
-      const rawDate = building.updated_at || today;
-      const lastmod = String(rawDate).slice(0, 10);
-      return getMultilingualSitemapEntries(`/obra/${encodeURIComponent(building.id)}`, lastmod, 'weekly', '0.8', SITE_URL);
-    });
-
-    const sitemap = [
-      '<?xml version="1.0" encoding="UTF-8"?>',
-      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
-      ...buildingEntries,
-      '</urlset>',
-    ].join('\n');
-
-    response.setHeader('Content-Type', 'application/xml; charset=utf-8');
-    response.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
-    response.status(200).send(sitemap);
-  } catch (error) {
-    console.error('No se pudo generar el sitemap de obras:', error);
-    response.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    response.status(500).send('No se pudo generar el sitemap de obras.');
-  }
+  response.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  response.setHeader('X-Robots-Tag', 'noindex, nofollow');
+  response.status(404).send('Sitemap obsoleto: Las fichas individuales de obra (/obra/:id) están configuradas como noindex y han sido retiradas de los sitemaps.');
 };

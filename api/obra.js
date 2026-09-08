@@ -147,7 +147,7 @@ function renderBuildingPage(building, lang = 'es') {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${escapeHtml(title)}</title>
   <meta name="description" content="${escapeHtml(description)}">
-  <meta name="robots" content="index, follow">
+  <meta name="robots" content="noindex, follow">
   <link rel="canonical" href="${escapeHtml(canonicalUrl)}">
   ${getHreflangTags('/obra/' + encodeURIComponent(building.id))}
   <meta property="og:type" content="article">
@@ -324,6 +324,7 @@ function renderNotFoundPage(lang = 'es') {
 }
 
 module.exports = async (request, response) => {
+  response.setHeader('X-Robots-Tag', 'noindex, follow');
   try {
     const lang = detectServerLanguage(request);
     const id = String(request.query?.id || '').trim();
