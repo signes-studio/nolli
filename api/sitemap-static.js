@@ -8,7 +8,7 @@ module.exports = async (request, response) => {
     const lastModified = new Date().toISOString().slice(0, 10);
     const staticEntries = [
       getMultilingualSitemapEntries('/', lastModified, 'daily', '1.0', SITE_URL),
-      getMultilingualSitemapEntries('/landing', lastModified, 'weekly', '0.9', SITE_URL),
+      getMultilingualSitemapEntries('/landing', lastModified, 'monthly', '0.9', SITE_URL),
       getMultilingualSitemapEntries('/perfil', lastModified, 'weekly', '0.8', SITE_URL),
       getMultilingualSitemapEntries('/itinerarios', lastModified, 'weekly', '0.8', SITE_URL),
       getMultilingualSitemapEntries('/public-profile', lastModified, 'weekly', '0.7', SITE_URL),

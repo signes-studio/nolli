@@ -1,185 +1,1519 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<base href="/">
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self'; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
-<meta name="description" content="Nolli: atlas de obra construida. Cataloga, mide y sitúa arquitectura sobre un mapa en vivo.">
-<link rel="canonical" href="https://nollimap.app/landing">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="nolli.">
-<meta property="og:title" content="nolli. | atlas de arquitectura">
-<meta property="og:description" content="Nolli: atlas de obra construida. Cataloga, mide y sitúa arquitectura sobre un mapa en vivo.">
-<meta property="og:url" content="https://nollimap.app/landing">
-<meta property="og:image" content="https://nollimap.app/icons/logo.png">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="color-scheme" content="light">
-<title>nolli. | atlas de arquitectura</title>
-<link rel="icon" type="image/png" sizes="48x48" href="./icon.png">
-<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
-<link rel="apple-touch-icon" href="./icons/icon-192.png">
-<link rel="shortcut icon" href="./favicon.ico">
+  <base href="/">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self'; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
 
-<!-- Google Fonts: Inter & League Spartan (Asynchronous Non-Blocking) -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=League+Spartan:wght@600;700;800;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-<noscript>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=League+Spartan:wght@600;700;800;900&display=swap">
-</noscript>
+  <!-- SEO Primario: Título y Meta Descripción -->
+  <title>Nolli | Catálogo y Mapa de Arquitectura Colaborativo</title>
+  <meta name="description" content="Descubre más de 10.000 obras de arquitectura en el mundo con radar GPS, listas de viaje y fichas técnicas. Catálogo libre para arquitectos y viajeros.">
+  <meta name="keywords" content="arquitectura, mapa de arquitectura, catálogo de arquitectura, obras de arquitectura, radar arquitectónico, itinerarios arquitectura, guía de viaje arquitectura, le corbusier, mies van der rohe, bauhaus">
+  <meta name="author" content="Nolli Team">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
 
-<link rel="stylesheet" href="css/legal-components.css">
-<script src="js/cookieConsent.js" defer></script>
+  <!-- Canónica y Enlaces Multilingües Hreflang -->
+  <link rel="canonical" href="https://nollimap.app/landing">
+  <link rel="alternate" hreflang="es" href="https://nollimap.app/landing">
+  <link rel="alternate" hreflang="en" href="https://nollimap.app/en/landing">
+  <link rel="alternate" hreflang="ca" href="https://nollimap.app/ca/landing">
+  <link rel="alternate" hreflang="x-default" href="https://nollimap.app/landing">
 
-<script>
-  if (window.location.pathname.endsWith('.html')) {
-    const clean = window.location.pathname.replace(/\/index\.html$/, '/').replace(/\.html$/, '') || '/';
-    window.history.replaceState(null, '', clean + window.location.search + window.location.hash);
+  <!-- Open Graph / Facebook / WhatsApp / LinkedIn -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Nolli">
+  <meta property="og:title" content="Nolli | Catálogo y Mapa de Arquitectura Colaborativo">
+  <meta property="og:description" content="Explora más de 10.000 obras de arquitectura geolocalizadas. Radar de proximidad GPS, guías de viaje y fichas técnicas detalladas.">
+  <meta property="og:url" content="https://nollimap.app/landing">
+  <meta property="og:image" content="https://nollimap.app/icons/logo.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Nolli — Atlas y Mapa Interactivo de Arquitectura">
+  <meta property="og:locale" content="es_ES">
+  <meta property="og:locale:alternate" content="en_US">
+  <meta property="og:locale:alternate" content="ca_ES">
+
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@nollimap">
+  <meta name="twitter:creator" content="@nollimap">
+  <meta name="twitter:title" content="Nolli | Catálogo y Mapa de Arquitectura Colaborativo">
+  <meta name="twitter:description" content="Explora más de 10.000 obras de arquitectura geolocalizadas. Radar de proximidad GPS, guías de viaje y fichas técnicas detalladas.">
+  <meta name="twitter:image" content="https://nollimap.app/icons/logo.png">
+  <meta name="twitter:image:alt" content="Nolli — Atlas y Mapa Interactivo de Arquitectura">
+
+  <!-- Favicon e Identidad PWA -->
+  <link rel="icon" type="image/png" sizes="48x48" href="./icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <link rel="shortcut icon" href="./favicon.ico">
+  <meta name="theme-color" content="#F8F1DF">
+  <meta name="color-scheme" content="light">
+
+  <!-- Tipografía Asíncrona de Alto Rendimiento: Inter & League Spartan -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=League+Spartan:wght@700;800;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=League+Spartan:wght@700;800;900&display=swap">
+  </noscript>
+
+  <!-- Hojas de Estilo del Sistema Nolli -->
+  <link rel="stylesheet" href="css/utilities.css">
+  <link rel="stylesheet" href="css/base.css">
+
+  <!-- Datos Estructurados Schema.org en JSON-LD (WebApplication + FAQPage) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebApplication",
+        "@id": "https://nollimap.app/#webapp",
+        "name": "Nolli",
+        "alternateName": "Nolli Map",
+        "url": "https://nollimap.app/",
+        "applicationCategory": "TravelApplication, DesignApplication, EducationalApplication",
+        "operatingSystem": "All (Web, iOS, Android, macOS, Windows, Linux)",
+        "browserRequirements": "Requires modern Web browser with JavaScript enabled",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "EUR"
+        },
+        "description": "Atlas colaborativo y mapa interactivo de arquitectura con más de 10.000 obras geolocalizadas en todo el mundo, radar de proximidad GPS, gestión de itinerarios de viaje y fichas técnicas detalladas.",
+        "featureList": [
+          "Radar de proximidad GPS a 1, 3 y 5 km",
+          "Tracker de obras arquitectónicas visitadas",
+          "Listas e itinerarios de viaje públicos y privados",
+          "Fichas técnicas con autoría, año, categoría y coordenadas verificadas",
+          "Sistema de relevancia arquitectónica en 4 niveles",
+          "Catálogo colaborativo de arquitectura abierto a la comunidad"
+        ],
+        "author": {
+          "@type": "Organization",
+          "name": "Nolli",
+          "url": "https://nollimap.app"
+        },
+        "screenshot": "https://nollimap.app/img/landing/hero-map.webp"
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "https://nollimap.app/landing#faq",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "¿Nolli es una aplicación gratuita?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Sí, el acceso al mapa interactivo de arquitectura, el radar de proximidad GPS y la consulta de todas las fichas técnicas son 100% gratuitos y abiertos. Al registrarte con una cuenta gratuita, puedes además crear listas de viaje personalizadas y registrar tus obras visitadas sin ningún coste."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿Cómo se añaden nuevas obras al catálogo de Nolli?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Cualquier usuario con cuenta puede proponer nuevas obras haciendo clic en el botón 'Añadir obra' o manteniendo pulsada cualquier coordenada sobre el mapa. Las propuestas son revisadas por la comunidad y el equipo de curaduría para garantizar la exactitud de la autoría, año, tipología y fotografías antes de su inclusión definitiva."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿Funciona Nolli sin conexión a internet durante mis viajes?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Nolli está desarrollada como una Progressive Web App (PWA) de alto rendimiento con Service Workers activos. Las fichas de obras consultadas y tus listas de viaje guardadas quedan almacenadas en la memoria caché de tu navegador, permitiéndote consultar datos y notas de campo incluso con cobertura limitada."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿En qué se diferencia Nolli de Google Maps u otras aplicaciones de mapas?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Google Maps está enfocado en comercios, restaurantes y tráfico vehicular, careciendo de información sobre arquitectos, años de construcción o rigor tipológico. Nolli es un instrumento concebido exclusivamente por y para la arquitectura: cada punto del mapa es una obra de autor clasificada por importancia disciplinar, libre de anuncios y con coordenadas de precisión arquitectónica."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿Cómo puedo colaborar con el proyecto?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Puedes colaborar documentando obras que conozcas en tu ciudad, compartiendo tus itinerarios arquitectónicos favoritos con otros usuarios, o señalando correcciones a través del buzón de incidencias disponible en cada ficha técnica. También puedes postularte para roles de edición si deseas curar activamente el catálogo."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿Puedo compartir mis rutas e itinerarios arquitectónicos con otras personas?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Sí. Puedes configurar cualquier colección como pública y compartir su enlace directo. Tus acompañantes de viaje, colegas o estudiantes podrán abrir el itinerario completo sobre el mapa interactivo en cualquier teléfono u ordenador sin necesidad de instalar nada."
+            }
+          }
+        ]
+      }
+    ]
   }
-</script>
+  </script>
 
-<link rel="stylesheet" href="css/utilities.css">
-<link rel="stylesheet" href="css/base.css">
-<meta name="theme-color" content="#F4F1EA">
+  <style>
+    /* =========================================================================
+       ESTILOS EXCLUSIVOS LANDING PAGE — NEO-BAUHAUS 100% ESTÁTICO & ACCESIBLE
+       ========================================================================= */
+    :root {
+      --bg: #F8F1DF;
+      --bg-panel: #F8F1DF;
+      --bg-raised: #F0E9D2;
+      --fg: #141411;
+      --fg-dim: #64645E;
+      --border: #D8D6CE;
+      --border-strong: #141411;
+      --accent: #E95C0C;
+      --accent-hover: #C44605;
+      --accent-2: #EFBC02;
+      --blue: #064773;
+    }
 
-<style>
-  html, body { overflow: auto; height: auto; }
-  main.landing-main { position: static; inset: auto; overflow: visible; }
-  body.landing-page { font-family: 'Inter', sans-serif; }
+    html, body {
+      height: auto !important;
+      min-height: 100% !important;
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+      scroll-behavior: smooth;
+      background-color: var(--bg);
+      color: var(--fg);
+    }
 
-  .l-shell { max-width: 1440px; margin: 0 auto; padding: 0 24px; }
+    main.landing-main {
+      position: static !important;
+      inset: auto !important;
+      overflow: visible !important;
+      height: auto !important;
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 0 20px 80px;
+    }
 
-  .col-axis { display: grid; grid-template-columns: repeat(12, 1fr); border-bottom: 1px solid var(--border-strong); }
-  .col-axis span { padding: 4px 0 4px 6px; border-left: 1px solid var(--border); font-family: 'Inter', sans-serif; font-size: 9px; color: var(--fg-dim); letter-spacing: .06em; }
-  .col-axis span:first-child { border-left: none; }
-  @media (max-width: 760px) { .col-axis span:nth-child(n+7) { display: none; } }
+    /* Regla milimétrica Neo-Bauhaus */
+    .axis-ruler {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      border-bottom: 2px solid var(--border-strong);
+      margin-bottom: 20px;
+    }
+    .axis-ruler span {
+      padding: 6px 0 6px 6px;
+      border-left: 1px solid var(--border);
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--fg-dim);
+      letter-spacing: .08em;
+      user-select: none;
+    }
+    .axis-ruler span:first-child { border-left: none; }
 
-  .l-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 24px; }
+    /* Cabecera / Barra de Navegación */
+    .landing-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 0 24px;
+      border-bottom: 2px solid var(--border-strong);
+      position: sticky;
+      top: 0;
+      background: rgba(248, 241, 223, 0.96);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+    }
+    .brand-logo {
+      font-family: 'League Spartan', sans-serif;
+      font-size: 32px;
+      font-weight: 900;
+      text-decoration: none;
+      color: var(--fg);
+      letter-spacing: -0.03em;
+      line-height: 1;
+      display: flex;
+      align-items: baseline;
+    }
+    .brand-logo em {
+      color: var(--accent);
+      font-style: normal;
+    }
+    .brand-tagline {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--fg-dim);
+      text-transform: uppercase;
+      margin-left: 12px;
+      padding-left: 12px;
+      border-left: 1px solid var(--border);
+    }
+    @media (max-width: 768px) {
+      .brand-tagline { display: none; }
+    }
+    .landing-nav {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+    }
+    .landing-nav a {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--fg);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .landing-nav a:hover {
+      color: var(--accent);
+    }
+    .nav-cta-btn {
+      background: var(--fg);
+      color: var(--bg) !important;
+      padding: 9px 18px;
+      border: 2px solid var(--fg);
+      font-weight: 800 !important;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .nav-cta-btn:hover {
+      background: var(--accent) !important;
+      border-color: var(--accent) !important;
+      color: #fff !important;
+    }
+    @media (max-width: 860px) {
+      .landing-nav a:not(.nav-cta-btn) { display: none; }
+    }
 
-  .l-header { grid-column: 1 / 13; display: flex; justify-content: space-between; align-items: flex-end; padding: 16px 0; border-bottom: 1px solid var(--border-strong); }
-  .l-logo { font-family: 'League Spartan', -apple-system, sans-serif; font-weight: 800; font-size: 24px; text-transform: lowercase; color: var(--fg); text-decoration: none; }
-  .l-logo em { font-style: normal; color: var(--accent); }
-  .l-nav { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 700; display: flex; gap: 20px; align-items: center; }
-  .l-nav a { color: var(--fg); text-decoration: none; border-bottom: 1px solid transparent; }
-  .l-nav a:hover { border-color: var(--fg); }
-  .l-nav .lang { color: var(--fg-dim); }
-  .l-nav .cta-mini { border: 2px solid var(--fg); padding: 6px 10px; }
-  .l-nav .cta-mini:hover { background: var(--fg); color: var(--bg); }
+    /* Sección Hero */
+    .hero-section {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 40px;
+      padding: 60px 0 50px;
+      border-bottom: 2px solid var(--border-strong);
+      align-items: center;
+    }
+    @media (max-width: 980px) {
+      .hero-section {
+        grid-template-columns: 1fr;
+        padding: 40px 0 35px;
+        gap: 30px;
+      }
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--accent-2);
+      color: #141411;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border: 1.5px solid var(--border-strong);
+      margin-bottom: 20px;
+    }
+    .hero-badge::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      background: var(--accent);
+      display: inline-block;
+    }
+    .hero-title {
+      font-family: 'League Spartan', sans-serif;
+      font-size: clamp(38px, 5.5vw, 68px);
+      font-weight: 900;
+      line-height: 0.96;
+      letter-spacing: -0.03em;
+      margin: 0 0 24px;
+      color: var(--fg);
+      text-wrap: balance;
+    }
+    .hero-title span {
+      color: var(--accent);
+    }
+    .hero-subtitle {
+      font-size: 18px;
+      line-height: 1.55;
+      color: var(--fg-dim);
+      margin: 0 0 32px;
+      max-width: 580px;
+    }
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+    }
+    .btn-primary-hero {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--accent);
+      color: #FFFFFF;
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 16px 30px;
+      border: 2px solid var(--border-strong);
+      box-shadow: 4px 4px 0 var(--border-strong);
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .btn-primary-hero:hover {
+      background: var(--accent-hover);
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0 var(--border-strong);
+    }
+    .btn-secondary-hero {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: transparent;
+      color: var(--fg);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 16px 24px;
+      border: 2px solid var(--border-strong);
+      transition: background 0.15s;
+    }
+    .btn-secondary-hero:hover {
+      background: var(--bg-raised);
+    }
+    .hero-preview-wrapper {
+      position: relative;
+      border: 2px solid var(--border-strong);
+      background: #111111;
+      box-shadow: 8px 8px 0 var(--border-strong);
+      overflow: hidden;
+    }
+    .hero-preview-img {
+      width: 100%;
+      height: auto;
+      display: block;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+    }
+    .hero-preview-hud {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(20, 20, 17, 0.92);
+      color: #FFFFFF;
+      padding: 8px 14px;
+      font-size: 11px;
+      font-family: monospace;
+      display: flex;
+      justify-content: space-between;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
 
-  .l-hero { grid-column: 1 / 10; padding: 56px 0 40px; }
-  @media (max-width: 900px) { .l-hero { grid-column: 1 / 13; } }
-  .l-hero h1 { font-family: 'League Spartan', -apple-system, sans-serif; font-weight: 800; font-size: clamp(38px, 7vw, 68px); line-height: 0.95; margin: 0 0 22px; letter-spacing: -0.02em; }
-  .l-hero p { font-size: 15px; line-height: 1.65; color: var(--fg-dim); max-width: 460px; margin: 0 0 30px; }
-  .l-cta { display: inline-flex; align-items: center; gap: 10px; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: .04em; background: var(--accent-2); color: var(--fg); border: 2px solid var(--fg); padding: 15px 24px; text-transform: uppercase; text-decoration: none; cursor: pointer; }
-  .l-cta:hover { background: var(--fg); color: var(--accent-2); }
+    /* Sección de Cifras y Estadísticas */
+    .stats-section {
+      padding: 40px 0;
+      border-bottom: 2px solid var(--border-strong);
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+    @media (max-width: 860px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    @media (max-width: 480px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .stat-card {
+      border-left: 3px solid var(--border-strong);
+      padding: 8px 0 8px 18px;
+    }
+    .stat-number {
+      font-family: 'League Spartan', sans-serif;
+      font-size: clamp(34px, 4vw, 48px);
+      font-weight: 900;
+      line-height: 1;
+      margin: 0 0 6px;
+      color: var(--accent);
+    }
+    .stat-label {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--fg);
+      margin: 0 0 4px;
+    }
+    .stat-desc {
+      font-size: 13px;
+      color: var(--fg-dim);
+      margin: 0;
+      line-height: 1.4;
+    }
 
-  .l-map-frag { grid-column: 10 / 13; border-left: 1px solid var(--border-strong); min-height: 300px; position: relative; overflow: hidden; background: #111111; }
-  @media (max-width: 900px) { .l-map-frag { grid-column: 1 / 13; border-left: none; border-top: 1px solid var(--border-strong); min-height: 220px; } }
-  .l-map-frag svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-  .reg-mark { position: absolute; width: 14px; height: 14px; }
-  .reg-mark::before, .reg-mark::after { content: ''; position: absolute; background: var(--on-map); }
-  .reg-mark::before { width: 100%; height: 1px; top: 50%; }
-  .reg-mark::after { height: 100%; width: 1px; left: 50%; }
+    /* Secciones Comunes */
+    .content-section {
+      padding: 60px 0;
+      border-bottom: 2px solid var(--border-strong);
+    }
+    .section-eyebrow {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+    .section-heading {
+      font-family: 'League Spartan', sans-serif;
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      margin: 0 0 20px;
+      color: var(--fg);
+    }
+    .section-intro {
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--fg-dim);
+      max-width: 760px;
+      margin: 0 0 40px;
+    }
 
-  .l-stats { grid-column: 1 / 13; display: grid; grid-template-columns: repeat(12, 1fr); border-top: 1px solid var(--border-strong); }
-  .l-stats .stat { grid-column: span 4; padding: 20px 0; border-right: 1px solid var(--border); }
-  @media (max-width: 700px) { .l-stats .stat { grid-column: span 12; border-right: none; border-top: 1px solid var(--border); padding: 14px 0; } .l-stats .stat:first-child { border-top: none; } }
-  .l-stats .stat:last-child { border-right: none; }
-  .l-stats .num { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 28px; color: var(--fg); }
-  .l-stats .lbl { font-family: 'Inter', sans-serif; font-size: 9px; letter-spacing: .1em; color: var(--fg-dim); text-transform: uppercase; }
+    /* "Qué es Nolli" */
+    .about-layout {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 40px;
+      align-items: start;
+    }
+    @media (max-width: 900px) {
+      .about-layout { grid-template-columns: 1fr; }
+    }
+    .about-copy p {
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--fg);
+      margin: 0 0 20px;
+    }
+    .about-copy strong {
+      color: var(--fg);
+      font-weight: 700;
+    }
+    .about-sidebar {
+      background: var(--bg-raised);
+      border: 2px solid var(--border-strong);
+      padding: 28px;
+    }
+    .sidebar-title {
+      font-family: 'League Spartan', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      margin: 0 0 16px;
+      color: var(--fg);
+      text-transform: uppercase;
+      letter-spacing: -0.01em;
+    }
+    .sidebar-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .sidebar-list li {
+      font-size: 13.5px;
+      line-height: 1.5;
+      color: var(--fg);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .sidebar-list li:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    .sidebar-list strong {
+      display: block;
+      color: var(--accent);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 2px;
+    }
 
-  .l-method { grid-column: 1 / 13; display: grid; grid-template-columns: repeat(12, 1fr); gap: 24px; padding: 48px 0; border-top: 1px solid var(--border-strong); }
-  .l-method h2 { grid-column: 1 / 5; font-family: 'League Spartan', -apple-system, sans-serif; font-weight: 800; font-size: 28px; margin: 0; }
-  @media (max-width: 900px) { .l-method h2 { grid-column: 1 / 13; } }
-  .l-method-items { grid-column: 5 / 13; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-  @media (max-width: 900px) { .l-method-items { grid-column: 1 / 13; grid-template-columns: 1fr; } }
-  .l-method-item { border-top: 2px solid var(--fg); padding-top: 12px; }
-  .l-method-item span { font-family: 'Inter', sans-serif; font-size: 10px; color: var(--fg-dim); letter-spacing: .08em; }
-  .l-method-item h3 { margin: 6px 0 8px; font-size: 15px; font-weight: 600; }
-  .l-method-item p { margin: 0; font-size: 13px; line-height: 1.6; color: var(--fg-dim); }
+    /* "Cómo funciona" - Cuadrícula de Funcionalidades */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 32px;
+    }
+    @media (max-width: 860px) {
+      .features-grid { grid-template-columns: 1fr; }
+    }
+    .feature-card {
+      border: 2px solid var(--border-strong);
+      background: var(--bg-panel);
+      display: flex;
+      flex-direction: column;
+      box-shadow: 4px 4px 0 var(--border-strong);
+    }
+    .feature-card-header {
+      padding: 16px 20px;
+      border-bottom: 2px solid var(--border-strong);
+      background: var(--bg-raised);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .feature-tag {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+    }
+    .feature-status {
+      font-size: 10px;
+      font-weight: 700;
+      background: var(--border-strong);
+      color: var(--bg);
+      padding: 2px 6px;
+    }
+    .feature-card-body {
+      padding: 24px;
+      flex: 1;
+    }
+    .feature-title {
+      font-family: 'League Spartan', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      margin: 0 0 10px;
+      color: var(--fg);
+    }
+    .feature-text {
+      font-size: 14.5px;
+      line-height: 1.6;
+      color: var(--fg-dim);
+      margin: 0 0 20px;
+    }
+    .feature-card-visual {
+      border-top: 1px solid var(--border);
+      background: #EAE3CF;
+      overflow: hidden;
+    }
+    .feature-img {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      display: block;
+    }
 
-  .l-footer { grid-column: 1 / 13; display: flex; justify-content: space-between; align-items: center; padding: 20px 0 40px; border-top: 1px solid var(--border-strong); font-family: 'Inter', sans-serif; font-size: 10px; color: var(--fg-dim); }
-  .l-footer a { color: var(--fg-dim); text-decoration: none; }
-  .l-footer a:hover { color: var(--fg); }
-</style>
+    /* Enlaces a obras icónicas destacadas */
+    .iconic-works-block {
+      margin-top: 36px;
+      border: 2px solid var(--border-strong);
+      background: var(--bg-raised);
+      padding: 24px;
+    }
+    .iconic-works-title {
+      font-family: 'League Spartan', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      margin: 0 0 14px;
+      color: var(--fg);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .iconic-works-list {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    @media (max-width: 768px) {
+      .iconic-works-list { grid-template-columns: 1fr; }
+    }
+    .iconic-work-link {
+      background: var(--bg);
+      border: 1.5px solid var(--border-strong);
+      padding: 14px;
+      text-decoration: none;
+      color: var(--fg);
+      display: block;
+      transition: background 0.15s, transform 0.15s;
+    }
+    .iconic-work-link:hover {
+      background: #FFFFFF;
+      transform: translateY(-2px);
+    }
+    .iconic-work-name {
+      font-weight: 700;
+      font-size: 13.5px;
+      margin: 0 0 4px;
+      color: var(--fg);
+    }
+    .iconic-work-author {
+      font-size: 12px;
+      color: var(--accent);
+      margin: 0 0 4px;
+      font-weight: 600;
+    }
+    .iconic-work-city {
+      font-size: 11px;
+      color: var(--fg-dim);
+      margin: 0;
+    }
+
+    /* "Para quién es Nolli" */
+    .audience-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+    @media (max-width: 980px) {
+      .audience-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 540px) {
+      .audience-grid { grid-template-columns: 1fr; }
+    }
+    .audience-card {
+      border: 2px solid var(--border-strong);
+      background: var(--bg-panel);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+    }
+    .audience-num {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--accent);
+      margin-bottom: 12px;
+      letter-spacing: 0.08em;
+    }
+    .audience-role {
+      font-family: 'League Spartan', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      margin: 0 0 10px;
+      color: var(--fg);
+    }
+    .audience-text {
+      font-size: 13.5px;
+      line-height: 1.6;
+      color: var(--fg-dim);
+      margin: 0;
+    }
+
+    /* Categorías Cubiertas */
+    .categories-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .category-chip {
+      background: var(--bg-raised);
+      border: 1.5px solid var(--border-strong);
+      padding: 16px 18px;
+      text-decoration: none;
+      color: var(--fg);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .category-chip:hover {
+      background: #FFFFFF;
+      border-color: var(--accent);
+    }
+    .category-chip-name {
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .category-chip-arrow {
+      color: var(--accent);
+      font-weight: 800;
+      font-size: 16px;
+    }
+
+    /* Niveles de Relevancia (4 Niveles) */
+    .levels-container {
+      margin-top: 40px;
+      border: 2px solid var(--border-strong);
+      background: var(--bg-raised);
+      padding: 28px;
+    }
+    .levels-title {
+      font-family: 'League Spartan', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      margin: 0 0 20px;
+      color: var(--fg);
+    }
+    .levels-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+    @media (max-width: 860px) {
+      .levels-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 480px) {
+      .levels-grid { grid-template-columns: 1fr; }
+    }
+    .level-item {
+      background: var(--bg);
+      border: 1px solid var(--border-strong);
+      padding: 16px;
+    }
+    .level-badge {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 2px 8px;
+      display: inline-block;
+      margin-bottom: 8px;
+      background: var(--border-strong);
+      color: var(--bg);
+    }
+    .level-name {
+      font-size: 13.5px;
+      font-weight: 700;
+      margin: 0 0 6px;
+      color: var(--fg);
+    }
+    .level-desc {
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--fg-dim);
+      margin: 0;
+    }
+
+    /* FAQ - Preguntas Frecuentes con <details> semántico */
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-width: 900px;
+    }
+    .faq-item {
+      border: 2px solid var(--border-strong);
+      background: var(--bg-panel);
+    }
+    .faq-summary {
+      padding: 18px 22px;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--fg);
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+      background: var(--bg-raised);
+    }
+    .faq-summary::-webkit-details-marker {
+      display: none;
+    }
+    .faq-summary::after {
+      content: "+";
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--accent);
+      transition: transform 0.2s;
+    }
+    .faq-item[open] .faq-summary::after {
+      content: "−";
+      transform: rotate(180deg);
+    }
+    .faq-content {
+      padding: 20px 22px;
+      font-size: 14.5px;
+      line-height: 1.65;
+      color: var(--fg-dim);
+      border-top: 1px solid var(--border);
+    }
+
+    /* Banner CTA Final */
+    .cta-banner {
+      margin-top: 60px;
+      border: 3px solid var(--border-strong);
+      background: var(--accent);
+      color: #FFFFFF;
+      padding: 50px 40px;
+      box-shadow: 8px 8px 0 var(--border-strong);
+      text-align: center;
+    }
+    .cta-banner-title {
+      font-family: 'League Spartan', sans-serif;
+      font-size: clamp(30px, 4.5vw, 52px);
+      font-weight: 900;
+      line-height: 1;
+      margin: 0 0 16px;
+      color: #FFFFFF;
+      letter-spacing: -0.02em;
+    }
+    .cta-banner-desc {
+      font-size: 17px;
+      line-height: 1.5;
+      max-width: 650px;
+      margin: 0 auto 30px;
+      color: rgba(255, 255, 255, 0.9);
+    }
+    .cta-banner-actions {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .btn-banner-primary {
+      background: #141411;
+      color: #FFFFFF;
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 16px 32px;
+      border: 2px solid #FFFFFF;
+      transition: background 0.15s, color 0.15s;
+    }
+    .btn-banner-primary:hover {
+      background: #FFFFFF;
+      color: #141411;
+    }
+    .btn-banner-secondary {
+      background: transparent;
+      color: #FFFFFF;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 16px 24px;
+      border: 2px solid #FFFFFF;
+      transition: background 0.15s, color 0.15s;
+    }
+    .btn-banner-secondary:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Footer Semántico */
+    .landing-footer {
+      margin-top: 60px;
+      border-top: 2px solid var(--border-strong);
+      padding-top: 40px;
+    }
+    .footer-columns {
+      display: grid;
+      grid-template-columns: 1.5fr repeat(3, 1fr);
+      gap: 30px;
+      margin-bottom: 40px;
+    }
+    @media (max-width: 860px) {
+      .footer-columns { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 500px) {
+      .footer-columns { grid-template-columns: 1fr; }
+    }
+    .footer-brand {
+      font-family: 'League Spartan', sans-serif;
+      font-size: 24px;
+      font-weight: 900;
+      margin: 0 0 10px;
+      color: var(--fg);
+    }
+    .footer-brand em {
+      color: var(--accent);
+      font-style: normal;
+    }
+    .footer-motto {
+      font-size: 13px;
+      line-height: 1.55;
+      color: var(--fg-dim);
+      margin: 0;
+      max-width: 320px;
+    }
+    .footer-col-title {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--fg);
+      margin: 0 0 14px;
+      border-bottom: 1px solid var(--border-strong);
+      padding-bottom: 4px;
+    }
+    .footer-links {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .footer-links a {
+      font-size: 13px;
+      color: var(--fg-dim);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .footer-links a:hover {
+      color: var(--accent);
+    }
+    .footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--fg-dim);
+    }
+    @media (max-width: 600px) {
+      .footer-bottom {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+      }
+    }
+  </style>
 </head>
 <body class="landing-page">
-<main class="landing-main">
-  <div class="l-shell">
-    <div class="col-axis"><span>01</span><span>02</span><span>03</span><span>04</span><span>05</span><span>06</span><span>07</span><span>08</span><span>09</span><span>10</span><span>11</span><span>12</span></div>
 
-    <div class="l-grid">
-      <div class="l-header">
-        <a class="l-logo" href="./landing.html">nolli<em>.</em></a>
-        <nav class="l-nav">
-          <a href="#metodologia">Metodología</a>
-          <a href="#" class="lang">ES / EN</a>
-          <a href="./" class="cta-mini">Iniciar sesión</a>
-        </nav>
-      </div>
-
-      <div class="l-hero">
-        <h1>Catalogar<br>la ciudad<br>construida.</h1>
-        <p>Nolli registra, mide y sitúa obras de arquitectura sobre un mapa vivo. Cada obra, una ficha; cada ficha, un dato verificable.</p>
-        <a class="l-cta" href="./">Explorar el mapa →</a>
-      </div>
-
-      <div class="l-map-frag" aria-hidden="true">
-        <svg viewBox="0 0 300 300" preserveAspectRatio="xMidYMid slice">
-          <path d="M10 40 L120 20 L180 60 L290 50" stroke="#F5F4F0" stroke-width="1" fill="none" opacity="0.45"/>
-          <path d="M0 120 L100 130 L160 100 L300 140" stroke="#F5F4F0" stroke-width="1" fill="none" opacity="0.45"/>
-          <path d="M20 220 L140 200 L220 240 L300 210" stroke="#F5F4F0" stroke-width="1" fill="none" opacity="0.3"/>
-          <circle cx="118" cy="118" r="4" fill="#FFCC00"/>
-          <circle cx="70" cy="70" r="3" fill="#F5F4F0" opacity="0.55"/>
-          <rect x="180" y="150" width="6" height="6" fill="#F5F4F0" opacity="0.55"/>
-          <polygon points="220,60 226,72 214,72" fill="#F5F4F0" opacity="0.55"/>
-        </svg>
-        <div class="reg-mark" style="top:10px; left:10px;"></div>
-        <div class="reg-mark" style="bottom:10px; right:10px;"></div>
-      </div>
-
-      <!-- Cifras de ejemplo: sustituir por una consulta real a Supabase
-           (recuento de `buildings` publicadas / autores distintos) antes de publicar. -->
-      <div class="l-stats">
-        <div class="stat"><div class="num" id="stat-obras">····</div><div class="lbl">Obras catalogadas</div></div>
-        <div class="stat"><div class="num" id="stat-autores">···</div><div class="lbl">Autores registrados</div></div>
-        <div class="stat"><div class="num">1890–2026</div><div class="lbl">Rango temporal</div></div>
-      </div>
-
-      <div class="l-method" id="metodologia">
-        <h2>Cómo trabaja Nolli</h2>
-        <div class="l-method-items">
-          <div class="l-method-item">
-            <span>01 / SITUAR</span>
-            <h3>Coordenada verificable</h3>
-            <p>Cada obra se ancla a una posición exacta sobre el mapa, no a una dirección aproximada.</p>
-          </div>
-          <div class="l-method-item">
-            <span>02 / MEDIR</span>
-            <h3>Ficha de datos</h3>
-            <p>Superficie, altura, año, autoría y estado de conservación, en un formato tan preciso como una cartela de plano.</p>
-          </div>
-          <div class="l-method-item">
-            <span>03 / CLASIFICAR</span>
-            <h3>Tipología abierta</h3>
-            <p>Residencial, dotacional, industrial, religioso, comercial, espacio público e infraestructura.</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="l-footer">
-        <span>NOLLI © 2026</span>
-        <div style="display:flex; gap:18px;">
-          <a href="./legal.html">Legal</a>
-          <a href="./">Ver el mapa →</a>
-        </div>
-      </div>
-    </div>
+  <!-- Regla superior decorativa Neo-Bauhaus -->
+  <div class="axis-ruler" aria-hidden="true">
+    <span>01</span><span>02</span><span>03</span><span>04</span>
+    <span>05</span><span>06</span><span>07</span><span>08</span>
+    <span>09</span><span>10</span><span>11</span><span>12</span>
   </div>
-</main>
-<script>
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
-</script>
+
+  <!-- Cabecera de Página / Navegación Principal -->
+  <header class="landing-header">
+    <div style="display:flex; align-items:baseline;">
+      <a href="./" class="brand-logo" title="Volver al mapa interactivo de Nolli">nolli<em>.</em></a>
+      <span class="brand-tagline">Atlas de Arquitectura</span>
+    </div>
+    <nav class="landing-nav" aria-label="Navegación principal de la landing">
+      <a href="#que-es">Qué es</a>
+      <a href="#como-funciona">Funcionalidades</a>
+      <a href="#para-quien">Público</a>
+      <a href="#categorias">Categorías</a>
+      <a href="#faq">Preguntas</a>
+      <a href="./" class="nav-cta-btn">Explorar el mapa →</a>
+    </nav>
+  </header>
+
+  <main class="landing-main">
+
+    <!-- 1. SECCIÓN HERO -->
+    <section class="hero-section" aria-labelledby="hero-main-title">
+      <div class="hero-content">
+        <div class="hero-badge">Catálogo Abierto &amp; Georreferenciado</div>
+        <h1 id="hero-main-title" class="hero-title">
+          El mapa interactivo y atlas colaborativo de la <span>arquitectura mundial</span>.
+        </h1>
+        <p class="hero-subtitle">
+          Descubre más de 10.000 obras maestras y edificios notables con radar de proximidad GPS, planificador de itinerarios de viaje y fichas técnicas verificadas por la comunidad.
+        </p>
+        <div class="hero-actions">
+          <a href="./" class="btn-primary-hero">
+            Explorar el mapa ahora
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" aria-hidden="true">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </a>
+          <a href="#como-funciona" class="btn-secondary-hero">
+            Cómo funciona ↓
+          </a>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="hero-preview-wrapper">
+          <img 
+            src="img/landing/hero-map.webp" 
+            alt="Interfaz interactiva de Nolli mostrando plano arquitectónico y puntos geolocalizados" 
+            class="hero-preview-img" 
+            width="800" 
+            height="500" 
+            fetchpriority="high"
+            loading="eager"
+          >
+          <div class="hero-preview-hud">
+            <span>RADAR: 41.3879° N, 2.1699° E</span>
+            <span>+10.000 OBRAS REGISTRADAS</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. SECCIÓN DE ESTADÍSTICAS DESTACADAS -->
+    <section class="stats-section" aria-label="Cifras clave del catálogo Nolli">
+      <div class="stats-grid">
+        <article class="stat-card">
+          <div class="stat-number">+10.000</div>
+          <h2 class="stat-label">Obras Georreferenciadas</h2>
+          <p class="stat-desc">Edificios con coordenadas exactas verificadas en el plano.</p>
+        </article>
+        <article class="stat-card">
+          <div class="stat-number">+80</div>
+          <h2 class="stat-label">Países y Territorios</h2>
+          <p class="stat-desc">Desde grandes metrópolis hasta pequeños pueblos con arquitectura de autor.</p>
+        </article>
+        <article class="stat-card">
+          <div class="stat-number">7</div>
+          <h2 class="stat-label">Tipologías Funcionales</h2>
+          <p class="stat-desc">Residencial, dotacional, industrial, religioso, comercial, paisaje e infraestructuras.</p>
+        </article>
+        <article class="stat-card">
+          <div class="stat-number">100%</div>
+          <h2 class="stat-label">Libre y Colaborativo</h2>
+          <p class="stat-desc">Sin muros de pago. Alimentado y supervisado por apasionados del espacio construido.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- 3. QUÉ ES NOLLI -->
+    <section id="que-es" class="content-section" aria-labelledby="about-title">
+      <span class="section-eyebrow">Concepto &amp; Manifiesto</span>
+      <h2 id="about-title" class="section-heading">Una cartografía rigurosa para aprender, caminar y documentar la arquitectura.</h2>
+      <p class="section-intro">
+        Nolli nace de una frustración compartida por miles de arquitectos y aficionados: la dificultad de encontrar información arquitectónica precisa en mapas comerciales pensados para el consumo y el tráfico vehicular.
+      </p>
+
+      <div class="about-layout">
+        <div class="about-copy">
+          <p>
+            Inspirado en el célebre plano de Roma trazado por <strong>Giambattista Nolli en 1748</strong> —donde los espacios públicos y los interiores accesibles de los edificios se dibujaron como una trama continua abierta a la ciudadanía—, <strong>Nolli</strong> traslada esa visión al entorno digital contemporáneo.
+          </p>
+          <p>
+            No somos un directorio turístico genérico. Cada registro en Nolli es una <strong>ficha técnica rigurosa</strong> que incluye autoría verificada, año de inauguración, tipología funcional, estado de accesibilidad y coordenadas milimétricas. Toda la base de datos se despliega sobre un mapa vectorial fluido diseñado bajo los principios estéticos y funcionales de la <strong>Neo-Bauhaus</strong>.
+          </p>
+          <p>
+            Además, Nolli opera como una <strong>wiki viva</strong>: cualquier usuario registrado puede proponer obras que falten en su entorno, reportar erratas, adjuntar fotografías de campo o actualizar el estado de conservación de un edificio. Una curaduría comunitaria garantiza que la calidad documental se mantenga al más alto nivel profesional y académico.
+          </p>
+        </div>
+
+        <aside class="about-sidebar">
+          <h3 class="sidebar-title">Principios del Instrumento</h3>
+          <ul class="sidebar-list">
+            <li>
+              <strong>01. Coordenada Verificable</strong>
+              La arquitectura no se sitúa por un código postal aproximado, sino sobre la huella exacta que ocupa en el territorio.
+            </li>
+            <li>
+              <strong>02. Neutralidad Disciplinar</strong>
+              Catálogo libre de publicidad invasiva o priorizaciones patrocinadas. La relevancia la define el valor cultural del proyecto.
+            </li>
+            <li>
+              <strong>03. Inteligencia Colectiva</strong>
+              La mejor base de datos la construyen colectivamente quienes recorren las calles con mirada crítica.
+            </li>
+            <li>
+              <strong>04. Velocidad y Legibilidad</strong>
+              Interfaces sin distracciones visuales, contrastes contrastados y respuestas táctiles instantáneas en campo.
+            </li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <!-- 4. CÓMO FUNCIONA / FUNCIONALIDADES CLAVE -->
+    <section id="como-funciona" class="content-section" aria-labelledby="features-title">
+      <span class="section-eyebrow">Herramientas en Campo</span>
+      <h2 id="features-title" class="section-heading">Diseñado para acompañarte frente al edificio o en la mesa de trabajo.</h2>
+      <p class="section-intro">
+        Tanto si estás planificando tu próximo viaje de estudios como si te encuentras paseando por una ciudad extranjera, Nolli te ofrece las herramientas necesarias para desvelar el paisaje construido.
+      </p>
+
+      <div class="features-grid">
+        <!-- Feature 1: Radar GPS -->
+        <article class="feature-card">
+          <div class="feature-card-header">
+            <span class="feature-tag">01 / Proximidad</span>
+            <span class="feature-status">GPS ACTIVO</span>
+          </div>
+          <div class="feature-card-body">
+            <h3 class="feature-title">Radar de proximidad GPS (1, 3 y 5 km)</h3>
+            <p class="feature-text">
+              Activa la geolocalización de tu dispositivo móvil y el radar escaneará automáticamente el entorno en un radio configurable de 1, 3 o 5 kilómetros. Descubre de inmediato qué obras maestras o intervenciones singulares tienes a solo unos minutos a pie sin tener que buscarlas manualmente.
+            </p>
+          </div>
+          <div class="feature-card-visual">
+            <img 
+              src="img/landing/radar-gps.webp" 
+              alt="Visualización del radar de proximidad por GPS en Nolli" 
+              class="feature-img" 
+              width="640" 
+              height="400" 
+              loading="lazy"
+              decoding="async"
+            >
+          </div>
+        </article>
+
+        <!-- Feature 2: Listas de viaje -->
+        <article class="feature-card">
+          <div class="feature-card-header">
+            <span class="feature-tag">02 / Rutas</span>
+            <span class="feature-status">ITINERARIOS</span>
+          </div>
+          <div class="feature-card-body">
+            <h3 class="feature-title">Listas y guías de viaje personalizadas</h3>
+            <p class="feature-text">
+              Organiza colecciones temáticas de obras para tus escapadas arquitectónicas o tus investigaciones académicas. Puedes crear listas públicas para compartir tu conocimiento con la comunidad o conservarlas en tu archivo privado. Visualiza la ruta óptima directamente trazada sobre el plano.
+            </p>
+          </div>
+          <div class="feature-card-visual">
+            <img 
+              src="img/landing/itinerarios-viaje.webp" 
+              alt="Creación y gestión de itinerarios de viaje en Nolli" 
+              class="feature-img" 
+              width="640" 
+              height="400" 
+              loading="lazy"
+              decoding="async"
+            >
+          </div>
+        </article>
+
+        <!-- Feature 3: Tracker de visitas -->
+        <article class="feature-card">
+          <div class="feature-card-header">
+            <span class="feature-tag">03 / Pasaporte</span>
+            <span class="feature-status">TRACKER</span>
+          </div>
+          <div class="feature-card-body">
+            <h3 class="feature-title">Tracker de obras visitadas y notas</h3>
+            <p class="feature-text">
+              Lleva el registro interactivo de los edificios que has recorrido en persona. Marca obras como visitadas o favoritas, añade anotaciones técnicas y accede a tus estadísticas personales de exploración por ciudades, países y estilos para convertir tus viajes en un cuaderno de bitácora cartográfico.
+            </p>
+          </div>
+          <div class="feature-card-visual">
+            <img 
+              src="img/landing/tracker-visitas.webp" 
+              alt="Marcador y seguimiento de obras visitadas en el mapa" 
+              class="feature-img" 
+              width="640" 
+              height="400" 
+              loading="lazy"
+              decoding="async"
+            >
+          </div>
+        </article>
+
+        <!-- Feature 4: Fichas técnicas -->
+        <article class="feature-card">
+          <div class="feature-card-header">
+            <span class="feature-tag">04 / Documentación</span>
+            <span class="feature-status">FICHAS TÉCNICAS</span>
+          </div>
+          <div class="feature-card-body">
+            <h3 class="feature-title">Fichas de obra técnicas y compartibles</h3>
+            <p class="feature-text">
+              Cada edificio cuenta con una URL pública e indexable con su autoría, periodo constructivo, fotografías documentadas, enlaces a publicaciones oficiales y ubicación exacta. Puedes compartir cualquier ficha técnica con un solo clic en artículos, redes sociales o clases lectivas.
+            </p>
+          </div>
+          <div class="feature-card-visual">
+            <img 
+              src="img/landing/ficha-obra.webp" 
+              alt="Ficha técnica detallada de una obra arquitectónica en Nolli" 
+              class="feature-img" 
+              width="640" 
+              height="400" 
+              loading="lazy"
+              decoding="async"
+            >
+          </div>
+        </article>
+      </div>
+
+      <!-- Enlaces internos a obras maestras de ejemplo en el catálogo -->
+      <div class="iconic-works-block">
+        <h3 class="iconic-works-title">Ejemplos de obras catalogadas en Nolli:</h3>
+        <div class="iconic-works-list">
+          <a href="/obra/cVfMiWEW" class="iconic-work-link" title="Ver ficha técnica de la Neue Nationalgalerie">
+            <p class="iconic-work-name">Neue Nationalgalerie</p>
+            <p class="iconic-work-author">Ludwig Mies van der Rohe</p>
+            <p class="iconic-work-city">Berlín, Alemania (1968)</p>
+          </a>
+          <a href="/obra/vSvU7SpW" class="iconic-work-link" title="Ver ficha técnica de Notre-Dame-du-Haut">
+            <p class="iconic-work-name">Notre-Dame-du-Haut</p>
+            <p class="iconic-work-author">Le Corbusier</p>
+            <p class="iconic-work-city">Ronchamp, Francia (1955)</p>
+          </a>
+          <a href="/obra/ewk7jkej" class="iconic-work-link" title="Ver ficha técnica de la Unité d'Habitation">
+            <p class="iconic-work-name">Unité d'Habitation</p>
+            <p class="iconic-work-author">Le Corbusier</p>
+            <p class="iconic-work-city">Marsella, Francia (1952)</p>
+          </a>
+        </div>
+      </div>
+
+      <!-- Jerarquía de Relevancia (4 Niveles) -->
+      <div class="levels-container">
+        <h3 class="levels-title">Sistema de Clasificación por Relevancia Arquitectónica</h3>
+        <p style="font-size:14.5px; color:var(--fg-dim); margin-bottom:20px;">
+          Para evitar la saturación visual en ciudades de alta densidad histórica, cada obra se etiqueta en uno de cuatro niveles rigurosos, permitiéndote filtrar el mapa según la profundidad de tu consulta:
+        </p>
+        <div class="levels-grid">
+          <div class="level-item">
+            <span class="level-badge">NIVEL 3</span>
+            <h4 class="level-name">Obras Maestras Universales</h4>
+            <p class="level-desc">Iconos de la historia de la arquitectura estudiados mundialmente.</p>
+          </div>
+          <div class="level-item">
+            <span class="level-badge">NIVEL 2</span>
+            <h4 class="level-name">Gran Valor Disciplinar</h4>
+            <p class="level-desc">Proyectos premiados o hitos de gran influencia técnica y formal.</p>
+          </div>
+          <div class="level-item">
+            <span class="level-badge">NIVEL 1</span>
+            <h4 class="level-name">Edificios Notables de Autor</h4>
+            <p class="level-desc">Cualquier obra singular con arquitecto o estudio contrastado.</p>
+          </div>
+          <div class="level-item">
+            <span class="level-badge">NIVEL 0</span>
+            <h4 class="level-name">Arquitectura de Soporte</h4>
+            <p class="level-desc">Tejido urbano y preexistencias que contextualizan el lugar.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. PARA QUIÉN ES NOLLI -->
+    <section id="para-quien" class="content-section" aria-labelledby="audience-title">
+      <span class="section-eyebrow">Comunidad &amp; Audiencia</span>
+      <h2 id="audience-title" class="section-heading">Una herramienta concebida para perfiles con mirada espacial.</h2>
+      <p class="section-intro">
+        Nolli responde a las necesidades reales de quienes se relacionan profesional o vocacionalmente con la disciplina arquitectónica.
+      </p>
+
+      <div class="audience-grid">
+        <article class="audience-card">
+          <span class="audience-num">01 / PROFESIONALES</span>
+          <h3 class="audience-role">Arquitectos y Urbanistas</h3>
+          <p class="audience-text">
+            Un banco de referencias materiales y formales in situ. Consulta soluciones de fachada, detalles y programas funcionales mientras inspeccionas la ciudad.
+          </p>
+        </article>
+
+        <article class="audience-card">
+          <span class="audience-num">02 / ACADEMIA</span>
+          <h3 class="audience-role">Estudiantes y Docentes</h3>
+          <p class="audience-text">
+            El soporte perfecto para asignaturas de historia, composición y urbanismo. Genera bibliografías espaciales y analiza la evolución urbana de barrios completos.
+          </p>
+        </article>
+
+        <article class="audience-card">
+          <span class="audience-num">03 / VIAJES</span>
+          <h3 class="audience-role">Viajeros Culturales</h3>
+          <p class="audience-text">
+            Diseña viajes centrados en la calidad espacial. Evita las rutas trilladas y localiza joyas residenciales o equipamientos fuera de los circuitos comerciales.
+          </p>
+        </article>
+
+        <article class="audience-card">
+          <span class="audience-num">04 / INVESTIGACIÓN</span>
+          <h3 class="audience-role">Curadores e Historiadores</h3>
+          <p class="audience-text">
+            Localiza con precisión monografías construidas, georreferencia archivos documentales y colabora en la preservación del patrimonio moderno.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <!-- 6. CATEGORÍAS CUBIERTAS -->
+    <section id="categorias" class="content-section" aria-labelledby="categories-title">
+      <span class="section-eyebrow">Taxonomía Arquitectónica</span>
+      <h2 id="categories-title" class="section-heading">Explora el catálogo por tipología funcional.</h2>
+      <p class="section-intro">
+        Organizamos las más de 10.000 obras en siete grandes categorías para que puedas filtrar el mapa o consultar colecciones específicas con enlace directo:
+      </p>
+
+      <div class="categories-grid">
+        <a href="/categoria/residencial" class="category-chip" title="Ver catálogo de arquitectura residencial">
+          <span class="category-chip-name">Arquitectura Residencial</span>
+          <span class="category-chip-arrow">→</span>
+        </a>
+        <a href="/categoria/dotacional_equipamiento" class="category-chip" title="Ver catálogo dotacional y equipamiento">
+          <span class="category-chip-name">Dotacional y Equipamientos</span>
+          <span class="category-chip-arrow">→</span>
+        </a>
+        <a href="/categoria/industrial_logistico" class="category-chip" title="Ver catálogo de arquitectura industrial">
+          <span class="category-chip-name">Industrial y Logístico</span>
+          <span class="category-chip-arrow">→</span>
+        </a>
+        <a href="/categoria/religioso_funerario" class="category-chip" title="Ver catálogo de templos y arquitectura religiosa">
+          <span class="category-chip-name">Religioso y Funerario</span>
+          <span class="category-chip-arrow">→</span>
+        </a>
+        <a href="/categoria/comercial_terciario" class="category-chip" title="Ver catálogo de edificios comerciales y oficinas">
+          <span class="category-chip-name">Comercial y Terciario</span>
+          <span class="category-chip-arrow">→</span>
+        </a>
+        <a href="/categoria/espacio_publico_paisaje" class="category-chip" title="Ver catálogo de espacio público y paisaje">
+          <span class="category-chip-name">Espacio Público y Paisaje</span>
+          <span class="category-chip-arrow">→</span>
+        </a>
+        <a href="/categoria/infraestructura_urbanismo" class="category-chip" title="Ver catálogo de infraestructuras y urbanismo">
+          <span class="category-chip-name">Infraestructuras y Urbanismo</span>
+          <span class="category-chip-arrow">→</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- 7. PREGUNTAS FRECUENTES (FAQ) -->
+    <section id="faq" class="content-section" aria-labelledby="faq-title">
+      <span class="section-eyebrow">Dudas y Respuestas</span>
+      <h2 id="faq-title" class="section-heading">Preguntas Frecuentes sobre Nolli</h2>
+      <p class="section-intro">
+        Todo lo que necesitas saber acerca del funcionamiento técnico, los datos del catálogo y la filosofía colaborativa de la plataforma.
+      </p>
+
+      <div class="faq-list">
+        <!-- Pregunta 1 -->
+        <details class="faq-item" open>
+          <summary class="faq-summary">¿Nolli es una aplicación gratuita?</summary>
+          <div class="faq-content">
+            Sí, el acceso al mapa interactivo de arquitectura, el radar de proximidad GPS y la consulta de todas las fichas técnicas son 100% gratuitos y abiertos. Al registrarte con una cuenta gratuita, puedes además crear listas de viaje personalizadas y registrar tus obras visitadas sin ningún coste.
+          </div>
+        </details>
+
+        <!-- Pregunta 2 -->
+        <details class="faq-item">
+          <summary class="faq-summary">¿Cómo se añaden nuevas obras al catálogo?</summary>
+          <div class="faq-content">
+            Cualquier usuario con cuenta puede proponer nuevas obras haciendo clic en el botón "Añadir obra" o manteniendo pulsada cualquier coordenada sobre el mapa. Las propuestas son revisadas por la comunidad y el equipo de curaduría para garantizar la exactitud de la autoría, año, tipología y fotografías antes de su inclusión definitiva.
+          </div>
+        </details>
+
+        <!-- Pregunta 3 -->
+        <details class="faq-item">
+          <summary class="faq-summary">¿Funciona Nolli sin conexión a internet durante mis viajes?</summary>
+          <div class="faq-content">
+            Nolli está desarrollada como una Progressive Web App (PWA) de alto rendimiento con Service Workers activos. Las fichas de obras consultadas y tus listas de viaje guardadas quedan almacenadas en la memoria caché de tu navegador, permitiéndote consultar datos y notas de campo incluso con cobertura limitada.
+          </div>
+        </details>
+
+        <!-- Pregunta 4 -->
+        <details class="faq-item">
+          <summary class="faq-summary">¿En qué se diferencia Nolli de Google Maps u otras apps de mapas?</summary>
+          <div class="faq-content">
+            Google Maps está enfocado en comercios, restaurantes y tráfico vehicular, careciendo de información sobre arquitectos, años de construcción o rigor tipológico. Nolli es un instrumento concebido exclusivamente por y para la arquitectura: cada punto del mapa es una obra de autor clasificada por importancia disciplinar, libre de anuncios y con coordenadas de precisión arquitectónica.
+          </div>
+        </details>
+
+        <!-- Pregunta 5 -->
+        <details class="faq-item">
+          <summary class="faq-summary">¿Cómo puedo colaborar y ayudar a hacer crecer Nolli?</summary>
+          <div class="faq-content">
+            Puedes colaborar documentando obras que conozcas en tu ciudad, compartiendo tus itinerarios arquitectónicos favoritos con otros usuarios, o señalando correcciones a través del buzón de incidencias disponible en cada ficha técnica. También puedes postularte para roles de edición si deseas curar activamente el catálogo.
+          </div>
+        </details>
+
+        <!-- Pregunta 6 -->
+        <details class="faq-item">
+          <summary class="faq-summary">¿Puedo compartir mis rutas e itinerarios con amigos o alumnos?</summary>
+          <div class="faq-content">
+            Sí. Puedes configurar cualquier colección como pública y compartir su enlace directo. Tus acompañantes de viaje, colegas o estudiantes podrán abrir el itinerario completo sobre el mapa interactivo en cualquier teléfono u ordenador sin necesidad de instalar nada.
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <!-- 8. BANNER CTA FINAL -->
+    <section class="cta-banner" aria-labelledby="cta-final-title">
+      <h2 id="cta-final-title" class="cta-banner-title">Empieza a explorar la arquitectura que te rodea.</h2>
+      <p class="cta-banner-desc">
+        Únete a miles de arquitectos, estudiantes y exploradores que ya descubren la ciudad a través de sus obras construidas.
+      </p>
+      <div class="cta-banner-actions">
+        <a href="./" class="btn-banner-primary">
+          Abrir el mapa interactivo →
+        </a>
+        <a href="/itinerarios" class="btn-banner-secondary">
+          Descubrir itinerarios de viaje
+        </a>
+      </div>
+    </section>
+
+    <!-- 9. FOOTER SEMÁNTICO -->
+    <footer class="landing-footer">
+      <div class="footer-columns">
+        <div>
+          <div class="footer-brand">nolli<em>.</em></div>
+          <p class="footer-motto">
+            Atlas colaborativo y mapa interactivo de arquitectura. Documentando el paisaje construido del mundo de forma libre, rigurosa y abierta.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="footer-col-title">Exploración</h3>
+          <ul class="footer-links">
+            <li><a href="./">Mapa Interactivo</a></li>
+            <li><a href="/itinerarios">Itinerarios y Rutas</a></li>
+            <li><a href="#como-funciona">Radar GPS de Proximidad</a></li>
+            <li><a href="./perfil">Perfil y Colecciones</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="footer-col-title">Obras Maestras</h3>
+          <ul class="footer-links">
+            <li><a href="/obra/cVfMiWEW">Neue Nationalgalerie</a></li>
+            <li><a href="/obra/vSvU7SpW">Notre-Dame-du-Haut</a></li>
+            <li><a href="/obra/ewk7jkej">Unité d'Habitation</a></li>
+            <li><a href="/categoria/residencial">Arquitectura Residencial</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="footer-col-title">Plataforma</h3>
+          <ul class="footer-links">
+            <li><a href="#que-es">Manifiesto</a></li>
+            <li><a href="#faq">Preguntas Frecuentes</a></li>
+            <li><a href="/legal">Aviso Legal y Privacidad</a></li>
+            <li><a href="mailto:studio.signes@gmail.com">Contacto y Sugerencias</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <span>&copy; 2026 Nolli. Todos los derechos reservados. Diseño Neo-Bauhaus.</span>
+        <span>Coordenadas exactas para obras construidas.</span>
+      </div>
+    </footer>
+
+  </main>
+
+  <script>
+    // Registro opcional de Service Worker para capacidades PWA y caché estática
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+  </script>
 </body>
 </html>

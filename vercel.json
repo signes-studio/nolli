@@ -180,6 +180,14 @@
       "destination": "/itinerarios"
     },
     {
+      "source": "/en/landing",
+      "destination": "/landing"
+    },
+    {
+      "source": "/ca/landing",
+      "destination": "/landing"
+    },
+    {
       "source": "/en/admin",
       "destination": "/admin"
     },
