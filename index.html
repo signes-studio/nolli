@@ -776,8 +776,23 @@
     <div class="modal-body personal-organizer-body">
       <p id="personal-organizer-project" class="personal-organizer-project"></p>
       <div id="personal-organizer-help" class="personal-organizer-help"></div>
+      
+      <!-- Barra superior para crear nueva lista cuando está en modo colecciones -->
+      <div id="organizer-new-list-row" class="personal-organizer-header-row">
+        <span id="personal-organizer-count" class="personal-organizer-count"></span>
+        <button type="button" id="btn-organizer-new-list" class="btn-new-list btn-organizer-new-list" data-open-create-collection-modal data-i18n="sheet_new_list_btn">
+          + NUEVA LISTA
+        </button>
+      </div>
+
       <div id="personal-organizer-options" class="personal-organizer-options"></div>
-      <div class="personal-create-row"><input id="personal-new-name" class="tech-input" type="text"><button type="button" id="btn-personal-create" class="btn" data-i18n="organizer_create_btn">CREAR</button></div>
+      
+      <!-- Fila de creación de etiquetas privadas (solo para modo etiquetas) -->
+      <div id="personal-create-tag-row" class="personal-create-row hidden">
+        <input id="personal-new-name" class="tech-input" type="text" placeholder="NUEVA ETIQUETA" data-i18n-placeholder="sheet_new_tag_placeholder">
+        <button type="button" id="btn-personal-create" class="btn" data-i18n="organizer_create_btn">CREAR</button>
+      </div>
+
       <div id="personal-organizer-error" class="text-[10px] text-red-500 hidden" role="alert"></div>
       <button type="button" id="btn-personal-organizer-save" class="btn btn-accent" data-i18n="sheet_save_selection">GUARDAR SELECCIÓN</button>
     </div>

@@ -5,7 +5,8 @@
 import { state, separarArquitectos, normalizarCategoria, normalizarImportancia, nombreCategoria, esRolAdmin, esRolEditor, guardarZonaPersonalLocal, CATEGORY_META } from './state.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { cerrarFiltros, generarFiltrosUI } from './filtersUI.js';
-import { fetchBuildings, saveBuildingStatus, reviewBuilding, deleteBuilding, deletePrivateBuilding, createUserCollection, addUserCollectionItem, createUserPrivateLabel, deleteUserPrivateLabel } from './api.js';
+import { fetchBuildings, saveBuildingStatus, reviewBuilding, deleteBuilding, deletePrivateBuilding, createUserCollection, addUserCollectionItem, deleteUserCollectionItem, createUserPrivateLabel, deleteUserPrivateLabel } from './api.js';
+import { abrirModalCrearLista } from './myPlacesUI.js';
 import { getOptimizedPhotoUrl } from './imageProxy.js';
 import { showNeoToast } from './renderUtils.js';
 import { t, getUrlPrefix } from './i18n.js';
@@ -387,15 +388,29 @@ function getStatus(status) {
 }
 function closeOrganizer() { document.getElementById('modal-personal-organizer').classList.remove('open'); }
 
-function organizerOptions(building, mode) {
-  if (mode === 'collections') return state.userCollections.length ? state.userCollections.map((collection) => {
-    const checked = state.userCollectionItems.some((item) => String(item.collection_id) === String(collection.id) && String(item.building_id) === String(building.id));
-    return `<label class="personal-organizer-option"><input type="checkbox" value="${collection.id}" ${checked ? 'checked' : ''}><span>${collection.name}</span></label>`;
-  }).join('') : `<div class="nearby-empty">${t('sheet_no_collections_yet')}</div>`;
+function organizerOptions(building, mode, checkedIdsOverride = null) {
+  if (mode === 'collections') {
+    if (!state.userCollections || !state.userCollections.length) {
+      return `<div class="nearby-empty" style="display:flex; flex-direction:column; align-items:center; gap:8px; padding:16px;">
+        <span>${t('sheet_no_collections_yet')}</span>
+        <button type="button" class="btn-new-list" id="btn-organizer-empty-new-list" data-open-create-collection-modal style="padding:6px 14px; font-size:10px;">${t('sheet_new_list_btn', null, '+ NUEVA LISTA')}</button>
+      </div>`;
+    }
+    return state.userCollections.map((collection) => {
+      const checked = checkedIdsOverride
+        ? checkedIdsOverride.has(String(collection.id))
+        : state.userCollectionItems.some((item) => String(item.collection_id) === String(collection.id) && String(item.building_id) === String(building.id));
+      const iconDisplay = collection.icon ? `<span style="margin-right:6px; font-size:13px;">${escapeHtml(collection.icon)}</span>` : '';
+      return `<label class="personal-organizer-option">
+        <input type="checkbox" value="${collection.id}" ${checked ? 'checked' : ''}>
+        <span style="display:inline-flex; align-items:center;">${iconDisplay}${escapeHtml(collection.name)}</span>
+      </label>`;
+    }).join('');
+  }
   const labels = [...new Set(state.userPrivateLabels.map((item) => item.label).filter(Boolean))];
   return labels.length ? labels.map((label) => {
     const checked = state.userPrivateLabels.some((item) => String(item.building_id) === String(building.id) && String(item.label).toLowerCase() === String(label).toLowerCase());
-    return `<label class="personal-organizer-option"><input type="checkbox" value="${label}" ${checked ? 'checked' : ''}><span>#${label}</span></label>`;
+    return `<label class="personal-organizer-option"><input type="checkbox" value="${label}" ${checked ? 'checked' : ''}><span>#${escapeHtml(label)}</span></label>`;
   }).join('') : `<div class="nearby-empty">${t('sheet_no_tags_yet')}</div>`;
 }
 
@@ -403,10 +418,30 @@ function openOrganizer(mode) {
   const building = getSelectedBuilding();
   if (!building || !state.userId || !state.sessionToken) { showNeoToast(t('sheet_login_to_organize')); return; }
   organizerMode = mode;
-  document.getElementById('personal-organizer-title').textContent = mode === 'collections' ? t('sheet_save_in_lists') : t('sheet_add_tags');
+  const isCollections = mode === 'collections';
+  document.getElementById('personal-organizer-title').textContent = isCollections ? t('sheet_save_in_lists') : t('sheet_add_tags');
   document.getElementById('personal-organizer-project').textContent = building.nombre_obra;
-  document.getElementById('personal-organizer-help').textContent = mode === 'collections' ? t('sheet_select_lists_help') : t('sheet_select_tags_help');
-  document.getElementById('personal-new-name').placeholder = mode === 'collections' ? t('sheet_new_list_placeholder') : t('sheet_new_tag_placeholder');
+  document.getElementById('personal-organizer-help').textContent = isCollections ? t('sheet_select_lists_help') : t('sheet_select_tags_help');
+
+  const newListRow = document.getElementById('organizer-new-list-row');
+  if (newListRow) {
+    newListRow.classList.toggle('hidden', !isCollections);
+    const countEl = document.getElementById('personal-organizer-count');
+    if (countEl && isCollections) {
+      countEl.textContent = t('sheet_your_lists_count', { count: (state.userCollections || []).length }, `TUS LISTAS (${(state.userCollections || []).length})`);
+    }
+  }
+
+  const tagCreateRow = document.getElementById('personal-create-tag-row');
+  if (tagCreateRow) {
+    tagCreateRow.classList.toggle('hidden', isCollections);
+  }
+
+  const nameInput = document.getElementById('personal-new-name');
+  if (nameInput) {
+    nameInput.placeholder = isCollections ? t('sheet_new_list_placeholder') : t('sheet_new_tag_placeholder');
+  }
+
   document.getElementById('personal-organizer-options').innerHTML = organizerOptions(building, mode);
   document.getElementById('personal-organizer-error').classList.add('hidden');
   document.getElementById('modal-personal-organizer').classList.add('open');
@@ -419,8 +454,9 @@ async function createOrganizerItem() {
   if (!building || !name) return;
   try {
     if (organizerMode === 'collections') {
-      const created = await createUserCollection({ user_id: state.userId, name, status: 'private' }, state.sessionToken);
-      const newCol = (Array.isArray(created) && created[0]) ? created[0] : (created?.id ? created : { id: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()), user_id: state.userId, name, status: 'private' });
+      const fallbackId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now());
+      const created = await createUserCollection({ id: fallbackId, user_id: state.userId, name, status: 'private' }, state.sessionToken);
+      const newCol = (Array.isArray(created) && created[0]) ? created[0] : (created?.id ? created : { id: fallbackId, user_id: state.userId, name, status: 'private' });
       state.userCollections.push(newCol);
     } else if (!state.userPrivateLabels.some((item) => String(item.building_id) === String(building.id) && String(item.label).toLowerCase() === name.toLowerCase())) {
       const created = await createUserPrivateLabel({ user_id: state.userId, building_id: building.id, label: name }, state.sessionToken);
@@ -470,6 +506,9 @@ async function saveOrganizerSelection() {
           }
         } else if (!selected.includes(String(collection.id)) && existing) {
           state.userCollectionItems = state.userCollectionItems.filter((item) => item !== existing);
+          deleteUserCollectionItem(collection.id, state.userId, building.id, state.sessionToken).catch((err) => {
+            console.warn('Error borrando item de colección en servidor:', err);
+          });
         }
       }
     } else {
@@ -494,6 +533,58 @@ async function saveOrganizerSelection() {
     const errorElement = document.getElementById('personal-organizer-error'); errorElement.textContent = error.message; errorElement.classList.remove('hidden');
   }
 }
+
+document.addEventListener('radar:user-collection-created', async (event) => {
+  const modal = document.getElementById('modal-personal-organizer');
+  if (!modal || !modal.classList.contains('open') || organizerMode !== 'collections') return;
+
+  const building = getSelectedBuilding();
+  if (!building) return;
+
+  const newCol = event.detail?.collection;
+  if (!newCol || !newCol.id) return;
+
+  // Preservar listas que el usuario ya tenía marcadas
+  const checkedIds = new Set(
+    [...document.querySelectorAll('#personal-organizer-options input:checked')].map((input) => String(input.value))
+  );
+  checkedIds.add(String(newCol.id));
+
+  // Actualizar contador
+  const countEl = document.getElementById('personal-organizer-count');
+  if (countEl) {
+    countEl.textContent = t('sheet_your_lists_count', { count: (state.userCollections || []).length }, `TUS LISTAS (${(state.userCollections || []).length})`);
+  }
+
+  // Auto-guardar la obra en la nueva lista de inmediato
+  const itemPayload = {
+    id: `CLI-${Date.now()}-${newCol.id}`,
+    user_id: state.userId,
+    collection_id: newCol.id,
+    building_id: building.id
+  };
+
+  try {
+    const saved = await addUserCollectionItem(itemPayload, state.sessionToken);
+    if (saved && saved[0]) {
+      state.userCollectionItems.push(saved[0]);
+    } else {
+      state.userCollectionItems.push(itemPayload);
+    }
+  } catch (err) {
+    console.warn('Guardando item localmente tras crear lista:', err);
+    state.userCollectionItems.push(itemPayload);
+  }
+
+  guardarZonaPersonalLocal(state.userId);
+  renderSheetStatusUI(building);
+
+  // Volver a renderizar opciones con la nueva lista preseleccionada
+  document.getElementById('personal-organizer-options').innerHTML = organizerOptions(building, 'collections', checkedIds);
+  document.getElementById('personal-organizer-error').classList.add('hidden');
+
+  showNeoToast(t('sheet_work_saved_in_new_list', { name: newCol.name }, `Obra añadida a la nueva lista "${newCol.name}"`));
+});
 
 export function renderSheetStatusUI(building = getSelectedBuilding()) {
   if (!building) return;
@@ -776,6 +867,7 @@ document.addEventListener('click', (event) => {
   const target = event.target;
   if (target.closest('[data-save-collection]')) { openOrganizer('collections'); return; }
   if (target.closest('[data-add-private-tag]')) { openOrganizer('labels'); return; }
+  if (target.closest('#btn-organizer-new-list') || target.closest('#btn-organizer-empty-new-list')) { abrirModalCrearLista(); return; }
   if (target.closest('#btn-personal-organizer-close') || target === document.getElementById('modal-personal-organizer')) { closeOrganizer(); return; }
   if (target.closest('#btn-personal-create')) { createOrganizerItem(); return; }
   if (target.closest('#btn-personal-organizer-save')) { saveOrganizerSelection(); return; }

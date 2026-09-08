@@ -44,7 +44,11 @@ function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character]));
 }
 
+let myPlacesInitialized = false;
+
 export function initMyPlacesUI() {
+  if (myPlacesInitialized) return;
+  myPlacesInitialized = true;
   if (button) {
     button.addEventListener('click', () => {
       if (!state.sessionToken) {
@@ -103,7 +107,7 @@ export function initMyPlacesUI() {
     }
 
     const closeCreateModalBtn = event.target.closest('[data-close-modal]');
-    if (closeCreateModalBtn) {
+    if (closeCreateModalBtn || event.target.id === 'collection-modal-overlay') {
       cerrarModalFlotante();
       return;
     }
@@ -375,20 +379,21 @@ async function syncZonaPersonal(forzar = false) {
   renderList();
 }
 
-function abrirModalCrearLista() {
+export function abrirModalCrearLista() {
+  initMyPlacesUI();
   removerModalExistente();
   const modalHTML = `
     <div id="collection-modal-overlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; display:flex; align-items:center; justify-content:center; padding:16px;">
       <div style="background:var(--bg-panel, #F8F1DF); border:2px solid var(--border-strong, #111111); box-shadow:4px 4px 0px #111111; padding:18px; width:100%; max-width:340px; display:grid; gap:12px; font-family: 'Inter', sans-serif; font-size:11px;">
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid var(--border-strong); padding-bottom:6px;">
-          <strong style="color:var(--accent); font-family:'League Spartan',sans-serif; font-size:14px;">NUEVA LISTA</strong>
-          <button type="button" class="filter-action" data-close-modal style="cursor:pointer;">✕</button>
+          <strong style="color:var(--accent); font-family:'League Spartan',sans-serif; font-size:14px;">${t('places_new_list', null, 'NUEVA LISTA')}</strong>
+          <button type="button" class="filter-action" data-close-modal style="cursor:pointer;" aria-label="Cerrar modal">✕</button>
         </div>
         <div style="display:grid; grid-template-columns: 50px 1fr; gap:6px;">
           <input id="modal-emoji-input" class="tech-input" type="text" placeholder="Icono" maxlength="4" style="text-align:center;" title="Icono / Emoji">
-          <input id="modal-name-input" class="tech-input" type="text" placeholder="NOMBRE DE LISTA">
+          <input id="modal-name-input" class="tech-input" type="text" placeholder="${t('sheet_new_list_placeholder', null, 'NOMBRE DE LISTA')}">
         </div>
-        <textarea id="modal-desc-input" class="tech-input" placeholder="Descripción breve (opcional)..." style="resize:vertical; min-height:50px; font-family:inherit; font-size:inherit;"></textarea>
+        <textarea id="modal-desc-input" class="tech-input" placeholder="${t('modal_desc_placeholder', null, 'Descripción breve (opcional)...')}" style="resize:vertical; min-height:50px; font-family:inherit; font-size:inherit;"></textarea>
         
         <!-- Selector de Privacidad Neo-Bauhaus -->
         <div style="display:flex; flex-direction:column; gap:4px;">
@@ -396,11 +401,11 @@ function abrirModalCrearLista() {
           <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
             <label style="display:flex; align-items:center; gap:6px; padding:6px 8px; border:1.5px solid var(--border-strong, #111111); background:rgba(17,17,17,0.04); cursor:pointer; font-size:10px; font-weight:700;">
               <input type="radio" name="modal-create-status" value="private" checked style="accent-color:var(--accent, #E84E1B);">
-              <span>PRIVADA</span>
+              <span>${t('collection_status_private', null, 'PRIVADA')}</span>
             </label>
             <label style="display:flex; align-items:center; gap:6px; padding:6px 8px; border:1.5px solid var(--border-strong, #111111); background:rgba(17,17,17,0.04); cursor:pointer; font-size:10px; font-weight:700;">
               <input type="radio" name="modal-create-status" value="public" style="accent-color:var(--accent, #E84E1B);">
-              <span>PÚBLICA</span>
+              <span>${t('collection_status_public', null, 'PÚBLICA')}</span>
             </label>
           </div>
         </div>
@@ -410,16 +415,35 @@ function abrirModalCrearLista() {
           <span>Mostrar obras en el mapa con este icono</span>
         </label>
         <div style="display:flex; gap:6px; justify-content:flex-end; margin-top:4px;">
-          <button type="button" class="filter-action" data-close-modal>CANCELAR</button>
-          <button type="button" class="btn" data-confirm-create-collection style="padding:6px 14px; font-weight:800; background:var(--accent); color:#FFF;">CREAR LISTA</button>
+          <button type="button" class="filter-action" data-close-modal>${t('btn_cancel', null, 'CANCELAR')}</button>
+          <button type="button" class="btn" data-confirm-create-collection style="padding:6px 14px; font-weight:800; background:var(--accent); color:#FFF;">${t('places_create_list', null, 'CREAR LISTA')}</button>
         </div>
       </div>
     </div>
   `;
   document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+  const nameInput = document.getElementById('modal-name-input');
+  if (nameInput) {
+    setTimeout(() => nameInput.focus(), 60);
+    nameInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        crearListaDesdeModal();
+      }
+    });
+  }
+
+  const handleEscape = (e) => {
+    if (e.key === 'Escape') {
+      cerrarModalFlotante();
+      document.removeEventListener('keydown', handleEscape);
+    }
+  };
+  document.addEventListener('keydown', handleEscape);
 }
 
-async function crearListaDesdeModal() {
+export async function crearListaDesdeModal() {
   if (!state.userId || !state.sessionToken) {
     showNeoToast('Inicia sesión para crear listas.');
     return;
@@ -440,6 +464,12 @@ async function crearListaDesdeModal() {
   if (!name) {
     showNeoToast('Escribe un nombre para la lista.');
     return;
+  }
+
+  const submitBtn = document.querySelector('[data-confirm-create-collection]');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'CREANDO...';
   }
 
   const fallbackId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now());
@@ -473,6 +503,8 @@ async function crearListaDesdeModal() {
     actualizarFuenteMapa();
     cerrarModalFlotante();
     renderList();
+    document.dispatchEvent(new CustomEvent('radar:user-collection-created', { detail: { collection: savedCollection } }));
+    document.dispatchEvent(new CustomEvent('radar:user-collections-changed'));
   } catch (error) {
     console.error('Error creando lista en Supabase:', error);
     state.userCollections.push(newCollectionPayload);
@@ -481,6 +513,8 @@ async function crearListaDesdeModal() {
     actualizarFuenteMapa();
     cerrarModalFlotante();
     renderList();
+    document.dispatchEvent(new CustomEvent('radar:user-collection-created', { detail: { collection: newCollectionPayload } }));
+    document.dispatchEvent(new CustomEvent('radar:user-collections-changed'));
     showNeoToast(`Nota: La lista se creó localmente. Error del servidor: ${error.message}`);
   }
 }
@@ -583,7 +617,7 @@ async function guardarEdicionListaModal(collectionId) {
   }
 }
 
-function cerrarModalFlotante() {
+export function cerrarModalFlotante() {
   removerModalExistente();
 }
 
@@ -665,6 +699,7 @@ async function quitarGuardado(collectionId, buildingId) {
 }
 
 function renderList() {
+  if (!list) return;
   if (!state.sessionToken) {
     list.innerHTML = `<div class="nearby-empty">${t('nearby_empty_login')}</div>`;
     return;

@@ -331,6 +331,25 @@ body.dark-mode .sheet-restricted-link-btn:hover {
 .personal-organizer-option:hover { color: var(--accent); }
 .personal-organizer-option input { accent-color: var(--accent); }
 .personal-create-row { display: grid; grid-template-columns: 1fr auto; gap: 7px; }
+.personal-organizer-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 0;
+}
+.personal-organizer-count {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--fg-dim, #6B6B6B);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.btn-organizer-new-list {
+  padding: 5px 12px !important;
+  font-size: 10px !important;
+}
 .personal-organizer-body > #btn-personal-organizer-save { justify-self: start; }
 .personal-notes { display: grid; gap: 7px; padding: 12px 14px; border-bottom: 1px solid var(--border); }
 .personal-notes-head {
