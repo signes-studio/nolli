@@ -338,25 +338,38 @@ export function normalizarImportancia(valor) {
 
 export function formatearImportancia(valor) {
   const imp = normalizarImportancia(valor);
-  const key = `add_importance_${imp}`;
-  let desc = {
-    0: 'MAESTRA',
-    1: 'ALTA',
-    2: 'MEDIA',
-    3: 'BAJA',
-  }[imp] || 'ALTA';
+  const definitions = {
+    0: { name: 'OBRA CUMBRE', desc: 'El viaje se justifica solo para ver este edificio.' },
+    1: { name: 'IMPRESCINDIBLE', desc: 'Parada obligatoria en cualquier ruta arquitectónica.' },
+    2: { name: 'RECOMENDADA', desc: 'Vale la pena desviarse unas calles para verla.' },
+    3: { name: 'DOCUMENTADA', desc: 'Está en el mapa, ideal si pasas por delante.' },
+  };
+
+  const current = definitions[imp] || definitions[1];
+  let name = current.name;
+  let desc = current.desc;
 
   if (typeof window !== 'undefined' && window.__nolli_t) {
+    const key = `add_importance_${imp}`;
     const translated = window.__nolli_t(key);
     if (translated && translated !== key && translated.includes('—')) {
-      desc = translated.split('—')[1].trim().toUpperCase();
+      const afterDash = translated.split('—')[1].trim();
+      if (afterDash.includes(':')) {
+        const parts = afterDash.split(':');
+        name = parts[0].trim().toUpperCase();
+        desc = parts.slice(1).join(':').trim();
+      } else {
+        name = afterDash.toUpperCase();
+      }
     }
   }
 
   return {
     level: imp,
-    label: `IMP. ${imp} · ${desc}`,
-    title: `Nivel de importancia: ${imp} (${desc})`,
+    name,
+    desc,
+    label: `IMP. ${imp} · ${name}`,
+    title: `Nivel ${imp} — ${name}: ${desc}`,
   };
 }
 
