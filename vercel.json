@@ -73,27 +73,27 @@
   "rewrites": [
     {
       "source": "/sitemap.xml",
-      "destination": "/api/sitemap"
+      "destination": "/api/sitemap?type=index"
     },
     {
       "source": "/sitemap-static.xml",
-      "destination": "/api/sitemap-static"
+      "destination": "/api/sitemap?type=static"
     },
     {
       "source": "/sitemap-categories.xml",
-      "destination": "/api/sitemap-categories"
+      "destination": "/api/sitemap?type=categories"
     },
     {
       "source": "/sitemap-architects.xml",
-      "destination": "/api/sitemap-architects"
+      "destination": "/api/sitemap?type=architects"
     },
     {
       "source": "/sitemap-cities.xml",
-      "destination": "/api/sitemap-cities"
+      "destination": "/api/sitemap?type=cities"
     },
     {
       "source": "/sitemap-buildings-:n.xml",
-      "destination": "/api/sitemap-buildings?page=:n"
+      "destination": "/api/sitemap?type=buildings"
     },
     {
       "source": "/en/css/:path*",
