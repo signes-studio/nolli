@@ -17,11 +17,22 @@ import {
   deleteBuilding, 
   updateBuilding,
   updateUserPresence,
-  updateUserRole
+  updateUserRole,
+  getBuildingsCatalog
 } from './api.js';
 import { escapeHtml, normalizarCategoria, nombreCategoria, separarArquitectos, formatearImportancia } from './state.js';
 
 const SESSION_KEY = 'nolli_admin_session_token';
+
+let visibleAdminConsoleArqsCount = 60;
+
+function cleanDiacritics(str) {
+  return String(str || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
 
 // Estado local de la consola de administración
 const adminConsoleState = {
@@ -235,9 +246,24 @@ async function loadDashboardData() {
 
 async function loadWorksData() {
   try {
-    const all = await fetchAllBuildingsForAdmin(adminConsoleState.token);
-    adminConsoleState.allWorks = all || [];
-    adminConsoleState.pendingWorks = (all || []).filter((w) => w.estado_revision === 'pendiente');
+    const [catalogoRaw, adminObras] = await Promise.all([
+      getBuildingsCatalog().catch(() => []),
+      fetchAllBuildingsForAdmin(adminConsoleState.token).catch(() => []),
+    ]);
+
+    const mapa = new Map();
+    if (Array.isArray(catalogoRaw)) {
+      catalogoRaw.forEach((obra) => mapa.set(String(obra.id), obra));
+    }
+    if (Array.isArray(adminObras)) {
+      adminObras.forEach((obra) => {
+        const prev = mapa.get(String(obra.id)) || {};
+        mapa.set(String(obra.id), { ...prev, ...obra });
+      });
+    }
+    const all = Array.from(mapa.values());
+    adminConsoleState.allWorks = all;
+    adminConsoleState.pendingWorks = all.filter((w) => w.estado_revision === 'pendiente');
   } catch (error) {
     console.error('Error al cargar obras:', error);
   }
@@ -423,7 +449,8 @@ function renderModuleArchitects() {
   const summaryEl = document.getElementById('architects-summary-bar');
   if (!container) return;
 
-  const searchVal = (document.getElementById('search-architects')?.value || '').trim().toLowerCase();
+  const searchVal = (document.getElementById('search-architects')?.value || '').trim();
+  const searchClean = cleanDiacritics(searchVal);
   const filterSort = document.getElementById('filter-architects-sort')?.value || 'count-desc';
 
   // 1. Agrupación de obras por arquitecto
@@ -434,13 +461,14 @@ function renderModuleArchitects() {
     const names = rawNames.length > 0 ? rawNames : ['Sin arquitecto asignado'];
 
     for (const name of names) {
-      const trimmedName = name.trim();
-      const normKey = trimmedName.toLowerCase();
+      const trimmedName = name.replace(/\s+/g, ' ').trim();
+      const normKey = cleanDiacritics(trimmedName);
 
       if (!architectMap.has(normKey)) {
         architectMap.set(normKey, {
           key: normKey,
           name: trimmedName,
+          cleanName: normKey,
           works: [],
           cities: new Set(),
           years: [],
@@ -448,6 +476,11 @@ function renderModuleArchitects() {
           publishedCount: 0,
           rejectedCount: 0,
         });
+      } else {
+        const existing = architectMap.get(normKey);
+        if (trimmedName.length >= existing.name.length && /[áéíóúüñÁÉÍÓÚÜÑ]/.test(trimmedName)) {
+          existing.name = trimmedName;
+        }
       }
 
       const item = architectMap.get(normKey);
@@ -467,12 +500,12 @@ function renderModuleArchitects() {
 
   let list = Array.from(architectMap.values());
 
-  // 2. Filtrado por búsqueda (nombre de arquitecto, ciudad o título de obra)
-  if (searchVal) {
+  // 2. Filtrado por búsqueda insensible a diacríticos y tildes
+  if (searchClean) {
     list = list.filter((item) => {
-      const nameMatch = item.name.toLowerCase().includes(searchVal);
-      const cityMatch = Array.from(item.cities).some((c) => c.toLowerCase().includes(searchVal));
-      const workMatch = item.works.some((w) => (w.nombre_obra || '').toLowerCase().includes(searchVal));
+      const nameMatch = item.cleanName.includes(searchClean);
+      const cityMatch = Array.from(item.cities).some((c) => cleanDiacritics(c).includes(searchClean));
+      const workMatch = item.works.some((w) => cleanDiacritics(w.nombre_obra).includes(searchClean));
       return nameMatch || cityMatch || workMatch;
     });
   }
@@ -497,12 +530,11 @@ function renderModuleArchitects() {
   });
 
   // 4. Actualizar barra de resumen
+  const totalMatches = list.length;
   const totalWorksListed = list.reduce((acc, curr) => acc + curr.works.length, 0);
-  if (summaryEl) {
-    summaryEl.textContent = `MOSTRANDO ${list.length} ARQUITECTOS // ${totalWorksListed} REFERENCIAS DE OBRAS REGISTRADAS`;
-  }
 
-  if (!list.length) {
+  if (!totalMatches) {
+    if (summaryEl) summaryEl.textContent = 'MOSTRANDO 0 ARQUITECTOS // 0 REFERENCIAS';
     container.innerHTML = `
       <div style="border:2px dashed var(--admin-border-light); padding:40px; text-align:center; font-family: 'Inter', sans-serif; font-size:12px; color:var(--admin-fg-dim);">
         NO SE ENCONTRARON ARQUITECTOS BAJO ESTE CRITERIO // CATÁLOGO FILTRADO
@@ -511,9 +543,20 @@ function renderModuleArchitects() {
     return;
   }
 
-  const autoExpand = Boolean(searchVal);
+  // 5. Renderizado progresivo para evitar congelamiento
+  const visibleList = list.slice(0, visibleAdminConsoleArqsCount);
 
-  container.innerHTML = list.map((item) => {
+  if (summaryEl) {
+    if (visibleList.length < totalMatches) {
+      summaryEl.textContent = `MOSTRANDO ${visibleList.length} DE ${totalMatches} ARQUITECTOS // ${totalWorksListed} REFERENCIAS DE OBRAS REGISTRADAS`;
+    } else {
+      summaryEl.textContent = `MOSTRANDO ${totalMatches} ARQUITECTOS // ${totalWorksListed} REFERENCIAS DE OBRAS REGISTRADAS`;
+    }
+  }
+
+  const autoExpand = Boolean(searchClean);
+
+  const cardsHtml = visibleList.map((item) => {
     const isExpanded = autoExpand || adminConsoleState.expandedArchitects.has(item.key);
     const minYear = item.years.length ? Math.min(...item.years) : null;
     const maxYear = item.years.length ? Math.max(...item.years) : null;
@@ -627,6 +670,17 @@ function renderModuleArchitects() {
       </article>
     `;
   }).join('');
+
+  const remaining = totalMatches - visibleList.length;
+  const loadMoreBtnHtml = remaining > 0 ? `
+    <div style="padding: 16px; text-align: center;">
+      <button type="button" id="btn-load-more-architects-console" class="admin-btn" style="width: 100%; max-width: 320px; padding: 10px 16px; font-weight: 800; font-family: 'Inter', sans-serif;">
+        MOSTRAR MÁS ARQUITECTOS (+${Math.min(60, remaining)}) · ${remaining} RESTANTES
+      </button>
+    </div>
+  ` : '';
+
+  container.innerHTML = cardsHtml + loadMoreBtnHtml;
 
   if (window.lucide) window.lucide.createIcons({ context: container });
 }
@@ -884,8 +938,14 @@ function setupSearchAndFilters() {
   document.getElementById('filter-pending-sort')?.addEventListener('change', renderModulePending);
 
   // Módulo de Arquitectos
-  document.getElementById('search-architects')?.addEventListener('input', renderModuleArchitects);
-  document.getElementById('filter-architects-sort')?.addEventListener('change', renderModuleArchitects);
+  document.getElementById('search-architects')?.addEventListener('input', () => {
+    visibleAdminConsoleArqsCount = 60;
+    renderModuleArchitects();
+  });
+  document.getElementById('filter-architects-sort')?.addEventListener('change', () => {
+    visibleAdminConsoleArqsCount = 60;
+    renderModuleArchitects();
+  });
 
   document.getElementById('btn-expand-all-architects')?.addEventListener('click', () => {
     document.querySelectorAll('.admin-architect-card').forEach((card) => {
@@ -905,6 +965,13 @@ function setupSearchAndFilters() {
 
   // Delegación de eventos en el listado de arquitectos
   document.getElementById('architects-list')?.addEventListener('click', async (e) => {
+    const loadMoreBtn = e.target.closest('#btn-load-more-architects-console');
+    if (loadMoreBtn) {
+      visibleAdminConsoleArqsCount += 60;
+      renderModuleArchitects();
+      return;
+    }
+
     const actionBtn = e.target.closest('button[data-action]');
     if (actionBtn) {
       const action = actionBtn.dataset.action;

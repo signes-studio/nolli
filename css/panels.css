@@ -932,6 +932,37 @@ body.dark-mode .admin-badge-online { color: #00FF88; background: rgba(0, 255, 13
 }
 
 /* Vista de Arquitectos en el panel flotante */
+@keyframes adminSpin {
+  to { transform: rotate(360deg); }
+}
+.admin-spinner {
+  width: 22px;
+  height: 22px;
+  border: 2.5px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: adminSpin 0.75s linear infinite;
+  display: inline-block;
+}
+.btn-admin-load-more {
+  width: 100%;
+  padding: 9px 12px;
+  font-size: 10px;
+  font-weight: 800;
+  background: var(--bg-raised);
+  border: 1.5px solid var(--border-strong);
+  color: var(--fg);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+.btn-admin-load-more:hover {
+  background: var(--bg-panel);
+  border-color: var(--accent);
+}
 .admin-architects-view { display: block; }
 .admin-floating-arq-item {
   border-bottom: 1px solid var(--border);

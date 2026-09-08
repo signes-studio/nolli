@@ -3,7 +3,7 @@
    Arquitectura Serverless Blindada + Frontend Vanilla Neo-Bauhaus
    ========================================================================= */
 
-import { state, separarArquitectos, esRolAdmin, escapeHtml, formatearImportancia } from './state.js';
+import { state, separarArquitectos, esRolAdmin, escapeHtml, formatearImportancia, transformarEdificio, dedupeBuildings } from './state.js';
 import { 
   deleteBuilding, 
   fetchRatingAverages, 
@@ -14,7 +14,8 @@ import {
   deleteBuildingReport,
   fetchAllBuildingsForAdmin,
   fetchUserRole,
-  updateUserRole
+  updateUserRole,
+  getBuildingsCatalog
 } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
@@ -47,7 +48,16 @@ let ratingAverages = new Map();
 let cachedReports = [];
 let cachedUsers = [];
 let currentAdminTab = 'projects';
+let visibleArchitectsCount = 60;
 const expandedFloatingArqs = new Set();
+
+function cleanDiacritics(str) {
+  return String(str || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
 
 function getAdminButtons() {
   return [
@@ -80,8 +90,18 @@ export function initAdminUI() {
     });
   }
   if (sortFilter) sortFilter.addEventListener('change', renderList);
-  if (architectSearch) architectSearch.addEventListener('input', renderArchitects);
-  if (architectSort) architectSort.addEventListener('change', renderArchitects);
+  if (architectSearch) {
+    architectSearch.addEventListener('input', () => {
+      visibleArchitectsCount = 60;
+      renderArchitects();
+    });
+  }
+  if (architectSort) {
+    architectSort.addEventListener('change', () => {
+      visibleArchitectsCount = 60;
+      renderArchitects();
+    });
+  }
   if (reportFilter) reportFilter.addEventListener('change', renderReports);
   if (userSearch) userSearch.addEventListener('input', renderUsers);
 
@@ -168,6 +188,13 @@ export function initAdminUI() {
           expandedFloatingArqs.delete(key);
         }
       }
+      return;
+    }
+
+    const loadMoreArqs = event.target.closest('#btn-admin-load-more-arqs');
+    if (loadMoreArqs) {
+      visibleArchitectsCount += 60;
+      renderArchitects();
       return;
     }
 
@@ -281,6 +308,7 @@ export async function toggleAdminPanel(forceOpen = null) {
 
     panel.classList.add('open');
     getAdminButtons().forEach((b) => b.classList.add('active-state'));
+    renderCurrentTab();
     await syncAllAdminData();
     renderCurrentTab();
   } else {
@@ -405,22 +433,44 @@ function renderAuthRequired() {
 async function syncAllAdminData() {
   if (!state.sessionToken || !esRolAdmin(state.userRole)) return;
 
-  // 1. Cargar obras completas (incluidas pendientes)
+  // 1. Cargar obras completas: catálogo global (10.000+) + obras administrativas (pendientes/rechazadas)
   try {
-    const adminObras = await fetchAllBuildingsForAdmin(state.sessionToken);
-    if (adminObras && adminObras.length) {
-      const existingIds = new Set(state.OBRAS.map((o) => String(o.id)));
-      adminObras.forEach((obra) => {
-        if (!existingIds.has(String(obra.id))) {
-          state.OBRAS.push(obra);
-          existingIds.add(String(obra.id));
-        } else {
-          const index = state.OBRAS.findIndex((o) => String(o.id) === String(obra.id));
-          if (index !== -1) state.OBRAS[index] = { ...state.OBRAS[index], ...obra };
-        }
+    const [catalogoRaw, adminObras] = await Promise.all([
+      getBuildingsCatalog().catch(() => []),
+      fetchAllBuildingsForAdmin(state.sessionToken).catch(() => []),
+    ]);
+
+    const mapaObras = new Map(state.OBRAS.map((o) => [String(o.id), o]));
+
+    if (Array.isArray(catalogoRaw) && catalogoRaw.length > 0) {
+      catalogoRaw.forEach((fila, idx) => {
+        const idStr = String(fila.id);
+        const anterior = mapaObras.get(idStr);
+        const transformado = transformarEdificio(fila, idx);
+        mapaObras.set(idStr, {
+          ...transformado,
+          selected: anterior ? anterior.selected : false,
+        });
       });
     }
-  } catch {}
+
+    if (Array.isArray(adminObras) && adminObras.length > 0) {
+      adminObras.forEach((obra) => {
+        const idStr = String(obra.id);
+        const anterior = mapaObras.get(idStr);
+        const transformado = transformarEdificio(obra, 0);
+        mapaObras.set(idStr, {
+          ...(anterior || {}),
+          ...transformado,
+          estado_revision: obra.estado_revision || transformado.estado_revision || 'publicada',
+        });
+      });
+    }
+
+    state.OBRAS = dedupeBuildings(Array.from(mapaObras.values()));
+  } catch (err) {
+    console.warn('Aviso sincronizando catálogo completo en panel admin:', err);
+  }
 
   // 2. Cargar valoraciones medias
   try {
@@ -565,10 +615,26 @@ async function renderArchitects() {
     return;
   }
 
-  const searchVal = (architectSearch?.value || '').trim().toLowerCase();
+  if (!architectList) return;
+
+  // Si aún se está descargando el catálogo, mostrar estado de carga limpio y claro
+  if (!state.OBRAS || state.OBRAS.length === 0) {
+    if (architectCount) architectCount.textContent = 'CARGANDO...';
+    architectList.innerHTML = `
+      <div class="nearby-empty" style="padding: 36px 18px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px; font-family: 'Inter', sans-serif;">
+        <div class="admin-spinner"></div>
+        <div style="font-size: 11px; font-weight: 800; color: var(--fg); letter-spacing: 0.05em;">CARGANDO CATÁLOGO COMPLETO DE ARQUITECTOS...</div>
+        <div style="font-size: 10px; color: var(--fg-dim);">Sincronizando 10.000+ referencias arquitectónicas...</div>
+      </div>
+    `;
+    return;
+  }
+
+  const searchVal = (architectSearch?.value || '').trim();
+  const searchClean = cleanDiacritics(searchVal);
   const filterSort = architectSort?.value || 'count-desc';
 
-  // 1. Agrupación de obras por arquitecto
+  // 1. Agrupación de obras por arquitecto con normalización de nombres y tildes
   const architectMap = new Map();
 
   for (const obra of state.OBRAS) {
@@ -576,13 +642,14 @@ async function renderArchitects() {
     const names = rawNames.length > 0 ? rawNames : ['Sin arquitecto asignado'];
 
     for (const name of names) {
-      const trimmedName = name.trim();
-      const normKey = trimmedName.toLowerCase();
+      const trimmedName = name.replace(/\s+/g, ' ').trim();
+      const normKey = cleanDiacritics(trimmedName);
 
       if (!architectMap.has(normKey)) {
         architectMap.set(normKey, {
           key: normKey,
           name: trimmedName,
+          cleanName: normKey,
           works: [],
           cities: new Set(),
           years: [],
@@ -590,6 +657,11 @@ async function renderArchitects() {
           publishedCount: 0,
           rejectedCount: 0,
         });
+      } else {
+        const existing = architectMap.get(normKey);
+        if (trimmedName.length >= existing.name.length && /[áéíóúüñÁÉÍÓÚÜÑ]/.test(trimmedName)) {
+          existing.name = trimmedName;
+        }
       }
 
       const item = architectMap.get(normKey);
@@ -609,12 +681,12 @@ async function renderArchitects() {
 
   let arqList = Array.from(architectMap.values());
 
-  // 2. Filtrado por búsqueda (nombre de arquitecto, ciudad o título de obra)
-  if (searchVal) {
+  // 2. Filtrado por búsqueda insensible a tildes y diacríticos
+  if (searchClean) {
     arqList = arqList.filter((item) => {
-      const nameMatch = item.name.toLowerCase().includes(searchVal);
-      const cityMatch = Array.from(item.cities).some((c) => c.toLowerCase().includes(searchVal));
-      const workMatch = item.works.some((w) => (w.nombre_obra || '').toLowerCase().includes(searchVal));
+      const nameMatch = item.cleanName.includes(searchClean);
+      const cityMatch = Array.from(item.cities).some((c) => cleanDiacritics(c).includes(searchClean));
+      const workMatch = item.works.some((w) => cleanDiacritics(w.nombre_obra).includes(searchClean));
       return nameMatch || cityMatch || workMatch;
     });
   }
@@ -639,21 +711,29 @@ async function renderArchitects() {
   });
 
   // 4. Conteo de obras y arquitectos
+  const totalMatches = arqList.length;
   const totalWorksListed = arqList.reduce((acc, curr) => acc + curr.works.length, 0);
-  if (architectCount) {
-    architectCount.textContent = `${arqList.length} ARQS · ${totalWorksListed} OBRAS`;
-  }
 
-  if (!architectList) return;
-
-  if (!arqList.length) {
+  if (totalMatches === 0) {
+    if (architectCount) architectCount.textContent = '0 ARQS';
     architectList.innerHTML = '<div class="nearby-empty" style="padding: 24px; text-align: center; color: var(--fg-dim);">No hay arquitectos que coincidan con la búsqueda.</div>';
     return;
   }
 
-  const autoExpand = Boolean(searchVal);
+  // 5. Renderizado Progresivo (lotes de 60 arquitectos para 60 FPS sin bloquear el DOM)
+  const visibleList = arqList.slice(0, visibleArchitectsCount);
 
-  architectList.innerHTML = arqList.map((item) => {
+  if (architectCount) {
+    if (visibleList.length < totalMatches) {
+      architectCount.textContent = `${visibleList.length} DE ${totalMatches} ARQS · ${totalWorksListed} OBRAS`;
+    } else {
+      architectCount.textContent = `${totalMatches} ARQS · ${totalWorksListed} OBRAS`;
+    }
+  }
+
+  const autoExpand = Boolean(searchClean);
+
+  const cardsHtml = visibleList.map((item) => {
     const isExpanded = autoExpand || expandedFloatingArqs.has(item.key);
     const minYear = item.years.length ? Math.min(...item.years) : null;
     const maxYear = item.years.length ? Math.max(...item.years) : null;
@@ -729,6 +809,18 @@ async function renderArchitects() {
       </article>
     `;
   }).join('');
+
+  const remaining = totalMatches - visibleList.length;
+  const loadMoreBtnHtml = remaining > 0 ? `
+    <div style="padding: 12px; text-align: center; border-top: 1px solid var(--border-strong); background: var(--bg-panel);">
+      <button type="button" id="btn-admin-load-more-arqs" class="btn btn-admin-load-more">
+        <span>MOSTRAR MÁS ARQUITECTOS (+${Math.min(60, remaining)})</span>
+        <span style="font-size: 9px; color: var(--fg-dim); font-weight: 700;">(${remaining} RESTANTES)</span>
+      </button>
+    </div>
+  ` : '';
+
+  architectList.innerHTML = cardsHtml + loadMoreBtnHtml;
 }
 
 async function renderReports() {
