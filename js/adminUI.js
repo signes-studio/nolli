@@ -57,6 +57,8 @@ function getAdminButtons() {
 
 export function initAdminUI() {
   getAdminButtons().forEach((btn) => {
+    if (btn.__adminClickBound) return;
+    btn.__adminClickBound = true;
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();

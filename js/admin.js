@@ -19,7 +19,7 @@ import {
   updateUserPresence,
   updateUserRole
 } from './api.js';
-import { escapeHtml, normalizarCategoria, nombreCategoria, separarArquitectos } from './state.js';
+import { escapeHtml, normalizarCategoria, nombreCategoria, separarArquitectos, formatearImportancia } from './state.js';
 
 const SESSION_KEY = 'nolli_admin_session_token';
 
@@ -351,6 +351,7 @@ function renderModulePending() {
     const lat = obra.latitud ?? (Array.isArray(obra.coordenadas) ? obra.coordenadas[1] : '');
     const lng = obra.longitud ?? (Array.isArray(obra.coordenadas) ? obra.coordenadas[0] : '');
     const mapUrl = `./?obra=${safeId}${lat && lng ? `&lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}&zoom=17` : ''}`;
+    const impInfo = formatearImportancia(obra.importancia);
 
     return `
       <article class="admin-work-card ${isPending ? 'pending-border' : ''}" data-work-id="${safeId}">
@@ -361,8 +362,9 @@ function renderModulePending() {
         `}
         
         <div class="admin-work-info">
-          <div class="admin-work-title-row">
+          <div class="admin-work-title-row" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
             <h3 class="admin-work-title">${title}</h3>
+            <span class="admin-importance-tag imp-${impInfo.level}" title="${escapeHtml(impInfo.title)}">${escapeHtml(impInfo.label)}</span>
             ${isPending ? `<span class="admin-badge-pending">PENDIENTE DE REVISIÓN</span>` : ''}
             <span class="admin-work-tag" style="background:var(--admin-bg-raised);">${escapeHtml(obra.estado_revision || 'publicada').toUpperCase()}</span>
           </div>
@@ -569,6 +571,7 @@ function renderModuleArchitects() {
               const lat = obra.latitud ?? (Array.isArray(obra.coordenadas) ? obra.coordenadas[1] : '');
               const lng = obra.longitud ?? (Array.isArray(obra.coordenadas) ? obra.coordenadas[0] : '');
               const mapUrl = `./?obra=${safeId}${lat && lng ? `&lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}&zoom=17` : ''}`;
+              const impInfo = formatearImportancia(obra.importancia);
 
               return `
                 <div class="admin-architect-work-item ${isPending ? 'pending-border' : ''}">
@@ -579,8 +582,11 @@ function renderModuleArchitects() {
                   `}
 
                   <div class="admin-architect-work-details">
-                    <div style="display:flex; align-items:center; justify-content:space-between; gap:6px;">
-                      <h4 class="admin-architect-work-title" title="${title}">${title}</h4>
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; flex-wrap:wrap;">
+                      <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                        <h4 class="admin-architect-work-title" title="${title}">${title}</h4>
+                        <span class="admin-importance-tag imp-${impInfo.level}" title="${escapeHtml(impInfo.title)}">${escapeHtml(impInfo.label)}</span>
+                      </div>
                       <span class="admin-work-tag" style="font-size:8.5px; ${isPending ? 'background:var(--admin-accent-2); color:#111111; font-weight:800;' : ''}">
                         ${escapeHtml((obra.estado_revision || 'publicada').toUpperCase())}
                       </span>
@@ -1177,6 +1183,7 @@ function setupModalEvents() {
         enlace_url: document.getElementById('edit-enlace').value.trim() || null,
         place: document.getElementById('edit-place').value.trim() || null,
         estado_revision: document.getElementById('edit-estado-revision').value,
+        importancia: Number(document.getElementById('edit-importancia')?.value ?? 1),
       };
 
       try {
@@ -1210,6 +1217,10 @@ function openEditModal(id) {
   document.getElementById('edit-ano').value = obra.año_construccion || '';
   document.getElementById('edit-categoria').value = normalizarCategoria(obra.categoria);
   document.getElementById('edit-acceso').value = obra.estado_acceso || 'publico';
+  const impSelect = document.getElementById('edit-importancia');
+  if (impSelect) {
+    impSelect.value = String(obra.importancia !== undefined && obra.importancia !== null ? obra.importancia : 1);
+  }
   document.getElementById('edit-foto').value = obra.foto_url || '';
   document.getElementById('edit-enlace').value = obra.enlace_url || '';
   document.getElementById('edit-place').value = obra.place || '';

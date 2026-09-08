@@ -389,11 +389,25 @@ adminPanelButton?.addEventListener('click', async (event) => {
   try {
     await cargarPanelBajoDemanda('adminUI', 'initAdminUI');
     const { toggleAdminPanel } = await import('./adminUI.js');
-    toggleAdminPanel(true);
+    toggleAdminPanel();
   } catch (err) {
     console.warn('Init AdminUI:', err);
   }
 });
+
+// Soporte para acceso directo por hash URL (#admin)
+const comprobarRutaAdmin = () => {
+  if (window.location.hash === '#admin') {
+    cargarPanelBajoDemanda('adminUI', 'initAdminUI').then(async () => {
+      const { handleAdminHashRoute } = await import('./adminUI.js');
+      handleAdminHashRoute();
+    }).catch((err) => console.warn('Init AdminUI via hash:', err));
+  }
+};
+if (window.location.hash === '#admin') {
+  comprobarRutaAdmin();
+}
+window.addEventListener('hashchange', comprobarRutaAdmin);
 
 try {
   window.lucide?.createIcons({ context: document.querySelector('main') });
