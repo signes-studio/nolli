@@ -340,16 +340,27 @@ body.dark-mode .profile-metric-label {
 /* =========================================================================
    4. NAVEGACIÓN CURATORIAL
    ========================================================================= */
+.profile-tabs-scroll-wrap {
+  --tabs-fade-color: var(--bg, #F8F1DF);
+  position: relative;
+  width: 100%;
+  margin-top: 32px;
+  margin-bottom: 24px;
+}
+
+body.dark-mode .profile-tabs-scroll-wrap {
+  --tabs-fade-color: var(--bg, #141411);
+}
+
 .profile-curatorial-nav {
   display: flex;
   align-items: center;
   width: 100%;
   box-sizing: border-box;
   gap: 12px;
-  margin-top: 32px;
-  margin-bottom: 24px;
+  margin: 0;
   border-bottom: 1.5px solid var(--border, #D8D6CE);
-  padding: 0 2px;
+  padding: 0 4px;
   overflow-x: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;

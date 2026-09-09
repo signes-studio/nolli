@@ -324,3 +324,44 @@ export function showNeoToast(message, options = {}) {
     toast.style.opacity = '0';
   }, duration);
 }
+
+/**
+ * Inicializa un indicador de scroll horizontal sutil para contenedores de pestañas desbordables.
+ * Añade/remueve las clases .can-scroll-left y .can-scroll-right al wrapper según la posición del scroll.
+ * 
+ * @param {HTMLElement} scrollEl - El elemento con overflow-x: auto (las pestañas)
+ * @param {HTMLElement} wrapEl - El elemento contenedor (.nolli-tabs-scroll-wrap)
+ * @returns {Function} Función para forzar actualización de estado de scroll
+ */
+export function initTabsScrollIndicator(scrollEl, wrapEl) {
+  if (!scrollEl || !wrapEl) return () => {};
+
+  const update = () => {
+    const maxScroll = Math.max(0, scrollEl.scrollWidth - scrollEl.clientWidth);
+    if (maxScroll <= 1) {
+      wrapEl.classList.remove('can-scroll-left', 'can-scroll-right');
+      return;
+    }
+    const current = scrollEl.scrollLeft;
+    wrapEl.classList.toggle('can-scroll-left', current > 2);
+    wrapEl.classList.toggle('can-scroll-right', (maxScroll - current) > 2);
+  };
+
+  scrollEl.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('resize', update, { passive: true });
+
+  if (window.ResizeObserver) {
+    const ro = new ResizeObserver(() => update());
+    ro.observe(scrollEl);
+    Array.from(scrollEl.children).forEach((child) => ro.observe(child));
+  }
+
+  // Comprobaciones iniciales progresivas para fuentes y renderizado web
+  update();
+  requestAnimationFrame(update);
+  setTimeout(update, 100);
+  setTimeout(update, 400);
+
+  return update;
+}
+

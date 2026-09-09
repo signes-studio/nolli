@@ -42,7 +42,7 @@ import {
   escapeHtml,
 } from './state.js';
 
-import { renderInChunks } from './renderUtils.js';
+import { renderInChunks, initTabsScrollIndicator } from './renderUtils.js';
 import { getOptimizedPhotoUrl } from './imageProxy.js';
 import { t, initI18n, getUrlPrefix, applyI18nToDOM, setupLanguageSwitchers } from './i18n.js';
 
@@ -564,6 +564,12 @@ function renderMetrics() {
 // 4. NAVEGACIÓN CURATORIAL
 // -------------------------------------------------------------------------
 function setupNavTabs() {
+  const nav = document.querySelector('.profile-curatorial-nav');
+  const wrap = document.querySelector('.profile-tabs-scroll-wrap');
+  if (nav && wrap) {
+    initTabsScrollIndicator(nav, wrap);
+  }
+
   const tabButtons = document.querySelectorAll('.profile-curatorial-tab');
   tabButtons.forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -576,7 +582,13 @@ function setupNavTabs() {
 function switchTab(tab) {
   activeTab = tab;
   document.querySelectorAll('.profile-curatorial-tab').forEach((b) => {
-    b.classList.toggle('active', b.dataset.profileTab === tab);
+    const isAct = b.dataset.profileTab === tab;
+    b.classList.toggle('active', isAct);
+    if (isAct) {
+      try {
+        b.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+      } catch (_) {}
+    }
   });
   renderFeedContent();
 }

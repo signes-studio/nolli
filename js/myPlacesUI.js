@@ -16,7 +16,7 @@ import {
 import { abrirFicha } from './sheetUI.js';
 import { registrarIconosColecciones, actualizarVisibilidadIconosLista } from './mapController.js';
 import { actualizarFuenteMapa } from './mapData.js';
-import { showNeoToast } from './renderUtils.js';
+import { showNeoToast, initTabsScrollIndicator } from './renderUtils.js';
 import { t } from './i18n.js';
 import {
   fetchUserCollections,
@@ -49,6 +49,14 @@ let myPlacesInitialized = false;
 export function initMyPlacesUI() {
   if (myPlacesInitialized) return;
   myPlacesInitialized = true;
+
+  const placesTabs = panel?.querySelector('.places-tabs');
+  const placesTabsWrap = panel?.querySelector('.places-tabs-scroll-wrap');
+  let updateTabsScroll = null;
+  if (placesTabs && placesTabsWrap) {
+    updateTabsScroll = initTabsScrollIndicator(placesTabs, placesTabsWrap);
+  }
+
   if (button) {
     button.addEventListener('click', () => {
       if (!state.sessionToken) {
@@ -62,6 +70,7 @@ export function initMyPlacesUI() {
         renderList();
         asegurarObrasEnMemoria();
         syncZonaPersonal();
+        requestAnimationFrame(() => updateTabsScroll?.());
       }
     });
   }
@@ -82,6 +91,9 @@ export function initMyPlacesUI() {
     if (tab) {
       activeTab = tab.dataset.placeTab;
       document.querySelectorAll('[data-place-tab]').forEach((item) => item.classList.toggle('active', item === tab));
+      try {
+        tab.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+      } catch (_) {}
       renderList();
       return;
     }

@@ -528,14 +528,33 @@ body.dark-mode .sheet-restricted-link-btn:hover {
 .forgot-password:focus-visible { color: var(--accent); outline: 2px solid var(--accent, #E95C0C) !important; outline-offset: 2px; }
 .forgot-password:disabled { cursor: wait; opacity: .6; }
 .personal-panel-subtitle { display: block; margin-top: 2px; color: var(--accent); font-size: 9px; letter-spacing: .08em; font-weight: 700; }
+.places-tabs-scroll-wrap {
+  --tabs-fade-color: var(--bg-raised, #EDE7D3);
+  position: relative;
+  width: 100%;
+}
+body.dark-mode .places-tabs-scroll-wrap {
+  --tabs-fade-color: var(--bg-raised, #282824);
+}
 .places-tabs {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  display: flex;
+  align-items: stretch;
   border-bottom: 1px solid var(--border-strong);
   background: var(--bg-raised);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+}
+.places-tabs::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 .places-tab {
-  padding: 10px 4px;
+  flex: 1 0 auto;
+  min-width: 82px;
+  padding: 10px 6px;
   border: 0;
   border-right: 1px solid var(--border);
   background: transparent;
@@ -546,6 +565,7 @@ body.dark-mode .sheet-restricted-link-btn:hover {
   text-align: center;
   cursor: pointer;
   letter-spacing: .04em;
+  white-space: nowrap;
   transition: background .12s, color .12s;
 }
 .places-tab:last-child { border-right: 0; }
