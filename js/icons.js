@@ -2,12 +2,12 @@
    ICONS.JS — Dibujo de iconos dinámicos (canvas) con geometría original y color por categoría
    ========================================================================= */
 
-export function buildIcon(draw, color, importance, size = 64) {
+export function buildIcon(draw, color, importance, size = 64, options = {}) {
   const c = document.createElement('canvas');
   c.width = size;
   c.height = size;
   const ctx = c.getContext('2d');
-  draw(ctx, color, importance, size);
+  draw(ctx, color, importance, size, options);
   return ctx.getImageData(0, 0, size, size);
 }
 
@@ -36,141 +36,209 @@ export function buildEmojiIcon(emoji, isDark = false, size = 64) {
   return ctx.getImageData(0, 0, size, size);
 }
 
-export function drawTargetIcon(ctx, color, importance, s) {
+export function drawVisitedBadge(ctx, c, s) {
+  const badgeX = c + s * 0.22;
+  const badgeY = c - s * 0.22;
+  const badgeR = s * 0.13;
+
+  ctx.save();
+  // Sombra dura offset técnica de 1px
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+  ctx.beginPath();
+  ctx.arc(badgeX + 1, badgeY + 1, badgeR, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Fondo circular verde bosque editorial (#1D5C2B)
+  ctx.fillStyle = '#1D5C2B';
+  ctx.beginPath();
+  ctx.arc(badgeX, badgeY, badgeR, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Borde nítido blanco sólido (#FFFFFF)
+  ctx.lineWidth = 1.6;
+  ctx.strokeStyle = '#FFFFFF';
+  ctx.beginPath();
+  ctx.arc(badgeX, badgeY, badgeR, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Trazo técnico de visado / comprobación "✓"
+  ctx.beginPath();
+  ctx.moveTo(badgeX - badgeR * 0.45, badgeY - badgeR * 0.05);
+  ctx.lineTo(badgeX - badgeR * 0.08, badgeY + badgeR * 0.35);
+  ctx.lineTo(badgeX + badgeR * 0.50, badgeY - badgeR * 0.35);
+  ctx.lineWidth = 1.8;
+  ctx.strokeStyle = '#FFFFFF';
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+  ctx.restore();
+}
+
+export function drawPendingBadge(ctx, c, s) {
+  const badgeX = c + s * 0.22;
+  const badgeY = c - s * 0.22;
+  const badgeR = s * 0.13;
+
+  ctx.save();
+  // Sombra dura offset técnica de 1px
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+  ctx.beginPath();
+  ctx.arc(badgeX + 1, badgeY + 1, badgeR, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Fondo circular ámbar (#EFBC02)
+  ctx.fillStyle = '#EFBC02';
+  ctx.beginPath();
+  ctx.arc(badgeX, badgeY, badgeR, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Borde nítido negro (#141411)
+  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = '#141411';
+  ctx.beginPath();
+  ctx.arc(badgeX, badgeY, badgeR, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Punto central técnico
+  ctx.fillStyle = '#141411';
+  ctx.beginPath();
+  ctx.arc(badgeX, badgeY, badgeR * 0.35, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+export function drawTargetIcon(ctx, color, importance, s, options = {}) {
   const c = s / 2;
-  ctx.fillStyle = color;
-  ctx.strokeStyle = color;
+  const isVisited = Boolean(options.isVisited || color === '#82c812');
+  const isPending = Boolean(options.isPending || color === '#FFCC00');
   const isLightSelection = color === '#FFFFFF' || color === '#ffffff' || color === '#F5F4F0' || color === '#f5f4f0';
   const isDarkSelection = color === '#141411';
-  
+  const strokeColor = isDarkSelection ? '#F8F1DF' : '#141411';
+  const haloColor = isDarkSelection ? '#141411' : '#F8F1DF';
+
   if (importance === 0) {
+    // 0: OBRA CUMBRE — Diamante / Rombo técnico Neo-Bauhaus (45°), máxima jerarquía
     ctx.save();
     ctx.translate(c, c);
-    
-    ctx.beginPath();
-    ctx.moveTo(0, -s * 0.38);  // Vértice superior
-    ctx.lineTo(s * 0.32, s * 0.28); // Vértice inferior derecho
-    ctx.lineTo(-s * 0.32, s * 0.28); // Vértice inferior izquierdo
-    ctx.closePath();
+    ctx.rotate(Math.PI / 4);
 
-    if (isLightSelection) {
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fill();
-      ctx.lineWidth = 2.5;
-      ctx.strokeStyle = '#141411';
-      ctx.stroke();
-      ctx.fillStyle = '#141411';
-      ctx.beginPath();
-      ctx.arc(0, s * 0.08, s * 0.08, 0, Math.PI * 2);
-      ctx.fill();
-    } else if (isDarkSelection) {
-      ctx.fillStyle = '#141411';
-      ctx.fill();
-      ctx.lineWidth = 2.5;
-      ctx.strokeStyle = '#F8F1DF';
-      ctx.stroke();
-      ctx.fillStyle = '#F8F1DF';
-      ctx.beginPath();
-      ctx.arc(0, s * 0.08, s * 0.08, 0, Math.PI * 2);
-      ctx.fill();
-    } else {
-      ctx.fillStyle = color;
-      ctx.fill();
-      ctx.lineWidth = 2.5;
-      ctx.strokeStyle = '#F8F1DF';
-      ctx.stroke();
-      ctx.fillStyle = '#F8F1DF';
-      ctx.beginPath();
-      ctx.arc(0, s * 0.08, s * 0.08, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    
+    const half = s * 0.28;
+
+    // 1. Halo perimetral de contraste
+    ctx.fillStyle = haloColor;
+    ctx.fillRect(-half - 3, -half - 3, (half + 3) * 2, (half + 3) * 2);
+
+    // 2. Relleno cromático de categoría arquitectónica
+    ctx.fillStyle = isLightSelection ? '#FFFFFF' : (isDarkSelection ? '#141411' : color);
+    ctx.fillRect(-half, -half, half * 2, half * 2);
+
+    // 3. Contorno técnico sólido negro
+    ctx.lineWidth = 2.4;
+    ctx.strokeStyle = strokeColor;
+    ctx.strokeRect(-half, -half, half * 2, half * 2);
+
+    // 4. Núcleo técnico central concéntrico
+    ctx.fillStyle = strokeColor;
+    const inner = half * 0.35;
+    ctx.fillRect(-inner, -inner, inner * 2, inner * 2);
+
     ctx.restore();
+
+    if (isVisited) {
+      drawVisitedBadge(ctx, c, s);
+    } else if (isPending) {
+      drawPendingBadge(ctx, c, s);
+    }
   } else if (importance === 1) {
-    if (isLightSelection) {
-      ctx.fillStyle = '#141411';
-      ctx.beginPath();
-      ctx.arc(c, c, s * 0.38, 0, Math.PI * 2);
-      ctx.fill();
+    // 1: IMPRESCINDIBLE — Disco sólido Neo-Bauhaus con diana técnica central
+    const r = s * 0.30;
 
-      ctx.fillStyle = '#FFFFFF';
-      ctx.beginPath();
-      ctx.arc(c, c, s * 0.34, 0, Math.PI * 2);
-      ctx.fill();
+    // 1. Halo perimetral de contraste
+    ctx.fillStyle = haloColor;
+    ctx.beginPath();
+    ctx.arc(c, c, r + 2.5, 0, Math.PI * 2);
+    ctx.fill();
 
-      ctx.fillStyle = '#141411';
-      ctx.beginPath();
-      ctx.arc(c, c, s * 0.10, 0, Math.PI * 2);
-      ctx.fill();
-    } else if (isDarkSelection) {
-      ctx.fillStyle = '#F8F1DF';
-      ctx.beginPath();
-      ctx.arc(c, c, s * 0.38, 0, Math.PI * 2);
-      ctx.fill();
+    // 2. Relleno cromático de categoría
+    ctx.fillStyle = isLightSelection ? '#FFFFFF' : (isDarkSelection ? '#141411' : color);
+    ctx.beginPath();
+    ctx.arc(c, c, r, 0, Math.PI * 2);
+    ctx.fill();
 
-      ctx.fillStyle = '#141411';
-      ctx.beginPath();
-      ctx.arc(c, c, s * 0.34, 0, Math.PI * 2);
-      ctx.fill();
+    // 3. Contorno técnico sólido negro
+    ctx.lineWidth = 2.2;
+    ctx.strokeStyle = strokeColor;
+    ctx.beginPath();
+    ctx.arc(c, c, r, 0, Math.PI * 2);
+    ctx.stroke();
 
-      ctx.fillStyle = '#F8F1DF';
-      ctx.beginPath();
-      ctx.arc(c, c, s * 0.10, 0, Math.PI * 2);
-      ctx.fill();
-    } else {
-      ctx.fillStyle = '#F8F1DF';
-      ctx.beginPath();
-      ctx.arc(c, c, s * 0.38, 0, Math.PI * 2);
-      ctx.fill();
+    // 4. Diana / punto técnico central
+    ctx.fillStyle = strokeColor;
+    ctx.beginPath();
+    ctx.arc(c, c, r * 0.32, 0, Math.PI * 2);
+    ctx.fill();
 
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.arc(c, c, s * 0.34, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = '#141411';
-      ctx.beginPath();
-      ctx.arc(c, c, s * 0.10, 0, Math.PI * 2);
-      ctx.fill();
+    if (isVisited) {
+      drawVisitedBadge(ctx, c, s);
+    } else if (isPending) {
+      drawPendingBadge(ctx, c, s);
     }
   } else if (importance === 2) {
-    if (isLightSelection || isDarkSelection) {
-      const outerColor = isDarkSelection ? '#F8F1DF' : '#141411';
-      const innerColor = isDarkSelection ? '#141411' : '#FFFFFF';
-      ctx.lineWidth = 2.5;
-      ctx.strokeStyle = outerColor;
-      ctx.beginPath();
-      ctx.arc(c, c, s * 0.28, 0, Math.PI * 2);
-      ctx.stroke();
+    // 2: RECOMENDADA — Anillo técnico de masa reducida (hueco, no satura trama urbana)
+    const r = s * 0.24;
 
-      ctx.fillStyle = innerColor;
-      ctx.beginPath();
-      ctx.arc(c, c, s * 0.22, 0, Math.PI * 2);
-      ctx.fill();
+    // 1. Fondo hueso/panel interior
+    ctx.fillStyle = isDarkSelection ? '#1E1E1B' : '#F8F1DF';
+    ctx.beginPath();
+    ctx.arc(c, c, r, 0, Math.PI * 2);
+    ctx.fill();
 
-      ctx.fillStyle = outerColor;
-      ctx.beginPath();
-      ctx.arc(c, c, s * 0.12, 0, Math.PI * 2);
-      ctx.fill();
-    } else {
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = color;
-      ctx.beginPath();
-      ctx.arc(c, c, s * 0.28, 0, Math.PI * 2);
-      ctx.stroke();
+    // 2. Anillo técnico en el color de la categoría
+    ctx.lineWidth = 2.4;
+    ctx.strokeStyle = isLightSelection ? '#FFFFFF' : (isDarkSelection ? '#F8F1DF' : color);
+    ctx.beginPath();
+    ctx.arc(c, c, r, 0, Math.PI * 2);
+    ctx.stroke();
 
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.arc(c, c, s * 0.16, 0, Math.PI * 2);
-      ctx.fill();
+    // 3. Núcleo técnico central compacto en color de categoría (o negro si seleccionado)
+    ctx.fillStyle = isLightSelection ? '#141411' : (isDarkSelection ? '#F8F1DF' : color);
+    ctx.beginPath();
+    ctx.arc(c, c, r * 0.36, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (isVisited) {
+      drawVisitedBadge(ctx, c, s);
+    } else if (isPending) {
+      drawPendingBadge(ctx, c, s);
     }
   } else {
-    ctx.lineWidth = isLightSelection || isDarkSelection ? 3 : 2.5;
-    ctx.strokeStyle = color;
+    // 3: DOCUMENTADA — Micro-nodo cartográfico preciso (sustituye la cruz '+')
+    const r = s * 0.16;
+
+    // 1. Halo perimetral sutil
+    ctx.fillStyle = haloColor;
     ctx.beginPath();
-    ctx.moveTo(c, s * 0.28); ctx.lineTo(c, s * 0.72);
-    ctx.moveTo(s * 0.28, c); ctx.lineTo(s * 0.72, c);
+    ctx.arc(c, c, r + 1.8, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 2. Punto sólido en color de categoría
+    ctx.fillStyle = isLightSelection ? '#FFFFFF' : (isDarkSelection ? '#141411' : color);
+    ctx.beginPath();
+    ctx.arc(c, c, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 3. Contorno fino negro
+    ctx.lineWidth = 1.4;
+    ctx.strokeStyle = strokeColor;
+    ctx.beginPath();
+    ctx.arc(c, c, r, 0, Math.PI * 2);
     ctx.stroke();
+
+    if (isVisited) {
+      drawVisitedBadge(ctx, c, s);
+    } else if (isPending) {
+      drawPendingBadge(ctx, c, s);
+    }
   }
 }
 
@@ -178,8 +246,10 @@ export function drawTargetIcon(ctx, color, importance, s) {
  * Dibuja iconos cuadrados limpios para obras/etiquetas privadas,
  * reflejando la jerarquía de tamaño por importancia y color por categoría arquitectónica (Neo-Bauhaus).
  */
-export function drawPrivateSquareIcon(ctx, color, importance, s) {
+export function drawPrivateSquareIcon(ctx, color, importance, s, options = {}) {
   const c = s / 2;
+  const isVisited = Boolean(options.isVisited || color === '#82c812');
+  const isPending = Boolean(options.isPending || color === '#FFCC00');
   ctx.save();
 
   if (importance === 0) {
@@ -260,6 +330,12 @@ export function drawPrivateSquareIcon(ctx, color, importance, s) {
   }
 
   ctx.restore();
+
+  if (isVisited) {
+    drawVisitedBadge(ctx, c, s);
+  } else if (isPending) {
+    drawPendingBadge(ctx, c, s);
+  }
 }
 
 /**

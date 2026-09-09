@@ -152,10 +152,10 @@ export function cargarMapaMapbox() {
 
         try {
           if (!state.map.hasImage(prefix)) state.map.addImage(prefix, buildIcon(drawTargetIcon, color, importance), { pixelRatio: 2 });
-          if (!state.map.hasImage(`${prefix}-visited`)) state.map.addImage(`${prefix}-visited`, buildIcon(drawTargetIcon, '#82c812', importance), { pixelRatio: 2 });
-          if (!state.map.hasImage(`${prefix}-pending`)) state.map.addImage(`${prefix}-pending`, buildIcon(drawTargetIcon, '#FFCC00', importance), { pixelRatio: 2 });
+          if (!state.map.hasImage(`${prefix}-visited`)) state.map.addImage(`${prefix}-visited`, buildIcon(drawTargetIcon, color, importance, 64, { isVisited: true }), { pixelRatio: 2 });
+          if (!state.map.hasImage(`${prefix}-pending`)) state.map.addImage(`${prefix}-pending`, buildIcon(drawTargetIcon, color, importance, 64, { isPending: true }), { pixelRatio: 2 });
           if (!state.map.hasImage(`${prefix}-private`)) state.map.addImage(`${prefix}-private`, buildIcon(drawPrivateSquareIcon, color, importance), { pixelRatio: 2 });
-          if (!state.map.hasImage(`${prefix}-selected`)) state.map.addImage(`${prefix}-selected`, buildIcon(drawTargetIcon, selectedColor, importance), { pixelRatio: 2 });
+          if (!state.map.hasImage(`${prefix}-selected`)) state.map.addImage(`${prefix}-selected`, buildIcon(drawTargetIcon, selectedColor, importance, 64, { isSelected: true }), { pixelRatio: 2 });
 
           // Iconos de búsqueda (Lupa con color de categoría y tamaño por importancia)
           if (!state.map.hasImage(searchPrefix)) state.map.addImage(searchPrefix, buildIcon(drawSearchLupaIcon, color, importance), { pixelRatio: 2 });
@@ -196,11 +196,11 @@ export function cargarMapaMapbox() {
       source: 'obras',
       filter: ['==', ['get', 'favorite'], 1],
       paint: {
-        'circle-radius': 13.5,
+        'circle-radius': 14.5,
         'circle-color': 'transparent',
         'circle-stroke-color': '#E84E1B',
-        'circle-stroke-width': 1.2,
-        'circle-stroke-opacity': 0.85,
+        'circle-stroke-width': 2.2,
+        'circle-stroke-opacity': 0.95,
         'circle-blur': 0,
         'circle-opacity': 1,
       },
@@ -212,11 +212,11 @@ export function cargarMapaMapbox() {
       source: 'obras-maestras',
       filter: ['==', ['get', 'favorite'], 1],
       paint: {
-        'circle-radius': 16,
+        'circle-radius': 17.5,
         'circle-color': 'transparent',
         'circle-stroke-color': '#E84E1B',
-        'circle-stroke-width': 1.4,
-        'circle-stroke-opacity': 0.9,
+        'circle-stroke-width': 2.5,
+        'circle-stroke-opacity': 0.95,
         'circle-blur': 0,
         'circle-opacity': 1,
       },
@@ -389,7 +389,7 @@ export function cargarMapaMapbox() {
       const minzoom = (importance === 0 || importance === 1) ? 0 : importance === 2 ? 6.5 : 9.0;
       const baseFilter = ['==', ['get', 'importancia'], importance];
       const sourceId = (importance === 0 || importance === 1) ? 'obras-maestras' : 'obras';
-      const iconSize = importance === 0 ? 0.92 : importance === 1 ? 0.70 : importance === 2 ? 0.56 : 0.52;
+      const iconSize = importance === 0 ? 0.86 : importance === 1 ? 0.70 : importance === 2 ? 0.55 : 0.46;
       const catExpr = ['coalesce', ['get', 'categoria'], 'otro'];
       const permitirSolapamiento = false; // Colisiones activas entre iconos; Mapbox requiere un valor booleano estricto
       const sortKeyExpr = (importance === 0 || importance === 1)
