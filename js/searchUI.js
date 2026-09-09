@@ -575,8 +575,10 @@ export async function activarFiltroBusquedaEnMapa(queryText, providedMatches = n
   const countEl = document.getElementById('itinerary-badge-count');
 
   if (itineraryBadge && titleEl) {
-    titleEl.textContent = `CRITERIO: ${q.toUpperCase()}`;
-    if (countEl) countEl.textContent = `${matches.length} ${matches.length === 1 ? 'OBRA' : 'OBRAS'}`;
+    titleEl.textContent = q;
+    if (countEl) countEl.textContent = `(${matches.length})`;
+    const dotEl = document.getElementById('itinerary-badge-dot');
+    if (dotEl) dotEl.style.backgroundColor = 'var(--accent, #E84E1B)';
     itineraryBadge.classList.remove('hidden');
     if (window.lucide) window.lucide.createIcons();
   }

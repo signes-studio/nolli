@@ -272,18 +272,21 @@
     </div>
   </div>
 
-  <!-- Etiqueta Flotante Ligera de Modo Itinerario / Filtro Activo en Mapa (Neo-Bauhaus) -->
-  <aside id="itinerary-filter-badge" class="itinerary-filter-badge hidden" role="status" aria-live="polite">
-    <div class="itinerary-badge-text-wrap">
-      <span id="itinerary-badge-title" class="itinerary-badge-title">RUTA: DOCOMOMO IBÉRICO</span>
-      <span id="itinerary-badge-count" class="itinerary-badge-count">124 OBRAS</span>
+  <!-- Chips Flotantes de Filtro Activo en Mapa (Pill Style - Strava/Komoot) -->
+  <aside id="itinerary-filter-badge" class="active-filter-chips-bar itinerary-filter-badge hidden" role="status" aria-live="polite">
+    <div id="active-filter-chips-list" class="filter-chips-scroll-wrap">
+      <div id="legacy-filter-pill" class="filter-pill-chip">
+        <span id="itinerary-badge-dot" class="filter-pill-dot"></span>
+        <span id="itinerary-badge-title" class="filter-pill-label">Ruta: Docomomo Ibérico</span>
+        <span id="itinerary-badge-count" class="filter-pill-count">(124)</span>
+        <button type="button" id="btn-close-itinerary" class="filter-pill-close itinerary-badge-close" aria-label="Cerrar filtro e itinerario activo" title="Cerrar filtro" data-i18n-aria="itinerary_close_aria" data-i18n-title="itinerary_close_title">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
     </div>
-    <button type="button" id="btn-close-itinerary" class="itinerary-badge-close" aria-label="Cerrar filtro e itinerario activo" title="Cerrar filtro" data-i18n-aria="itinerary_close_aria" data-i18n-title="itinerary_close_title">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x" aria-hidden="true">
-        <line x1="18" y1="6" x2="6" y2="18"></line>
-        <line x1="6" y1="6" x2="18" y2="18"></line>
-      </svg>
-    </button>
   </aside>
 
 

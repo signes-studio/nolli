@@ -413,8 +413,10 @@ export async function activarRutaEnMapa(routeId) {
   const titleEl = document.getElementById('itinerary-badge-title');
   const countEl = document.getElementById('itinerary-badge-count');
   if (itineraryBadge && titleEl) {
-    titleEl.textContent = `CARGANDO: ${route.title.toUpperCase()}…`;
+    titleEl.textContent = `Cargando: ${route.title || 'Itinerario'}…`;
     if (countEl) countEl.textContent = '';
+    const dotEl = document.getElementById('itinerary-badge-dot');
+    if (dotEl) dotEl.style.backgroundColor = 'var(--accent, #E84E1B)';
     itineraryBadge.classList.remove('hidden');
     window.lucide?.createIcons?.();
   }
@@ -521,8 +523,10 @@ export async function activarRutaEnMapa(routeId) {
 
   // 7. Actualizar badge con conteo definitivo
   if (itineraryBadge && titleEl) {
-    titleEl.textContent = `RUTA: ${route.title.toUpperCase()}`;
-    if (countEl) countEl.textContent = `${matchingWorks.length} OBRAS`;
+    titleEl.textContent = `Ruta: ${route.title || 'Itinerario'}`;
+    if (countEl) countEl.textContent = `(${matchingWorks.length})`;
+    const dotEl = document.getElementById('itinerary-badge-dot');
+    if (dotEl) dotEl.style.backgroundColor = 'var(--accent, #E84E1B)';
     window.lucide?.createIcons?.();
   }
 

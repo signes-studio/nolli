@@ -283,8 +283,10 @@ export async function handleListHashRoute() {
     const countEl = document.getElementById('itinerary-badge-count');
 
     if (itineraryBadge && titleEl) {
-      titleEl.textContent = `LISTA: ${(col.name || 'COLECCIÓN').toUpperCase()}`;
-      if (countEl) countEl.textContent = `${buildingIds.length} OBRAS`;
+      titleEl.textContent = `Lista: ${col.name || 'Colección'}`;
+      if (countEl) countEl.textContent = `(${buildingIds.length})`;
+      const dotEl = document.getElementById('itinerary-badge-dot');
+      if (dotEl) dotEl.style.backgroundColor = 'var(--accent, #E84E1B)';
       itineraryBadge.classList.remove('hidden');
       if (window.lucide) window.lucide.createIcons();
     }
