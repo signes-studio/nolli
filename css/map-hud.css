@@ -980,26 +980,6 @@ body.dark-mode .topbar-btn-profile:hover {
     font-weight: 900 !important;
   }
 
-  /* Botón Central Destacado Neo-Bauhaus (MI RADAR) */
-  .mobile-nav-radar-btn {
-    position: relative;
-    font-weight: 900 !important;
-  }
-
-  .radar-btn-inner {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 24px;
-    background: var(--bg-raised, #ECE6D8);
-    border: 1px solid var(--border-strong, #141411);
-    box-shadow: 1px 1px 0px var(--border-strong, #141411);
-    color: var(--fg, #141411);
-    margin-bottom: 2px;
-    transition: all 0.12s ease;
-  }
-
   body.dark-mode .mobile-bottom-bar {
     background: var(--bg-panel, #1c1c1a) !important;
     border-top-color: var(--border-strong, #4E4E48) !important;
@@ -1013,32 +993,6 @@ body.dark-mode .topbar-btn-profile:hover {
 
   body.dark-mode .mobile-nav-btn.active {
     color: var(--accent, #E84E1B) !important;
-  }
-
-  body.dark-mode .radar-btn-inner {
-    background: #252522;
-    border-color: var(--border-strong, #4E4E48);
-    box-shadow: 1px 1px 0px var(--border-strong, #4E4E48);
-    color: var(--fg, #F8F1DF);
-  }
-
-  .mobile-nav-radar-btn.active .radar-btn-inner,
-  .mobile-nav-radar-btn:active .radar-btn-inner {
-    background: var(--bg-panel, #F4F1EA) !important;
-    color: var(--accent, #E84E1B) !important;
-    border-color: var(--accent, #E84E1B) !important;
-    box-shadow: 1px 1px 0px var(--accent, #E84E1B) !important;
-  }
-
-  body.dark-mode .mobile-nav-radar-btn.active .radar-btn-inner,
-  body.dark-mode .mobile-nav-radar-btn:active .radar-btn-inner {
-    background: #1c1c1a !important;
-  }
-
-  .mobile-nav-radar-btn.active .radar-btn-inner svg,
-  .mobile-nav-radar-btn:active .radar-btn-inner svg {
-    color: var(--accent, #E84E1B) !important;
-    stroke: var(--accent, #E84E1B) !important;
   }
 
   .panel-backdrop {
