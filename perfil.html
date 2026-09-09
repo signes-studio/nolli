@@ -132,7 +132,6 @@
     <header class="profile-header">
       <a href="./" class="profile-logo">nolli<span>.</span></a>
       <div class="profile-header-actions">
-        <a href="./admin.html" id="btn-profile-admin" class="profile-minimal-btn hidden" style="color:var(--accent-2); border-color:var(--accent-2); font-weight:700;" title="Abrir Panel de Administración" data-i18n="admin_panel_title" data-i18n-title="admin_panel_title">PANEL ADMIN</a>
         <button type="button" id="btn-theme-toggle" class="profile-minimal-btn" title="Cambiar tema claro / oscuro" aria-label="Cambiar tema" data-i18n-title="profile_theme_toggle_aria" data-i18n-aria="profile_theme_toggle_aria">
           <i data-lucide="moon" width="16" height="16" id="theme-icon"></i>
         </button>
@@ -140,11 +139,9 @@
           <i data-lucide="settings" width="17" height="17"></i>
         </button>
         <a href="./" class="profile-minimal-btn" aria-label="Ir al mapa" data-i18n="profile_map_btn">MAPA</a>
-        <button type="button" id="btn-profile-logout" class="profile-minimal-btn hidden" aria-label="Cerrar sesión" data-i18n="profile_logout_btn">SALIR</button>
+        <button type="button" id="btn-profile-logout" class="profile-btn-logout hidden" aria-label="Cerrar sesión" data-i18n="profile_logout_btn">SALIR</button>
       </div>
     </header>
-
-    <button type="button" id="btn-profile-logout-mobile" class="profile-minimal-btn profile-mobile-logout hidden" aria-label="Cerrar sesión" data-i18n="profile_logout_btn">SALIR</button>
 
     <!-- Estado de autenticación requerida (Solo visible si NO está logueado) -->
     <section id="profile-auth-required" class="profile-auth-message hidden">

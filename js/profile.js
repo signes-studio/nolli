@@ -51,7 +51,6 @@ const content = document.getElementById('profile-content');
 const authRequired = document.getElementById('profile-auth-required');
 const app = document.getElementById('profile-app');
 const logoutBtn = document.getElementById('btn-profile-logout');
-const mobileLogoutBtn = document.getElementById('btn-profile-logout-mobile');
 const themeBtn = document.getElementById('btn-theme-toggle');
 const themeIcon = document.getElementById('theme-icon');
 const settingsBtn = document.getElementById('btn-profile-settings');
@@ -175,7 +174,6 @@ function clearSessionAndUserCaches() {
 
 function bindProfileHeaderActions() {
   if (logoutBtn) logoutBtn.onclick = logout;
-  if (mobileLogoutBtn) mobileLogoutBtn.onclick = logout;
 
   if (settingsBtn && modalEditProfile) {
     settingsBtn.onclick = () => {
@@ -273,7 +271,6 @@ async function init() {
     if (authRequired) authRequired.classList.remove('hidden');
     if (app) app.classList.add('hidden');
     if (logoutBtn) logoutBtn.classList.add('hidden');
-    if (mobileLogoutBtn) mobileLogoutBtn.classList.add('hidden');
     if (settingsBtn) settingsBtn.classList.add('hidden');
     if (window.lucide) window.lucide.createIcons();
     return;
@@ -283,7 +280,6 @@ async function init() {
   if (authRequired) authRequired.classList.add('hidden');
   if (app) app.classList.remove('hidden');
   if (logoutBtn) logoutBtn.classList.remove('hidden');
-  if (mobileLogoutBtn) mobileLogoutBtn.classList.remove('hidden');
   if (settingsBtn) settingsBtn.classList.remove('hidden');
   updateUserPresence(token, profileState.user?.id || state.userId);
 

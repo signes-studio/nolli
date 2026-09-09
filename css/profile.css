@@ -133,33 +133,66 @@ body.dark-mode .profile-minimal-btn {
   color: var(--accent, #E84E1B);
 }
 
-.profile-mobile-logout {
-  display: none !important;
+.profile-btn-logout {
+  background: var(--bg, #F8F1DF);
+  border: 1.5px solid var(--border-strong, #141411);
+  box-shadow: 2px 2px 0px var(--border-strong, #141411);
+  padding: 0 10px;
+  height: 30px;
+  font-family: 'League Spartan', sans-serif;
+  font-weight: 800;
+  font-size: 11.5px;
+  letter-spacing: 0.05em;
+  color: var(--fg, #141411);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.08s ease, background 0.12s ease, color 0.12s ease, box-shadow 0.08s ease;
+  touch-action: manipulation;
+}
+
+.profile-btn-logout:hover {
+  background: var(--accent, #E84E1B);
+  color: #FFFFFF;
+  border-color: var(--border-strong, #141411);
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px var(--border-strong, #141411);
+}
+
+.profile-btn-logout:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0px var(--border-strong, #141411);
+}
+
+body.dark-mode .profile-btn-logout {
+  background: var(--bg-panel, #1C1C1A);
+  border-color: var(--border-strong, #4E4E48);
+  color: var(--fg, #F8F1DF);
+  box-shadow: 2px 2px 0px var(--border-strong, #4E4E48);
+}
+
+body.dark-mode .profile-btn-logout:hover {
+  background: var(--accent, #FF7528);
+  color: #141411;
+  border-color: var(--border-strong, #4E4E48);
 }
 
 @media (max-width: 819px) {
   .profile-header {
     height: auto;
-    min-height: 64px;
-    align-items: flex-start;
-    padding-bottom: 12px;
+    min-height: 56px;
+    align-items: center;
+    padding-bottom: 8px;
   }
 
   .profile-header-actions {
     flex-wrap: wrap;
     justify-content: flex-end;
-    gap: 8px;
+    align-items: center;
+    gap: 10px;
     max-width: calc(100vw - 120px);
-  }
-
-  .profile-mobile-logout {
-    display: inline-flex !important;
-    margin-top: 12px;
-    margin-left: auto;
-    padding: 8px 12px;
-    border: 1px solid var(--accent, #E84E1B);
-    color: var(--accent, #E84E1B);
-    background: transparent;
   }
 }
 
