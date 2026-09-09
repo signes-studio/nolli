@@ -311,7 +311,7 @@ export function renderRadarList(works, container, countSpan) {
               <span class="architect-pill-badge">${escapeHtml(architects)}</span>
               ${year}
             </div>
-            ${city ? `<div class="radar-proximity-city">${escapeHtml(city).toUpperCase()}</div>` : ''}
+            ${city ? `<div class="radar-proximity-city">${escapeHtml(city)}</div>` : ''}
           </div>
         </div>
       </article>

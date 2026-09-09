@@ -26,10 +26,10 @@ function renderizarTarjetaObra(obra, distance = null) {
   const metaCat = CATEGORY_META[catClave] || CATEGORY_META['otro'];
   const catColor = metaCat?.color || '#E84E1B';
 
-  const titulo = escapeHtml(obra.nombre_obra || t('sheet_untitled_work')).toUpperCase();
+  const titulo = escapeHtml(obra.nombre_obra || t('sheet_untitled_work'));
   const arq = escapeHtml(obra.arquitecto || t('sheet_architect_unknown'));
   const anio = obra.año_construccion ? escapeHtml(String(obra.año_construccion)) : '';
-  const ciudad = obra.ciudad || obra.place ? escapeHtml(String(obra.ciudad || obra.place).toUpperCase()) : '';
+  const ciudad = obra.ciudad || obra.place ? escapeHtml(String(obra.ciudad || obra.place)) : '';
   
   const metaParts = [arq];
   if (anio) metaParts.push(anio);

@@ -649,6 +649,7 @@ body.dark-mode .topbar-btn-profile:hover {
     letter-spacing: 0.06em;
     text-transform: uppercase;
     display: inline-block;
+    opacity: 0.9;
   }
 
   .mobile-search-item-title {
@@ -656,14 +657,14 @@ body.dark-mode .topbar-btn-profile:hover {
     font-weight: 900;
     font-size: 15px;
     line-height: 1.25;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-    color: #111111;
+    text-transform: none;
+    letter-spacing: -0.01em;
+    color: var(--fg, #111111);
     word-break: break-word;
   }
 
   body.dark-mode .mobile-search-item-title {
-    color: #FFFFFF;
+    color: var(--fg, #FFFFFF);
   }
 
   .mobile-search-item-sub {
@@ -674,24 +675,24 @@ body.dark-mode .topbar-btn-profile:hover {
     font-family: 'Inter', sans-serif;
     font-size: 11.5px;
     line-height: 1.45;
-    color: #333333;
+    color: var(--fg-dim, #666666);
     margin-top: 1px;
   }
 
   body.dark-mode .mobile-search-item-sub {
-    color: #C5C5BE;
+    color: var(--fg-dim, #9A9A92);
   }
 
   .mobile-search-meta-text {
     font-family: 'Inter', sans-serif;
     font-size: 11.5px;
     font-weight: 500;
-    color: #333333;
+    color: var(--fg-dim, #666666);
     word-break: break-word;
   }
 
   body.dark-mode .mobile-search-meta-text {
-    color: #C5C5BE;
+    color: var(--fg-dim, #9A9A92);
   }
 
   @media (min-width: 769px) {
