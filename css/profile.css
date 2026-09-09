@@ -261,6 +261,42 @@ body.dark-mode .profile-hero-name {
   color: var(--fg, #F8F1DF);
 }
 
+.profile-hero-name.is-placeholder {
+  font-size: clamp(20px, 5.5vw, 32px);
+  font-weight: 700;
+  color: var(--fg-dim, #777);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1.5px dashed var(--border-subtle, rgba(0, 0, 0, 0.25));
+  background: var(--bg-hover, rgba(0, 0, 0, 0.02));
+  transition: color var(--transition-fast, 120ms ease), border-color var(--transition-fast, 120ms ease), background-color var(--transition-fast, 120ms ease);
+}
+
+.profile-hero-name.is-placeholder:hover,
+.profile-hero-name.is-placeholder:focus-visible {
+  color: var(--accent, #E95C0C);
+  border-color: var(--accent, #E95C0C);
+  background: rgba(233, 92, 12, 0.08);
+  outline: none;
+}
+
+body.dark-mode .profile-hero-name.is-placeholder {
+  color: var(--fg-dim, #9A9A92);
+  border-color: var(--border-subtle, rgba(255, 255, 255, 0.25));
+  background: rgba(255, 255, 255, 0.04);
+}
+
+body.dark-mode .profile-hero-name.is-placeholder:hover,
+body.dark-mode .profile-hero-name.is-placeholder:focus-visible {
+  color: var(--accent, #E95C0C);
+  border-color: var(--accent, #E95C0C);
+  background: rgba(233, 92, 12, 0.15);
+}
+
 .profile-hero-sub {
   font-family: 'Inter', sans-serif;
   font-size: 13px;
@@ -272,6 +308,38 @@ body.dark-mode .profile-hero-name {
 
 body.dark-mode .profile-hero-sub {
   color: var(--fg-dim, #9A9A92);
+}
+
+.profile-hero-sub.is-placeholder {
+  font-size: 13px;
+  color: var(--fg-dim, #777);
+  font-style: italic;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-bottom: 1.5px dashed var(--border-subtle, rgba(0, 0, 0, 0.25));
+  width: fit-content;
+  transition: color var(--transition-fast, 120ms ease), border-bottom-color var(--transition-fast, 120ms ease);
+}
+
+.profile-hero-sub.is-placeholder:hover,
+.profile-hero-sub.is-placeholder:focus-visible {
+  color: var(--accent, #E95C0C);
+  border-bottom-color: var(--accent, #E95C0C);
+  outline: none;
+}
+
+body.dark-mode .profile-hero-sub.is-placeholder {
+  color: var(--fg-dim, #9A9A92);
+  border-bottom-color: var(--border-subtle, rgba(255, 255, 255, 0.25));
+}
+
+body.dark-mode .profile-hero-sub.is-placeholder:hover,
+body.dark-mode .profile-hero-sub.is-placeholder:focus-visible {
+  color: var(--accent, #E95C0C);
+  border-bottom-color: var(--accent, #E95C0C);
 }
 
 /* =========================================================================

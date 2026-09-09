@@ -172,33 +172,64 @@ function clearSessionAndUserCaches() {
   state.userPrivateLabels = [];
 }
 
+export function openEditProfileModal() {
+  if (!modalEditProfile) return;
+  const user = profileState.user || {};
+  const metadata = user.user_metadata || {};
+  const db = profileState.dbProfile || {};
+
+  const inFirstName = document.getElementById('edit-profile-firstname');
+  const inLastName = document.getElementById('edit-profile-lastname');
+  const inBio = document.getElementById('edit-profile-bio');
+  const inCity = document.getElementById('edit-profile-city');
+  const inCountry = document.getElementById('edit-profile-country');
+  const inWebsite = document.getElementById('edit-profile-website');
+  const inSchool = document.getElementById('edit-profile-school');
+
+  if (inFirstName) inFirstName.value = (db.first_name !== undefined && db.first_name !== null) ? db.first_name : (metadata.first_name || '');
+  if (inLastName) inLastName.value = (db.last_name !== undefined && db.last_name !== null) ? db.last_name : (metadata.last_name || '');
+  if (inBio) inBio.value = (db.bio !== undefined && db.bio !== null) ? db.bio : (metadata.bio || '');
+  if (inCity) inCity.value = (db.city !== undefined && db.city !== null) ? db.city : (metadata.city || '');
+  if (inCountry) inCountry.value = (db.country !== undefined && db.country !== null) ? db.country : (metadata.country || '');
+  if (inWebsite) inWebsite.value = (db.website !== undefined && db.website !== null) ? db.website : (metadata.website || '');
+  if (inSchool) inSchool.value = (db.school !== undefined && db.school !== null) ? db.school : (metadata.school || '');
+
+  if (editStatus) editStatus.classList.add('hidden');
+  modalEditProfile.classList.add('open');
+  if (window.lucide) window.lucide.createIcons();
+}
+
 function bindProfileHeaderActions() {
   if (logoutBtn) logoutBtn.onclick = logout;
 
   if (settingsBtn && modalEditProfile) {
-    settingsBtn.onclick = () => {
-      const user = profileState.user || {};
-      const metadata = user.user_metadata || {};
-      const db = profileState.dbProfile || {};
+    settingsBtn.onclick = () => openEditProfileModal();
+  }
 
-      const inFirstName = document.getElementById('edit-profile-firstname');
-      const inLastName = document.getElementById('edit-profile-lastname');
-      const inBio = document.getElementById('edit-profile-bio');
-      const inCity = document.getElementById('edit-profile-city');
-      const inCountry = document.getElementById('edit-profile-country');
-      const inWebsite = document.getElementById('edit-profile-website');
+  const nameEl = document.getElementById('profile-hero-name');
+  if (nameEl) {
+    nameEl.addEventListener('click', () => {
+      if (nameEl.classList.contains('is-placeholder')) openEditProfileModal();
+    });
+    nameEl.addEventListener('keydown', (e) => {
+      if (nameEl.classList.contains('is-placeholder') && (e.key === 'Enter' || e.key === ' ')) {
+        e.preventDefault();
+        openEditProfileModal();
+      }
+    });
+  }
 
-      if (inFirstName) inFirstName.value = (db.first_name !== undefined && db.first_name !== null) ? db.first_name : (metadata.first_name || 'Luis Alberto');
-      if (inLastName) inLastName.value = (db.last_name !== undefined && db.last_name !== null) ? db.last_name : (metadata.last_name || 'Signes Sacristán');
-      if (inBio) inBio.value = (db.bio !== undefined && db.bio !== null) ? db.bio : (metadata.bio || 'Arquitecto & ArchViz | SIGNES.STUDIO');
-      if (inCity) inCity.value = (db.city !== undefined && db.city !== null) ? db.city : (metadata.city || 'Valencia');
-      if (inCountry) inCountry.value = (db.country !== undefined && db.country !== null) ? db.country : (metadata.country || 'España');
-      if (inWebsite) inWebsite.value = (db.website !== undefined && db.website !== null) ? db.website : (metadata.website || 'https://signes.studio');
-
-      if (editStatus) editStatus.classList.add('hidden');
-      modalEditProfile.classList.add('open');
-      if (window.lucide) window.lucide.createIcons();
-    };
+  const subEl = document.getElementById('profile-hero-sub');
+  if (subEl) {
+    subEl.addEventListener('click', () => {
+      if (subEl.classList.contains('is-placeholder')) openEditProfileModal();
+    });
+    subEl.addEventListener('keydown', (e) => {
+      if (subEl.classList.contains('is-placeholder') && (e.key === 'Enter' || e.key === ' ')) {
+        e.preventDefault();
+        openEditProfileModal();
+      }
+    });
   }
 }
 
@@ -426,20 +457,45 @@ function renderHero() {
 
   const firstName = (db.first_name !== undefined && db.first_name !== null && db.first_name !== '') ? db.first_name : (metadata.first_name || '');
   const lastName = (db.last_name !== undefined && db.last_name !== null && db.last_name !== '') ? db.last_name : (metadata.last_name || '');
-  const fullName = `${firstName} ${lastName}`.trim() || 'LUIS ALBERTO SIGNES SACRISTÁN';
+  const fullName = `${firstName} ${lastName}`.trim();
 
   const nameEl = document.getElementById('profile-hero-name');
-  if (nameEl) nameEl.textContent = fullName.toUpperCase();
+  if (nameEl) {
+    if (fullName) {
+      nameEl.textContent = fullName.toUpperCase();
+      nameEl.classList.remove('is-placeholder');
+      nameEl.removeAttribute('role');
+      nameEl.removeAttribute('tabindex');
+    } else {
+      nameEl.textContent = t('profile_default_name') || '+ AÑADE TU NOMBRE';
+      nameEl.classList.add('is-placeholder');
+      nameEl.setAttribute('role', 'button');
+      nameEl.setAttribute('tabindex', '0');
+    }
+  }
 
   const subEl = document.getElementById('profile-hero-sub');
   if (subEl) {
-    const bio = (db.bio !== undefined && db.bio !== null && db.bio !== '') ? db.bio : (metadata.bio || 'Arquitecto & ArchViz | SIGNES.STUDIO');
-    const city = (db.city !== undefined && db.city !== null && db.city !== '') ? db.city : (metadata.city || 'Valencia');
-    const country = (db.country !== undefined && db.country !== null && db.country !== '') ? db.country : (metadata.country || 'España');
+    const bio = (db.bio !== undefined && db.bio !== null && db.bio !== '') ? db.bio : (metadata.bio || '');
+    const city = (db.city !== undefined && db.city !== null && db.city !== '') ? db.city : (metadata.city || '');
+    const country = (db.country !== undefined && db.country !== null && db.country !== '') ? db.country : (metadata.country || '');
     const location = [city, country].filter(Boolean).join(', ');
     const websiteRaw = (db.website !== undefined && db.website !== null && db.website !== '') ? db.website : (metadata.website || '');
     const website = websiteRaw ? ` · ${websiteRaw.replace(/^https?:\/\//, '')}` : '';
-    subEl.textContent = `${bio} | ${location}${website}`;
+    const details = [bio, location].filter(Boolean).join(' | ');
+    const fullSub = details ? `${details}${website}` : '';
+
+    if (fullSub) {
+      subEl.textContent = fullSub;
+      subEl.classList.remove('is-placeholder');
+      subEl.removeAttribute('role');
+      subEl.removeAttribute('tabindex');
+    } else {
+      subEl.textContent = t('profile_default_bio') || '+ Añade una biografía sobre ti...';
+      subEl.classList.add('is-placeholder');
+      subEl.setAttribute('role', 'button');
+      subEl.setAttribute('tabindex', '0');
+    }
   }
 
   // Badges y datos sociales

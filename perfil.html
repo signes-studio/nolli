@@ -155,10 +155,10 @@
       <!-- 2. Hero Monumental (Identidad) -->
       <section class="profile-hero">
         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-          <h1 id="profile-hero-name" class="profile-hero-name" data-i18n="profile_default_name">TU NOMBRE</h1>
+          <h1 id="profile-hero-name" class="profile-hero-name is-placeholder" data-i18n="profile_default_name" role="button" tabindex="0">+ AÑADE TU NOMBRE</h1>
           <span id="profile-verified-badge" class="hidden" style="background: var(--accent, #E95C0C); color: #fff; font-size: 10px; font-weight: 800; padding: 3px 8px; letter-spacing: 0.06em; border: 1px solid var(--border-strong, #141411); text-transform: uppercase;">✓ PRO VERIFICADO</span>
         </div>
-        <p id="profile-hero-sub" class="profile-hero-sub" data-i18n="profile_default_bio">Tu biografía</p>
+        <p id="profile-hero-sub" class="profile-hero-sub is-placeholder" data-i18n="profile_default_bio" role="button" tabindex="0">+ Añade una biografía sobre ti...</p>
         <div style="display: flex; gap: 12px; align-items: center; margin-top: 6px; flex-wrap: wrap; font-size: 11px;">
           <span id="profile-school-badge" class="hidden" style="background: var(--bg-raised, #F0E9D2); padding: 2px 8px; border: 1px solid var(--border-strong, #141411); font-weight: 700;"></span>
           <span id="profile-points-display" style="font-weight: 800; color: var(--accent, #E95C0C); letter-spacing: 0.03em;">⭐ 0 PTS NOLLI</span>
@@ -271,17 +271,17 @@
         <div class="profile-form-row">
           <div class="profile-form-group">
             <label class="profile-form-label" for="edit-profile-firstname" data-i18n="profile_edit_firstname">NOMBRE</label>
-            <input type="text" id="edit-profile-firstname" class="tech-input" placeholder="p.ej. Luis Alberto" required autocomplete="given-name" data-i18n-placeholder="profile_edit_firstname_ph">
+            <input type="text" id="edit-profile-firstname" class="tech-input" placeholder="p.ej. Clara" required autocomplete="given-name" data-i18n-placeholder="profile_edit_firstname_ph">
           </div>
           <div class="profile-form-group">
             <label class="profile-form-label" for="edit-profile-lastname" data-i18n="profile_edit_lastname">APELLIDOS</label>
-            <input type="text" id="edit-profile-lastname" class="tech-input" placeholder="p.ej. Signes Sacristán" autocomplete="family-name" data-i18n-placeholder="profile_edit_lastname_ph">
+            <input type="text" id="edit-profile-lastname" class="tech-input" placeholder="p.ej. Porset" autocomplete="family-name" data-i18n-placeholder="profile_edit_lastname_ph">
           </div>
         </div>
 
         <div class="profile-form-group">
           <label class="profile-form-label" for="edit-profile-bio" data-i18n="profile_edit_bio">BIOGRAFÍA / ESPECIALIDAD</label>
-          <input type="text" id="edit-profile-bio" class="tech-input" placeholder="p.ej. Arquitecto &amp; ArchViz | SIGNES.STUDIO" data-i18n-placeholder="profile_edit_bio_ph">
+          <input type="text" id="edit-profile-bio" class="tech-input" placeholder="p.ej. Arquitectura &amp; Diseño urbano" data-i18n-placeholder="profile_edit_bio_ph">
         </div>
 
         <div class="profile-form-row">
@@ -297,7 +297,7 @@
 
         <div class="profile-form-group">
           <label class="profile-form-label" for="edit-profile-website" data-i18n="profile_edit_website">SITIO WEB / PORTFOLIO</label>
-          <input type="url" id="edit-profile-website" class="tech-input" placeholder="https://signes.studio" autocomplete="url">
+          <input type="url" id="edit-profile-website" class="tech-input" placeholder="https://ejemplo.com" autocomplete="url">
         </div>
 
         <div class="profile-form-group">
