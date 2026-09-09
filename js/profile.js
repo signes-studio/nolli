@@ -885,7 +885,7 @@ function renderCollectionsFeed() {
             <div class="profile-collection-head-row" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
               <h3 class="profile-collection-name">${col.icon ? `${escapeHtml(col.icon)} ` : ''}${escapeHtml(col.name)}</h3>
               <span class="profile-collection-count-badge">${countText}</span>
-              <span style="font-size:8.5px; font-weight:800; font-family: 'Inter', sans-serif; padding:1px 5px; border:1px solid ${isPublic ? 'var(--accent, #E84E1B)' : 'var(--border-strong, #111111)'}; color:${isPublic ? 'var(--accent, #E84E1B)' : 'var(--fg-dim)'};">${isPublic ? t('collection_status_public', null, 'PÚBLICA') : t('collection_status_private', null, 'PRIVADA')}</span>
+              <span style="font-size:9px; font-weight:800; font-family: 'Inter', sans-serif; color:${isPublic ? 'var(--accent, #E84E1B)' : 'var(--fg-dim)'}; letter-spacing:0.04em;">// ${isPublic ? t('collection_status_public', null, 'PÚBLICA') : t('collection_status_private', null, 'PRIVADA')}</span>
             </div>
             ${col.description ? `<p class="profile-collection-desc" style="margin-top:4px;">${escapeHtml(col.description)}</p>` : ''}
           </div>

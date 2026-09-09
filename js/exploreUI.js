@@ -97,7 +97,7 @@ export async function renderPublicCollections(query = '') {
         return `
           <div class="radar-route-card" data-curated-id="${escapeHtml(route.id)}" role="button" tabindex="0" aria-label="Ruta ${escapeHtml(route.title)}">
             <div class="radar-route-topline">
-              <span class="radar-route-tag" style="color:${route.color}; border-color:${route.color};">${escapeHtml(route.tag)}</span>
+              <span class="radar-route-tag" style="color:${route.color};">${escapeHtml(route.tag)}</span>
               <span class="radar-route-stops">${stopsLabel}</span>
             </div>
             <h4 class="radar-route-title">${escapeHtml(route.title)}</h4>

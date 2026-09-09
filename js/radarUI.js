@@ -270,7 +270,7 @@ export function renderRadarList(works, container, countSpan) {
       <article class="radar-proximity-card" data-radar-feature-id="${escapeHtml(obra.featureId || obra.id)}" role="button" tabindex="0" aria-label="${escapeHtml(obra.nombre_obra)}">
         <div class="radar-proximity-header">
           <span class="radar-vermillon-badge">${distText}</span>
-          <span class="radar-cat-badge" style="color:${catColor}; border-color:${catColor};">${escapeHtml(obra.categoria || 'ARQUITECTURA').toUpperCase()}</span>
+          <span class="radar-cat-badge" style="color:${catColor};">${escapeHtml(obra.categoria || 'ARQUITECTURA').toUpperCase()}</span>
         </div>
         <div class="radar-proximity-body">
           ${photo ? `

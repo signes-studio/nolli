@@ -783,7 +783,7 @@ function renderCollections() {
           <div style="min-width:0; flex:1;">
             <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
               <span style="font-weight:700; color:var(--fg);">${collectionEmoji}${escapeHtml(collection.name)}</span>
-              <span style="font-size:8.5px; font-weight:800; font-family: 'Inter', sans-serif; padding:1px 4px; border:1px solid ${isPublic ? 'var(--accent, #E84E1B)' : 'var(--border-strong, #111111)'}; color:${isPublic ? 'var(--accent, #E84E1B)' : 'var(--fg-dim)'};">${isPublic ? t('collection_status_public') : t('collection_status_private')}</span>
+              <span style="font-size:9px; font-weight:800; font-family: 'Inter', sans-serif; color:${isPublic ? 'var(--accent, #E84E1B)' : 'var(--fg-dim)'}; letter-spacing:0.04em;">// ${isPublic ? t('collection_status_public') : t('collection_status_private')}</span>
             </div>
             ${collectionDescription}
           </div>

@@ -2566,13 +2566,14 @@ body.dark-mode .explore-editorial-footer {
 
 .explore-editorial-cat {
   font-family: 'Inter', sans-serif;
-  font-size: 9px;
-  font-weight: 700;
-  padding: 2px 6px;
-  border: 1px solid;
+  font-size: 9.5px;
+  font-weight: 800;
+  padding: 0;
+  border: none;
   border-radius: 0 !important;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   white-space: nowrap;
+  text-transform: uppercase;
 }
 
 .explore-editorial-place {
@@ -2776,12 +2777,13 @@ body.dark-mode .radar-route-card {
 
 .radar-route-tag {
   font-family: 'Inter', sans-serif;
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 800;
-  padding: 2px 4px;
-  border: 1px solid;
+  padding: 0;
+  border: none;
   border-radius: 0 !important;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 .radar-route-stops {
@@ -2912,11 +2914,13 @@ body.dark-mode .radar-vermillon-badge {
 
 .radar-cat-badge {
   font-family: 'Inter', sans-serif;
-  font-size: 9px;
-  font-weight: 700;
-  padding: 2px 6px;
-  border: 1px solid;
+  font-size: 9.5px;
+  font-weight: 800;
+  padding: 0;
+  border: none;
   border-radius: 0 !important;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 .radar-proximity-body {
@@ -3002,31 +3006,24 @@ body.dark-mode .radar-proximity-city {
 }
 
 /* ==========================================================================
-   ETIQUETA VISUAL DE ARQUITECTO (PÍLDORA)
+   METADATOS DE ARQUITECTO Y OBRA (TIPOGRÁFICO, SIN FALSA AFFORDANCE)
    ========================================================================== */
 .architect-pill-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
+  display: inline;
   font-family: 'Inter', sans-serif;
-  font-size: 10px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 600;
   color: var(--fg, #141411);
-  background: var(--bg-raised, #ECE6D8);
-  border: 1px solid var(--border-strong, #141411);
-  padding: 2px 6px;
-  border-radius: 0 !important;
-  letter-spacing: 0.02em;
-  max-width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  background: transparent;
+  border: none;
+  padding: 0;
+  letter-spacing: 0.01em;
 }
 
 body.dark-mode .architect-pill-badge {
-  background: #252522;
+  background: transparent;
   color: var(--fg, #F8F1DF);
-  border-color: var(--border-strong, #4E4E48);
+  border: none;
 }
 
 .explore-editorial-architect-row {
