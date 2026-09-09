@@ -556,22 +556,24 @@ body.dark-mode .topbar-btn-profile:hover {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 7px;
     width: 100%;
-    padding: 12px 14px;
-    background: #111111 !important;
-    color: #F4F1EA !important;
-    border: 2px solid #111111;
-    box-shadow: 3px 3px 0px var(--accent, #E84E1B);
+    padding: 8px 12px;
+    background: transparent !important;
+    color: var(--fg, #111111) !important;
+    border: 1.5px solid var(--border-strong, #111111);
+    box-shadow: none;
     font-family: 'League Spartan', sans-serif !important;
-    font-weight: 900 !important;
-    font-size: 11.5px !important;
-    letter-spacing: 0.06em;
+    font-weight: 800 !important;
+    font-size: 11px !important;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
     cursor: pointer;
     touch-action: manipulation;
-    transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+    transition: all var(--transition-fast, 120ms ease);
     box-sizing: border-box;
+    border-radius: 0 !important;
+    margin-bottom: 6px;
   }
 
   .mobile-search-filter-action i {
@@ -579,17 +581,27 @@ body.dark-mode .topbar-btn-profile:hover {
     flex-shrink: 0;
   }
 
-  .mobile-search-filter-action:active {
-    background: #1F1F1C !important;
-    transform: translate(1px, 1px);
-    box-shadow: 2px 2px 0px var(--accent, #E84E1B);
+  .mobile-search-filter-action:active,
+  .mobile-search-filter-action:hover {
+    background: var(--bg-hover, rgba(0, 0, 0, 0.04)) !important;
+    border-color: var(--accent, #E84E1B);
+    color: var(--accent, #E84E1B) !important;
+    transform: none;
+    box-shadow: none;
   }
 
   body.dark-mode .mobile-search-filter-action {
-    background: #20201D !important;
-    color: #FFFFFF !important;
-    border-color: #4E4E48;
-    box-shadow: 3px 3px 0px var(--accent, #E84E1B);
+    background: transparent !important;
+    color: var(--fg, #FFFFFF) !important;
+    border-color: var(--border-strong, #4E4E48);
+    box-shadow: none;
+  }
+
+  body.dark-mode .mobile-search-filter-action:active,
+  body.dark-mode .mobile-search-filter-action:hover {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-color: var(--accent, #E84E1B);
+    color: var(--accent, #E84E1B) !important;
   }
 
   .mobile-search-item {
