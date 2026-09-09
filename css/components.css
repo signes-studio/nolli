@@ -1019,3 +1019,115 @@ body.dark-mode .register-success-meta {
     color: var(--accent, #E84E1B) !important;
   }
 }
+
+/* =========================================================================
+   ESTADO VACÍO UNIFICADO NEO-BAUHAUS (Todas las vistas y paneles)
+   ========================================================================= */
+.nolli-empty-state {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  padding: 32px 18px !important;
+  border: 1.5px dashed var(--border-strong, #141411) !important;
+  background: rgba(20, 20, 17, 0.03) !important;
+  margin: 12px 0 !important;
+  gap: 8px !important;
+  box-sizing: border-box !important;
+}
+
+body.dark-mode .nolli-empty-state {
+  background: rgba(248, 241, 223, 0.03) !important;
+  border-color: var(--border-strong, #4E4E48) !important;
+}
+
+.nolli-empty-icon-wrap {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-panel, #F8F1DF);
+  border: 1.5px solid var(--border-strong, #141411) !important;
+  box-shadow: 2px 2px 0px var(--border-strong, #141411) !important;
+  color: var(--accent, #E84E1B);
+  margin-bottom: 4px;
+}
+
+body.dark-mode .nolli-empty-icon-wrap {
+  background: #252522;
+  border-color: var(--border-strong, #4E4E48) !important;
+  box-shadow: 2px 2px 0px var(--border-strong, #4E4E48) !important;
+}
+
+.nolli-empty-title {
+  font-family: 'League Spartan', sans-serif !important;
+  font-weight: 900 !important;
+  font-size: 15px !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+  color: var(--fg, #141411) !important;
+  margin: 0 !important;
+}
+
+body.dark-mode .nolli-empty-title {
+  color: var(--fg, #F8F1DF) !important;
+}
+
+.nolli-empty-desc {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 11.5px !important;
+  color: var(--fg-dim, #6B6B6B) !important;
+  max-width: 320px !important;
+  margin: 0 !important;
+  line-height: 1.4 !important;
+}
+
+body.dark-mode .nolli-empty-desc {
+  color: var(--fg-dim, #9A9A92) !important;
+}
+
+.nolli-empty-action {
+  margin-top: 6px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  padding: 8px 16px !important;
+  background: var(--fg, #141411) !important;
+  color: var(--bg, #F8F1DF) !important;
+  border: 1.5px solid var(--border-strong, #141411) !important;
+  box-shadow: 2px 2px 0px var(--border-strong, #141411) !important;
+  font-family: 'League Spartan', sans-serif !important;
+  font-weight: 800 !important;
+  font-size: 11px !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  touch-action: manipulation !important;
+  transition: transform 0.08s ease, background 0.12s ease !important;
+}
+
+.nolli-empty-action:hover {
+  background: var(--accent, #E84E1B) !important;
+  color: #FFFFFF !important;
+}
+
+.nolli-empty-action:active {
+  transform: translate(1px, 1px) !important;
+  box-shadow: 1px 1px 0px var(--border-strong, #141411) !important;
+}
+
+body.dark-mode .nolli-empty-action {
+  background: var(--fg, #F8F1DF) !important;
+  color: var(--bg, #141411) !important;
+  border-color: var(--border-strong, #4E4E48) !important;
+  box-shadow: 2px 2px 0px var(--border-strong, #4E4E48) !important;
+}
+
+body.dark-mode .nolli-empty-action:hover {
+  background: var(--accent, #FF7528) !important;
+  color: #141411 !important;
+}

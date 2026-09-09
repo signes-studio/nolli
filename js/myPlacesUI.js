@@ -701,7 +701,20 @@ async function quitarGuardado(collectionId, buildingId) {
 function renderList() {
   if (!list) return;
   if (!state.sessionToken) {
-    list.innerHTML = `<div class="nearby-empty">${t('nearby_empty_login')}</div>`;
+    list.innerHTML = `
+      <div class="nolli-empty-state">
+        <div class="nolli-empty-icon-wrap">
+          <i data-lucide="lock" width="22" height="22"></i>
+        </div>
+        <h4 class="nolli-empty-title">ACCESO AL ARCHIVO</h4>
+        <p class="nolli-empty-desc">${t('nearby_empty_login', null, 'Inicia sesión para consultar y organizar tus obras guardadas.')}</p>
+        <button type="button" class="nolli-empty-action" id="btn-places-login">INICIAR SESIÓN</button>
+      </div>
+    `;
+    list.querySelector('#btn-places-login')?.addEventListener('click', () => {
+      document.getElementById('modal-login')?.classList.add('open');
+    });
+    if (window.lucide) window.lucide.createIcons();
     return;
   }
 
@@ -727,12 +740,34 @@ function renderList() {
       return;
     }
 
-    const emptyMessage = activeTab === 'favorite'
-      ? t('empty_favs')
-      : activeTab === 'visited'
-        ? t('empty_visited')
-        : t('empty_notes');
-    list.innerHTML = `<div class="nearby-empty">${t('nearby_empty_tab', { emptyMessage })}</div>`;
+    let icon = 'star';
+    let title = 'SIN FAVORITOS AÚN';
+    let desc = 'Guarda obras de referencia pulsando el icono de estrella en cualquier ficha.';
+    if (activeTab === 'visited') {
+      icon = 'check-circle';
+      title = 'SIN VISITAS REGISTRADAS';
+      desc = 'Registra las obras que visites desde el mapa para completar tu pasaporte arquitectónico.';
+    } else if (activeTab === 'notes') {
+      icon = 'file-text';
+      title = 'SIN NOTAS PRIVADAS';
+      desc = 'Añade observaciones constructivas o croquis de análisis en cualquier obra.';
+    }
+
+    list.innerHTML = `
+      <div class="nolli-empty-state">
+        <div class="nolli-empty-icon-wrap">
+          <i data-lucide="${icon}" width="22" height="22"></i>
+        </div>
+        <h4 class="nolli-empty-title">${title}</h4>
+        <p class="nolli-empty-desc">${desc}</p>
+        <button type="button" class="nolli-empty-action" data-action="close-to-map">EXPLORAR EL MAPA</button>
+      </div>
+    `;
+    list.querySelector('[data-action="close-to-map"]')?.addEventListener('click', () => {
+      panel?.classList.remove('open');
+      button?.classList.remove('active-state');
+    });
+    if (window.lucide) window.lucide.createIcons();
     return;
   }
 
@@ -848,7 +883,16 @@ function renderCollections() {
       <span style="font-size: 10px; color: var(--fg-dim); font-weight: 700; font-family: 'Inter', sans-serif;">${t('my_lists_heading', { count: (state.userCollections || []).length })}</span>
       <button type="button" class="btn-new-list" data-open-create-collection-modal style="padding: 5px 12px; font-size: 10px;">${t('new_list_btn')}</button>
     </div>
-    ${ownCards || `<div class="nearby-empty" style="padding:16px;">${t('first_list_hint')}</div>`}
+    ${ownCards || `
+      <div class="nolli-empty-state">
+        <div class="nolli-empty-icon-wrap">
+          <i data-lucide="bookmark" width="22" height="22"></i>
+        </div>
+        <h4 class="nolli-empty-title">SIN LISTAS DE VIAJE</h4>
+        <p class="nolli-empty-desc">${t('first_list_hint', null, 'Crea tu primera lista para organizar tus próximas rutas y obras de arquitectura.')}</p>
+        <button type="button" class="nolli-empty-action" data-open-create-collection-modal>+ CREAR NUEVA LISTA</button>
+      </div>
+    `}
 
     ${(state.userFollowedCollections || []).length > 0 ? `
       <div class="my-collections-header" style="margin-top:20px;">

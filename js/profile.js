@@ -761,11 +761,23 @@ function renderBuildingsFeed(buildings, tabKey) {
     : t('profile_empty_favorites', null, 'NO TIENES OBRAS FAVORITAS AÚN. GUARDA OBRAS EN FAVORITOS DESDE EL MAPA.');
 
   if (!buildings.length) {
+    const icon = isVisited ? 'check-circle' : 'star';
+    const title = isVisited ? 'SIN OBRAS VISITADAS' : 'SIN FAVORITOS AÚN';
+    const desc = isVisited
+      ? t('profile_empty_visited', null, 'Registra tus visitas desde las fichas del mapa para completar tu pasaporte arquitectónico.')
+      : t('profile_empty_favorites', null, 'Guarda obras de referencia pulsando el icono de estrella en cualquier ficha.');
+
     content.innerHTML = `
-      <div class="profile-feed-empty">
-        ${emptyText}
+      <div class="nolli-empty-state">
+        <div class="nolli-empty-icon-wrap">
+          <i data-lucide="${icon}" width="22" height="22"></i>
+        </div>
+        <h4 class="nolli-empty-title">${title}</h4>
+        <p class="nolli-empty-desc">${desc}</p>
+        <a href="./" class="nolli-empty-action">EXPLORAR EL MAPA ↗</a>
       </div>
     `;
+    if (window.lucide) window.lucide.createIcons();
     return;
   }
 
@@ -830,10 +842,19 @@ function renderCollectionsFeed() {
 
   if (!collections.length && !followed.length) {
     content.innerHTML += `
-      <div class="profile-feed-empty">
-        ${t('profile_empty_collections', null, '[ NO TIENES COLECCIONES CREADAS. PULSA EN "+ NUEVA LISTA" PARA EMPEZAR A ORGANIZAR OBRAS. ]')}
+      <div class="nolli-empty-state">
+        <div class="nolli-empty-icon-wrap">
+          <i data-lucide="bookmark" width="22" height="22"></i>
+        </div>
+        <h4 class="nolli-empty-title">SIN LISTAS DE VIAJE</h4>
+        <p class="nolli-empty-desc">${t('profile_empty_collections', null, 'Crea tu primera lista para organizar tus próximas rutas y obras de arquitectura.')}</p>
+        <button type="button" class="nolli-empty-action" id="btn-create-collection-empty">+ NUEVA LISTA</button>
       </div>
     `;
+    content.querySelector('#btn-create-collection-empty')?.addEventListener('click', () => {
+      abrirModalCrearLista();
+    });
+    if (window.lucide) window.lucide.createIcons();
     return;
   }
 
@@ -965,8 +986,16 @@ function renderNotesFeed() {
 
   if (!buildingsWithNotes.length) {
     content.innerHTML = `
-      <div class="profile-feed-empty">${t('profile_empty_notes', null, 'NO TIENES NOTAS PRIVADAS REGISTRADAS AÚN. REGISTRA TUS NOTAS EN CUALQUIER OBRA DESDE EL MAPA.')}</div>
+      <div class="nolli-empty-state">
+        <div class="nolli-empty-icon-wrap">
+          <i data-lucide="file-text" width="22" height="22"></i>
+        </div>
+        <h4 class="nolli-empty-title">SIN NOTAS PRIVADAS</h4>
+        <p class="nolli-empty-desc">${t('profile_empty_notes', null, 'Añade observaciones constructivas o croquis de análisis en cualquier obra.')}</p>
+        <a href="./" class="nolli-empty-action">IR AL MAPA ↗</a>
+      </div>
     `;
+    if (window.lucide) window.lucide.createIcons();
     return;
   }
 

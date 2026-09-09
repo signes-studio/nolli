@@ -72,12 +72,20 @@ export function renderCuratedCarousel() {
 
   if (!nearby.length) {
     container.innerHTML = `
-      <div class="radar-empty-state">
-        <i data-lucide="compass" width="24" height="24" style="color:var(--accent, #E84E1B); margin-bottom:8px;"></i>
-        <div class="font-display text-sm font-bold">${t('radar_no_collections_nearby')}</div>
-        <p class="text-xs text-dim">${t('radar_no_collections_nearby_desc')}</p>
+      <div class="nolli-empty-state">
+        <div class="nolli-empty-icon-wrap">
+          <i data-lucide="compass" width="22" height="22"></i>
+        </div>
+        <h4 class="nolli-empty-title">${t('radar_no_collections_nearby', null, 'SIN RUTAS CERCANAS')}</h4>
+        <p class="nolli-empty-desc">${t('radar_no_collections_nearby_desc', null, 'No hay selecciones curatoriales a menos de 15 km de tu posición.')}</p>
+        <button type="button" class="nolli-empty-action" id="btn-radar-go-explore">
+          <span>EXPLORAR TODAS LAS RUTAS</span>
+        </button>
       </div>
     `;
+    container.querySelector('#btn-radar-go-explore')?.addEventListener('click', () => {
+      document.getElementById('mobile-nav-explore')?.click() || document.getElementById('btn-explore-float')?.click();
+    });
     window.lucide?.createIcons({ context: container });
     return;
   }
@@ -245,13 +253,32 @@ export function renderRadarList(works, container, countSpan) {
 
   if (!works.length) {
     const radLabel = radarRadius < 1000 ? `${radarRadius}M` : `${radarRadius / 1000}KM`;
+    const nextRadius = radarRadius < 3000 ? 3000 : 5000;
+    const nextLabel = nextRadius < 1000 ? `${nextRadius}M` : `${nextRadius / 1000}KM`;
     container.innerHTML = `
-      <div class="radar-empty-state">
-        <i data-lucide="crosshair" width="28" height="28" style="color:var(--accent, #E84E1B); margin-bottom:8px;"></i>
-        <div class="font-display text-sm font-bold">${t('radar_no_works_radius', { radius: radLabel })}</div>
-        <p class="text-xs text-dim">${t('radar_expand_radius_hint')}</p>
+      <div class="nolli-empty-state">
+        <div class="nolli-empty-icon-wrap">
+          <i data-lucide="crosshair" width="22" height="22"></i>
+        </div>
+        <h4 class="nolli-empty-title">SIN OBRAS EN TU RADIO (${radLabel})</h4>
+        <p class="nolli-empty-desc">${t('radar_expand_radius_hint', null, 'Amplía el radio de búsqueda o desplázate por el mapa.')}</p>
+        <button type="button" class="nolli-empty-action" id="btn-radar-expand-radius" data-next-radius="${nextRadius}">
+          <span>AMPLIAR RADIO A ${nextLabel}</span>
+        </button>
       </div>
     `;
+    const btnExpand = container.querySelector('#btn-radar-expand-radius');
+    if (btnExpand) {
+      btnExpand.addEventListener('click', () => {
+        const targetBtn = document.querySelector(`.radar-radius-btn[data-radius="${nextRadius}"]`);
+        if (targetBtn) {
+          targetBtn.click();
+        } else {
+          radarRadius = nextRadius;
+          renderRadarUI();
+        }
+      });
+    }
     window.lucide?.createIcons({ context: container });
     return;
   }

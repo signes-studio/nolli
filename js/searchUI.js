@@ -212,7 +212,16 @@ async function ejecutarBusquedaGlobal() {
   const obrasEncontradas = await obtenerObrasGlobales();
 
   if (!obrasEncontradas.length) {
-    searchResults.innerHTML = `<div class="nearby-empty">${t('search_no_results_db')}</div>`;
+    searchResults.innerHTML = `
+      <div class="nolli-empty-state">
+        <div class="nolli-empty-icon-wrap">
+          <i data-lucide="database" width="22" height="22"></i>
+        </div>
+        <h4 class="nolli-empty-title">SIN OBRAS EN CATÁLOGO</h4>
+        <p class="nolli-empty-desc">${t('search_no_results_db', null, 'No hay obras cargadas en la memoria local.')}</p>
+      </div>
+    `;
+    if (window.lucide) window.lucide.createIcons();
     return;
   }
 
@@ -246,7 +255,21 @@ async function ejecutarBusquedaGlobal() {
     currentSearchResults = obrasFiltradas;
 
     if (!obrasFiltradas.length) {
-      searchResults.innerHTML = `<div class="nearby-empty">${t('search_no_buildings_matched')}</div>`;
+      searchResults.innerHTML = `
+        <div class="nolli-empty-state">
+          <div class="nolli-empty-icon-wrap">
+            <i data-lucide="search-x" width="22" height="22"></i>
+          </div>
+          <h4 class="nolli-empty-title">SIN RESULTADOS</h4>
+          <p class="nolli-empty-desc">${t('search_no_buildings_matched', null, 'No encontramos obras que coincidan con tu búsqueda.')}</p>
+          <button type="button" class="nolli-empty-action" id="btn-search-clear-input">LIMPIAR BÚSQUEDA</button>
+        </div>
+      `;
+      searchResults.querySelector('#btn-search-clear-input')?.addEventListener('click', () => {
+        if (searchInput) searchInput.value = '';
+        ejecutarBusquedaGlobal();
+      });
+      if (window.lucide) window.lucide.createIcons();
       return;
     }
 
@@ -293,7 +316,21 @@ async function ejecutarBusquedaGlobal() {
     .slice(0, 20);
 
   if (!arquitectosList.length) {
-    searchResults.innerHTML = `<div class="nearby-empty">${t('architect_no_works')}</div>`;
+    searchResults.innerHTML = `
+      <div class="nolli-empty-state">
+        <div class="nolli-empty-icon-wrap">
+          <i data-lucide="user-x" width="22" height="22"></i>
+        </div>
+        <h4 class="nolli-empty-title">AUTOR NO ENCONTRADO</h4>
+        <p class="nolli-empty-desc">${t('architect_no_works', null, 'No se encontraron autores que coincidan con el término indicado.')}</p>
+        <button type="button" class="nolli-empty-action" id="btn-search-clear-architect">LIMPIAR AUTOR</button>
+      </div>
+    `;
+    searchResults.querySelector('#btn-search-clear-architect')?.addEventListener('click', () => {
+      if (architectInput) architectInput.value = '';
+      ejecutarBusquedaGlobal();
+    });
+    if (window.lucide) window.lucide.createIcons();
     return;
   }
 
