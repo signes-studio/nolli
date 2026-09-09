@@ -17,6 +17,7 @@ export const state = {
   editingBuildingId: null,
   selectedFeatureId: null,
   activeItinerary: null,
+  activeFilterChips: [],
   locationMarker: null,
   userLocation: null,
   activeDecada: '',

@@ -3,6 +3,7 @@
    ========================================================================= */
 
 import { state, nombreCategoria, esRolAdmin, CATEGORY_META } from './state.js';
+import { addFilterChip, clearFilterChips } from './filterEngine.js';
 import { t, getLanguage, setupLanguageSwitchers } from './i18n.js';
 
 const filterPanel = document.getElementById('filter-panel');
@@ -176,6 +177,7 @@ function initFiltersUI() {
     const resetAll = e.target.closest('[data-filter-reset]');
     if (resetAll) {
       state.activeCategorias = new Set(CATEGORIAS_CONFIG.map(c => c.key));
+      clearFilterChips();
       generarFiltrosUI();
       aplicarFiltrosMapa();
       return;
@@ -183,9 +185,22 @@ function initFiltersUI() {
 
     const isolateCat = e.target.closest('[data-isolate-category]');
     if (isolateCat) {
-      state.activeCategorias = new Set([isolateCat.dataset.isolateCategory]);
+      const catKey = isolateCat.dataset.isolateCategory;
+      const metaCat = CATEGORY_META[catKey];
+      const catLabel = metaCat?.label || nombreCategoria(catKey);
+      const catColor = metaCat?.color || '#555550';
+
+      state.activeCategorias = new Set([catKey]);
       generarFiltrosUI();
       aplicarFiltrosMapa();
+
+      addFilterChip({
+        id: `cat-${catKey}`,
+        type: 'category',
+        label: catLabel,
+        value: catKey,
+        color: catColor,
+      });
       return;
     }
   });

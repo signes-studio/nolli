@@ -552,9 +552,14 @@ export async function activarRutaEnMapa(routeId) {
 
 export function restaurarMapaGeneral() {
   state.activeItinerary = null;
+  state.activeFilterChips = [];
   const itineraryBadge = document.getElementById('itinerary-filter-badge');
   if (itineraryBadge) {
     itineraryBadge.classList.add('hidden');
+  }
+  const emptyBanner = document.getElementById('filter-empty-banner');
+  if (emptyBanner) {
+    emptyBanner.classList.add('hidden');
   }
 
   // Limpiar campo de búsqueda y cerrar dropdown

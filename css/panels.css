@@ -3538,6 +3538,151 @@ body.dark-mode .itinerary-badge-close:hover {
   stroke-width: 2.5px !important;
 }
 
+/* Estado vacío de combinación de filtros (Fase 4) */
+.filter-empty-banner {
+  position: fixed;
+  top: calc(max(10px, env(safe-area-inset-top)) + 88px);
+  left: 10px;
+  z-index: 39;
+  max-width: min(calc(100vw - 20px), 360px);
+  background: var(--bg-card, #FFFFFF);
+  border: 1px solid var(--border-color, #E2DED4);
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  padding: 12px 14px;
+  animation: filterEmptyFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+}
+
+@media (min-width: 769px) {
+  .filter-empty-banner {
+    top: 112px;
+    left: 16px;
+    max-width: 380px;
+  }
+}
+
+.filter-empty-banner.hidden {
+  opacity: 0 !important;
+  transform: translateY(-8px) !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+
+@keyframes filterEmptyFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.filter-empty-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.filter-empty-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fg, #141411);
+  line-height: 1.35;
+}
+
+.filter-empty-icon {
+  color: var(--accent, #E84E1B);
+  flex-shrink: 0;
+}
+
+.filter-empty-undo-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  background: var(--fg, #141411);
+  color: var(--bg, #F8F1DF);
+  border: none;
+  border-radius: 6px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.filter-empty-undo-btn:hover {
+  background: var(--accent, #E84E1B);
+  color: #FFFFFF;
+}
+
+.filter-empty-undo-btn:active {
+  transform: scale(0.96);
+}
+
+body.dark-mode .filter-empty-banner {
+  background: var(--bg-card, #1E1E1C);
+  border-color: var(--border-color, #3A3A36);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode .filter-empty-text {
+  color: var(--fg, #EBE8DF);
+}
+
+body.dark-mode .filter-empty-undo-btn {
+  background: var(--accent, #E84E1B);
+  color: #FFFFFF;
+}
+
+/* Botón de filtrar obras en el mapa dentro de la ficha de arquitecto */
+.architect-filter-action-wrap {
+  margin: 6px 0 14px 0;
+}
+
+.btn-filter-architect {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--bg-card, #FFFFFF);
+  color: var(--fg, #141411);
+  border: 1.5px solid var(--border-strong, #141411);
+  border-radius: 9999px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: all 0.15s ease;
+}
+
+.btn-filter-architect:hover {
+  background: var(--fg, #141411);
+  color: var(--bg, #F8F1DF);
+}
+
+body.dark-mode .btn-filter-architect {
+  background: var(--bg-card, #1E1E1C);
+  color: var(--fg, #EBE8DF);
+  border-color: var(--border-color, #555550);
+}
+
+body.dark-mode .btn-filter-architect:hover {
+  background: var(--accent, #E84E1B);
+  color: #FFFFFF;
+  border-color: var(--accent, #E84E1B);
+}
+
+
 
 /* Botón Neo-Bauhaus de Nueva Lista */
 .btn-new-list {

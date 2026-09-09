@@ -9,6 +9,7 @@ import { fetchBuildings, saveBuildingStatus, reviewBuilding, deleteBuilding, del
 import { abrirModalCrearLista } from './myPlacesUI.js';
 import { getOptimizedPhotoUrl } from './imageProxy.js';
 import { showNeoToast } from './renderUtils.js';
+import { addFilterChip } from './filterEngine.js';
 import { t, getUrlPrefix } from './i18n.js';
 
 const sheet = document.getElementById('sheet');
@@ -891,6 +892,28 @@ document.addEventListener('click', (event) => {
   if (target.closest('[data-save-personal]')) { saveNote(target.closest('[data-save-personal]')); return; }
   const architect = target.closest('.architect-filter');
   if (architect) { abrirFichaArquitecto(architect.dataset.arq); return; }
+  const btnFilterArq = target.closest('#btn-filter-architect-on-map');
+  if (btnFilterArq) {
+    const arqName = document.getElementById('architect-profile-name')?.textContent?.trim();
+    if (arqName) {
+      cerrarFichaArquitecto();
+      cerrarFicha();
+      const slug = arqName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      addFilterChip({
+        id: `arq-${slug}`,
+        type: 'architect',
+        label: arqName,
+        value: arqName,
+        color: 'var(--accent, #E84E1B)',
+      });
+      const mapNavBtn = document.getElementById('mobile-nav-map');
+      if (mapNavBtn) {
+        document.querySelectorAll('.mobile-nav-btn').forEach((b) => b.classList.remove('active'));
+        mapNavBtn.classList.add('active');
+      }
+    }
+    return;
+  }
   if (target.closest('#btn-architect-close') || target === document.getElementById('modal-architect')) { cerrarFichaArquitecto(); return; }
   const architectWork = target.closest('[data-architect-work-id]');
   if (architectWork) {

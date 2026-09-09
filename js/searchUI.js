@@ -3,6 +3,7 @@ import { abrirFicha } from './sheetUI.js';
 import { searchPlaces, getBuildingsCatalog } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { renderInChunks } from './renderUtils.js';
+import { addFilterChip } from './filterEngine.js';
 import { t } from './i18n.js';
 
 const searchPanel = document.getElementById('search-panel');
@@ -557,31 +558,26 @@ export async function activarFiltroBusquedaEnMapa(queryText, providedMatches = n
   if (backdrop) backdrop.classList.remove('active');
 
   const matchIds = new Set(matches.map((w) => String(w.id || w.featureId)));
+  const slug = qNorm.replace(/[^a-z0-9]+/g, '-');
+  const chipId = `search-${slug}`;
 
   // 2. Establecer filtro activo en el estado con TODAS las obras coincidentes
   state.activeItinerary = {
-    id: `search-${qNorm}`,
+    id: chipId,
     isSearch: true,
-    title: `FILTRO: ${q.toUpperCase()}`,
+    title: q,
     workIds: matchIds,
   };
 
-  // 3. Renderizar exclusivamente las obras del filtro en el mapa
-  actualizarFuenteMapa();
-
-  // 4. Mostrar etiqueta flotante de filtro
-  const itineraryBadge = document.getElementById('itinerary-filter-badge');
-  const titleEl = document.getElementById('itinerary-badge-title');
-  const countEl = document.getElementById('itinerary-badge-count');
-
-  if (itineraryBadge && titleEl) {
-    titleEl.textContent = q;
-    if (countEl) countEl.textContent = `(${matches.length})`;
-    const dotEl = document.getElementById('itinerary-badge-dot');
-    if (dotEl) dotEl.style.backgroundColor = 'var(--accent, #E84E1B)';
-    itineraryBadge.classList.remove('hidden');
-    if (window.lucide) window.lucide.createIcons();
-  }
+  // 3. Añadir chip a la lista apilable y combinable (Fase 4)
+  addFilterChip({
+    id: chipId,
+    type: 'search',
+    label: q,
+    value: q,
+    color: 'var(--accent, #E84E1B)',
+    workIds: matchIds,
+  });
 
   // 5. Transicionar a la pestaña Mapa en la barra inferior móvil
   const mapNavBtn = document.getElementById('mobile-nav-map');

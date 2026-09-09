@@ -3,6 +3,7 @@
    ========================================================================= */
 
 import { state, esRolAdmin } from './state.js';
+import { obraCumpleFiltrosActivos } from './filterEngine.js';
 
 
 
@@ -51,6 +52,11 @@ export function actualizarFuenteMapa() {
       if (state.activeItinerary && state.activeItinerary.workIds && state.activeItinerary.workIds.size > 0) {
         obrasVisibles = obrasVisibles.filter((obra) => state.activeItinerary.workIds.has(String(obra.id)));
       }
+
+      // Filtros combinables con lógica AND en memoria (Fase 4)
+      if (Array.isArray(state.activeFilterChips) && state.activeFilterChips.length > 0) {
+        obrasVisibles = obrasVisibles.filter((obra) => obraCumpleFiltrosActivos(obra));
+      }
       
       const ubicacionesCompartidas = new Map();
       obrasVisibles.forEach((obra) => {
@@ -77,7 +83,7 @@ export function actualizarFuenteMapa() {
        });
       }
 
-      const isSearchActive = Boolean(state.activeItinerary && (state.activeItinerary.isSearch || String(state.activeItinerary.id || '').startsWith('search-')));
+      const isSearchActive = Boolean((state.activeItinerary && (state.activeItinerary.isSearch || String(state.activeItinerary.id || '').startsWith('search-'))) || (Array.isArray(state.activeFilterChips) && state.activeFilterChips.length > 0));
       const isExploreActive = Boolean(state.activeItinerary && (state.activeItinerary.isExplore || state.activeItinerary.isCurated || String(state.activeItinerary.id || '').startsWith('route-') || String(state.activeItinerary.id || '').startsWith('explore-')));
 
       const masterFeatures = [];

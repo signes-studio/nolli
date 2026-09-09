@@ -289,6 +289,23 @@
     </div>
   </aside>
 
+  <!-- Estado vacío si la combinación de filtros da 0 resultados (Strava/Komoot style) -->
+  <div id="filter-empty-banner" class="filter-empty-banner hidden" role="status" aria-live="polite">
+    <div class="filter-empty-content">
+      <div class="filter-empty-text">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="filter-empty-icon" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          <line x1="8" y1="11" x2="14" y2="11"></line>
+        </svg>
+        <span id="filter-empty-message">Ninguna obra cumple estos filtros a la vez</span>
+      </div>
+      <button type="button" id="btn-filter-undo" class="filter-empty-undo-btn">
+        Deshacer último filtro
+      </button>
+    </div>
+  </div>
+
 
 
   <!-- Leyenda técnica del radar (Desplegable) -->
@@ -777,6 +794,14 @@
       <p class="architect-profile-kicker" data-i18n="architect_title">ARQUITECTO</p>
       <h2 id="architect-profile-name" class="architect-profile-name"></h2>
       <p id="architect-profile-count" class="architect-profile-count"></p>
+      <div class="architect-filter-action-wrap">
+        <button type="button" id="btn-filter-architect-on-map" class="btn-filter-architect" aria-label="Filtrar obras de este arquitecto en el mapa">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-filter" aria-hidden="true">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+          </svg>
+          <span data-i18n="architect_filter_on_map">Filtrar obras en el mapa</span>
+        </button>
+      </div>
       <div id="architect-profile-works" class="architect-profile-works"></div>
     </div>
   </div>

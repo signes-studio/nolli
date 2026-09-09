@@ -12,6 +12,7 @@ import { cargarMapaMapbox } from './mapController.js';
 import { initModalsUI } from './modalsUI.js';
 import { initSearchUI, abrirBusquedaConQuery } from './searchUI.js';
 import { initMobileBottomNav } from './mobileBottomNav.js';
+import { initFilterEngine, clearFilterChips } from './filterEngine.js';
 import { getViewportKey, showNeoToast } from './renderUtils.js';
 
 import { abrirFicha } from './sheetUI.js';
@@ -267,9 +268,14 @@ async function inicializarRadar() {
 
 export function restaurarMapaGeneral() {
   state.activeItinerary = null;
+  state.activeFilterChips = [];
   const itineraryBadge = document.getElementById('itinerary-filter-badge');
   if (itineraryBadge) {
     itineraryBadge.classList.add('hidden');
+  }
+  const emptyBanner = document.getElementById('filter-empty-banner');
+  if (emptyBanner) {
+    emptyBanner.classList.add('hidden');
   }
 
   // Limpiar campo de búsqueda y cerrar dropdown
@@ -381,6 +387,7 @@ inicializarRadar();
 try { initModalsUI(); } catch (err) { console.warn('Init ModalsUI:', err); }
 try { initSearchUI(); } catch (err) { console.warn('Init SearchUI:', err); }
 try { initMobileBottomNav(); } catch (err) { console.warn('Init MobileBottomNav:', err); }
+try { initFilterEngine(); } catch (err) { console.warn('Init FilterEngine:', err); }
 
 const adminPanelButton = document.getElementById('btn-admin-panel');
 adminPanelButton?.addEventListener('click', async (event) => {
