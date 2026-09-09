@@ -1,4 +1,4 @@
-import { state, CATEGORY_META, escapeHtml, separarArquitectos, normalizarCategoria, normalizarImportancia, upsertBuilding, dedupeBuildings } from './state.js';
+import { state, CATEGORY_META, escapeHtml, separarArquitectos, normalizarCategoria, normalizarImportancia, upsertBuilding, dedupeBuildings, nombreCategoria } from './state.js';
 import { abrirFicha } from './sheetUI.js';
 import { calcularDistanciaMetros, formatearDistancia, showNeoToast } from './renderUtils.js';
 import { actualizarFuenteMapa } from './mapData.js';
@@ -297,7 +297,7 @@ export function renderRadarList(works, container, countSpan) {
       <article class="radar-proximity-card" data-radar-feature-id="${escapeHtml(obra.featureId || obra.id)}" role="button" tabindex="0" aria-label="${escapeHtml(obra.nombre_obra)}">
         <div class="radar-proximity-header">
           <span class="radar-vermillon-badge">${distText}</span>
-          <span class="radar-cat-badge" style="color:${catColor};">${escapeHtml(obra.categoria || 'ARQUITECTURA').toUpperCase()}</span>
+          <span class="radar-cat-badge" style="color:${catColor};">${escapeHtml(nombreCategoria(obra.categoria))}</span>
         </div>
         <div class="radar-proximity-body">
           ${photo ? `
