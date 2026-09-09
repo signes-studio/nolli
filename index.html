@@ -648,26 +648,41 @@
     </div>
   </section>
 
-  <!-- Controles Flotantes Derechos (Móvil) -->
+  <!-- Controles Flotantes Derechos (Móvil) — Speed-Dial FAB Consolidado -->
   <aside id="mobile-map-controls" class="mobile-map-controls" aria-label="Controles rápidos del mapa" data-i18n-aria="mobile_controls_aria">
-    <button type="button" class="mobile-float-btn" id="btn-float-locate" aria-label="Centrar en mi ubicación" title="Mi ubicación" data-i18n-aria="btn_locate_aria" data-i18n-title="btn_locate_title">
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-locate-fixed">
-        <line x1="2" x2="5" y1="12" y2="12"></line>
-        <line x1="19" x2="22" y1="12" y2="12"></line>
-        <line x1="12" x2="12" y1="2" y2="5"></line>
-        <line x1="12" x2="12" y1="19" y2="22"></line>
-        <circle cx="12" cy="12" r="7"></circle>
-        <circle cx="12" cy="12" r="3"></circle>
-      </svg>
-    </button>
-    <button type="button" class="mobile-float-btn" id="btn-float-layers" data-target-panel="map-style-panel" aria-label="Capas y estilos de mapa" title="Capas del mapa" data-i18n-aria="map_style_btn_aria" data-i18n-title="map_style_btn_title">
-      <i data-lucide="layers-2" width="19" height="19"></i>
-    </button>
-    <button type="button" class="mobile-float-btn" id="btn-float-filters" data-target-panel="filter-panel" aria-label="Filtros avanzados" title="Filtros" data-i18n-aria="filter_btn_aria" data-i18n-title="filter_btn_title">
-      <i data-lucide="sliders-horizontal" width="19" height="19"></i>
-    </button>
-    <button type="button" class="mobile-float-btn mobile-float-btn-primary" id="btn-float-add" aria-label="Añadir nueva obra de arquitectura" title="Añadir Proyecto" data-i18n-aria="add_project_btn_aria" data-i18n-title="add_project_btn_title">
-      <i data-lucide="plus" width="22" height="22"></i>
+    <div id="mobile-fab-backdrop" class="mobile-fab-backdrop" aria-hidden="true"></div>
+
+    <div id="mobile-fab-menu" class="mobile-fab-menu" aria-hidden="true">
+      <button type="button" class="mobile-speed-dial-item" id="btn-float-locate" aria-label="Centrar en mi ubicación" title="Mi ubicación" data-i18n-aria="btn_locate_aria" data-i18n-title="btn_locate_title">
+        <span class="speed-dial-label" data-i18n="btn_locate_title">Mi ubicación</span>
+        <span class="speed-dial-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-locate-fixed">
+            <line x1="2" x2="5" y1="12" y2="12"></line>
+            <line x1="19" x2="22" y1="12" y2="12"></line>
+            <line x1="12" x2="12" y1="2" y2="5"></line>
+            <line x1="12" x2="12" y1="19" y2="22"></line>
+            <circle cx="12" cy="12" r="7"></circle>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+        </span>
+      </button>
+      <button type="button" class="mobile-speed-dial-item" id="btn-float-layers" data-target-panel="map-style-panel" aria-label="Capas y estilos de mapa" title="Capas del mapa" data-i18n-aria="map_style_btn_aria" data-i18n-title="map_style_btn_title">
+        <span class="speed-dial-label" data-i18n="map_style_btn_title">Capas</span>
+        <span class="speed-dial-icon"><i data-lucide="layers-2" width="18" height="18"></i></span>
+      </button>
+      <button type="button" class="mobile-speed-dial-item" id="btn-float-filters" data-target-panel="filter-panel" aria-label="Filtros avanzados" title="Filtros" data-i18n-aria="filter_btn_aria" data-i18n-title="filter_btn_title">
+        <span class="speed-dial-label" data-i18n="filter_btn_title">Filtros</span>
+        <span class="speed-dial-icon"><i data-lucide="sliders-horizontal" width="18" height="18"></i></span>
+      </button>
+      <button type="button" class="mobile-speed-dial-item speed-dial-item-primary" id="btn-float-add" aria-label="Añadir nueva obra de arquitectura" title="Añadir Proyecto" data-i18n-aria="add_project_btn_aria" data-i18n-title="add_project_btn_title">
+        <span class="speed-dial-label" data-i18n="add_project_btn_title">Añadir obra</span>
+        <span class="speed-dial-icon"><i data-lucide="plus" width="20" height="20"></i></span>
+      </button>
+    </div>
+
+    <!-- Botón FAB Principal Disparador -->
+    <button type="button" class="mobile-float-btn mobile-float-btn-primary mobile-fab-toggle" id="btn-mobile-fab-toggle" aria-expanded="false" aria-haspopup="true" aria-label="Acciones y herramientas del mapa" title="Acciones" data-i18n-title="map_tools_title" data-i18n-aria="map_tools_aria">
+      <i data-lucide="plus" width="22" height="22" class="fab-toggle-icon"></i>
     </button>
   </aside>
 

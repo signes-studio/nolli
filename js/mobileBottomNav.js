@@ -25,7 +25,11 @@ export function initMobileBottomNav() {
   const btnPlaces = document.getElementById('mobile-nav-places');
   const btnProfile = document.getElementById('mobile-nav-profile');
 
-  // Controles Flotantes Derechos
+  // Controles Flotantes Derechos — Speed-Dial FAB Consolidado
+  const mobileMapControls = document.getElementById('mobile-map-controls');
+  const fabToggle = document.getElementById('btn-mobile-fab-toggle');
+  const fabMenu = document.getElementById('mobile-fab-menu');
+  const fabBackdrop = document.getElementById('mobile-fab-backdrop');
   const btnFloatAdd = document.getElementById('btn-float-add');
   const btnFloatLayers = document.getElementById('btn-float-layers');
   const btnFloatFilters = document.getElementById('btn-float-filters');
@@ -75,7 +79,28 @@ export function initMobileBottomNav() {
     }
   }
 
+  function closeSpeedDial() {
+    if (mobileMapControls?.classList.contains('speed-dial-open')) {
+      mobileMapControls.classList.remove('speed-dial-open');
+      fabToggle?.setAttribute('aria-expanded', 'false');
+      fabMenu?.setAttribute('aria-hidden', 'true');
+    }
+  }
+
+  function toggleSpeedDial() {
+    const willOpen = !mobileMapControls?.classList.contains('speed-dial-open');
+    if (willOpen) {
+      closeAllPanels();
+      mobileMapControls?.classList.add('speed-dial-open');
+      fabToggle?.setAttribute('aria-expanded', 'true');
+      fabMenu?.setAttribute('aria-hidden', 'false');
+    } else {
+      closeSpeedDial();
+    }
+  }
+
   function closeAllPanels(except = null) {
+    closeSpeedDial();
     allPanels.forEach((panel) => {
       if (panel !== except && panel.classList.contains('open')) {
         panel.classList.remove('open');
@@ -184,11 +209,44 @@ export function initMobileBottomNav() {
     });
   }
 
-  // 5. Controles Flotantes Derechos (Añadir, Capas, Filtros, Ubicación)
+  // 5. Controles Flotantes Derechos — Speed-Dial FAB Consolidado
+  if (fabToggle) {
+    fabToggle.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleSpeedDial();
+    });
+  }
+
+  if (fabBackdrop) {
+    fabBackdrop.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      closeSpeedDial();
+    });
+  }
+
+  // Cerrar al pulsar fuera en el mapa o pantalla
+  document.addEventListener('click', (e) => {
+    if (mobileMapControls?.classList.contains('speed-dial-open')) {
+      if (!mobileMapControls.contains(e.target)) {
+        closeSpeedDial();
+      }
+    }
+  });
+
+  // Cerrar con Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeSpeedDial();
+    }
+  });
+
   if (btnFloatAdd) {
     btnFloatAdd.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
+      closeSpeedDial();
       const addProjectBtn = document.getElementById('btn-add-project');
       if (addProjectBtn) {
         addProjectBtn.click();
@@ -203,6 +261,7 @@ export function initMobileBottomNav() {
     btnFloatLayers.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
+      closeSpeedDial();
       toggleMobilePanel(mapStylePanel);
     });
   }
@@ -211,6 +270,7 @@ export function initMobileBottomNav() {
     btnFloatFilters.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
+      closeSpeedDial();
       toggleMobilePanel(filterPanel);
     });
   }
@@ -219,6 +279,7 @@ export function initMobileBottomNav() {
     btnFloatLocate.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
+      closeSpeedDial();
       localizarDispositivo();
     });
   }

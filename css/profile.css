@@ -1185,3 +1185,84 @@ body.dark-mode .profile-collection-work-meta {
   border-color: #D6201D;
   color: #D6201D;
 }
+
+/* =========================================================================
+   SOPORTE Y COMUNIDAD (KO-FI INTEGRADO NEO-BAUHAUS)
+   ========================================================================= */
+.profile-support-group {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border, #D8D6CE);
+}
+
+body.dark-mode .profile-support-group {
+  border-top-color: var(--border, #333330);
+}
+
+.profile-support-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg-raised, #F0E9D2);
+  color: var(--fg, #141411);
+  border: 1.5px solid var(--border-strong, #141411);
+  box-shadow: 2px 2px 0px var(--border-strong, #141411);
+  font-family: 'League Spartan', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: transform 0.08s ease, background 0.12s ease, color 0.12s ease;
+}
+
+body.dark-mode .profile-support-btn {
+  background: #252522;
+  color: #F8F1DF;
+  border-color: #4E4E48;
+}
+
+.profile-support-btn:hover {
+  background: var(--accent, #E84E1B);
+  color: #FFFFFF;
+}
+
+.profile-support-btn:active {
+  transform: scale(0.98);
+}
+
+.profile-support-inline {
+  display: flex;
+  justify-content: center;
+  margin-top: 36px;
+  margin-bottom: 8px;
+}
+
+.profile-support-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: transparent;
+  color: var(--fg-dim, #6B6B6B);
+  border: 1px dashed var(--border, #D8D6CE);
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.12s ease, border-color 0.12s ease;
+}
+
+body.dark-mode .profile-support-link {
+  border-color: var(--border, #333330);
+  color: var(--fg-dim, #9A9A92);
+}
+
+.profile-support-link:hover {
+  color: var(--accent, #E84E1B);
+  border-color: var(--accent, #E84E1B);
+}

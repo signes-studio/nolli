@@ -826,90 +826,187 @@ body.dark-mode .topbar-btn-profile:hover {
       height: 38px;
     }
 
-  /* Controles Flotantes Derechos (Móvil) */
+  /* Controles Flotantes Derechos (Móvil) — Speed-Dial FAB Consolidado */
   .mobile-map-controls {
     display: flex !important;
     flex-direction: column;
     position: fixed;
-    bottom: calc(68px + env(safe-area-inset-bottom)) !important;
+    bottom: calc(66px + env(safe-area-inset-bottom)) !important;
     right: 14px;
     z-index: 42;
     gap: 10px;
     pointer-events: auto;
+    align-items: flex-end;
   }
 
-  .mobile-float-btn {
-    width: 48px;
-    height: 48px;
+  /* Backdrop atenuador para cerrar Speed-Dial al pulsar fuera */
+  .mobile-fab-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: transparent;
+    pointer-events: auto;
+  }
+
+  .mobile-map-controls.speed-dial-open .mobile-fab-backdrop {
+    display: block;
+  }
+
+  /* Menú desplegable vertical hacia arriba */
+  .mobile-fab-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-end;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(12px) scale(0.94);
+    pointer-events: none;
+    position: relative;
+    z-index: 43;
+    transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.18s;
+  }
+
+  .mobile-map-controls.speed-dial-open .mobile-fab-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+
+  /* Items individuales del Speed-Dial (icono + etiqueta lateral) */
+  .mobile-speed-dial-item {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    cursor: pointer;
+    touch-action: manipulation;
+    text-decoration: none;
+  }
+
+  .speed-dial-label {
+    background: var(--bg-panel, #F4F1EA);
+    color: var(--fg, #111111);
+    border: 1.5px solid var(--border-strong, #111111);
+    box-shadow: 2px 2px 0px var(--border-strong, #111111);
+    padding: 4px 8px;
+    font-family: 'League Spartan', sans-serif;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    line-height: 1.2;
+    transition: background 0.12s ease, color 0.12s ease;
+  }
+
+  body.dark-mode .speed-dial-label {
+    background: #1C1C1A;
+    color: #F8F1DF;
+    border-color: #4E4E48;
+    box-shadow: 2px 2px 0px #111111;
+  }
+
+  .speed-dial-icon {
+    width: 44px;
+    height: 44px;
     background: var(--bg-panel, #F4F1EA);
     border: 2px solid var(--border-strong, #111111);
     box-shadow: 2px 2px 0px var(--border-strong, #111111);
-    border-radius: 0 !important;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     color: var(--fg, #111111);
-    cursor: pointer;
-    touch-action: manipulation;
+    flex-shrink: 0;
     transition: transform 0.08s ease, background 0.12s ease, color 0.12s ease;
   }
 
-  .mobile-float-btn svg {
-    width: 20px !important;
-    height: 20px !important;
+  .speed-dial-icon svg {
+    width: 19px !important;
+    height: 19px !important;
     stroke: currentColor !important;
     stroke-width: 2px !important;
     fill: none !important;
     display: block !important;
-    flex-shrink: 0;
   }
 
-  body.dark-mode .mobile-float-btn {
+  body.dark-mode .speed-dial-icon {
     background: #1C1C1A;
+    color: #F8F1DF;
+    border-color: #4E4E48;
   }
 
-  .mobile-float-btn:active {
+  .mobile-speed-dial-item:active .speed-dial-icon {
     transform: scale(0.92);
     background: var(--fg, #111111);
     color: var(--bg-panel, #F4F1EA);
   }
 
-  .mobile-float-btn.active-state {
-    color: var(--accent, #E84E1B) !important;
-    border-color: var(--accent, #E84E1B) !important;
-    background: var(--bg-panel, #F4F1EA) !important;
+  .speed-dial-item-primary .speed-dial-icon {
+    background: var(--accent, #E84E1B) !important;
+    color: #FFFFFF !important;
   }
 
-  /* Botón de Acción Primaria Flotante [+] (Añadir Proyecto) */
-  .mobile-float-btn-primary {
-    background-color: var(--accent, #E84E1B) !important;
+  .speed-dial-item-primary .speed-dial-icon svg {
+    stroke: #FFFFFF !important;
+  }
+
+  .speed-dial-item-primary .speed-dial-label {
+    color: var(--accent, #E84E1B);
+    border-color: var(--accent, #E84E1B);
+  }
+
+  body.dark-mode .speed-dial-item-primary .speed-dial-label {
+    color: var(--accent, #FF7528);
+    border-color: var(--accent, #FF7528);
+  }
+
+  /* Botón FAB Principal Disparador */
+  .mobile-fab-toggle {
+    width: 48px;
+    height: 48px;
+    background: var(--accent, #E84E1B) !important;
     color: #FFFFFF !important;
     border: 2px solid var(--border-strong, #111111) !important;
     box-shadow: 2px 2px 0px var(--border-strong, #111111) !important;
+    border-radius: 0 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    touch-action: manipulation;
+    position: relative;
+    z-index: 43;
+    transition: transform 0.08s ease, background-color 0.15s ease, box-shadow 0.15s ease;
   }
 
-  .mobile-float-btn-primary svg {
-    color: #FFFFFF !important;
+  .mobile-fab-toggle svg {
+    width: 22px !important;
+    height: 22px !important;
     stroke: #FFFFFF !important;
-    transition: transform 0.15s ease, stroke 0.12s ease;
+    stroke-width: 2.2px !important;
+    fill: none !important;
+    display: block !important;
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
   }
 
-  .mobile-float-btn-primary:active {
-    transform: scale(0.92);
-    background-color: #111111 !important;
+  .mobile-map-controls.speed-dial-open .mobile-fab-toggle {
+    background-color: var(--fg, #111111) !important;
     color: #FFFFFF !important;
   }
 
-  .mobile-float-btn-primary.active-state {
-    background-color: #111111 !important;
-    border-color: var(--accent, #E84E1B) !important;
-    box-shadow: 2px 2px 0px var(--accent, #E84E1B) !important;
+  .mobile-map-controls.speed-dial-open .mobile-fab-toggle svg {
+    transform: rotate(45deg);
   }
 
-  .mobile-float-btn-primary.active-state svg {
-    color: var(--accent, #E84E1B) !important;
-    stroke: var(--accent, #E84E1B) !important;
-    transform: rotate(45deg);
+  .mobile-fab-toggle:active {
+    transform: scale(0.92);
   }
 
   .mobile-bottom-bar {

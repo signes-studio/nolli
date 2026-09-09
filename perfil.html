@@ -206,6 +206,14 @@
       <!-- 5. Feed de Obras (Archivo con padding-bottom de 160px para scroll fluido) -->
       <section id="profile-content" class="profile-feed-list" aria-live="polite"></section>
 
+      <!-- Apoyo comunitario discreto no intrusivo -->
+      <div class="profile-support-inline">
+        <a href="https://ko-fi.com/nollimap" target="_blank" rel="noopener noreferrer" class="profile-support-link">
+          <span style="font-size:13px;">☕</span>
+          <span data-i18n="profile_support_cta">APOYAR A NOLLI EN KO-FI ↗</span>
+        </a>
+      </div>
+
       <!-- Pie de página sutil: selector discreto de idioma -->
       <footer class="profile-footer-lang" aria-label="Idioma de la interfaz" data-i18n-aria="lang_switcher_aria">
         <span data-i18n="lang_footer_label">IDIOMA</span>
@@ -308,6 +316,15 @@
             <button type="button" class="lang-pill" data-lang-btn="en" data-i18n="lang_english">English</button>
             <button type="button" class="lang-pill" data-lang-btn="ca" data-i18n="lang_catala">Català</button>
           </div>
+        </div>
+
+        <div class="profile-form-group profile-support-group">
+          <label class="profile-form-label" data-i18n="profile_support_label">COMUNIDAD // APOYO AL PROYECTO</label>
+          <p class="filter-lang-note" data-i18n="profile_support_hint">Nolli es un catálogo independiente sin publicidad. Puedes apoyar el mantenimiento:</p>
+          <a href="https://ko-fi.com/nollimap" target="_blank" rel="noopener noreferrer" class="profile-support-btn">
+            <span style="font-size:13px;">☕</span>
+            <span data-i18n="profile_support_cta">APOYAR A NOLLI EN KO-FI ↗</span>
+          </a>
         </div>
 
         <div id="profile-edit-status" class="profile-edit-status hidden"></div>
@@ -503,37 +520,7 @@
 
   <script type="module" src="./js/profile.js"></script>
   
-  <!-- Widget Oficial Ko-Fi Overlay -->
-  <style>
-    .floatingchat-container-wrap,
-    .floatingchat-container-wrap-mobi {
-      z-index: 9999 !important;
-      position: fixed !important;
-    }
-    @media (max-width: 768px) {
-      .floatingchat-container-wrap,
-      .floatingchat-container-wrap-mobi {
-        bottom: 74px !important;
-      }
-    }
-  </style>
-  <script src="https://storage.ko-fi.com/cdn/scripts/overlay-widget.js" defer></script>
   <script>
-    function renderKofiOverlay() {
-      if (typeof kofiWidgetOverlay !== 'undefined' && kofiWidgetOverlay.draw) {
-        kofiWidgetOverlay.draw('nollimap', {
-          'type': 'floating-chat',
-          'floating-chat.donateButton.text': 'Apoyar',
-          'floating-chat.donateButton.background-color': '#f45d22',
-          'floating-chat.donateButton.text-color': '#fff'
-        });
-      }
-    }
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', renderKofiOverlay);
-    } else {
-      renderKofiOverlay();
-    }
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
   </script>
 </body>

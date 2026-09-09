@@ -531,7 +531,8 @@ body.dark-mode .filter-lang-note {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-top: 32px;
+  margin-top: 24px;
+  margin-bottom: 32px;
   padding-top: 16px;
   border-top: 1px dashed var(--border, #D8D6CE);
   font-family: 'Inter', sans-serif;
