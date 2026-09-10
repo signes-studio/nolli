@@ -20,7 +20,7 @@ import {
   updateUserRole,
   getBuildingsCatalog
 } from './api.js';
-import { escapeHtml, normalizarCategoria, nombreCategoria, separarArquitectos, formatearImportancia } from './state.js';
+import { escapeHtml, normalizarCategoria, formatCategoria, separarArquitectos, formatearImportancia } from './state.js';
 
 const SESSION_KEY = 'nolli_admin_session_token';
 
@@ -368,7 +368,7 @@ function renderModulePending() {
     const title = escapeHtml(obra.nombre_obra || 'Sin título');
     const architect = escapeHtml(obra.arquitecto || 'Arquitecto no especificado');
     const year = obra.año_construccion ? ` · ${escapeHtml(obra.año_construccion)}` : '';
-    const category = nombreCategoria(obra.categoria);
+    const category = formatCategoria(obra.categoria);
     const place = obra.place ? escapeHtml(obra.place) : 'Ubicación registrada';
     const isPending = obra.estado_revision === 'pendiente';
     const photo = obra.foto_url || obra.foto_miniatura || '';
@@ -607,7 +607,7 @@ function renderModuleArchitects() {
               const safeId = escapeHtml(obra.id);
               const title = escapeHtml(obra.nombre_obra || 'Sin título');
               const year = obra.año_construccion ? escapeHtml(obra.año_construccion) : null;
-              const category = nombreCategoria(obra.categoria);
+              const category = formatCategoria(obra.categoria);
               const place = obra.place ? escapeHtml(obra.place) : 'Ubicación registrada';
               const photo = obra.foto_url || obra.foto_miniatura || '';
               const isPending = obra.estado_revision === 'pendiente';
@@ -1306,4 +1306,3 @@ function openEditModal(id) {
     if (window.lucide) window.lucide.createIcons({ context: modal });
   }
 }
-

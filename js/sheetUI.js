@@ -2,7 +2,7 @@
    SHEETUI.JS - Ficha tecnica y acciones personales de una obra
    ========================================================================= */
 
-import { state, separarArquitectos, normalizarCategoria, normalizarImportancia, nombreCategoria, esRolAdmin, esRolEditor, guardarZonaPersonalLocal, CATEGORY_META } from './state.js';
+import { state, separarArquitectos, normalizarCategoria, normalizarImportancia, formatCategoria, esRolAdmin, esRolEditor, guardarZonaPersonalLocal, CATEGORY_META } from './state.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { cerrarFiltros, generarFiltrosUI } from './filtersUI.js';
 import { fetchBuildings, saveBuildingStatus, reviewBuilding, deleteBuilding, deletePrivateBuilding, createUserCollection, addUserCollectionItem, deleteUserCollectionItem, createUserPrivateLabel, deleteUserPrivateLabel } from './api.js';
@@ -91,7 +91,7 @@ async function abrirFichaArquitecto(nombreArquitecto) {
           <div class="architect-work-title">${escapeHtml(obra.nombre_obra)}</div>
           <div class="architect-work-meta-row">
             <span class="architect-cat-pill" style="border-left: 3px solid ${catColor};">
-              ${escapeHtml(nombreCategoria(obra.categoria))}
+              ${escapeHtml(formatCategoria(obra.categoria))}
             </span>
             ${cityName ? `<span class="architect-city-tag">· ${escapeHtml(cityName)}</span>` : ''}
           </div>
@@ -233,7 +233,7 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
         <div class="tech-col">
           <span class="tech-label">${t('sheet_category')}</span>
           <span class="tech-value">
-            <span class="sheet-cat-badge" style="border-left: 3px solid ${catColor};">${nombreCategoria(building.categoria)}</span>
+            <span class="sheet-cat-badge" style="border-left: 3px solid ${catColor};">${formatCategoria(building.categoria)}</span>
           </span>
         </div>
       </div>

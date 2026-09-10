@@ -44,6 +44,7 @@ import {
 
 import { renderInChunks, initTabsScrollIndicator } from './renderUtils.js';
 import { getOptimizedPhotoUrl } from './imageProxy.js';
+import { renderObraCard } from './workCard.js';
 import { t, initI18n, getUrlPrefix, applyI18nToDOM, setupLanguageSwitchers } from './i18n.js';
 
 const SESSION_KEY = 'nolli_admin_session_token';
@@ -870,7 +871,8 @@ function renderBuildingsFeed(buildings, tabKey) {
           <span>${t('remove_upper', null, 'QUITAR')}</span>
         </button>`;
 
-    return `
+    return `<div class="profile-feed-row"><a href="${getUrlPrefix()}/obra/${encodeURIComponent(obra.id || obra.featureId)}" class="profile-feed-item">${renderObraCard(obra, { variant: 'profile', featureId: obra.id || obra.featureId })}</a><div class="profile-feed-row-actions">${actionBtnHtml}</div></div>`;
+    /*
       <div class="profile-feed-row">
         <a href="${getUrlPrefix()}/obra/${encodeURIComponent(obra.id || obra.featureId)}" class="profile-feed-item" aria-label="${escapeHtml(t('sheet_view_map_btn', null, 'Ver'))} ${escapeHtml(title)}">
           ${photo ? `
@@ -887,7 +889,7 @@ function renderBuildingsFeed(buildings, tabKey) {
           ${actionBtnHtml}
         </div>
       </div>
-    `;
+    `; */
   });
   
   renderInChunks(content, htmlChunks, 10, () => {

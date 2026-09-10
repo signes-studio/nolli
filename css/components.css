@@ -1171,3 +1171,17 @@ body.dark-mode .nolli-empty-action:hover {
 .nolli-tabs-scroll-wrap.can-scroll-right::after {
   opacity: 1;
 }
+
+/* Fuente única de presentación para obras en listas, búsqueda, radar y perfil. */
+.obra-card { display:flex; gap:12px; align-items:stretch; width:100%; padding:10px; background:var(--bg-panel, #F8F1DF); border:1px solid var(--border, #D6D0BF); color:var(--fg, #141411); text-align:left; cursor:pointer; }
+.obra-card:hover, .obra-card:focus-visible { border-color:var(--fg, #141411); outline:none; }
+.obra-card__thumb { width:82px; min-width:82px; height:82px; overflow:hidden; background:var(--bg-raised, #EEE8D8); }
+.obra-card__thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+.obra-card__body { min-width:0; flex:1; display:flex; flex-direction:column; gap:4px; justify-content:center; }
+.obra-card__topline { display:flex; justify-content:space-between; gap:8px; align-items:center; }
+.obra-card__category { color:var(--obra-category); font:700 10px/1 Inter, sans-serif; letter-spacing:.025em; }
+.obra-card__distance { font:700 10px/1 Inter, sans-serif; color:var(--accent, #E84E1B); white-space:nowrap; }
+.obra-card__title { margin:0; font:800 16px/1.05 'League Spartan', sans-serif; overflow:hidden; text-overflow:ellipsis; }
+.obra-card__meta { margin:0; color:var(--fg-dim, #68655D); font:500 11px/1.35 Inter, sans-serif; overflow:hidden; text-overflow:ellipsis; }
+.obra-card__action { align-self:center; }
+.obra-card--radar { margin-bottom:8px; }

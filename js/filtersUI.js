@@ -2,7 +2,7 @@
    FILTERSUI.JS — Panel de filtros por Categorías
    ========================================================================= */
 
-import { state, nombreCategoria, esRolAdmin, CATEGORY_META } from './state.js';
+import { state, formatCategoria, esRolAdmin, CATEGORY_META } from './state.js';
 import { addFilterChip, clearFilterChips } from './filterEngine.js';
 import { t, getLanguage, setupLanguageSwitchers } from './i18n.js';
 
@@ -187,7 +187,7 @@ function initFiltersUI() {
     if (isolateCat) {
       const catKey = isolateCat.dataset.isolateCategory;
       const metaCat = CATEGORY_META[catKey];
-      const catLabel = metaCat?.label || nombreCategoria(catKey);
+      const catLabel = metaCat?.label || formatCategoria(catKey);
       const catColor = metaCat?.color || '#555550';
 
       state.activeCategorias = new Set([catKey]);

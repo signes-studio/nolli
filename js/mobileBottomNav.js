@@ -7,7 +7,7 @@
    - Aceleración por hardware a 60 FPS estables
    ========================================================================= */
 
-import { state, esRolAdmin, separarArquitectos, normalizarCategoria, normalizarImportancia, nombreCategoria, CATEGORY_COLORS, CATEGORY_META, escapeHtml } from './state.js';
+import { state, esRolAdmin, separarArquitectos, normalizarCategoria, normalizarImportancia, formatCategoria, CATEGORY_COLORS, CATEGORY_META, escapeHtml } from './state.js';
 import { getBuildingsCatalog } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { activarFiltroBusquedaEnMapa } from './searchUI.js';
@@ -675,7 +675,7 @@ function initMobileSearchWidget() {
 
       const listHtml = matches.slice(0, 40).map((obra) => {
         const catClave = normalizarCategoria(obra.categoria);
-        const catTexto = nombreCategoria(obra.categoria);
+        const catTexto = formatCategoria(obra.categoria);
         const metaCat = CATEGORY_META[catClave] || CATEGORY_META['otro'];
         const catColor = metaCat?.color || '#E84E1B';
 

@@ -1,4 +1,4 @@
-import { state, CATEGORY_META, escapeHtml, separarArquitectos, normalizarCategoria, normalizarImportancia, upsertBuilding, dedupeBuildings, nombreCategoria } from './state.js';
+import { state, CATEGORY_META, escapeHtml, separarArquitectos, normalizarCategoria, normalizarImportancia, upsertBuilding, dedupeBuildings, formatCategoria } from './state.js';
 import { abrirFicha } from './sheetUI.js';
 import { calcularDistanciaMetros, formatearDistancia, showNeoToast } from './renderUtils.js';
 import { actualizarFuenteMapa } from './mapData.js';
@@ -7,6 +7,8 @@ import { fetchBuildingsInRadius, fetchBuildings, getBuildingsCatalog, fetchItine
 import { getOptimizedPhotoUrl } from './imageProxy.js';
 import { CURATED_ROUTES, matchWorksForRoute } from './itinerariesConfig.js';
 import { t } from './i18n.js';
+import { renderObraCard } from './workCard.js';
+import { renderObraCard } from './workCard.js';
 
 export { CURATED_ROUTES, matchWorksForRoute };
 
@@ -283,6 +285,9 @@ export function renderRadarList(works, container, countSpan) {
     return;
   }
 
+  container.innerHTML = works.slice(0, 50).map((obra) => renderObraCard(obra, { variant: 'radar', className: 'radar-proximity-card', featureId: obra.featureId || obra.id, distance: formatearDistanciaRadar(obra._dist), showPhoto: Boolean(state.sessionToken) })).join('');
+  /* Legacy renderer kept below for migration reference; bypassed by the shared card. */
+  /*
   container.innerHTML = works.slice(0, 50).map((obra) => {
     const catKey = obra.categoria || 'otro';
     const metaCat = CATEGORY_META[catKey] || CATEGORY_META['otro'];
@@ -297,7 +302,7 @@ export function renderRadarList(works, container, countSpan) {
       <article class="radar-proximity-card" data-radar-feature-id="${escapeHtml(obra.featureId || obra.id)}" role="button" tabindex="0" aria-label="${escapeHtml(obra.nombre_obra)}">
         <div class="radar-proximity-header">
           <span class="radar-vermillon-badge">${distText}</span>
-          <span class="radar-cat-badge" style="color:${catColor};">${escapeHtml(nombreCategoria(obra.categoria))}</span>
+          <span class="radar-cat-badge" style="color:${catColor};">${escapeHtml(formatCategoria(obra.categoria))}</span>
         </div>
         <div class="radar-proximity-body">
           ${photo ? `
@@ -316,7 +321,7 @@ export function renderRadarList(works, container, countSpan) {
         </div>
       </article>
     `;
-  }).join('');
+  }).join(''); */
 
   window.lucide?.createIcons({ context: document.getElementById('itinerary-filter-badge') });
 }
@@ -636,7 +641,7 @@ export function initRadarUI() {
       const card = e.target.closest('.radar-proximity-card');
       if (!card) return;
 
-      const featureId = card.dataset.radarFeatureId;
+      const featureId = card.dataset.featureId;
       let obra = state.OBRAS.find((o) => String(o.featureId) === String(featureId) || String(o.id) === String(featureId));
 
       if (!obra && radarCachedData.length) {
@@ -702,4 +707,3 @@ export function initRadarUI() {
     panelObserver.observe(panel, { attributes: true, attributeFilter: ['class'] });
   }
 }
-

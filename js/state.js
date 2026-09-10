@@ -207,7 +207,7 @@ export function extraerAnioDefensivo(valor) {
   return match ? match[0] : null;
 }
 
-export function nombreCategoria(valor) {
+export function formatCategoria(valor) {
   const norm = normalizarCategoria(valor);
   const mapKeys = {
     residencial: 'cat_residential',
@@ -235,6 +235,9 @@ export function nombreCategoria(valor) {
     otro: 'OTRO',
   }[norm] || 'OTRO';
 }
+
+// Compatibilidad para consumidores externos anteriores a la centralización.
+export const nombreCategoria = formatCategoria;
 
 export const CATEGORY_COLORS = {
   residencial: '#E95C0C',

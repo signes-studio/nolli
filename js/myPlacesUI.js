@@ -17,6 +17,7 @@ import { abrirFicha } from './sheetUI.js';
 import { registrarIconosColecciones, actualizarVisibilidadIconosLista } from './mapController.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { showNeoToast, initTabsScrollIndicator } from './renderUtils.js';
+import { renderObraCard } from './workCard.js';
 import { t } from './i18n.js';
 import {
   fetchUserCollections,
@@ -173,7 +174,7 @@ export function initMyPlacesUI() {
       return;
     }
 
-    const placeItem = event.target.closest('.my-place-item');
+    const placeItem = event.target.closest('.my-place-item, .obra-card');
     if (placeItem && !event.target.closest('.btn-remove-collection')) {
       const featureId = placeItem.dataset.featureId;
       const obra = state.OBRAS.find((item) => String(item.featureId) === String(featureId) || String(item.id) === String(featureId));
@@ -785,6 +786,10 @@ function renderList() {
     return;
   }
 
+  list.innerHTML = results.map((obra) => renderObraCard(obra, { variant: 'my-places', className: 'my-place-item', featureId: obra.id })).join('');
+  if (window.lucide) window.lucide.createIcons();
+  return;
+
   list.innerHTML = results.map((obra) => `
     <button type="button" class="my-place-item" data-feature-id="${obra.id}">
       <div class="my-place-item-main">
@@ -917,4 +922,3 @@ function renderCollections() {
   `;
   if (window.lucide) window.lucide.createIcons();
 }
-

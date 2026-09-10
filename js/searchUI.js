@@ -1,10 +1,12 @@
-import { state, separarArquitectos, transformarEdificio, normalizarCategoria, nombreCategoria, CATEGORY_META, escapeHtml, upsertBuilding } from './state.js';
+import { state, separarArquitectos, transformarEdificio, normalizarCategoria, formatCategoria, CATEGORY_META, escapeHtml, upsertBuilding } from './state.js';
 import { abrirFicha } from './sheetUI.js';
 import { searchPlaces, getBuildingsCatalog } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { renderInChunks } from './renderUtils.js';
 import { addFilterChip } from './filterEngine.js';
 import { t } from './i18n.js';
+import { renderObraCard } from './workCard.js';
+import { renderObraCard } from './workCard.js';
 
 const searchPanel = document.getElementById('search-panel');
 const btnSearch = document.getElementById('btn-search');
@@ -22,8 +24,10 @@ let currentSearchResults = [];
 let cacheObrasGlobales = null;
 
 function renderizarTarjetaObra(obra, distance = null) {
+  return renderObraCard(obra, { variant: 'search', className: 'nearby-item search-work-card', distance: distance != null && state.userLocation && Number.isFinite(distance) ? formatearDistancia(distance) : '' });
+
   const catClave = normalizarCategoria(obra.categoria);
-  const catTexto = nombreCategoria(obra.categoria);
+  const catTexto = formatCategoria(obra.categoria);
   const metaCat = CATEGORY_META[catClave] || CATEGORY_META['otro'];
   const catColor = metaCat?.color || '#E84E1B';
 
