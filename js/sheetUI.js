@@ -5,7 +5,7 @@
 import { state, separarArquitectos, normalizarCategoria, normalizarImportancia, formatCategoria, esRolAdmin, esRolEditor, guardarZonaPersonalLocal, CATEGORY_META } from './state.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { cerrarFiltros, generarFiltrosUI } from './filtersUI.js';
-import { fetchBuildings, saveBuildingStatus, reviewBuilding, deleteBuilding, deletePrivateBuilding, createUserCollection, addUserCollectionItem, deleteUserCollectionItem, createUserPrivateLabel, deleteUserPrivateLabel } from './api.js';
+import { fetchBuildings, saveBuildingStatus, reviewBuilding, deleteBuilding, updateBuilding, deletePrivateBuilding, createUserCollection, addUserCollectionItem, deleteUserCollectionItem, createUserPrivateLabel, deleteUserPrivateLabel } from './api.js';
 import { abrirModalCrearLista } from './myPlacesUI.js';
 import { getOptimizedPhotoUrl } from './imageProxy.js';
 import { showNeoToast } from './renderUtils.js';
@@ -291,6 +291,7 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
           ` : ''}
           ${editorActive ? `
             <button type="button" class="btn btn-admin-action" data-edit-building><i data-lucide="pencil" width="14" height="14"></i> ${t('sheet_edit_building')}</button>
+            <button type="button" class="btn btn-admin-action" data-move-building><i data-lucide="map-pin" width="14" height="14"></i> MOVER OBRA</button>
           ` : ''}
           ${adminActive ? `
             <button type="button" class="btn btn-admin-delete" data-delete-building><i data-lucide="trash-2" width="14" height="14"></i> ${t('sheet_delete_db')}</button>
@@ -377,16 +378,19 @@ function formatAccess(value) {
   const key = map[value];
   return key ? t(key) : (value || '');
 }
+
 function getSelectedBuilding() {
   if (!state.selectedFeatureId) return null;
   const target = String(state.selectedFeatureId);
   return state.OBRAS.find((item) => String(item.id) === target || String(item.featureId) === target) || null;
 }
+
 function getStatus(status) {
   const building = getSelectedBuilding();
   if (!building || !building.id) return false;
   return state.buildingStatuses?.get(String(building.id))?.[status] || false;
 }
+
 function closeOrganizer() { document.getElementById('modal-personal-organizer').classList.remove('open'); }
 
 function organizerOptions(building, mode, checkedIdsOverride = null) {
@@ -486,7 +490,6 @@ async function saveOrganizerSelection() {
             if (saved[0]) state.userCollectionItems.push(saved[0]);
           } catch (err) {
             console.warn('Reintentando sincronización de colección:', err);
-            // Si la colección no existía en el servidor, la creamos y reintentamos guardar el item
             if (String(err.message).includes('foreign key constraint') || String(err.message).includes('user_collection_items_collection_id_fkey')) {
               try {
                 await createUserCollection({
@@ -545,19 +548,16 @@ document.addEventListener('radar:user-collection-created', async (event) => {
   const newCol = event.detail?.collection;
   if (!newCol || !newCol.id) return;
 
-  // Preservar listas que el usuario ya tenía marcadas
   const checkedIds = new Set(
     [...document.querySelectorAll('#personal-organizer-options input:checked')].map((input) => String(input.value))
   );
   checkedIds.add(String(newCol.id));
 
-  // Actualizar contador
   const countEl = document.getElementById('personal-organizer-count');
   if (countEl) {
     countEl.textContent = t('sheet_your_lists_count', { count: (state.userCollections || []).length }, `TUS LISTAS (${(state.userCollections || []).length})`);
   }
 
-  // Auto-guardar la obra en la nueva lista de inmediato
   const itemPayload = {
     id: `CLI-${Date.now()}-${newCol.id}`,
     user_id: state.userId,
@@ -580,7 +580,6 @@ document.addEventListener('radar:user-collection-created', async (event) => {
   guardarZonaPersonalLocal(state.userId);
   renderSheetStatusUI(building);
 
-  // Volver a renderizar opciones con la nueva lista preseleccionada
   document.getElementById('personal-organizer-options').innerHTML = organizerOptions(building, 'collections', checkedIds);
   document.getElementById('personal-organizer-error').classList.add('hidden');
 
@@ -661,22 +660,18 @@ async function saveStatus(status, value) {
   const previous = state.buildingStatuses.get(key) || { favorite: false, visited: false };
   const next = { ...previous, [status]: value };
 
-  // 1. Actualización Optimista Visual Inmediata (0ms)
   state.buildingStatuses.set(key, next);
   renderSheetStatusUI(building);
   actualizarFuenteMapa();
   document.dispatchEvent(new CustomEvent('radar:user-status-changed', { detail: { buildingId: key, status, value } }));
 
-  // 2. Persistencia Inmediata Local (Offline-Ready)
   guardarEstadoPersonalLocal();
   guardarZonaPersonalLocal(state.userId);
 
-  // 3. Sincronización Asíncrona con el Servidor
   try {
     await saveBuildingStatus(state.userId, building.id, next, state.sessionToken);
   } catch (error) {
     console.error('Error al guardar estado:', error);
-    // Rollback en caso de error de red
     state.buildingStatuses.set(key, previous);
     renderSheetStatusUI(building);
     actualizarFuenteMapa();
@@ -752,6 +747,97 @@ async function reviewBuildingFromSheet(status) {
   } catch (error) {
     showNeoToast(error.message || t('toast_error_generic'));
   }
+}
+
+function iniciarModoMoverObra(obra) {
+  if (!state.map || !obra) return;
+
+  cerrarFicha();
+
+  const canvas = state.map.getCanvas();
+  canvas.style.cursor = 'crosshair';
+
+  const banner = document.createElement('div');
+  banner.id = 'nolli-move-banner';
+  banner.style.cssText = `
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #181818;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 999px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+  `;
+  banner.innerHTML = `
+    <span>Haz clic en el mapa para recolocar <strong>${escapeHtml(obra.nombre_obra)}</strong></span>
+    <button type="button" id="btn-cancel-move-obra" style="background:none; border:1px solid #555; color:#eee; border-radius:999px; padding:4px 10px; cursor:pointer; font-size:12px;">Cancelar</button>
+  `;
+  document.body.appendChild(banner);
+
+  function limpiarModo() {
+    canvas.style.cursor = '';
+    state.map.off('click', onMapClick);
+    window.removeEventListener('keydown', onEscape);
+    banner.remove();
+  }
+
+  function onEscape(e) {
+    if (e.key === 'Escape') limpiarModo();
+  }
+
+  async function onMapClick(e) {
+    const nuevaLng = Number(e.lngLat.lng.toFixed(6));
+    const nuevaLat = Number(e.lngLat.lat.toFixed(6));
+
+    const confirmar = window.confirm(
+      `¿Mover "${obra.nombre_obra}" a las nuevas coordenadas?\n\nLatitud: ${nuevaLat}\nLongitud: ${nuevaLng}`
+    );
+
+    if (!confirmar) {
+      limpiarModo();
+      return;
+    }
+
+    try {
+      if (typeof updateBuilding === 'function') {
+        await updateBuilding(obra.id, { latitud: nuevaLat, longitud: nuevaLng }, state.sessionToken);
+      }
+
+      obra.coordenadas = [nuevaLng, nuevaLat];
+      obra.latitud = nuevaLat;
+      obra.longitud = nuevaLng;
+
+      const obraEnState = state.OBRAS.find((o) => String(o.id) === String(obra.id));
+      if (obraEnState) {
+        obraEnState.coordenadas = [nuevaLng, nuevaLat];
+        obraEnState.latitud = nuevaLat;
+        obraEnState.longitud = nuevaLng;
+      }
+
+      actualizarFuenteMapa();
+      showNeoToast('Ubicación actualizada correctamente.');
+      state.map.flyTo({ center: [nuevaLng, nuevaLat], zoom: Math.max(state.map.getZoom(), 16) });
+      abrirFicha(obra, [nuevaLng, nuevaLat], obra.featureId);
+    } catch (err) {
+      console.error('Error al actualizar coordenadas:', err);
+      showNeoToast('Error al guardar la nueva ubicación.');
+    } finally {
+      limpiarModo();
+    }
+  }
+
+  state.map.once('click', onMapClick);
+  window.addEventListener('keydown', onEscape);
+  banner.querySelector('#btn-cancel-move-obra')?.addEventListener('click', limpiarModo);
 }
 
 function openShareModal() {
@@ -874,6 +960,7 @@ document.addEventListener('click', (event) => {
   if (target.closest('#btn-personal-organizer-save')) { saveOrganizerSelection(); return; }
   if (target.closest('[data-delete-private]')) { deletePrivate(); return; }
   if (target.closest('[data-delete-building]')) { deleteBuildingFromSheet(); return; }
+  if (target.closest('[data-move-building]')) { const building = getSelectedBuilding(); if (building) iniciarModoMoverObra(building); return; }
   if (target.closest('[data-review-building]')) { reviewBuildingFromSheet(target.closest('[data-review-building]').dataset.reviewBuilding); return; }
   const noteToggle = target.closest('[data-note-toggle]');
   if (noteToggle) { noteToggle.nextElementSibling.classList.toggle('open'); noteToggle.textContent = noteToggle.nextElementSibling.classList.contains('open') ? t('sheet_hide_note') : t('sheet_add_private_note'); return; }
@@ -947,7 +1034,6 @@ function guardarEstadoPersonalLocal() {
 document.addEventListener('radar:admin-login', actualizarFichaAbierta);
 document.addEventListener('radar:user-login', actualizarFichaAbierta);
 document.addEventListener('radar:user-session-ready', actualizarFichaAbierta);
-document.addEventListener('radar:admin-login', actualizarFichaAbierta);
 document.addEventListener('radar:admin-mode-change', actualizarFichaAbierta);
 document.addEventListener('radar:logout', actualizarFichaAbierta);
 document.addEventListener('radar:user-status-ready', actualizarFichaAbierta);
