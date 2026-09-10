@@ -521,6 +521,13 @@ function renderHero() {
     pointsDisplay.textContent = `⭐ ${db.total_points || 0} PTS NOLLI`;
     pointsDisplay.title = `Visitas: ${db.points_visitor || 0} pts | Aportaciones: ${db.points_contributor || 0} pts`;
   }
+  const totalPoints = Number(db.total_points || db.points_visitor || db.points_contributor || 0);
+  const nextMilestone = Math.max(100, (Math.floor(totalPoints / 100) + 1) * 100);
+  const level = Math.floor(totalPoints / 100) + 1;
+  document.getElementById('profile-level-title').textContent = `Nivel ${level}`;
+  document.getElementById('profile-level-points').textContent = `${totalPoints} puntos`;
+  document.getElementById('profile-level-progress').style.width = `${Math.min(100, (totalPoints % 100))}%`;
+  document.getElementById('profile-level-next').textContent = `Te faltan ${nextMilestone - totalPoints} puntos para Explorador`;
 
   // Cargar métricas sociales del usuario autenticado
   const token = getSessionToken();
