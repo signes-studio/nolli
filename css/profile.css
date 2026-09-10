@@ -1378,3 +1378,7 @@ body.dark-mode .profile-support-link {
   color: var(--accent, #E84E1B);
   border-color: var(--accent, #E84E1B);
 }
+
+.profile-admin-access { margin: 0 0 20px; }
+.profile-admin-link { display: inline-flex; padding: 8px 0; color: var(--fg, #141411); font: 700 12px/1.2 Inter, sans-serif; text-decoration: none; border-bottom: 1px solid currentColor; }
+.profile-admin-link:hover, .profile-admin-link:focus-visible { color: var(--accent, #E84E1B); outline: none; }

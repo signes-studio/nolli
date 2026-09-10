@@ -549,8 +549,6 @@ function renderHero() {
 }
 
 function syncAdminBadge() {
-  const btnAdmin = document.getElementById('btn-profile-admin');
-  const btnMobileAdmin = document.getElementById('btn-profile-mobile-admin');
   const cardAdmin = document.getElementById('profile-admin-card');
   const userEmail = String(profileState.user?.email || '').toLowerCase().trim();
   const metaRole = String(profileState.user?.app_metadata?.role || profileState.user?.user_metadata?.role || '').toLowerCase();
@@ -558,8 +556,6 @@ function syncAdminBadge() {
   const isMasterOwner = userEmail === 'studio.signes@gmail.com' || userEmail.includes('signes.studio') || userEmail.includes('studio.signes');
   const role = dbRole || metaRole || (isMasterOwner ? 'superadmin' : 'user');
   const isAdmin = isMasterOwner || role === 'admin' || role === 'superadmin';
-  if (btnAdmin) btnAdmin.classList.toggle('hidden', !isAdmin);
-  if (btnMobileAdmin) btnMobileAdmin.classList.toggle('hidden', !isAdmin);
   if (cardAdmin) cardAdmin.classList.toggle('hidden', !isAdmin);
 }
 

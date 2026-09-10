@@ -574,6 +574,9 @@ body.dark-mode .admin-importance-tag.imp-3 {
   border-color: var(--admin-red);
 }
 
+/* Las acciones de consulta y edición comparten un tono neutro; borrar conserva la advertencia. */
+.admin-work-actions .admin-btn:not(.admin-btn-reject):not(.admin-btn-danger), .admin-architect-work-actions .admin-btn:not(.admin-btn-reject):not(.admin-btn-danger) { color: var(--admin-fg, #141411); border-color: var(--admin-border, #141411); }
+
 .admin-btn-reject:hover {
   background: var(--admin-red-bg);
 }
@@ -1223,5 +1226,4 @@ body.dark-mode .admin-importance-tag.imp-3 {
     flex: 1 1 100%;
   }
 }
-
 
