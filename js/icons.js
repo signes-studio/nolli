@@ -153,7 +153,7 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
     // 1: IMPRESCINDIBLE — Nodo circular de color limpio sin anillo blanco exterior masivo
     const r = s * 0.18;
 
-    // Halo de contraste perimetral muy sutil
+    // Halo de contraste perimetral sutil
     ctx.fillStyle = haloColor;
     ctx.beginPath();
     ctx.arc(c, c, r + 1.6, 0, Math.PI * 2);

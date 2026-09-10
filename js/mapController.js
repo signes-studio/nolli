@@ -131,18 +131,25 @@ export function cargarMapaMapbox() {
   }, { passive: true });
 
   const configurarCapas = () => {
-  if (state.map.getSource('obras')) return;
-  aplicarTratamientoSatelite();
+    if (state.map.getSource('obras')) return;
+    aplicarTratamientoSatelite();
 
-  // OPCIONAL FIX #1: Usar CATEGORY_META centralizado
-  const categoryColors = {};
-  Object.entries(CATEGORY_META).forEach(([key, meta]) => {
-    categoryColors[key] = meta.color;
-  });
+    const categoryColors = {};
+    Object.entries(CATEGORY_META).forEach(([key, meta]) => {
+      categoryColors[key] = meta.color;
+    });
 
     const isSatellite = state.mapStyle === 'satellite';
     const isDark = !isSatellite && (state.mapStyle === 'dark' || document.body.classList.contains('dark-mode'));
     const selectedColor = (isDark || isSatellite) ? '#FFFFFF' : '#141411';
+
+    // Función auxiliar para forzar la actualización de imagen sin que Mapbox mantenga la vieja en caché
+    const addOrUpdateImage = (name, imgData) => {
+      if (state.map.hasImage(name)) {
+        state.map.removeImage(name);
+      }
+      state.map.addImage(name, imgData, { pixelRatio: 2 });
+    };
 
     [0, 1, 2, 3].forEach((importance) => {
       Object.entries(categoryColors).forEach(([cat, color]) => {
@@ -151,19 +158,19 @@ export function cargarMapaMapbox() {
         const explorePrefix = `icon-explore-l${importance}-${cat}`;
 
         try {
-          if (!state.map.hasImage(prefix)) state.map.addImage(prefix, buildIcon(drawTargetIcon, color, importance), { pixelRatio: 2 });
-          if (!state.map.hasImage(`${prefix}-visited`)) state.map.addImage(`${prefix}-visited`, buildIcon(drawTargetIcon, color, importance, 64, { isVisited: true }), { pixelRatio: 2 });
-          if (!state.map.hasImage(`${prefix}-pending`)) state.map.addImage(`${prefix}-pending`, buildIcon(drawTargetIcon, color, importance, 64, { isPending: true }), { pixelRatio: 2 });
-          if (!state.map.hasImage(`${prefix}-private`)) state.map.addImage(`${prefix}-private`, buildIcon(drawPrivateSquareIcon, color, importance), { pixelRatio: 2 });
-          if (!state.map.hasImage(`${prefix}-selected`)) state.map.addImage(`${prefix}-selected`, buildIcon(drawTargetIcon, selectedColor, importance, 64, { isSelected: true }), { pixelRatio: 2 });
+          addOrUpdateImage(prefix, buildIcon(drawTargetIcon, color, importance));
+          addOrUpdateImage(`${prefix}-visited`, buildIcon(drawTargetIcon, color, importance, 64, { isVisited: true }));
+          addOrUpdateImage(`${prefix}-pending`, buildIcon(drawTargetIcon, color, importance, 64, { isPending: true }));
+          addOrUpdateImage(`${prefix}-private`, buildIcon(drawPrivateSquareIcon, color, importance));
+          addOrUpdateImage(`${prefix}-selected`, buildIcon(drawTargetIcon, selectedColor, importance, 64, { isSelected: true }));
 
-          // Iconos de búsqueda (Lupa con color de categoría y tamaño por importancia)
-          if (!state.map.hasImage(searchPrefix)) state.map.addImage(searchPrefix, buildIcon(drawSearchLupaIcon, color, importance), { pixelRatio: 2 });
-          if (!state.map.hasImage(`${searchPrefix}-selected`)) state.map.addImage(`${searchPrefix}-selected`, buildIcon(drawSearchLupaIcon, selectedColor, importance), { pixelRatio: 2 });
+          // Iconos de búsqueda
+          addOrUpdateImage(searchPrefix, buildIcon(drawSearchLupaIcon, color, importance));
+          addOrUpdateImage(`${searchPrefix}-selected`, buildIcon(drawSearchLupaIcon, selectedColor, importance));
 
-          // Iconos de itinerario Explora (Brújula con color de categoría y tamaño por importancia)
-          if (!state.map.hasImage(explorePrefix)) state.map.addImage(explorePrefix, buildIcon(drawExploreCompassIcon, color, importance), { pixelRatio: 2 });
-          if (!state.map.hasImage(`${explorePrefix}-selected`)) state.map.addImage(`${explorePrefix}-selected`, buildIcon(drawExploreCompassIcon, selectedColor, importance), { pixelRatio: 2 });
+          // Iconos de itinerario Explora
+          addOrUpdateImage(explorePrefix, buildIcon(drawExploreCompassIcon, color, importance));
+          addOrUpdateImage(`${explorePrefix}-selected`, buildIcon(drawExploreCompassIcon, selectedColor, importance));
         } catch (e) {}
       });
     });
@@ -189,7 +196,7 @@ export function cargarMapaMapbox() {
     });
     actualizarFuenteMapa();
 
-    // 1. Indicador Sutil de Obras Favoritas (Fino contorno técnico perimetral que acompaña al icono)
+    // 1. Indicador Sutil de Obras Favoritas
     state.map.addLayer({
       id: 'obras-favorites-contour',
       type: 'circle',
@@ -222,13 +229,12 @@ export function cargarMapaMapbox() {
       },
     });
 
-    // 2. Indicador de Elemento Seleccionado (Diana CAD de Precisión + Sombra Dura Desplazada en Seco)
-    // Sombra dura offset en negro sólido
+    // 2. Indicador de Elemento Seleccionado (Sombra dura offset en negro sólido)
     state.map.addLayer({
       id: 'obras-selected-offset-shadow',
       type: 'circle',
       source: 'obras',
-      filter: ['==', ['get', 'selected'], 0],
+      filter: ['==', ['get', 'selected'], 1],
       paint: {
         'circle-radius': 18,
         'circle-color': isDark ? '#000000' : '#141411',
@@ -242,7 +248,7 @@ export function cargarMapaMapbox() {
       id: 'obras-maestras-selected-offset-shadow',
       type: 'circle',
       source: 'obras-maestras',
-      filter: ['==', ['get', 'selected'], 0],
+      filter: ['==', ['get', 'selected'], 1],
       paint: {
         'circle-radius': 21,
         'circle-color': isDark ? '#000000' : '#141411',
@@ -252,12 +258,12 @@ export function cargarMapaMapbox() {
       },
     });
 
-    // Caja/Marco de precisión exterior
+    // Caja/Marco de precisión exterior para elemento seleccionado
     state.map.addLayer({
       id: 'obras-selected-cad-box',
       type: 'circle',
       source: 'obras',
-      filter: ['==', ['get', 'selected'], 0],
+      filter: ['==', ['get', 'selected'], 1],
       paint: {
         'circle-radius': 18,
         'circle-color': isDark ? '#1C1C19' : '#F4F1EA',
@@ -272,7 +278,7 @@ export function cargarMapaMapbox() {
       id: 'obras-maestras-selected-cad-box',
       type: 'circle',
       source: 'obras-maestras',
-      filter: ['==', ['get', 'selected'], 0],
+      filter: ['==', ['get', 'selected'], 1],
       paint: {
         'circle-radius': 21,
         'circle-color': isDark ? '#1C1C19' : '#F4F1EA',
@@ -385,13 +391,12 @@ export function cargarMapaMapbox() {
     };
 
     [3, 2, 1, 0].forEach((importance) => {
-      // Importancia 0 y 1 visibles siempre (minzoom: 0); Importancia 2 a partir de zoom 6.5; Importancia 3 a partir de zoom 9.0
       const minzoom = (importance === 0 || importance === 1) ? 0 : importance === 2 ? 6.5 : 9.0;
       const baseFilter = ['==', ['get', 'importancia'], importance];
       const sourceId = (importance === 0 || importance === 1) ? 'obras-maestras' : 'obras';
       const iconSize = importance === 0 ? 0.86 : importance === 1 ? 0.70 : importance === 2 ? 0.55 : 0.46;
       const catExpr = ['coalesce', ['get', 'categoria'], 'otro'];
-      const permitirSolapamiento = false; // Colisiones activas entre iconos; Mapbox requiere un valor booleano estricto
+      const permitirSolapamiento = false;
       const sortKeyExpr = (importance === 0 || importance === 1)
         ? ['coalesce', ['get', 'alpha_rank'], importance]
         : importance;
@@ -478,7 +483,7 @@ export function cargarMapaMapbox() {
         paint: textPaint,
       });
 
-      // Capa seleccionada (Escalada 1.25x y con prioridad z-index 100, visible a cualquier zoom)
+      // Capa seleccionada
       state.map.addLayer({
         id: `obras-l${importance}-selected`,
         type: 'symbol',
@@ -503,12 +508,12 @@ export function cargarMapaMapbox() {
         },
       });
 
-      // Capa de resultados de búsqueda (Icono de LUPA, SIN REGLA DE ZOOM, color de categoría y tamaño por importancia)
+      // Capa de resultados de búsqueda
       state.map.addLayer({
         id: `obras-l${importance}-search`,
         type: 'symbol',
         source: sourceId,
-        minzoom: 0, // ¡Sin regla de zoom! Visible siempre a cualquier nivel de zoom
+        minzoom: 0,
         filter: ['all', baseFilter, ['==', ['get', 'is_search'], 1], ['!=', ['get', 'selected'], 1]],
         layout: {
           'icon-image': ['concat', `icon-search-l${importance}-`, catExpr],
@@ -539,12 +544,12 @@ export function cargarMapaMapbox() {
         },
       });
 
-      // Capa de itinerarios de Explora (Icono de BRÚJULA, SIN REGLA DE ZOOM, color de categoría y tamaño por importancia)
+      // Capa de itinerarios de Explora
       state.map.addLayer({
         id: `obras-l${importance}-explore`,
         type: 'symbol',
         source: sourceId,
-        minzoom: 0, // ¡Sin regla de zoom! Visible siempre a cualquier nivel de zoom mientras esté el itinerario activo
+        minzoom: 0,
         filter: ['all', baseFilter, ['==', ['get', 'is_explore'], 1], ['!=', ['get', 'selected'], 1]],
         layout: {
           'icon-image': ['concat', `icon-explore-l${importance}-`, catExpr],
@@ -635,7 +640,7 @@ export function cargarMapaMapbox() {
       });
     });
 
-    // Capa de etiqueta de la obra seleccionada (siempre visible y destacada)
+    // Capa de etiqueta de la obra seleccionada
     const selectedTitleFont = ['Inter Bold', 'Open Sans Bold', 'Inter Bold'];
     const selectedLabelExpr = crearExpresionEtiquetaFormateada(selectedTitleFont, isDark, isSatellite);
     const selectedHaloColor = isSatellite ? '#000000' : (isDark ? '#121212' : '#F8F1DF');
@@ -737,7 +742,6 @@ export function cargarMapaMapbox() {
   state.map.on('load', configurarCapas);
   state.map.on('style.load', configurarCapas);
 
-  // Escuchar cambios en las colecciones del usuario para registrar dinámicamente los emojis nuevos
   document.addEventListener('radar:user-collections-changed', () => {
     registrarIconosColecciones();
     actualizarFuenteMapa();
@@ -962,13 +966,13 @@ function gestionarErrorUbicacion(error) {
     return;
   }
   switch (error.code) {
-    case 1: // PERMISSION_DENIED
+    case 1:
       mostrarToastUbicacion('PERMISO DENEGADO. ACTÍVALO EN TU NAVEGADOR');
       break;
-    case 2: // POSITION_UNAVAILABLE
+    case 2:
       mostrarToastUbicacion('UBICACIÓN NO DISPONIBLE EN ESTE MOMENTO');
       break;
-    case 3: // TIMEOUT
+    case 3:
       mostrarToastUbicacion('TIEMPO DE ESPERA AGOTADO AL BUSCAR UBICACIÓN');
       break;
     default:
@@ -1015,7 +1019,6 @@ export function solicitarUbicacionUsuario() {
   };
 
   const onError = (error) => {
-    // Si falla por timeout o posición inaccesible con GPS de alta precisión, intentar con precisión estándar (IP / red WiFi)
     if (error && (error.code === 3 || error.code === 2)) {
       try {
         navigator.geolocation.getCurrentPosition(
@@ -1027,15 +1030,12 @@ export function solicitarUbicacionUsuario() {
           fallbackOptions
         );
         return;
-      } catch (e) {
-        // En caso de fallo en fallback, proceder con gestión estándar
-      }
+      } catch (e) {}
     }
     finalizar();
     gestionarErrorUbicacion(error);
   };
 
-  // IMPORTANTE: Llamada síncrona directa dentro del gesto de usuario (click) para que Safari/iOS y navegadores estrictos muestren el diálogo nativo de permisos.
   try {
     navigator.geolocation.getCurrentPosition(onSuccess, onError, highAccuracyOptions);
   } catch (err) {
