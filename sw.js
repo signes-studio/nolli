@@ -109,19 +109,12 @@ self.addEventListener('fetch', (event) => {
           try {
             const networkResponse = await fetch(event.request);
             if (networkResponse && networkResponse.ok) {
-              await cache.put(event.request, networkResponse.clone());
-              try {
-                await cache.put('/api/catalog', networkResponse.clone());
-              } catch {}
-              await cache.put(
-                '/api/catalog-timestamp',
-                new Response(String(Date.now()), {
-                  headers: { 'Content-Type': 'text/plain' },
-                }),
-              );
-            }
-            return networkResponse;
-          } catch (err) {
+          const clone1 = networkResponse.clone();
+          const clone2 = networkResponse.clone();
+          await cache.put(event.request, clone1);
+          try {
+            await cache.put('/api/catalog', clone2);
+            } catch {}
             if (cachedResponse) return cachedResponse;
             throw err;
           }

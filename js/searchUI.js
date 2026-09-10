@@ -6,7 +6,6 @@ import { renderInChunks } from './renderUtils.js';
 import { addFilterChip } from './filterEngine.js';
 import { t } from './i18n.js';
 import { renderObraCard } from './workCard.js';
-import { renderObraCard } from './workCard.js';
 
 const searchPanel = document.getElementById('search-panel');
 const btnSearch = document.getElementById('btn-search');
