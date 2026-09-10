@@ -1180,6 +1180,9 @@ body.dark-mode .nolli-empty-action:hover {
 .obra-card__body { min-width:0; flex:1; display:flex; flex-direction:column; gap:4px; justify-content:center; }
 .obra-card__topline { display:flex; justify-content:space-between; gap:8px; align-items:center; }
 .obra-card__category { color:var(--obra-category); font:700 10px/1 Inter, sans-serif; letter-spacing:.025em; }
+.obra-card__importance { display:inline-block; width:7px; height:7px; margin-right:5px; border-radius:50%; background:currentColor; vertical-align:baseline; }
+.obra-card__importance.importance-0 { width:9px; height:9px; box-shadow:0 0 0 1px var(--fg, #141411); }
+.obra-card__importance.importance-3 { opacity:.4; }
 .obra-card__distance { font:700 10px/1 Inter, sans-serif; color:var(--accent, #E84E1B); white-space:nowrap; }
 .obra-card__title { margin:0; font:800 16px/1.05 'League Spartan', sans-serif; overflow:hidden; text-overflow:ellipsis; }
 .obra-card__meta { margin:0; color:var(--fg-dim, #68655D); font:500 11px/1.35 Inter, sans-serif; overflow:hidden; text-overflow:ellipsis; }

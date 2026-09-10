@@ -16,6 +16,7 @@ let radarRadius = 1000; // 1000m por defecto (1km)
 let radarAbortController = null;
 let radarCacheKey = '';
 let radarCachedData = [];
+let radarSort = 'distance';
 let locationWatchId = null;
 const CURATED_PROXIMITY_METERS = 15000; // radio para considerar una colección "cercana" al usuario
 
@@ -285,7 +286,12 @@ export function renderRadarList(works, container, countSpan) {
     return;
   }
 
-  container.innerHTML = works.slice(0, 50).map((obra) => renderObraCard(obra, { variant: 'radar', className: 'radar-proximity-card', featureId: obra.featureId || obra.id, distance: formatearDistanciaRadar(obra._dist), showPhoto: Boolean(state.sessionToken) })).join('');
+  const sortedWorks = [...works].sort((a, b) => {
+    if (radarSort === 'year') return Number(b.año_construccion || 0) - Number(a.año_construccion || 0) || a._dist - b._dist;
+    if (radarSort === 'importance') return Number(a.importancia ?? 99) - Number(b.importancia ?? 99) || a._dist - b._dist;
+    return a._dist - b._dist;
+  });
+  container.innerHTML = sortedWorks.slice(0, 50).map((obra) => renderObraCard(obra, { variant: 'radar', className: 'radar-proximity-card', featureId: obra.featureId || obra.id, distance: formatearDistanciaRadar(obra._dist), showPhoto: Boolean(state.sessionToken) })).join('');
   /* Legacy renderer kept below for migration reference; bypassed by the shared card. */
   /*
   container.innerHTML = works.slice(0, 50).map((obra) => {
@@ -608,6 +614,14 @@ export function initRadarUI() {
   const detectedList = document.getElementById('radar-detected-list');
   const curatedCarousel = document.getElementById('radar-curated-carousel');
   const btnCloseItinerary = document.getElementById('btn-close-itinerary');
+  const sortSelect = document.getElementById('radar-sort');
+
+  sortSelect?.addEventListener('change', () => {
+    radarSort = sortSelect.value;
+    const container = document.getElementById('radar-detected-list');
+    const count = document.getElementById('radar-detected-count');
+    if (container) renderRadarList(radarCachedData, container, count);
+  });
 
   if (btnClose && panel) {
     btnClose.addEventListener('click', () => {

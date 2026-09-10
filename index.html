@@ -648,6 +648,14 @@
           <span class="radar-section-label" data-i18n="radar_works_in_radius">OBRAS EN TU RADIO</span>
           <span id="radar-detected-count" class="radar-detected-count" aria-live="polite"></span>
         </div>
+        <div class="radar-sort-control" aria-label="Ordenar resultados del radar">
+          <span>Ordenar</span>
+          <select id="radar-sort" class="radar-sort-select">
+            <option value="distance" selected>Cercanía</option>
+            <option value="year">Año</option>
+            <option value="importance">Importancia</option>
+          </select>
+        </div>
         <div id="radar-detected-list" class="radar-detected-list"></div>
       </div>
     </div>

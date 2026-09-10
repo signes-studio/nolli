@@ -2894,6 +2894,10 @@ body.dark-mode .radar-route-btn {
   gap: 12px;
 }
 
+.radar-sort-control { display:flex; align-items:center; gap:8px; margin:0 0 10px; color:var(--fg-dim, #6B6B6B); font:700 10px/1 Inter, sans-serif; }
+.radar-sort-select { appearance:auto; border:1px solid var(--border-strong, #141411); background:var(--bg-panel, #F8F1DF); color:var(--fg, #141411); padding:5px 24px 5px 7px; font:700 11px/1 Inter, sans-serif; cursor:pointer; }
+body.dark-mode .radar-sort-select { background:#252522; color:var(--fg, #F8F1DF); }
+
 .radar-proximity-card {
   border: 1.5px solid var(--border-strong, #141411);
   box-shadow: 2px 2px 0px var(--border-strong, #141411);
