@@ -20,15 +20,15 @@ export function buildEmojiIcon(emoji, isDark = false, size = 64) {
 
   // Fondo circular tipo insignia editorial Bauhaus
   ctx.beginPath();
-  ctx.arc(center, center, size * 0.42, 0, Math.PI * 2);
+  ctx.arc(center, center, size * 0.38, 0, Math.PI * 2);
   ctx.fillStyle = isDark ? '#1C1C1A' : '#FFFFFF';
   ctx.fill();
-  ctx.lineWidth = 2.5;
+  ctx.lineWidth = 2.0;
   ctx.strokeStyle = isDark ? '#FFFFFF' : '#141411';
   ctx.stroke();
 
   // Emoji centrado
-  ctx.font = `${Math.round(size * 0.44)}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
+  ctx.font = `${Math.round(size * 0.40)}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(emoji || '', center, center + 1);
@@ -37,13 +37,13 @@ export function buildEmojiIcon(emoji, isDark = false, size = 64) {
 }
 
 export function drawVisitedBadge(ctx, c, s) {
-  const badgeX = c + s * 0.22;
-  const badgeY = c - s * 0.22;
-  const badgeR = s * 0.13;
+  const badgeX = c + s * 0.20;
+  const badgeY = c - s * 0.20;
+  const badgeR = s * 0.12;
 
   ctx.save();
-  // Sombra dura offset técnica de 1px
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+  // Sombra offset técnica de 1px
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.30)';
   ctx.beginPath();
   ctx.arc(badgeX + 1, badgeY + 1, badgeR, 0, Math.PI * 2);
   ctx.fill();
@@ -55,7 +55,7 @@ export function drawVisitedBadge(ctx, c, s) {
   ctx.fill();
 
   // Borde nítido blanco sólido (#FFFFFF)
-  ctx.lineWidth = 1.6;
+  ctx.lineWidth = 1.4;
   ctx.strokeStyle = '#FFFFFF';
   ctx.beginPath();
   ctx.arc(badgeX, badgeY, badgeR, 0, Math.PI * 2);
@@ -66,7 +66,7 @@ export function drawVisitedBadge(ctx, c, s) {
   ctx.moveTo(badgeX - badgeR * 0.45, badgeY - badgeR * 0.05);
   ctx.lineTo(badgeX - badgeR * 0.08, badgeY + badgeR * 0.35);
   ctx.lineTo(badgeX + badgeR * 0.50, badgeY - badgeR * 0.35);
-  ctx.lineWidth = 1.8;
+  ctx.lineWidth = 1.6;
   ctx.strokeStyle = '#FFFFFF';
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
@@ -75,13 +75,13 @@ export function drawVisitedBadge(ctx, c, s) {
 }
 
 export function drawPendingBadge(ctx, c, s) {
-  const badgeX = c + s * 0.22;
-  const badgeY = c - s * 0.22;
-  const badgeR = s * 0.13;
+  const badgeX = c + s * 0.20;
+  const badgeY = c - s * 0.20;
+  const badgeR = s * 0.12;
 
   ctx.save();
-  // Sombra dura offset técnica de 1px
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+  // Sombra offset técnica de 1px
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.30)';
   ctx.beginPath();
   ctx.arc(badgeX + 1, badgeY + 1, badgeR, 0, Math.PI * 2);
   ctx.fill();
@@ -93,7 +93,7 @@ export function drawPendingBadge(ctx, c, s) {
   ctx.fill();
 
   // Borde nítido negro (#141411)
-  ctx.lineWidth = 1.5;
+  ctx.lineWidth = 1.4;
   ctx.strokeStyle = '#141411';
   ctx.beginPath();
   ctx.arc(badgeX, badgeY, badgeR, 0, Math.PI * 2);
@@ -117,29 +117,29 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
   const haloColor = isDarkSelection ? '#141411' : '#F8F1DF';
 
   if (importance === 0) {
-    // 0: OBRA CUMBRE — Diamante / Rombo técnico Neo-Bauhaus (45°), máxima jerarquía
+    // 0: OBRA CUMBRE — Diamante técnico Neo-Bauhaus (45°), escala moderada y limpia
     ctx.save();
     ctx.translate(c, c);
     ctx.rotate(Math.PI / 4);
 
-    const half = s * 0.28;
+    const half = s * 0.20;
 
-    // 1. Halo perimetral de contraste
+    // Halo perimetral fino
     ctx.fillStyle = haloColor;
-    ctx.fillRect(-half - 3, -half - 3, (half + 3) * 2, (half + 3) * 2);
+    ctx.fillRect(-half - 1.8, -half - 1.8, (half + 1.8) * 2, (half + 1.8) * 2);
 
-    // 2. Relleno cromático de categoría arquitectónica
+    // Relleno cromático de categoría
     ctx.fillStyle = isLightSelection ? '#FFFFFF' : (isDarkSelection ? '#141411' : color);
     ctx.fillRect(-half, -half, half * 2, half * 2);
 
-    // 3. Contorno técnico sólido negro
-    ctx.lineWidth = 2.4;
+    // Contorno técnico negro
+    ctx.lineWidth = 1.8;
     ctx.strokeStyle = strokeColor;
     ctx.strokeRect(-half, -half, half * 2, half * 2);
 
-    // 4. Núcleo técnico central concéntrico
+    // Núcleo técnico central
     ctx.fillStyle = strokeColor;
-    const inner = half * 0.35;
+    const inner = half * 0.32;
     ctx.fillRect(-inner, -inner, inner * 2, inner * 2);
 
     ctx.restore();
@@ -150,29 +150,29 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
       drawPendingBadge(ctx, c, s);
     }
   } else if (importance === 1) {
-    // 1: IMPRESCINDIBLE — Disco sólido Neo-Bauhaus con diana técnica central
-    const r = s * 0.30;
+    // 1: IMPRESCINDIBLE — Nodo circular de color limpio sin anillo blanco exterior masivo
+    const r = s * 0.18;
 
-    // 1. Halo perimetral de contraste
+    // Halo de contraste perimetral muy sutil
     ctx.fillStyle = haloColor;
     ctx.beginPath();
-    ctx.arc(c, c, r + 2.5, 0, Math.PI * 2);
+    ctx.arc(c, c, r + 1.6, 0, Math.PI * 2);
     ctx.fill();
 
-    // 2. Relleno cromático de categoría
+    // Relleno cromático de categoría
     ctx.fillStyle = isLightSelection ? '#FFFFFF' : (isDarkSelection ? '#141411' : color);
     ctx.beginPath();
     ctx.arc(c, c, r, 0, Math.PI * 2);
     ctx.fill();
 
-    // 3. Contorno técnico sólido negro
-    ctx.lineWidth = 2.2;
+    // Contorno técnico negro
+    ctx.lineWidth = 1.8;
     ctx.strokeStyle = strokeColor;
     ctx.beginPath();
     ctx.arc(c, c, r, 0, Math.PI * 2);
     ctx.stroke();
 
-    // 4. Diana / punto técnico central
+    // Micro-núcleo central de precisión
     ctx.fillStyle = strokeColor;
     ctx.beginPath();
     ctx.arc(c, c, r * 0.32, 0, Math.PI * 2);
@@ -184,27 +184,27 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
       drawPendingBadge(ctx, c, s);
     }
   } else if (importance === 2) {
-    // 2: RECOMENDADA — Anillo técnico de masa reducida (hueco, no satura trama urbana)
-    const r = s * 0.24;
+    // 2: RECOMENDADA — Micro-nodo compacto en color de categoría
+    const r = s * 0.14;
 
-    // 1. Fondo hueso/panel interior
-    ctx.fillStyle = isDarkSelection ? '#1E1E1B' : '#F8F1DF';
+    // Halo perimetral fino
+    ctx.fillStyle = haloColor;
+    ctx.beginPath();
+    ctx.arc(c, c, r + 1.4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Relleno cromático de categoría
+    ctx.fillStyle = isLightSelection ? '#FFFFFF' : (isDarkSelection ? '#141411' : color);
     ctx.beginPath();
     ctx.arc(c, c, r, 0, Math.PI * 2);
     ctx.fill();
 
-    // 2. Anillo técnico en el color de la categoría
-    ctx.lineWidth = 2.4;
-    ctx.strokeStyle = isLightSelection ? '#FFFFFF' : (isDarkSelection ? '#F8F1DF' : color);
+    // Contorno técnico nítido
+    ctx.lineWidth = 1.4;
+    ctx.strokeStyle = strokeColor;
     ctx.beginPath();
     ctx.arc(c, c, r, 0, Math.PI * 2);
     ctx.stroke();
-
-    // 3. Núcleo técnico central compacto en color de categoría (o negro si seleccionado)
-    ctx.fillStyle = isLightSelection ? '#141411' : (isDarkSelection ? '#F8F1DF' : color);
-    ctx.beginPath();
-    ctx.arc(c, c, r * 0.36, 0, Math.PI * 2);
-    ctx.fill();
 
     if (isVisited) {
       drawVisitedBadge(ctx, c, s);
@@ -212,23 +212,23 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
       drawPendingBadge(ctx, c, s);
     }
   } else {
-    // 3: DOCUMENTADA — Micro-nodo cartográfico preciso (sustituye la cruz '+')
-    const r = s * 0.16;
+    // 3: DOCUMENTADA — Micro-punto cartográfico de precisión
+    const r = s * 0.10;
 
-    // 1. Halo perimetral sutil
+    // Halo perimetral
     ctx.fillStyle = haloColor;
     ctx.beginPath();
-    ctx.arc(c, c, r + 1.8, 0, Math.PI * 2);
+    ctx.arc(c, c, r + 1.2, 0, Math.PI * 2);
     ctx.fill();
 
-    // 2. Punto sólido en color de categoría
+    // Punto sólido en color de categoría
     ctx.fillStyle = isLightSelection ? '#FFFFFF' : (isDarkSelection ? '#141411' : color);
     ctx.beginPath();
     ctx.arc(c, c, r, 0, Math.PI * 2);
     ctx.fill();
 
-    // 3. Contorno fino negro
-    ctx.lineWidth = 1.4;
+    // Contorno fino
+    ctx.lineWidth = 1.1;
     ctx.strokeStyle = strokeColor;
     ctx.beginPath();
     ctx.arc(c, c, r, 0, Math.PI * 2);
@@ -243,8 +243,7 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
 }
 
 /**
- * Dibuja iconos cuadrados limpios para obras/etiquetas privadas,
- * reflejando la jerarquía de tamaño por importancia y color por categoría arquitectónica (Neo-Bauhaus).
+ * Dibuja iconos cuadrados limpios para obras/etiquetas privadas
  */
 export function drawPrivateSquareIcon(ctx, color, importance, s, options = {}) {
   const c = s / 2;
@@ -253,78 +252,60 @@ export function drawPrivateSquareIcon(ctx, color, importance, s, options = {}) {
   ctx.save();
 
   if (importance === 0) {
-    // Obra maestra privada: Rombo/cuadrado girado 45° con marco doble Bauhaus
     ctx.translate(c, c);
     ctx.rotate(Math.PI / 4);
-    const half = s * 0.28;
+    const half = s * 0.20;
 
-    // Halo perimetral de contraste
     ctx.fillStyle = '#F4F1EA';
-    ctx.fillRect(-half - 3, -half - 3, (half + 3) * 2, (half + 3) * 2);
+    ctx.fillRect(-half - 2, -half - 2, (half + 2) * 2, (half + 2) * 2);
 
-    // Relleno cromático de categoría
     ctx.fillStyle = color;
     ctx.fillRect(-half, -half, half * 2, half * 2);
 
-    // Contorno sólido negro
-    ctx.lineWidth = 2.5;
+    ctx.lineWidth = 1.8;
     ctx.strokeStyle = '#111111';
     ctx.strokeRect(-half, -half, half * 2, half * 2);
 
-    // Núcleo técnico central
     ctx.fillStyle = '#111111';
-    ctx.fillRect(-half * 0.35, -half * 0.35, half * 0.7, half * 0.7);
+    ctx.fillRect(-half * 0.32, -half * 0.32, half * 0.64, half * 0.64);
   } else if (importance === 1) {
-    // Importancia 1 (Alta): Cuadrado destacado con centro técnico
-    const half = s * 0.30;
+    const half = s * 0.18;
 
-    // Halo perimetral
     ctx.fillStyle = '#F4F1EA';
-    ctx.fillRect(c - half - 2.5, c - half - 2.5, (half + 2.5) * 2, (half + 2.5) * 2);
+    ctx.fillRect(c - half - 1.6, c - half - 1.6, (half + 1.6) * 2, (half + 1.6) * 2);
 
-    // Relleno de categoría
     ctx.fillStyle = color;
     ctx.fillRect(c - half, c - half, half * 2, half * 2);
 
-    // Contorno sólido negro
-    ctx.lineWidth = 2.2;
-    ctx.strokeStyle = '#111111';
-    ctx.strokeRect(c - half, c - half, half * 2, half * 2);
-
-    // Punto/cuadrado técnico central
-    ctx.fillStyle = '#111111';
-    const inner = half * 0.35;
-    ctx.fillRect(c - inner, c - inner, inner * 2, inner * 2);
-  } else if (importance === 2) {
-    // Importancia 2 (Media): Cuadrado intermedio
-    const half = s * 0.23;
-
-    // Halo perimetral
-    ctx.fillStyle = '#F4F1EA';
-    ctx.fillRect(c - half - 2, c - half - 2, (half + 2) * 2, (half + 2) * 2);
-
-    // Relleno de categoría
-    ctx.fillStyle = color;
-    ctx.fillRect(c - half, c - half, half * 2, half * 2);
-
-    // Contorno sólido negro
     ctx.lineWidth = 1.8;
     ctx.strokeStyle = '#111111';
     ctx.strokeRect(c - half, c - half, half * 2, half * 2);
-  } else {
-    // Importancia 3 (Baja / Discreto): Icono cuadrado compacto
-    const half = s * 0.16;
 
-    // Halo perimetral sutil
+    ctx.fillStyle = '#111111';
+    const inner = half * 0.32;
+    ctx.fillRect(c - inner, c - inner, inner * 2, inner * 2);
+  } else if (importance === 2) {
+    const half = s * 0.14;
+
     ctx.fillStyle = '#F4F1EA';
-    ctx.fillRect(c - half - 1.5, c - half - 1.5, (half + 1.5) * 2, (half + 1.5) * 2);
+    ctx.fillRect(c - half - 1.4, c - half - 1.4, (half + 1.4) * 2, (half + 1.4) * 2);
 
-    // Relleno de categoría
     ctx.fillStyle = color;
     ctx.fillRect(c - half, c - half, half * 2, half * 2);
 
-    // Contorno sólido negro
     ctx.lineWidth = 1.4;
+    ctx.strokeStyle = '#111111';
+    ctx.strokeRect(c - half, c - half, half * 2, half * 2);
+  } else {
+    const half = s * 0.10;
+
+    ctx.fillStyle = '#F4F1EA';
+    ctx.fillRect(c - half - 1.2, c - half - 1.2, (half + 1.2) * 2, (half + 1.2) * 2);
+
+    ctx.fillStyle = color;
+    ctx.fillRect(c - half, c - half, half * 2, half * 2);
+
+    ctx.lineWidth = 1.1;
     ctx.strokeStyle = '#111111';
     ctx.strokeRect(c - half, c - half, half * 2, half * 2);
   }
@@ -339,8 +320,7 @@ export function drawPrivateSquareIcon(ctx, color, importance, s, options = {}) {
 }
 
 /**
- * Dibuja iconos de lupa para resultados de búsqueda, con jerarquía visual de tamaño
- * según la importancia (0, 1, 2, 3) y color de la categoría arquitectónica (Neo-Bauhaus).
+ * Dibuja iconos de lupa para resultados de búsqueda
  */
 export function drawSearchLupaIcon(ctx, color, importance, s) {
   const c = s / 2;
@@ -352,49 +332,48 @@ export function drawSearchLupaIcon(ctx, color, importance, s) {
   let lensRadius, handleLen, handleWidth, ringWidth;
 
   if (importance === 0) {
-    lensRadius = s * 0.25;
-    handleLen = s * 0.22;
-    handleWidth = 4.5;
-    ringWidth = 3.0;
+    lensRadius = s * 0.20;
+    handleLen = s * 0.18;
+    handleWidth = 3.6;
+    ringWidth = 2.4;
   } else if (importance === 1) {
-    lensRadius = s * 0.21;
-    handleLen = s * 0.19;
-    handleWidth = 3.8;
-    ringWidth = 2.5;
-  } else if (importance === 2) {
     lensRadius = s * 0.17;
-    handleLen = s * 0.16;
+    handleLen = s * 0.15;
     handleWidth = 3.0;
-    ringWidth = 2.2;
-  } else {
+    ringWidth = 2.0;
+  } else if (importance === 2) {
     lensRadius = s * 0.14;
     handleLen = s * 0.13;
     handleWidth = 2.4;
     ringWidth = 1.8;
+  } else {
+    lensRadius = s * 0.11;
+    handleLen = s * 0.10;
+    handleWidth = 2.0;
+    ringWidth = 1.4;
   }
 
-  const lensX = c - s * 0.08;
-  const lensY = c - s * 0.08;
+  const lensX = c - s * 0.06;
+  const lensY = c - s * 0.06;
 
   ctx.save();
 
-  // 1. Mango de la lupa (en ángulo de 45° hacia abajo-derecha)
   const angle = Math.PI / 4;
   const startX = lensX + Math.cos(angle) * (lensRadius * 0.85);
   const startY = lensY + Math.sin(angle) * (lensRadius * 0.85);
   const endX = startX + Math.cos(angle) * handleLen;
   const endY = startY + Math.sin(angle) * handleLen;
 
-  // Sombra / contorno grueso del mango
+  // Sombra del mango
   ctx.beginPath();
   ctx.moveTo(startX, startY);
   ctx.lineTo(endX, endY);
   ctx.strokeStyle = strokeColor;
-  ctx.lineWidth = handleWidth + 2.4;
+  ctx.lineWidth = handleWidth + 2.0;
   ctx.lineCap = 'round';
   ctx.stroke();
 
-  // Color interior del mango
+  // Mango
   ctx.beginPath();
   ctx.moveTo(startX, startY);
   ctx.lineTo(endX, endY);
@@ -403,36 +382,34 @@ export function drawSearchLupaIcon(ctx, color, importance, s) {
   ctx.lineCap = 'round';
   ctx.stroke();
 
-  // 2. Halo de contraste de la lente
+  // Halo perimetral
   ctx.beginPath();
   ctx.arc(lensX, lensY, lensRadius + ringWidth, 0, Math.PI * 2);
   ctx.fillStyle = haloColor;
   ctx.fill();
 
-  // 3. Relleno de la lente con el color de la categoría
+  // Lente con color de categoría
   ctx.beginPath();
   ctx.arc(lensX, lensY, lensRadius, 0, Math.PI * 2);
   ctx.fillStyle = isLightSelection ? '#FFFFFF' : color;
   ctx.fill();
 
-  // 4. Anillo de precisión perimetral
+  // Anillo de contorno
   ctx.beginPath();
   ctx.arc(lensX, lensY, lensRadius, 0, Math.PI * 2);
   ctx.strokeStyle = strokeColor;
   ctx.lineWidth = ringWidth;
   ctx.stroke();
 
-  // 5. Detalle de reflejo luminoso en lente (para niveles 0, 1 y 2)
   if (importance <= 2) {
     ctx.beginPath();
     ctx.arc(lensX - lensRadius * 0.32, lensY - lensRadius * 0.32, lensRadius * 0.38, Math.PI * 1.05, Math.PI * 1.55);
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
-    ctx.lineWidth = Math.max(1.2, ringWidth * 0.65);
+    ctx.lineWidth = Math.max(1.0, ringWidth * 0.65);
     ctx.lineCap = 'round';
     ctx.stroke();
   }
 
-  // Núcleo central de contraste para Obra Maestra (importancia 0)
   if (importance === 0) {
     ctx.beginPath();
     ctx.arc(lensX, lensY, lensRadius * 0.28, 0, Math.PI * 2);
@@ -444,8 +421,7 @@ export function drawSearchLupaIcon(ctx, color, importance, s) {
 }
 
 /**
- * Dibuja iconos de brújula / compass para itinerarios de la pestaña Explora,
- * con jerarquía visual de tamaño según la importancia (0, 1, 2, 3) y color de categoría arquitectónica.
+ * Dibuja iconos de brújula / compass para itinerarios de la pestaña Explora
  */
 export function drawExploreCompassIcon(ctx, color, importance, s) {
   const c = s / 2;
@@ -457,80 +433,79 @@ export function drawExploreCompassIcon(ctx, color, importance, s) {
   let outerRadius, ringWidth, needleLen, needleWidth;
 
   if (importance === 0) {
-    outerRadius = s * 0.36;
-    ringWidth = 2.8;
-    needleLen = s * 0.26;
-    needleWidth = 6.0;
+    outerRadius = s * 0.28;
+    ringWidth = 2.2;
+    needleLen = s * 0.20;
+    needleWidth = 4.8;
   } else if (importance === 1) {
-    outerRadius = s * 0.31;
-    ringWidth = 2.4;
-    needleLen = s * 0.22;
-    needleWidth = 5.0;
-  } else if (importance === 2) {
-    outerRadius = s * 0.26;
+    outerRadius = s * 0.24;
     ringWidth = 2.0;
-    needleLen = s * 0.18;
-    needleWidth = 4.2;
-  } else {
-    outerRadius = s * 0.22;
+    needleLen = s * 0.17;
+    needleWidth = 4.0;
+  } else if (importance === 2) {
+    outerRadius = s * 0.20;
     ringWidth = 1.6;
-    needleLen = s * 0.15;
-    needleWidth = 3.5;
+    needleLen = s * 0.14;
+    needleWidth = 3.4;
+  } else {
+    outerRadius = s * 0.16;
+    ringWidth = 1.3;
+    needleLen = s * 0.11;
+    needleWidth = 2.8;
   }
 
   ctx.save();
 
-  // 1. Halo de contraste perimetral
+  // Halo perimetral
   ctx.beginPath();
   ctx.arc(c, c, outerRadius + ringWidth + 1, 0, Math.PI * 2);
   ctx.fillStyle = haloColor;
   ctx.fill();
 
-  // 2. Fondo del cuadrante de la brújula CON EL COLOR DE LA CATEGORÍA
+  // Cuadrante con color de categoría
   ctx.beginPath();
   ctx.arc(c, c, outerRadius, 0, Math.PI * 2);
   ctx.fillStyle = isLightSelection ? '#FFFFFF' : color;
   ctx.fill();
 
-  // 3. Anillo perimetral exterior
+  // Anillo perimetral
   ctx.beginPath();
   ctx.arc(c, c, outerRadius, 0, Math.PI * 2);
   ctx.strokeStyle = strokeColor;
   ctx.lineWidth = ringWidth;
   ctx.stroke();
 
-  // 4. Marcas cardinales (ticks N, S, E, O)
-  const tickLen = Math.max(2, outerRadius * 0.22);
-  ctx.lineWidth = Math.max(1.2, ringWidth * 0.7);
+  // Ticks cardinales
+  const tickLen = Math.max(2, outerRadius * 0.20);
+  ctx.lineWidth = Math.max(1.0, ringWidth * 0.7);
   ctx.strokeStyle = '#FFFFFF';
   ctx.lineCap = 'round';
 
-  // N
   ctx.beginPath();
   ctx.moveTo(c, c - outerRadius + 1);
   ctx.lineTo(c, c - outerRadius + tickLen);
   ctx.stroke();
-  // S
+
   ctx.beginPath();
   ctx.moveTo(c, c + outerRadius - 1);
   ctx.lineTo(c, c + outerRadius - tickLen);
   ctx.stroke();
-  // E
+
   ctx.beginPath();
   ctx.moveTo(c + outerRadius - 1, c);
   ctx.lineTo(c + outerRadius - tickLen, c);
   ctx.stroke();
-  // O
+
   ctx.beginPath();
   ctx.moveTo(c - outerRadius + 1, c);
   ctx.lineTo(c - outerRadius + tickLen, c);
   ctx.stroke();
 
-  // 5. Aguja de la brújula (rotada a 45° estilo icono Explora / Compass)
+  // Aguja a 45°
   ctx.translate(c, c);
   ctx.rotate(-Math.PI / 4);
 
-  // Mitad Norte (Blanco puro / Alto contraste)
+  // Mitad Norte (Blanco)
   ctx.beginPath();
   ctx.moveTo(0, -needleLen);
   ctx.lineTo(needleWidth, 0);
@@ -547,7 +522,7 @@ export function drawExploreCompassIcon(ctx, color, importance, s) {
   ctx.fillStyle = isLightSelection ? '#333333' : '#F0EAD6';
   ctx.fill();
 
-  // Mitad Sur (Negro sólido)
+  // Mitad Sur (Negro)
   ctx.beginPath();
   ctx.moveTo(0, needleLen);
   ctx.lineTo(needleWidth, 0);
@@ -572,15 +547,15 @@ export function drawExploreCompassIcon(ctx, color, importance, s) {
   ctx.lineTo(-needleWidth, 0);
   ctx.closePath();
   ctx.strokeStyle = strokeColor;
-  ctx.lineWidth = 1.2;
+  ctx.lineWidth = 1.0;
   ctx.stroke();
 
   // Pivote central
   ctx.beginPath();
-  ctx.arc(0, 0, Math.max(1.8, needleWidth * 0.4), 0, Math.PI * 2);
+  ctx.arc(0, 0, Math.max(1.5, needleWidth * 0.4), 0, Math.PI * 2);
   ctx.fillStyle = '#FFFFFF';
   ctx.fill();
-  ctx.lineWidth = 1.0;
+  ctx.lineWidth = 0.8;
   ctx.strokeStyle = strokeColor;
   ctx.stroke();
 
