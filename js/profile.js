@@ -521,13 +521,6 @@ function renderHero() {
     pointsDisplay.textContent = `⭐ ${db.total_points || 0} PTS NOLLI`;
     pointsDisplay.title = `Visitas: ${db.points_visitor || 0} pts | Aportaciones: ${db.points_contributor || 0} pts`;
   }
-  const totalPoints = Number(db.total_points || db.points_visitor || db.points_contributor || 0);
-  const nextMilestone = Math.max(100, (Math.floor(totalPoints / 100) + 1) * 100);
-  const level = Math.floor(totalPoints / 100) + 1;
-  document.getElementById('profile-level-title').textContent = `Nivel ${level}`;
-  document.getElementById('profile-level-points').textContent = `${totalPoints} puntos`;
-  document.getElementById('profile-level-progress').style.width = `${Math.min(100, (totalPoints % 100))}%`;
-  document.getElementById('profile-level-next').textContent = `Te faltan ${nextMilestone - totalPoints} puntos para Explorador`;
 
   // Cargar métricas sociales del usuario autenticado
   const token = getSessionToken();
@@ -936,9 +929,6 @@ function renderCollectionsFeed() {
     const countText = `${items.length} ${items.length === 1 ? t('building_singular', null, 'OBRA') : t('building_plural', null, 'OBRAS')}`;
     const isMapActive = col.show_on_map !== false;
     const isPublic = col.status === 'public' || col.is_public === true;
-    const coverWork = items.map((item) => obraFor(item.building_id)).find(Boolean);
-    const coverPhoto = col.cover_photo_url || coverWork?.foto_miniatura || coverWork?.foto_url || '';
-    const createdLabel = col.created_at ? new Date(col.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : countText;
 
     const eyeIconSvg = isMapActive
       ? `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`
@@ -978,14 +968,12 @@ function renderCollectionsFeed() {
     return `
       <article class="profile-collection-card" data-col-id="${col.id}">
         <div class="profile-collection-card-head">
-          <div class="profile-collection-cover" aria-hidden="true">${coverPhoto ? `<img src="${escapeHtml(getOptimizedPhotoUrl(coverPhoto, { width: 160 }))}" alt="" loading="lazy">` : `<i data-lucide="map" width="22" height="22"></i>`}</div>
           <div style="min-width:0; flex:1;">
             <div class="profile-collection-head-row" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
               <h3 class="profile-collection-name">${col.icon ? `${escapeHtml(col.icon)} ` : ''}${escapeHtml(col.name)}</h3>
               <span class="profile-collection-count-badge">${countText}</span>
               <span style="font-size:9px; font-weight:800; font-family: 'Inter', sans-serif; color:${isPublic ? 'var(--accent, #E84E1B)' : 'var(--fg-dim)'}; letter-spacing:0.04em;">// ${isPublic ? t('collection_status_public', null, 'PÚBLICA') : t('collection_status_private', null, 'PRIVADA')}</span>
             </div>
-            <span class="profile-collection-date">${escapeHtml(createdLabel)}</span>
             ${col.description ? `<p class="profile-collection-desc" style="margin-top:4px;">${escapeHtml(col.description)}</p>` : ''}
           </div>
           <div class="profile-collection-tools">

@@ -739,10 +739,10 @@
       <p id="report-project-name" class="report-project-name font-display text-sm font-bold uppercase mb-2"></p>
       
       <label class="text-[10px] font-mono font-bold block mb-1" style="color:var(--fg-dim)" data-i18n="report_type_label">TIPO DE INCIDENCIA</label>
-      <div class="equal-option-selector report-type-selector flex gap-2 mb-3">
-        <button type="button" class="equal-option report-type-pill active" data-report-type="error_datos"><i data-lucide="file-warning" width="17" height="17"></i><span data-i18n="report_type_data_error">ERROR EN DATOS</span></button>
-        <button type="button" class="equal-option report-type-pill" data-report-type="duplicado"><i data-lucide="copy" width="17" height="17"></i><span data-i18n="report_type_duplicate_pill">DUPLICADO</span></button>
-        <button type="button" class="equal-option report-type-pill" data-report-type="ubicacion_erronea"><i data-lucide="map-pin" width="17" height="17"></i><span data-i18n="report_type_location">UBICACIÓN</span></button>
+      <div class="report-type-selector flex gap-2 mb-3">
+        <button type="button" class="report-type-pill active" data-report-type="error_datos" data-i18n="report_type_data_error">ERROR EN DATOS</button>
+        <button type="button" class="report-type-pill" data-report-type="duplicado" data-i18n="report_type_duplicate_pill">DUPLICADO</button>
+        <button type="button" class="report-type-pill" data-report-type="ubicacion_erronea" data-i18n="report_type_location">UBICACIÓN</button>
       </div>
 
       <label for="report-description" class="text-[10px] font-mono font-bold block mb-1" style="color:var(--fg-dim)" data-i18n="report_details_label">DETALLES O CORRECCIÓN PROPUESTA</label>

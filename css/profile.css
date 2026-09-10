@@ -1382,15 +1382,3 @@ body.dark-mode .profile-support-link {
 .profile-admin-access { margin: 0 0 20px; }
 .profile-admin-link { display: inline-flex; padding: 8px 0; color: var(--fg, #141411); font: 700 12px/1.2 Inter, sans-serif; text-decoration: none; border-bottom: 1px solid currentColor; }
 .profile-admin-link:hover, .profile-admin-link:focus-visible { color: var(--accent, #E84E1B); outline: none; }
-
-.profile-collection-card { border: 2px solid var(--border-strong, #141411); box-shadow: 4px 4px 0 #141411; border-radius: 0; }
-.profile-collection-card-head { align-items: center; }
-.profile-collection-cover { width: 64px; height: 64px; flex: 0 0 64px; display:grid; place-items:center; overflow:hidden; background:var(--accent-2, #EFBC02); border:2px solid var(--border-strong, #141411); color:var(--fg, #141411); }
-.profile-collection-cover img { width:100%; height:100%; object-fit:cover; }
-.profile-collection-date { display:block; margin-top:4px; color:var(--fg-dim); font:700 9px/1 Inter, sans-serif; text-transform:uppercase; }
-
-.profile-level-card { display:flex; gap:12px; align-items:center; margin:0 0 20px; padding:12px; border:2px solid var(--border-strong, #141411); background:var(--bg-panel, #F8F1DF); box-shadow:4px 4px 0 #141411; border-radius:0; }
-.profile-level-badge { width:44px; height:44px; display:grid; place-items:center; flex:0 0 44px; border:2px solid var(--border-strong, #141411); background:var(--accent-2, #EFBC02); }
-.profile-level-main { min-width:0; flex:1; display:grid; gap:4px; }
-.profile-level-main strong { font:800 17px/1 'League Spartan', sans-serif; }.profile-level-main span,.profile-level-main small { font:700 10px/1.2 Inter,sans-serif; color:var(--fg-dim); }
-.profile-level-track { height:10px; overflow:hidden; border:2px solid var(--border-strong, #141411); background:#141411; }.profile-level-track span { display:block; height:100%; background:var(--accent, #E84E1B); }

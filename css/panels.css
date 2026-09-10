@@ -3316,11 +3316,6 @@ body.dark-mode .sheet-report-btn {
   gap: 6px;
 }
 
-/* Selector reutilizable para opciones equivalentes: angular y sin énfasis prematuro. */
-.equal-option-selector { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:6px; }
-.equal-option { min-height:64px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; border:2px dashed var(--border-strong, #141411); border-radius:0; background:var(--bg-panel, #F8F1DF); color:var(--fg, #141411); font:800 9px/1 Inter,sans-serif; cursor:pointer; }
-.equal-option.active { border-style:solid; background:var(--accent, #E84E1B); color:#fff; }
-
 .report-type-pill {
   flex: 1;
   min-height: 34px;
