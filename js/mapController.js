@@ -37,7 +37,7 @@ const ICON_LAYER_MINZOOMS = {
   0: 0,    // importancia máxima: siempre visible
   1: 0,    // importante: siempre visible
   2: 6.5,  // notable: visible desde escala regional / metropolitana
-  3: 9.0,  // estándar: visible desde escala de ciudad
+  3: 13.5, // estándar / documentada: visible solo con zoom elevado (escala de barrio / calle)
 };
 
 function ajustarZoomCapa(layerId, minzoom, maxzoom = 24) {
@@ -95,6 +95,7 @@ export function cargarMapaMapbox() {
     fadeDuration: 0, // Cero delay de transición/fade para carga instantánea
     maxTileCacheSize: 200, // Caché extendida en memoria
     crossSourceCollisions: false,
+    touchZoomRotate: true,
   });
 
   state.map.on('error', (e) => {
@@ -111,6 +112,7 @@ export function cargarMapaMapbox() {
   }
 
   state.map.dragRotate?.disable?.();
+  state.map.touchZoomRotate?.enable?.();
   state.map.touchZoomRotate?.disableRotation?.();
   state.map.touchPitch?.disable?.();
 
@@ -328,12 +330,12 @@ export function cargarMapaMapbox() {
       3: {
         font: ['Inter Regular', 'Open Sans Regular', 'Inter Regular'],
         size: 10,
-        minzoom: 13.5,
+        minzoom: 15.0,
       },
     };
 
     [3, 2, 1, 0].forEach((importance) => {
-      const minzoom = (importance === 0 || importance === 1) ? 0 : importance === 2 ? 6.5 : 9.0;
+      const minzoom = (importance === 0 || importance === 1) ? 0 : importance === 2 ? 6.5 : 13.5;
       const baseFilter = ['==', ['get', 'importancia'], importance];
       const sourceId = (importance === 0 || importance === 1) ? 'obras-maestras' : 'obras';
       const iconSize = importance === 0 ? 0.86 : importance === 1 ? 0.70 : importance === 2 ? 0.55 : 0.46;
@@ -358,10 +360,9 @@ export function cargarMapaMapbox() {
         'text-font': labelCfg.font,
         'text-size': labelCfg.size,
         'text-offset': [1.15, 0],
-        'text-variable-anchor': ['left', 'right', 'top', 'bottom'],
         'text-anchor': 'left',
         'text-justify': 'left',
-        'text-max-width': 13.0,
+        'text-max-width': 14.0,
         'text-line-height': 1.15,
         'text-padding': 8,
         'text-allow-overlap': false,
@@ -604,7 +605,6 @@ export function cargarMapaMapbox() {
         'text-allow-overlap': false,
         'text-ignore-placement': false,
         'text-padding': 10,
-        'text-variable-anchor': ['left', 'right', 'top', 'bottom'],
         'symbol-avoid-edges': true,
         'text-optional': false,
         'text-pitch-alignment': 'viewport',
@@ -635,7 +635,6 @@ export function cargarMapaMapbox() {
         'text-allow-overlap': false,
         'text-ignore-placement': false,
         'text-padding': 10,
-        'text-variable-anchor': ['left', 'right', 'top', 'bottom'],
         'symbol-avoid-edges': true,
         'text-optional': false,
         'text-pitch-alignment': 'viewport',

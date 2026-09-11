@@ -2,8 +2,31 @@
    MAPDATA.JS — Sincroniza OBRAS (state) con la fuente GeoJSON de Mapbox
    ========================================================================= */
 
-import { state, esRolAdmin } from './state.js';
+import { state, esRolAdmin, separarArquitectos } from './state.js';
 import { obraCumpleFiltrosActivos } from './filterEngine.js';
+
+export function formatArquitectosParaEtiqueta(obra) {
+  let list = [];
+  if (Array.isArray(obra?.arquitectos) && obra.arquitectos.length > 0) {
+    list = obra.arquitectos.flatMap((a) => separarArquitectos(a));
+  } else if (obra?.arquitecto) {
+    list = separarArquitectos(obra.arquitecto);
+  }
+  // Limpiar cualquier coma interna residual, espacios y duplicados
+  list = [...new Set(
+    list.map((name) => String(name || '').replace(/,/g, '').trim()).filter(Boolean)
+  )];
+
+  if (!list.length) return '';
+
+  if (list.length <= 3) {
+    return list.join('\n');
+  }
+
+  const mostrados = list.slice(0, 3);
+  const restantes = list.length - 3;
+  return `${mostrados.join('\n')}\n+ ${restantes} más`;
+}
 
 
 
@@ -110,7 +133,7 @@ export function actualizarFuenteMapa() {
         const sharedCount = ubicacionesCompartidas.get(coordKey) || 1;
 
         const nombreObra = String(obra.nombre_obra || '').trim();
-        const arqNombre = String(obra.arquitecto || (Array.isArray(obra.arquitectos) ? obra.arquitectos.join(', ') : '')).trim();
+        const arqNombre = formatArquitectosParaEtiqueta(obra);
         const textoEtiqueta = (nombreObra && arqNombre)
           ? `${nombreObra}\n${arqNombre}`
           : (nombreObra || arqNombre || '');

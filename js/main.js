@@ -436,15 +436,23 @@ if (mapToolsToggle && mapTools) {
    BLOQUEO DE ZOOM NATIVO DE PÁGINA (ZOOM EXCLUSIVO PARA MAPBOX EN MÓVIL)
    ========================================================================= */
 function bloquearZoomNativoWeb() {
-  // 1. Prevenir gestos nativos de escalado de página en iOS Safari
-  document.addEventListener('gesturestart', (e) => e.preventDefault(), { passive: false });
-  document.addEventListener('gesturechange', (e) => e.preventDefault(), { passive: false });
-  document.addEventListener('gestureend', (e) => e.preventDefault(), { passive: false });
+  const isMapTouch = (target) => Boolean(target?.closest?.('#map, .mapboxgl-canvas, .mapboxgl-canvas-container, .hud-frame, .hud-corner, .hud-crosshair'));
+
+  // 1. Prevenir gestos nativos de escalado de página en iOS Safari SOLO fuera del lienzo del mapa
+  document.addEventListener('gesturestart', (e) => {
+    if (!isMapTouch(e.target)) e.preventDefault();
+  }, { passive: false });
+  document.addEventListener('gesturechange', (e) => {
+    if (!isMapTouch(e.target)) e.preventDefault();
+  }, { passive: false });
+  document.addEventListener('gestureend', (e) => {
+    if (!isMapTouch(e.target)) e.preventDefault();
+  }, { passive: false });
 
   // 2. Prevenir pinch-to-zoom de 2 dedos en cualquier elemento que no sea el mapa
   document.addEventListener('touchstart', (e) => {
     if (e.touches && e.touches.length > 1) {
-      if (!e.target.closest('#map, .mapboxgl-canvas, .mapboxgl-canvas-container')) {
+      if (!isMapTouch(e.target)) {
         e.preventDefault();
       }
     }
@@ -452,7 +460,7 @@ function bloquearZoomNativoWeb() {
 
   document.addEventListener('touchmove', (e) => {
     if (e.touches && e.touches.length > 1) {
-      if (!e.target.closest('#map, .mapboxgl-canvas, .mapboxgl-canvas-container')) {
+      if (!isMapTouch(e.target)) {
         e.preventDefault();
       }
     }
@@ -465,7 +473,7 @@ function bloquearZoomNativoWeb() {
     if (now - lastTouchEnd <= 300) {
       const tag = e.target?.tagName?.toLowerCase();
       if (tag !== 'input' && tag !== 'textarea' && !e.target.isContentEditable) {
-        if (!e.target.closest('#map, .mapboxgl-canvas')) {
+        if (!isMapTouch(e.target)) {
           e.preventDefault();
         }
       }
