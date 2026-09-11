@@ -1492,6 +1492,211 @@ body.dark-mode .profile-col-action-btn.btn-delete:focus-visible {
   }
 }
 
+/* =========================================================================
+   FASE 2: COMPONENTE DE PROGRESO DE NIVEL Y PUNTOS (GAMIFICACIÓN) - NEO-BAUHAUS
+   ========================================================================= */
+.profile-gamification-card {
+  background: var(--bg-panel, #F8F1DF);
+  border: 1.5px solid var(--border-strong, #141411);
+  box-shadow: 3px 3px 0 var(--border-strong, #141411);
+  padding: 12px 14px;
+  margin: 14px 0 16px;
+  border-radius: 0 !important;
+}
+
+body.dark-mode .profile-gamification-card {
+  background: #1C1C1A;
+  border-color: var(--border-strong, #4E4E48);
+  box-shadow: 3px 3px 0 var(--border-strong, #4E4E48);
+}
+
+.gamification-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.gamification-level-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.gamification-badge-icon {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  border: 1.5px solid var(--border-strong, #141411);
+  background: var(--bg-raised, #ECE6D8);
+  display: grid;
+  place-items: center;
+  font-size: 17px;
+  line-height: 1;
+  border-radius: 0 !important;
+  box-shadow: 2px 2px 0 var(--border-strong, #141411);
+  flex-shrink: 0;
+}
+
+body.dark-mode .gamification-badge-icon {
+  border-color: var(--border-strong, #4E4E48);
+  background: #252522;
+  box-shadow: 2px 2px 0 var(--border-strong, #4E4E48);
+}
+
+.gamification-level-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.gamification-level-title {
+  font-family: 'League Spartan', sans-serif !important;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--fg, #141411);
+  text-transform: uppercase;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.dark-mode .gamification-level-title {
+  color: var(--fg, #F8F1DF);
+}
+
+.gamification-breakdown {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  color: var(--fg-dim, #68655D);
+  line-height: 1.2;
+}
+
+body.dark-mode .gamification-breakdown {
+  color: var(--fg-dim, #9A9A9A);
+}
+
+.gamification-points-pill {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 4px 8px;
+  border: 1.5px solid var(--border-strong, #141411);
+  background: var(--bg-raised, #ECE6D8);
+  border-radius: 0 !important;
+  flex-shrink: 0;
+}
+
+body.dark-mode .gamification-points-pill {
+  border-color: var(--border-strong, #4E4E48);
+  background: #252522;
+}
+
+.gamification-points-value {
+  font-family: 'League Spartan', sans-serif !important;
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--accent, #E84E1B);
+  line-height: 1;
+}
+
+body.dark-mode .gamification-points-value {
+  color: var(--accent, #FF7528);
+}
+
+.gamification-points-unit {
+  font-family: 'Inter', sans-serif;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--fg, #141411);
+}
+
+body.dark-mode .gamification-points-unit {
+  color: var(--fg, #F8F1DF);
+}
+
+/* Barra de progreso horizontal rectangular: naranja sobre fondo oscuro con borde negro */
+.gamification-track {
+  width: 100%;
+  height: 10px;
+  background: #141411;
+  border: 1.5px solid #141411;
+  border-radius: 0 !important;
+  margin: 10px 0 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+body.dark-mode .gamification-track {
+  background: #141411;
+  border-color: #4E4E48;
+}
+
+.gamification-fill {
+  height: 100%;
+  background: var(--accent, #E84E1B);
+  border-radius: 0 !important;
+  transition: width 0.35s ease-out;
+}
+
+body.dark-mode .gamification-fill {
+  background: var(--accent, #FF7528);
+}
+
+.gamification-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  gap: 8px;
+}
+
+.gamification-remaining-text {
+  color: var(--fg-dim, #68655D);
+  line-height: 1.3;
+}
+
+.gamification-remaining-text strong {
+  color: var(--fg, #141411);
+  font-weight: 700;
+}
+
+.gamification-remaining-text em {
+  font-style: normal;
+  color: var(--accent, #E84E1B);
+  font-weight: 700;
+}
+
+body.dark-mode .gamification-remaining-text {
+  color: var(--fg-dim, #9A9A9A);
+}
+
+body.dark-mode .gamification-remaining-text strong {
+  color: var(--fg, #F8F1DF);
+}
+
+body.dark-mode .gamification-remaining-text em {
+  color: var(--accent, #FF7528);
+}
+
+.gamification-goal-text {
+  font-weight: 800;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--fg, #141411);
+  flex-shrink: 0;
+}
+
+body.dark-mode .gamification-goal-text {
+  color: var(--fg, #F8F1DF);
+}
+
 .profile-collection-card-head {
   display: flex;
   align-items: flex-start;

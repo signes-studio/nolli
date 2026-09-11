@@ -547,7 +547,117 @@ function renderHero() {
   }
 
   syncAdminBadge();
+  renderGamificationProgress();
 }
+
+// -------------------------------------------------------------------------
+// 2.5. GAMIFICACIÓN (NIVEL Y PROGRESO DE PUNTOS)
+// -------------------------------------------------------------------------
+function getGamificationTier(points) {
+  const pts = Number(points) || 0;
+  if (pts < 100) {
+    return {
+      level: 1,
+      badge: 'Explorador Inicial',
+      icon: '🧭',
+      min: 0,
+      next: 100,
+      nextBadge: 'Urbanista Curioso',
+    };
+  } else if (pts < 250) {
+    return {
+      level: 2,
+      badge: 'Urbanista Curioso',
+      icon: '📐',
+      min: 100,
+      next: 250,
+      nextBadge: 'Cronista de Barrio',
+    };
+  } else if (pts < 500) {
+    return {
+      level: 3,
+      badge: 'Cronista de Barrio',
+      icon: '🏛️',
+      min: 250,
+      next: 500,
+      nextBadge: 'Maestro Bauhaus',
+    };
+  } else if (pts < 1000) {
+    return {
+      level: 4,
+      badge: 'Maestro Bauhaus',
+      icon: '🏗️',
+      min: 500,
+      next: 1000,
+      nextBadge: 'Arquitecto Mayor',
+    };
+  } else {
+    return {
+      level: 5,
+      badge: 'Arquitecto Mayor',
+      icon: '👑',
+      min: 1000,
+      next: null,
+      nextBadge: null,
+    };
+  }
+}
+
+function renderGamificationProgress() {
+  const card = document.getElementById('profile-gamification-card');
+  if (!card) return;
+
+  const db = profileState.dbProfile || {};
+  const totalPts = Number(db.total_points) || 0;
+  const visitorPts = Number(db.points_visitor) || 0;
+  const contribPts = Number(db.points_contributor) || 0;
+
+  const tier = getGamificationTier(totalPts);
+
+  let progressPct = 100;
+  let remainingText = '';
+  let goalText = '';
+
+  if (tier.next !== null) {
+    const range = tier.next - tier.min;
+    const progressInRange = Math.max(0, totalPts - tier.min);
+    progressPct = Math.min(100, Math.max(0, Math.round((progressInRange / range) * 100)));
+    const needed = tier.next - totalPts;
+    remainingText = `Te faltan <strong>${needed} puntos</strong> para <em>${escapeHtml(tier.nextBadge)}</em>`;
+    goalText = `${tier.next} PTS`;
+  } else {
+    progressPct = 100;
+    remainingText = `¡Nivel máximo alcanzado!`;
+    goalText = 'MAX';
+  }
+
+  card.innerHTML = `
+    <div class="gamification-card-header">
+      <div class="gamification-level-wrap">
+        <div class="gamification-badge-icon" aria-hidden="true">${tier.icon}</div>
+        <div class="gamification-level-info">
+          <span class="gamification-level-title">NIVEL ${tier.level} · ${escapeHtml(tier.badge.toUpperCase())}</span>
+          <span class="gamification-breakdown">${visitorPts} pts visitas · ${contribPts} pts aportaciones</span>
+        </div>
+      </div>
+      <div class="gamification-points-pill">
+        <span class="gamification-points-value">${totalPts}</span>
+        <span class="gamification-points-unit">PTS</span>
+      </div>
+    </div>
+
+    <!-- Barra de progreso horizontal rectangular: relleno en naranja sobre fondo oscuro con borde negro -->
+    <div class="gamification-track" role="progressbar" aria-valuenow="${progressPct}" aria-valuemin="0" aria-valuemax="100" aria-label="Progreso de nivel">
+      <div class="gamification-fill" style="width: ${progressPct}%;"></div>
+    </div>
+
+    <div class="gamification-footer">
+      <span class="gamification-remaining-text">${remainingText}</span>
+      <span class="gamification-goal-text">${goalText}</span>
+    </div>
+  `;
+}
+if (typeof window !== 'undefined') window.renderGamificationProgress = renderGamificationProgress;
 
 function syncAdminBadge() {
   const cardAdmin = document.getElementById('profile-admin-card');
