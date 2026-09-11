@@ -163,10 +163,11 @@ body.dark-mode .location-reticle {
 .architect-profile-kicker {
   margin: 0 0 4px;
   color: var(--accent, #E95C0C);
-  font-family: 'Inter', sans-serif;
+  font-family: 'League Spartan', sans-serif;
   font-weight: 800;
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: .08em;
+  text-transform: uppercase;
 }
 
 .architect-profile-name {
@@ -176,7 +177,7 @@ body.dark-mode .location-reticle {
   font-weight: 900;
   font-size: 26px;
   line-height: 1.05;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.025em;
   text-transform: uppercase;
   overflow-wrap: anywhere;
 }
@@ -184,10 +185,11 @@ body.dark-mode .location-reticle {
 .architect-profile-count {
   margin: 6px 0 14px;
   color: var(--accent, #E84E1B);
-  font-family: 'Inter', sans-serif;
-  font-weight: 700;
-  font-size: 10px;
-  letter-spacing: 0.05em;
+  font-family: 'League Spartan', sans-serif;
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .architect-profile-works {
@@ -641,6 +643,17 @@ body.dark-mode .modal-box {
   background: var(--bg-raised, #ECE6D8);
 }
 
+.modal-head span,
+.modal-head h2,
+.modal-head h3,
+.modal-title,
+.share-sheet-title {
+  font-family: 'League Spartan', sans-serif !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+}
+
 body.dark-mode .modal-head {
   background: #20201D;
   border-bottom-color: var(--border-strong, #4E4E48);
@@ -653,10 +666,10 @@ body.dark-mode .modal-head {
 
 .tech-label {
   display: block;
-  font-family: 'Inter', sans-serif;
+  font-family: 'League Spartan', sans-serif;
   font-size: 10px;
   font-weight: 800;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   color: var(--fg-dim, #666666);
   text-transform: uppercase;
   margin-bottom: 5px;

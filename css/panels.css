@@ -29,10 +29,27 @@
 .data-row .label {
   width: 130px; flex-shrink: 0; padding: 10px 12px; color: var(--fg-dim);
   background: rgba(17,17,17,0.03); border-right: 1px solid var(--border);
-  font-size: 10px; letter-spacing: .04em;
+  font-family: 'League Spartan', sans-serif;
+  font-weight: 800;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
 }
-.data-row .value { padding: 10px 12px; color: var(--fg); font-weight: 500; word-break: break-word; }
+.data-row .value { padding: 10px 12px; color: var(--fg); font-family: 'Inter', sans-serif; font-weight: 400; line-height: 1.5; word-break: break-word; }
 .data-row .value.accent { color: var(--accent); }
+
+/* Titular monumental editorial (Desktop base) */
+#sheet-title {
+  font-family: 'League Spartan', sans-serif !important;
+  font-weight: 900 !important;
+  font-size: clamp(26px, 3.5vw, 36px) !important;
+  line-height: 1.05 !important;
+  letter-spacing: -0.025em !important;
+  text-transform: uppercase !important;
+  color: var(--fg, #141411) !important;
+  padding: 14px 14px 6px !important;
+  margin: 0 !important;
+}
 
 /* Subtítulo, acciones y matriz técnica en ficha (Desktop base) */
 .sheet-meta-subtitle {
@@ -245,14 +262,19 @@ body.dark-mode .sheet-restricted-link-btn:hover {
   border-right: 0;
 }
 .tech-label {
-  font-family: 'Inter', sans-serif;
-  font-size: 9px;
+  font-family: 'League Spartan', sans-serif;
+  font-size: 10px;
   color: var(--fg-dim);
-  font-weight: 700;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 .tech-value {
+  font-family: 'Inter', sans-serif;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--fg);
 }
 .tech-value-accent button {
   color: var(--accent);
@@ -1427,12 +1449,13 @@ body.dark-mode .admin-importance-tag.imp-3 {
   #sheet-title {
     font-family: 'League Spartan', sans-serif !important;
     font-weight: 900 !important;
-    font-size: 22px !important;
-    line-height: 1.15 !important;
-    padding: 12px 14px 4px !important;
-    letter-spacing: -0.01em !important;
-    text-transform: none !important;
+    font-size: clamp(26px, 6.8vw, 34px) !important;
+    line-height: 1.05 !important;
+    padding: 14px 14px 6px !important;
+    letter-spacing: -0.025em !important;
+    text-transform: uppercase !important;
     color: var(--fg, #141411) !important;
+    margin: 0 !important;
   }
 
   .sheet-meta-subtitle {
@@ -1613,17 +1636,19 @@ body.dark-mode .admin-importance-tag.imp-3 {
   }
 
   .tech-label {
-    font-family: 'Inter', sans-serif !important;
-    font-size: 9px !important;
-    font-weight: 700 !important;
+    font-family: 'League Spartan', sans-serif !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
     color: var(--fg-dim) !important;
-    letter-spacing: 0.04em !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
   }
 
   .tech-value {
     font-family: 'Inter', sans-serif !important;
     font-size: 13px !important;
-    font-weight: 600 !important;
+    font-weight: 400 !important;
+    line-height: 1.5 !important;
     color: var(--fg, #141411) !important;
   }
 
@@ -1689,12 +1714,13 @@ body.dark-mode .admin-importance-tag.imp-3 {
 
   .personal-notes-head,
   .sheet-admin-head {
-    font-family: 'Inter', sans-serif !important;
-    font-size: 9px !important;
+    font-family: 'League Spartan', sans-serif !important;
+    font-size: 11px !important;
     font-weight: 800 !important;
     color: var(--fg-dim) !important;
+    text-transform: uppercase !important;
     margin-bottom: 8px !important;
-    letter-spacing: 0.05em !important;
+    letter-spacing: 0.06em !important;
   }
 
   .rating-stars {
@@ -2720,13 +2746,14 @@ body.dark-mode .radar-radius-selector {
 }
 
 .radar-section-label {
-  font-family: 'Inter', sans-serif;
-  font-size: 10px;
+  font-family: 'League Spartan', sans-serif;
+  font-size: 11px;
   font-weight: 800;
   color: var(--fg-dim, #6B6B6B);
   display: block;
   margin-bottom: 6px;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 body.dark-mode .radar-section-label {
@@ -3170,11 +3197,12 @@ body.dark-mode .explore-editorial-year {
 }
 
 .explore-section-tag {
-  font-family: 'Inter', sans-serif;
-  font-size: 10px;
+  font-family: 'League Spartan', sans-serif;
+  font-size: 11px;
   font-weight: 800;
   color: var(--fg-dim, #6B6B6B);
   letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 body.dark-mode .explore-section-tag {
@@ -3790,3 +3818,31 @@ body.dark-mode .btn-new-list {
   background: var(--accent, #E84E1B) !important;
   color: #FFFFFF !important;
 }
+
+/* ==========================================================================
+   FASE 5: JERARQUÍA TIPOGRÁFICA EDITORIAL NEO-BAUHAUS
+   Titular monumental League Spartan 900 mayúsculas con tracking negativo,
+   rótulos técnicos con tracking generoso y textos corridos funcionales en Inter.
+   ========================================================================== */
+
+[data-i18n="sheet_header_tag"],
+.sheet-header-tag,
+.explore-sticky-header .sheet-header span,
+.sheet-reports-actions button,
+.sheet-report-btn {
+  font-family: 'League Spartan', sans-serif !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+/* Textos corridos: Inter 400 legible, interlineado cómodo */
+.sheet-desc,
+.personal-organizer-help,
+.architect-bio,
+.explore-loading {
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 400 !important;
+  line-height: 1.6 !important;
+}
+
