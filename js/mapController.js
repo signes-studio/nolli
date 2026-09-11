@@ -96,6 +96,12 @@ export function cargarMapaMapbox() {
     maxTileCacheSize: 200, // Caché extendida en memoria
     crossSourceCollisions: false,
     touchZoomRotate: true,
+    dragPan: true,
+    dragRotate: false,
+    touchPitch: false,
+    pitchWithRotate: false,
+    cooperativeGestures: false,
+    clickTolerance: 4,
   });
 
   state.map.on('error', (e) => {
@@ -112,18 +118,35 @@ export function cargarMapaMapbox() {
   }
 
   state.map.dragRotate?.disable?.();
-  state.map.touchZoomRotate?.enable?.();
-  state.map.touchZoomRotate?.disableRotation?.();
   state.map.touchPitch?.disable?.();
+  if (state.map.touchZoomRotate) {
+    state.map.touchZoomRotate.enable();
+    state.map.touchZoomRotate.disableRotation();
+  }
+  if (state.map.dragPan) {
+    state.map.dragPan.enable();
+  }
 
   // Redimensionamiento y ajuste dinámico de padding en dispositivos táctiles
+  let resizeTimeout = null;
+  let lastWindowWidth = window.innerWidth;
   window.addEventListener('resize', () => {
-    state.map?.resize();
-    if (window.innerWidth <= 768) {
-      state.map?.setPadding({ top: 10, bottom: 64, left: 0, right: 0 });
-    } else {
-      state.map?.setPadding({ top: 0, bottom: 0, left: 0, right: 0 });
+    if (window.innerWidth !== lastWindowWidth) {
+      lastWindowWidth = window.innerWidth;
+      state.map?.resize();
+      if (window.innerWidth <= 768) {
+        state.map?.setPadding({ top: 10, bottom: 64, left: 0, right: 0 });
+      } else {
+        state.map?.setPadding({ top: 0, bottom: 0, left: 0, right: 0 });
+      }
+      return;
     }
+    // Si solo cambia la altura (aparición/ocultación de la barra de dirección en móvil),
+    // no interrumpir la inercia del desplazamiento táctil; posponer el resize hasta que el gesto termine
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      state.map?.resize();
+    }, 400);
   }, { passive: true });
 
   window.addEventListener('orientationchange', () => {
@@ -1026,6 +1049,9 @@ function resolveMapFeatureTarget(feature) {
 }
 
 function iniciarInteraccionesMapa() {
+  if (state._interaccionesIniciadas) return;
+  state._interaccionesIniciadas = true;
+
   const allLayerIds = [];
   [0, 1, 2, 3].forEach((imp) => {
     ['', '-visited', '-selected', '-search', '-search-selected', '-explore', '-explore-selected', '-pending', '-private'].forEach((suf) => {
@@ -1038,29 +1064,6 @@ function iniciarInteraccionesMapa() {
 
   const getActiveLayers = () => allLayerIds.filter((id) => Boolean(state.map?.getLayer(id)));
 
-  const handleFeatureClick = (e) => {
-    if (state.addingBuilding) return;
-    const feature = e.features && e.features[0];
-    const activeLayers = getActiveLayers();
-    const fallbackFeature = !feature && state.map
-      ? state.map.queryRenderedFeatures(e.point, { layers: activeLayers })[0]
-      : null;
-    const targetFeature = feature || fallbackFeature;
-    if (!targetFeature) return;
-
-    const resolved = resolveMapFeatureTarget(targetFeature);
-    if (!resolved) return;
-
-    const { obra, targetId, coords } = resolved;
-    abrirFicha(obra || targetFeature.properties, coords, targetId || obra?.featureId || obra?.id || targetFeature.id);
-  };
-
-  allLayerIds.forEach((layerId) => {
-    if (state.map.getLayer(layerId)) {
-      state.map.on('click', layerId, handleFeatureClick);
-    }
-  });
-
   state.map.on('click', (e) => {
     if (state.addingBuilding) {
       state.addingBuilding = false;
@@ -1069,22 +1072,45 @@ function iniciarInteraccionesMapa() {
       dispatchLongPress(e.lngLat);
       return;
     }
-    const activeLayers = getActiveLayers();
-    const isObra = state.map.queryRenderedFeatures(e.point, { layers: activeLayers });
-    if (!isObra.length) cerrarFicha();
+    const currentActiveLayers = getActiveLayers();
+    const features = state.map.queryRenderedFeatures(e.point, { layers: currentActiveLayers });
+    if (features && features.length > 0) {
+      const resolved = resolveMapFeatureTarget(features[0]);
+      if (resolved) {
+        const { obra, targetId, coords } = resolved;
+        abrirFicha(obra || features[0].properties, coords, targetId || obra?.featureId || obra?.id || features[0].id);
+      }
+    } else {
+      cerrarFicha();
+    }
   });
 
   state.map.on('contextmenu', (e) => dispatchLongPress(e.lngLat));
 
   let pressTimer = null;
   let pressStart = null;
+  const cancelLongPress = () => {
+    if (pressTimer) {
+      clearTimeout(pressTimer);
+      pressTimer = null;
+    }
+  };
+
   state.map.on('touchstart', (e) => {
-    if (e.points.length > 1) return;
+    if ((e.points && e.points.length > 1) || (e.originalEvent?.touches && e.originalEvent.touches.length > 1)) {
+      cancelLongPress();
+      return;
+    }
     pressStart = e.lngLat;
-    pressTimer = setTimeout(() => dispatchLongPress(pressStart), 600);
+    pressTimer = setTimeout(() => dispatchLongPress(pressStart), 800);
   });
-  state.map.on('touchmove', () => clearTimeout(pressTimer));
-  state.map.on('touchend', () => clearTimeout(pressTimer));
+
+  state.map.on('touchmove', cancelLongPress);
+  state.map.on('touchend', cancelLongPress);
+  state.map.on('touchcancel', cancelLongPress);
+  state.map.on('movestart', cancelLongPress);
+  state.map.on('zoomstart', cancelLongPress);
+  state.map.on('dragstart', cancelLongPress);
 }
 
 function dispatchLongPress(lngLat) {

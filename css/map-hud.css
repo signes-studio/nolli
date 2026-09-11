@@ -4,15 +4,8 @@
    todo el chrome de interfaz pasa a panel opaco claro (ver 3.2 del sistema).
    ========================================================================= */
 
-#map {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-  touch-action: none !important;
-}
-
+#map,
+#map canvas,
 .mapboxgl-canvas,
 .mapboxgl-canvas-container,
 .mapboxgl-map {
@@ -337,6 +330,7 @@ body.dark-mode .topbar-btn-profile:hover {
     height: 100vh !important;
     height: 100dvh !important;
     z-index: 1 !important;
+    touch-action: none !important;
   }
 
   .mapboxgl-canvas-container,

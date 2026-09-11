@@ -436,52 +436,17 @@ if (mapToolsToggle && mapTools) {
    BLOQUEO DE ZOOM NATIVO DE PÁGINA (ZOOM EXCLUSIVO PARA MAPBOX EN MÓVIL)
    ========================================================================= */
 function bloquearZoomNativoWeb() {
-  const isMapTouch = (target) => Boolean(target?.closest?.('#map, .mapboxgl-canvas, .mapboxgl-canvas-container, .hud-frame, .hud-corner, .hud-crosshair'));
+  // Prevenir zoom de pellizco nativo del viewport en iOS Safari
+  // (Mapbox GL JS utiliza touchstart/touchmove internamente para su propio zoom vectorial;
+  // cancelar gesturestart/gesturechange impide que Safari intente escalar la página web al mismo tiempo)
+  const preventSafariPageGesture = (e) => {
+    e.preventDefault();
+  };
+  document.addEventListener('gesturestart', preventSafariPageGesture, { passive: false });
+  document.addEventListener('gesturechange', preventSafariPageGesture, { passive: false });
+  document.addEventListener('gestureend', preventSafariPageGesture, { passive: false });
 
-  // 1. Prevenir gestos nativos de escalado de página en iOS Safari SOLO fuera del lienzo del mapa
-  document.addEventListener('gesturestart', (e) => {
-    if (!isMapTouch(e.target)) e.preventDefault();
-  }, { passive: false });
-  document.addEventListener('gesturechange', (e) => {
-    if (!isMapTouch(e.target)) e.preventDefault();
-  }, { passive: false });
-  document.addEventListener('gestureend', (e) => {
-    if (!isMapTouch(e.target)) e.preventDefault();
-  }, { passive: false });
-
-  // 2. Prevenir pinch-to-zoom de 2 dedos en cualquier elemento que no sea el mapa
-  document.addEventListener('touchstart', (e) => {
-    if (e.touches && e.touches.length > 1) {
-      if (!isMapTouch(e.target)) {
-        e.preventDefault();
-      }
-    }
-  }, { passive: false });
-
-  document.addEventListener('touchmove', (e) => {
-    if (e.touches && e.touches.length > 1) {
-      if (!isMapTouch(e.target)) {
-        e.preventDefault();
-      }
-    }
-  }, { passive: false });
-
-  // 3. Prevenir doble-tap nativo de zoom fuera del lienzo del mapa
-  let lastTouchEnd = 0;
-  document.addEventListener('touchend', (e) => {
-    const now = Date.now();
-    if (now - lastTouchEnd <= 300) {
-      const tag = e.target?.tagName?.toLowerCase();
-      if (tag !== 'input' && tag !== 'textarea' && !e.target.isContentEditable) {
-        if (!isMapTouch(e.target)) {
-          e.preventDefault();
-        }
-      }
-    }
-    lastTouchEnd = now;
-  }, { passive: false });
-
-  // 4. Si el visualViewport llega a escalar o desajustarse por teclado, reajustar scroll
+  // Si el visualViewport llega a escalar o desajustarse por teclado, reajustar scroll
   if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', () => {
       if (window.visualViewport.scale > 1.01) {
