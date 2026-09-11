@@ -478,6 +478,7 @@
   "radar_route_trace": "TRACE ROUTE",
   "radar_title": "ARCHITECTURAL RADAR",
   "radar_works_in_radius": "WORKS IN YOUR RADIUS",
+  "radar_sort_label": "SORT BY",
   "report_close_aria": "Close report",
   "report_collision_needed": "Indicate which work is conflicting (name or link) before sending.",
   "report_desc": "Detailed description",

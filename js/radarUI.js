@@ -16,6 +16,7 @@ let radarAbortController = null;
 let radarCacheKey = '';
 let radarCachedData = [];
 let radarSort = 'distance';
+let currentRadarWorks = [];
 let locationWatchId = null;
 const CURATED_PROXIMITY_METERS = 15000; // radio para considerar una colección "cercana" al usuario
 
@@ -249,11 +250,12 @@ export function formatearDistanciaRadar(metros) {
 }
 
 export function renderRadarList(works, container, countSpan) {
+  currentRadarWorks = Array.isArray(works) ? works : [];
   if (countSpan) {
-    countSpan.textContent = t('radar_detected_count', { count: works.length });
+    countSpan.textContent = t('radar_detected_count', { count: currentRadarWorks.length });
   }
 
-  if (!works.length) {
+  if (!currentRadarWorks.length) {
     const radLabel = radarRadius < 1000 ? `${radarRadius}M` : `${radarRadius / 1000}KM`;
     const nextRadius = radarRadius < 3000 ? 3000 : 5000;
     const nextLabel = nextRadius < 1000 ? `${nextRadius}M` : `${nextRadius / 1000}KM`;
@@ -285,11 +287,26 @@ export function renderRadarList(works, container, countSpan) {
     return;
   }
 
-  const sortedWorks = [...works].sort((a, b) => {
-    if (radarSort === 'year') return Number(b.año_construccion || 0) - Number(a.año_construccion || 0) || a._dist - b._dist;
-    if (radarSort === 'importance') return Number(a.importancia ?? 99) - Number(b.importancia ?? 99) || a._dist - b._dist;
-    return a._dist - b._dist;
+  const sortedWorks = [...currentRadarWorks].sort((a, b) => {
+    if (radarSort === 'year') {
+      const ya = Number(a.año_construccion || a.ano_construccion || a.year);
+      const yb = Number(b.año_construccion || b.ano_construccion || b.year);
+      const hasYa = Number.isFinite(ya) && ya > 0;
+      const hasYb = Number.isFinite(yb) && yb > 0;
+      if (hasYa && !hasYb) return -1;
+      if (!hasYa && hasYb) return 1;
+      if (hasYa && hasYb && yb !== ya) return yb - ya;
+      return (a._dist || 0) - (b._dist || 0);
+    }
+    if (radarSort === 'importance') {
+      const impA = a.importancia != null ? Number(a.importancia) : 99;
+      const impB = b.importancia != null ? Number(b.importancia) : 99;
+      if (impA !== impB) return impA - impB;
+      return (a._dist || 0) - (b._dist || 0);
+    }
+    return (a._dist || 0) - (b._dist || 0);
   });
+
   container.innerHTML = sortedWorks.slice(0, 50).map((obra) => renderObraCard(obra, {
     variant: 'radar',
     className: 'radar-proximity-card',
@@ -364,8 +381,7 @@ export async function renderRadarUI() {
       }))
       .filter((o) => o._dist <= radarRadius);
 
-    const existingIds = new Set(transformed.map((t) => String(t.id)));
-    const allWorks = [...transformed, ...privateWorks.filter((p) => !existingIds.has(String(p.id)))];
+    const allWorks = dedupeBuildings([...transformed, ...localWorks]);
     allWorks.sort((a, b) => a._dist - b._dist);
 
     radarCachedData = allWorks;
@@ -589,7 +605,8 @@ export function initRadarUI() {
     radarSort = sortSelect.value;
     const container = document.getElementById('radar-detected-list');
     const count = document.getElementById('radar-detected-count');
-    if (container) renderRadarList(radarCachedData, container, count);
+    const targetWorks = currentRadarWorks.length ? currentRadarWorks : (radarCachedData.length ? radarCachedData : (state.OBRAS || []));
+    if (container) renderRadarList(targetWorks, container, count);
   });
 
   if (btnClose && panel) {

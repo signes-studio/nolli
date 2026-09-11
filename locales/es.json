@@ -478,6 +478,7 @@
   "radar_route_trace": "TRAZAR RUTA",
   "radar_title": "RADAR ARQUITECTÓNICO",
   "radar_works_in_radius": "OBRAS EN TU RADIO",
+  "radar_sort_label": "ORDENAR POR",
   "report_close_aria": "Cerrar reporte",
   "report_collision_needed": "Indica qué obra es la colisionante (nombre o enlace) antes de enviar.",
   "report_desc": "Descripción detallada",

@@ -58,6 +58,7 @@ export function renderObraCard(obra, {
         <span class="obra-card__category" style="--obra-category:${color}; color:${color};">
           ${hasImportance ? `<i class="obra-card__importance importance-${importanceLevel}" title="${escapeHtml(importanceLabel)}" aria-label="${escapeHtml(importanceLabel)}"></i>` : ''}
           ${escapeHtml(formattedCat)}
+          ${hasImportance && importanceLevel === 0 ? `<span class="obra-card__badge-hito">HITO</span>` : ''}
         </span>
         ${distance ? `<span class="obra-card__distance">${escapeHtml(distance)}</span>` : ''}
       </div>
