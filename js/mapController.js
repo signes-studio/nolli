@@ -229,92 +229,34 @@ export function cargarMapaMapbox() {
       },
     });
 
-    // 2. Indicador de Elemento Seleccionado (Sombra dura offset en negro sólido)
+    // 2. Indicador de Elemento Seleccionado: Anillo único limpio (Vermillón Nolli)
     state.map.addLayer({
-      id: 'obras-selected-offset-shadow',
+      id: 'obras-selected-ring',
       type: 'circle',
       source: 'obras',
       filter: ['==', ['get', 'selected'], 1],
       paint: {
-        'circle-radius': 18,
-        'circle-color': isDark ? '#000000' : '#141411',
-        'circle-translate': [3.5, 3.5],
-        'circle-blur': 0,
-        'circle-opacity': 1,
-      },
-    });
-
-    state.map.addLayer({
-      id: 'obras-maestras-selected-offset-shadow',
-      type: 'circle',
-      source: 'obras-maestras',
-      filter: ['==', ['get', 'selected'], 1],
-      paint: {
-        'circle-radius': 21,
-        'circle-color': isDark ? '#000000' : '#141411',
-        'circle-translate': [4, 4],
-        'circle-blur': 0,
-        'circle-opacity': 1,
-      },
-    });
-
-    // Caja/Marco de precisión exterior para elemento seleccionado
-    state.map.addLayer({
-      id: 'obras-selected-cad-box',
-      type: 'circle',
-      source: 'obras',
-      filter: ['==', ['get', 'selected'], 1],
-      paint: {
-        'circle-radius': 18,
-        'circle-color': isDark ? '#1C1C19' : '#F4F1EA',
-        'circle-stroke-color': isDark ? '#FFFFFF' : '#141411',
-        'circle-stroke-width': 2,
-        'circle-blur': 0,
-        'circle-opacity': 1,
-      },
-    });
-
-    state.map.addLayer({
-      id: 'obras-maestras-selected-cad-box',
-      type: 'circle',
-      source: 'obras-maestras',
-      filter: ['==', ['get', 'selected'], 1],
-      paint: {
-        'circle-radius': 21,
-        'circle-color': isDark ? '#1C1C19' : '#F4F1EA',
-        'circle-stroke-color': isDark ? '#FFFFFF' : '#141411',
-        'circle-stroke-width': 2.4,
-        'circle-blur': 0,
-        'circle-opacity': 1,
-      },
-    });
-
-    // Retícula/Anillo técnico en Vermillón
-    state.map.addLayer({
-      id: 'obras-selected-cad-ring',
-      type: 'circle',
-      source: 'obras',
-      filter: ['==', ['get', 'selected'], 1],
-      paint: {
-        'circle-radius': 14.5,
+        'circle-radius': 15.5,
         'circle-color': 'transparent',
         'circle-stroke-color': '#E84E1B',
-        'circle-stroke-width': 1.6,
+        'circle-stroke-width': 2.5,
+        'circle-stroke-opacity': 1,
         'circle-blur': 0,
         'circle-opacity': 1,
       },
     });
 
     state.map.addLayer({
-      id: 'obras-maestras-selected-cad-ring',
+      id: 'obras-maestras-selected-ring',
       type: 'circle',
       source: 'obras-maestras',
       filter: ['==', ['get', 'selected'], 1],
       paint: {
-        'circle-radius': 17,
+        'circle-radius': 18.5,
         'circle-color': 'transparent',
         'circle-stroke-color': '#E84E1B',
-        'circle-stroke-width': 1.8,
+        'circle-stroke-width': 2.5,
+        'circle-stroke-opacity': 1,
         'circle-blur': 0,
         'circle-opacity': 1,
       },
@@ -421,7 +363,7 @@ export function cargarMapaMapbox() {
         'text-justify': 'left',
         'text-max-width': 13.0,
         'text-line-height': 1.15,
-        'text-padding': 2,
+        'text-padding': 8,
         'text-allow-overlap': false,
         'text-ignore-placement': false,
         'text-optional': true,
@@ -661,11 +603,12 @@ export function cargarMapaMapbox() {
         'text-line-height': 1.15,
         'text-allow-overlap': false,
         'text-ignore-placement': false,
+        'text-padding': 10,
         'text-variable-anchor': ['left', 'right', 'top', 'bottom'],
         'symbol-avoid-edges': true,
         'text-optional': false,
         'text-pitch-alignment': 'viewport',
-        'symbol-sort-key': 100,
+        'symbol-sort-key': 0,
       },
       paint: {
         'text-color': isSatellite ? '#FFFFFF' : (isDark ? '#FFFFFF' : '#04070B'),
@@ -691,11 +634,12 @@ export function cargarMapaMapbox() {
         'text-line-height': 1.15,
         'text-allow-overlap': false,
         'text-ignore-placement': false,
+        'text-padding': 10,
         'text-variable-anchor': ['left', 'right', 'top', 'bottom'],
         'symbol-avoid-edges': true,
         'text-optional': false,
         'text-pitch-alignment': 'viewport',
-        'symbol-sort-key': 100,
+        'symbol-sort-key': 0,
       },
       paint: {
         'text-color': isSatellite ? '#FFFFFF' : (isDark ? '#FFFFFF' : '#04070B'),
@@ -708,12 +652,8 @@ export function cargarMapaMapbox() {
     [
       'obras-favorites-contour',
       'obras-maestras-favorites-contour',
-      'obras-selected-offset-shadow',
-      'obras-maestras-selected-offset-shadow',
-      'obras-selected-cad-box',
-      'obras-maestras-selected-cad-box',
-      'obras-selected-cad-ring',
-      'obras-maestras-selected-cad-ring',
+      'obras-selected-ring',
+      'obras-maestras-selected-ring',
       'obras-l3', 'obras-l2', 'obras-l1', 'obras-l0',
       'obras-l3-visited', 'obras-l2-visited', 'obras-l1-visited', 'obras-l0-visited',
       'obras-l3-pending', 'obras-l2-pending', 'obras-l1-pending', 'obras-l0-pending',
