@@ -29,7 +29,9 @@
 }
 
 /* Reset ligero: sin bordes redondeados en toda la app (estética "instrumento") */
-* {
+*,
+*::before,
+*::after {
   border-radius: 0 !important;
   box-shadow: none !important;
   text-shadow: none !important;
@@ -224,7 +226,7 @@ h1, h2, h3, h4, h5, h6,
   display: inline-block;
   flex-shrink: 0;
   border: 1px solid var(--border-strong);
-  border-radius: 50%;
+  border-radius: 0 !important;
 }
 
 
@@ -367,7 +369,7 @@ body.dark-mode .admin-tab.active {
 }
 
 .legend-color-grid i {
-  border-radius: 50% !important;
+  border-radius: 0 !important;
 }
 
 .splash-screen {

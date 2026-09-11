@@ -865,7 +865,7 @@ body.dark-mode .places-tabs-scroll-wrap {
 .admin-user-presence { font-family: 'Inter', sans-serif; font-size: 9px; color: var(--fg-dim); }
 .admin-user-presence.online { color: #00AA55; font-weight: 700; }
 body.dark-mode .admin-user-presence.online { color: #00FF88; }
-.admin-presence-indicator { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; background: var(--border-strong, #888888); }
+.admin-presence-indicator { width: 7px; height: 7px; border-radius: 0 !important; display: inline-block; flex-shrink: 0; background: var(--border-strong, #888888); }
 .admin-presence-indicator.online { background: #00CC66; box-shadow: 0 0 6px #00CC66; }
 .admin-badge-online { font-family: 'Inter', sans-serif; font-size: 8.5px; font-weight: 800; color: #008844; background: rgba(0, 204, 102, 0.15); border: 1px solid rgba(0, 204, 102, 0.4); padding: 1px 4px; letter-spacing: 0.04em; }
 body.dark-mode .admin-badge-online { color: #00FF88; background: rgba(0, 255, 136, 0.15); border-color: rgba(0, 255, 136, 0.4); }
@@ -981,7 +981,7 @@ body.dark-mode .admin-badge-online { color: #00FF88; background: rgba(0, 255, 13
   height: 22px;
   border: 2.5px solid var(--border);
   border-top-color: var(--accent);
-  border-radius: 50%;
+  border-radius: 0 !important;
   animation: adminSpin 0.75s linear infinite;
   display: inline-block;
 }
@@ -1074,7 +1074,7 @@ body.dark-mode .admin-badge-online { color: #00FF88; background: rgba(0, 255, 13
   font-family: 'Inter', monospace, sans-serif !important;
   letter-spacing: 0.04em;
   padding: 1px 5px !important;
-  border-radius: 2px !important;
+  border-radius: 0 !important;
   white-space: nowrap !important;
   line-height: 1.3 !important;
   overflow: visible !important;
@@ -3487,7 +3487,7 @@ body.dark-mode .report-type-pill {
   background: var(--bg-card, #FFFFFF);
   color: var(--fg, #141411);
   border: 1px solid var(--border-color, #E2DED4);
-  border-radius: 9999px;
+  border-radius: 0 !important;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   font-size: 12px;
@@ -3533,7 +3533,7 @@ body.dark-mode .filter-pill-chip:hover {
   height: 7px !important;
   min-width: 7px !important;
   min-height: 7px !important;
-  border-radius: 50% !important;
+  border-radius: 0 !important;
   background-color: var(--accent, #E84E1B);
   flex-shrink: 0 !important;
 }
@@ -3585,7 +3585,7 @@ body.dark-mode .itinerary-badge-title {
   padding: 0 !important;
   background: transparent !important;
   border: none !important;
-  border-radius: 50% !important;
+  border-radius: 0 !important;
   color: var(--fg-dim, #7C7A72) !important;
   cursor: pointer;
   touch-action: manipulation;
@@ -3626,7 +3626,7 @@ body.dark-mode .itinerary-badge-close:hover {
   max-width: min(calc(100vw - 20px), 360px);
   background: var(--bg-card, #FFFFFF);
   border: 1px solid var(--border-color, #E2DED4);
-  border-radius: 10px;
+  border-radius: 0 !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   padding: 12px 14px;
   animation: filterEmptyFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
@@ -3689,7 +3689,7 @@ body.dark-mode .itinerary-badge-close:hover {
   background: var(--fg, #141411);
   color: var(--bg, #F8F1DF);
   border: none;
-  border-radius: 6px;
+  border-radius: 0 !important;
   font-family: 'Inter', system-ui, sans-serif;
   font-size: 11px;
   font-weight: 600;
@@ -3735,7 +3735,7 @@ body.dark-mode .filter-empty-undo-btn {
   background: var(--bg-card, #FFFFFF);
   color: var(--fg, #141411);
   border: 1.5px solid var(--border-strong, #141411);
-  border-radius: 9999px;
+  border-radius: 0 !important;
   font-family: 'Inter', system-ui, sans-serif;
   font-size: 11px;
   font-weight: 600;

@@ -45,7 +45,7 @@ body.dark-mode .location-active {
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  border-radius: 50% !important;
+  border-radius: 0 !important;
 }
 
 .location-core {
@@ -53,8 +53,8 @@ body.dark-mode .location-active {
   height: 14px;
   background: #0066FF;
   border: 2.5px solid #F8F1DF;
-  border-radius: 50% !important;
-  box-shadow: 0 0 0 1.5px #141411, 0 2px 8px rgba(0, 0, 0, 0.45) !important;
+  border-radius: 0 !important;
+  box-shadow: 0 0 0 1.5px #141411 !important;
   z-index: 3;
   position: relative;
 }
@@ -62,7 +62,7 @@ body.dark-mode .location-active {
 .location-pulse {
   position: absolute;
   inset: -8px;
-  border-radius: 50% !important;
+  border-radius: 0 !important;
   background: rgba(0, 102, 255, 0.25);
   border: 1.5px solid rgba(0, 102, 255, 0.75);
   animation: radarLocationPulse 2.2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
@@ -72,7 +72,7 @@ body.dark-mode .location-active {
 .location-reticle {
   position: absolute;
   inset: -12px;
-  border-radius: 50% !important;
+  border-radius: 0 !important;
   border: 1px dashed rgba(232, 78, 27, 0.65);
   animation: radarLocationRotate 12s linear infinite;
   pointer-events: none;
@@ -1530,6 +1530,63 @@ body.dark-mode .neo-options-grid--cream .neo-option-box.active {
 .mobile-fab-toggle svg,
 .fab-toggle-icon {
   stroke-width: 3px !important;
+}
+
+/* =========================================================================
+   ELIMINACIÓN RADICAL DE ESQUINAS REDONDEADAS RESIDUALES (FASE 3)
+   Bordes rectos absolutos (90 grados) en avatares, pips, badges, inputs
+   ========================================================================= */
+*,
+*::before,
+*::after {
+  border-radius: 0 !important;
+}
+
+/* Avatares de usuario: cuadrados con borde negro de 2px */
+.user-avatar,
+#user-avatar,
+.avatar,
+.profile-avatar,
+.admin-user-avatar,
+[class*="avatar"] {
+  border-radius: 0 !important;
+  border: 2px solid var(--border-strong, #141411) !important;
+}
+
+/* Miniaturas de fotos sin redondeo */
+img,
+.photo-thumb,
+.sheet-photo-banner,
+.sheet-photo,
+.obra-card__thumb,
+.obra-card__thumb img,
+.profile-col-thumb,
+.profile-col-thumb img,
+.map-style-thumb,
+.map-style-preview {
+  border-radius: 0 !important;
+}
+
+/* Badges, tags, pips y píldoras: esquinas estrictas a 90 grados */
+.badge,
+.badge-count,
+.sheet-cat-badge,
+.cat-pip,
+.obra-card__cat-pip,
+.obra-card__importance,
+.filter-pill-chip,
+.filter-pill-dot,
+.filter-pill-close,
+.itinerary-badge,
+.itinerary-badge-close,
+.admin-presence-indicator,
+.admin-presence-dot,
+.admin-badge-online,
+.admin-spinner,
+.sheet-drag-bar,
+.legend-color-grid i,
+.btn-filter-architect {
+  border-radius: 0 !important;
 }
 
 
