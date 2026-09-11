@@ -739,10 +739,19 @@
       <p id="report-project-name" class="report-project-name font-display text-sm font-bold uppercase mb-2"></p>
       
       <label class="text-[10px] font-mono font-bold block mb-1" style="color:var(--fg-dim)" data-i18n="report_type_label">TIPO DE INCIDENCIA</label>
-      <div class="report-type-selector flex gap-2 mb-3">
-        <button type="button" class="report-type-pill active" data-report-type="error_datos" data-i18n="report_type_data_error">ERROR EN DATOS</button>
-        <button type="button" class="report-type-pill" data-report-type="duplicado" data-i18n="report_type_duplicate_pill">DUPLICADO</button>
-        <button type="button" class="report-type-pill" data-report-type="ubicacion_erronea" data-i18n="report_type_location">UBICACIÓN</button>
+      <div class="neo-options-grid report-type-selector mb-3" role="radiogroup" aria-label="Tipo de incidencia">
+        <button type="button" class="neo-option-box report-type-pill active" data-report-type="error_datos" role="radio" aria-checked="true">
+          <span class="neo-option-icon"><i data-lucide="file-text" width="18" height="18"></i></span>
+          <span class="neo-option-label" data-i18n="report_type_data_error">ERROR EN DATOS</span>
+        </button>
+        <button type="button" class="neo-option-box report-type-pill" data-report-type="duplicado" role="radio" aria-checked="false">
+          <span class="neo-option-icon"><i data-lucide="copy" width="18" height="18"></i></span>
+          <span class="neo-option-label" data-i18n="report_type_duplicate_pill">DUPLICADO</span>
+        </button>
+        <button type="button" class="neo-option-box report-type-pill" data-report-type="ubicacion_erronea" role="radio" aria-checked="false">
+          <span class="neo-option-icon"><i data-lucide="map-pin" width="18" height="18"></i></span>
+          <span class="neo-option-label" data-i18n="report_type_location">UBICACIÓN</span>
+        </button>
       </div>
 
       <label for="report-description" class="text-[10px] font-mono font-bold block mb-1" style="color:var(--fg-dim)" data-i18n="report_details_label">DETALLES O CORRECCIÓN PROPUESTA</label>

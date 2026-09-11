@@ -739,8 +739,12 @@ function initReportModal() {
   // Selector de píldoras de tipo de incidencia
   pills?.forEach((pill) => {
     pill.addEventListener('click', () => {
-      pills.forEach((p) => p.classList.remove('active'));
+      pills.forEach((p) => {
+        p.classList.remove('active');
+        p.setAttribute('aria-checked', 'false');
+      });
       pill.classList.add('active');
+      pill.setAttribute('aria-checked', 'true');
       activeReportType = pill.dataset.reportType || 'error_datos';
       updatePlaceholder();
     });
@@ -756,13 +760,16 @@ function initReportModal() {
     }
 
     pills?.forEach((pill) => {
-      pill.classList.toggle('active', pill.dataset.reportType === activeReportType);
+      const isCur = pill.dataset.reportType === activeReportType;
+      pill.classList.toggle('active', isCur);
+      pill.setAttribute('aria-checked', isCur ? 'true' : 'false');
     });
 
     updatePlaceholder();
     if (errorElement) errorElement.classList.add('hidden');
     if (descriptionInput) descriptionInput.value = '';
     modal?.classList.add('open');
+    if (window.lucide) window.lucide.createIcons();
   });
 
   document.getElementById('btn-report-submit')?.addEventListener('click', async () => {
