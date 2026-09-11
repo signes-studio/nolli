@@ -192,6 +192,7 @@
   "collection_show_map": "Show icons on the map",
   "collection_show_map_label": "Show list icons on the map",
   "collection_status_private": "PRIVATE",
+  "collection_status_friends": "FRIENDS",
   "collection_status_public": "PUBLIC",
   "collection_unfollow_confirm": "Unfollow this public list?",
   "collection_unfollow_title": "Unfollow",

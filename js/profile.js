@@ -67,6 +67,7 @@ const profileState = {
   buildings: [],
   activeTab: 'collections',
 };
+if (typeof window !== 'undefined') window.profileState = profileState;
 
 // Modales
 const modalLogin = document.getElementById('modal-login');
@@ -666,6 +667,7 @@ function renderFeedContent() {
 
   if (window.lucide) window.lucide.createIcons();
 }
+if (typeof window !== 'undefined') window.renderFeedContent = renderFeedContent;
 
 async function renderNetworkFeed() {
   if (!content) return;
@@ -901,65 +903,88 @@ function renderCollectionsFeed() {
 
   const cardsHtml = collections.map((col) => {
     const items = (profileState.items || []).filter((item) => String(item.collection_id) === String(col.id));
-    const countText = `${items.length} ${items.length === 1 ? t('building_singular', null, 'OBRA') : t('building_plural', null, 'OBRAS')}`;
-    const isMapActive = col.show_on_map !== false;
+    const countText = `${items.length} ${items.length === 1 ? t('building_singular', null, 'obra') : t('building_plural', null, 'obras')}`;
     const isPublic = col.status === 'public' || col.is_public === true;
+    const isFriends = col.status === 'friends';
 
-    const eyeIconSvg = isMapActive
-      ? `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`
-      : `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>`;
-
-    const itemsRows = items.map((item) => {
-      const obra = obraFor(item.building_id);
-      if (!obra) {
-        return `
-          <div class="profile-collection-work-row">
-            <span style="font-size:11px; color:var(--fg-dim);">${t('building_singular', null, 'Obra')} #${escapeHtml(item.building_id)}</span>
-            <button type="button" class="profile-collection-item-remove-btn" data-collection-id="${col.id}" data-remove-item="${item.building_id}" title="${escapeHtml(t('profile_remove_from_list_title', null, 'Quitar de la lista'))}">✕</button>
-          </div>
-        `;
+    // Determinar miniatura (cover_photo_url -> primera foto de obra en la lista -> fallback geométrico Bauhaus)
+    let thumbUrl = col.cover_photo_url || null;
+    if (!thumbUrl && items.length > 0) {
+      for (const it of items) {
+        const obra = obraFor(it.building_id);
+        if (obra && (obra.foto_miniatura || obra.foto_url)) {
+          thumbUrl = obra.foto_miniatura || obra.foto_url;
+          break;
+        }
       }
-      const removeBtn = `<button type="button" class="profile-collection-item-remove-btn" data-collection-id="${col.id}" data-remove-item="${obra.id}" title="${escapeHtml(t('profile_remove_from_list_title', null, 'Quitar de la lista'))}">✕</button>`;
-      return `
-        <div class="profile-collection-work-row">
-          <a href="${getUrlPrefix()}/obra/${encodeURIComponent(obra.id)}" class="profile-collection-work-link" style="flex:1; min-width:0; text-decoration:none;">
-            ${renderObraCard(obra, { variant: 'collection-item', featureId: obra.id, showPhoto: true })}
-          </a>
-          ${removeBtn}
+    }
+
+    const fallbackBg = col.color || 'var(--bg-raised)';
+    const colSymbol = col.icon || '📐';
+
+    const thumbHtml = thumbUrl
+      ? `
+        <div class="profile-col-thumb-square">
+          <img src="${escapeHtml(thumbUrl)}" alt="${escapeHtml(col.name)}" class="profile-col-thumb-img" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+          <div class="profile-col-thumb-fallback profile-col-thumb-blueprint" style="display:none; background:${escapeHtml(fallbackBg)};">
+            <span class="profile-col-thumb-symbol">${escapeHtml(colSymbol)}</span>
+          </div>
+        </div>
+      `
+      : `
+        <div class="profile-col-thumb-square">
+          <div class="profile-col-thumb-fallback profile-col-thumb-blueprint" style="background:${escapeHtml(fallbackBg)};">
+            <span class="profile-col-thumb-symbol">${escapeHtml(colSymbol)}</span>
+          </div>
         </div>
       `;
-    }).join('') || `<div style="font-size:11px; color:var(--fg-dim); padding:6px 0;">${t('profile_empty_collection_items', null, '[ Lista sin obras añadidas aún ]')}</div>`;
+
+    let badgeClass = 'is-private';
+    let badgeText = t('collection_status_private', null, 'PRIVADA');
+    if (isPublic) {
+      badgeClass = 'is-public';
+      badgeText = t('collection_status_public', null, 'PÚBLICA');
+    } else if (isFriends) {
+      badgeClass = 'is-friends';
+      badgeText = t('collection_status_friends', null, 'AMIGOS');
+    }
+
+    let metaDate = '';
+    if (col.created_at) {
+      try {
+        const d = new Date(col.created_at);
+        if (!isNaN(d.getTime())) {
+          metaDate = d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+      } catch {}
+    }
 
     return `
-      <article class="profile-collection-card" data-col-id="${col.id}">
-        <div class="profile-collection-card-head">
-          <div style="min-width:0; flex:1;">
-            <div class="profile-collection-head-row" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-              <h3 class="profile-collection-name">${col.icon ? `${escapeHtml(col.icon)} ` : ''}${escapeHtml(col.name)}</h3>
-              <span class="profile-collection-count-badge">${countText}</span>
-              <span style="font-size:9px; font-weight:800; font-family: 'Inter', sans-serif; color:${isPublic ? 'var(--accent, #E84E1B)' : 'var(--fg-dim)'}; letter-spacing:0.04em;">// ${isPublic ? t('collection_status_public', null, 'PÚBLICA') : t('collection_status_private', null, 'PRIVADA')}</span>
-            </div>
-            ${col.description ? `<p class="profile-collection-desc" style="margin-top:4px;">${escapeHtml(col.description)}</p>` : ''}
+      <article class="profile-rich-collection-card" data-col-id="${col.id}">
+        ${thumbHtml}
+        <div class="profile-col-body">
+          <div class="profile-col-title-row">
+            <a href="./#list=${encodeURIComponent(col.id)}" class="profile-col-title-link">
+              <h3 class="profile-col-name">${escapeHtml(col.name)}</h3>
+            </a>
+            <span class="profile-col-visibility-badge ${badgeClass}">${escapeHtml(badgeText)}</span>
           </div>
-          <div class="profile-collection-tools">
-            ${isPublic ? `
-              <button type="button" class="profile-collection-tool-btn" data-copy-col-link="${col.id}" title="${escapeHtml(t('profile_copy_shareable_link', null, 'Copiar enlace compartible'))}">
-                <i data-lucide="share-2" width="13" height="13"></i>
-              </button>
-            ` : ''}
-            <button type="button" class="profile-collection-tool-btn ${isMapActive ? 'active' : ''}" data-toggle-map-col="${col.id}" title="${escapeHtml(isMapActive ? t('profile_hide_map_icons', null, 'Ocultar iconos en mapa') : t('profile_show_map_icons', null, 'Mostrar iconos en mapa'))}">
-              ${eyeIconSvg}
-            </button>
-            <button type="button" class="profile-collection-tool-btn" data-edit-col="${col.id}" title="${escapeHtml(t('profile_edit_list_title', null, 'Editar lista'))}">
-              <i data-lucide="edit-2" width="13" height="13"></i>
-            </button>
-            <button type="button" class="profile-collection-tool-btn btn-delete" data-delete-col="${col.id}" title="${escapeHtml(t('profile_delete_list_title', null, 'Borrar lista'))}">
-              <i data-lucide="trash-2" width="13" height="13"></i>
-            </button>
+          <div class="profile-col-meta-row">
+            <span class="profile-col-works-count">${countText}</span>
+            ${metaDate ? `<span class="profile-col-meta-sep">·</span><span class="profile-col-meta-date">${metaDate}</span>` : ''}
+            ${col.description ? `<span class="profile-col-meta-sep">·</span><span class="profile-col-desc">${escapeHtml(col.description)}</span>` : ''}
           </div>
         </div>
-        <div class="profile-collection-items-table">
-          ${itemsRows}
+        <div class="profile-col-actions">
+          <a href="./#list=${encodeURIComponent(col.id)}" class="profile-col-action-btn" title="${escapeHtml(t('profile_view_on_map_title', null, 'Ver en el mapa'))}" aria-label="Ver en el mapa">
+            <i data-lucide="map" width="14" height="14"></i>
+          </a>
+          <button type="button" class="profile-col-action-btn" data-edit-col="${col.id}" title="${escapeHtml(t('profile_edit_list_title', null, 'Editar lista'))}" aria-label="Editar lista">
+            <i data-lucide="edit-2" width="14" height="14"></i>
+          </button>
+          <button type="button" class="profile-col-action-btn btn-delete" data-delete-col="${col.id}" title="${escapeHtml(t('profile_delete_list_title', null, 'Eliminar lista'))}" aria-label="Eliminar lista">
+            <i data-lucide="trash-2" width="14" height="14"></i>
+          </button>
         </div>
       </article>
     `;
@@ -967,35 +992,58 @@ function renderCollectionsFeed() {
 
   content.innerHTML += cardsHtml;
 
-  // Renderizar listas seguidas
+  // Renderizar listas seguidas con el mismo patrón de tarjeta enriquecida
   if (followed.length > 0) {
     const followedHtml = followed.map((f) => {
       const col = f.user_collections || f;
       if (!col) return '';
       const creatorName = col.profiles?.nick ? `@${col.profiles.nick}` : (col.profiles?.first_name ? `@${col.profiles.first_name}` : t('profile_community_name', null, 'Comunidad Nolli'));
-      const emoji = col.icon || '';
+      const emoji = col.icon || '🔖';
       const title = col.name || 'Lista pública';
       const desc = col.description || '';
+      const itemsCount = col.work_ids?.length || 0;
+      const countLabel = itemsCount > 0 ? `${itemsCount} obras` : '';
+
+      const thumbHtml = col.cover_photo_url
+        ? `
+          <div class="profile-col-thumb-square">
+            <img src="${escapeHtml(col.cover_photo_url)}" alt="${escapeHtml(title)}" class="profile-col-thumb-img" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+            <div class="profile-col-thumb-fallback profile-col-thumb-blueprint" style="display:none; background:var(--bg-raised);">
+              <span class="profile-col-thumb-symbol">${escapeHtml(emoji)}</span>
+            </div>
+          </div>
+        `
+        : `
+          <div class="profile-col-thumb-square">
+            <div class="profile-col-thumb-fallback profile-col-thumb-blueprint" style="background:var(--bg-raised);">
+              <span class="profile-col-thumb-symbol">${escapeHtml(emoji)}</span>
+            </div>
+          </div>
+        `;
 
       return `
-        <article class="profile-collection-card" style="border-left: 3px solid var(--accent, #E84E1B); margin-top: 12px;">
-          <div class="profile-collection-card-head">
-            <div style="min-width:0; flex:1;">
-              <div style="display:flex; align-items:center; gap:8px;">
-                <h3 class="profile-collection-name">${escapeHtml(emoji)} ${escapeHtml(title)}</h3>
-                <span style="font-size:8.5px; font-weight:800; font-family: 'Inter', sans-serif; padding:1px 5px; background:rgba(232,78,27,0.08); color:var(--accent, #E84E1B);">${t('profile_badge_followed', null, 'SEGUIDA')}</span>
-              </div>
-              <p style="font-size:10.5px; color:var(--fg-dim); margin-top:2px;">${t('profile_created_by', { creator: escapeHtml(creatorName) }, `Por <strong style="color:var(--fg);">${escapeHtml(creatorName)}</strong>`)}</p>
-              ${desc ? `<p class="profile-collection-desc" style="margin-top:4px;">${escapeHtml(desc)}</p>` : ''}
-            </div>
-            <div class="profile-collection-tools">
-              <a href="./#list=${encodeURIComponent(col.id)}" class="profile-collection-tool-btn" title="${escapeHtml(t('profile_view_on_map_title', null, 'Ver en el mapa'))}" style="text-decoration:none;">
-                <i data-lucide="map" width="13" height="13"></i>
+        <article class="profile-rich-collection-card is-followed" style="border-left: 3.5px solid var(--accent, #E84E1B);">
+          ${thumbHtml}
+          <div class="profile-col-body">
+            <div class="profile-col-title-row">
+              <a href="./#list=${encodeURIComponent(col.id)}" class="profile-col-title-link">
+                <h3 class="profile-col-name">${escapeHtml(title)}</h3>
               </a>
-              <button type="button" class="profile-collection-tool-btn btn-delete" data-unfollow-col="${col.id}" title="${escapeHtml(t('profile_unfollow_title', null, 'Dejar de seguir'))}">
-                ✕
-              </button>
+              <span class="profile-col-visibility-badge is-followed">${t('profile_badge_followed', null, 'SEGUIDA')}</span>
             </div>
+            <div class="profile-col-meta-row">
+              <span>Por <strong style="color:var(--fg);">${escapeHtml(creatorName)}</strong></span>
+              ${countLabel ? `<span class="profile-col-meta-sep">·</span><span>${countLabel}</span>` : ''}
+              ${desc ? `<span class="profile-col-meta-sep">·</span><span class="profile-col-desc">${escapeHtml(desc)}</span>` : ''}
+            </div>
+          </div>
+          <div class="profile-col-actions">
+            <a href="./#list=${encodeURIComponent(col.id)}" class="profile-col-action-btn" title="${escapeHtml(t('profile_view_on_map_title', null, 'Ver en el mapa'))}" aria-label="Ver en el mapa">
+              <i data-lucide="map" width="14" height="14"></i>
+            </a>
+            <button type="button" class="profile-col-action-btn btn-delete" data-unfollow-col="${col.id}" title="${escapeHtml(t('profile_unfollow_title', null, 'Dejar de seguir'))}" aria-label="Dejar de seguir">
+              ✕
+            </button>
           </div>
         </article>
       `;
@@ -1116,6 +1164,37 @@ function setupFeedActionHandlers() {
     const btnDeleteCol = e.target.closest('[data-delete-col]');
     if (btnDeleteCol) {
       await borrarColeccion(btnDeleteCol.dataset.deleteCol);
+      return;
+    }
+
+    // 5b. Dejar de seguir lista pública
+    const btnUnfollowCol = e.target.closest('[data-unfollow-col]');
+    if (btnUnfollowCol) {
+      const colId = btnUnfollowCol.dataset.unfollowCol;
+      if (!window.confirm(t('profile_confirm_unfollow', null, '¿Dejar de seguir esta lista pública?'))) return;
+      profileState.followedCollections = (profileState.followedCollections || []).filter(f => {
+        const c = f.user_collections || f;
+        return String(c?.id) !== String(colId);
+      });
+      renderCollectionsFeed();
+      try {
+        await unfollowCollection(colId, user.id, token);
+      } catch (err) {
+        console.warn('Error al dejar de seguir lista:', err);
+      }
+      return;
+    }
+
+    // 5c. Copiar enlace compartible de lista
+    const btnCopyCol = e.target.closest('[data-copy-col-link]');
+    if (btnCopyCol) {
+      const colId = btnCopyCol.dataset.copyColLink;
+      const url = `${window.location.origin}/#list=${encodeURIComponent(colId)}`;
+      navigator.clipboard?.writeText(url).then(() => {
+        alert(t('link_copied', null, 'Enlace copiado al portapapeles'));
+      }).catch(() => {
+        prompt('Copia el enlace a la lista:', url);
+      });
       return;
     }
 

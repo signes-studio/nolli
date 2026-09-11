@@ -192,6 +192,7 @@
   "collection_show_map": "Mostrar iconos en el mapa",
   "collection_show_map_label": "Mostrar iconos de la lista sobre el mapa",
   "collection_status_private": "PRIVADA",
+  "collection_status_friends": "AMIGOS",
   "collection_status_public": "PÚBLICA",
   "collection_unfollow_confirm": "¿Dejar de seguir esta lista pública?",
   "collection_unfollow_title": "Dejar de seguir",

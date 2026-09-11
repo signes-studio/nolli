@@ -1172,6 +1172,326 @@ body.dark-mode .profile-collection-card {
   box-shadow: 3px 3px 0px var(--border-strong, #4E4E48);
 }
 
+/* =========================================================================
+   FASE 1: TARJETA DE LISTA ENRIQUECIDA ("MIS LISTAS") - NEO-BAUHAUS
+   ========================================================================= */
+.profile-rich-collection-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-panel, #F8F1DF);
+  border: 1.5px solid var(--border-strong, #141411);
+  box-shadow: 3px 3px 0 var(--border-strong, #141411);
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  border-radius: 0 !important;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  position: relative;
+}
+
+body.dark-mode .profile-rich-collection-card {
+  background: #1C1C1A;
+  border-color: var(--border-strong, #4E4E48);
+  box-shadow: 3px 3px 0 var(--border-strong, #4E4E48);
+}
+
+.profile-rich-collection-card:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--border-strong, #141411);
+}
+
+body.dark-mode .profile-rich-collection-card:hover {
+  box-shadow: 4px 4px 0 var(--border-strong, #4E4E48);
+}
+
+/* Miniatura Cuadrada (58x58px) */
+.profile-col-thumb-square {
+  width: 58px;
+  height: 58px;
+  min-width: 58px;
+  min-height: 58px;
+  border: 1.5px solid var(--border-strong, #141411);
+  background: var(--bg-raised, #ECE6D8);
+  border-radius: 0 !important;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+body.dark-mode .profile-col-thumb-square {
+  border-color: var(--border-strong, #4E4E48);
+  background: #252522;
+}
+
+.profile-col-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 0 !important;
+}
+
+.profile-col-thumb-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-raised, #ECE6D8);
+  position: relative;
+}
+
+.profile-col-thumb-blueprint {
+  background-image: 
+    linear-gradient(to right, rgba(20, 20, 17, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(20, 20, 17, 0.08) 1px, transparent 1px);
+  background-size: 8px 8px;
+}
+
+body.dark-mode .profile-col-thumb-blueprint {
+  background-image: 
+    linear-gradient(to right, rgba(248, 241, 223, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(248, 241, 223, 0.08) 1px, transparent 1px);
+}
+
+.profile-col-thumb-symbol {
+  font-size: 22px;
+  line-height: 1;
+  position: relative;
+  z-index: 1;
+}
+
+/* Contenido Central: Título + Badge + Meta */
+.profile-col-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.profile-col-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.profile-col-title-link {
+  text-decoration: none;
+  color: inherit;
+  min-width: 0;
+}
+
+.profile-col-name {
+  font-family: 'League Spartan', sans-serif !important;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--fg, #141411);
+  margin: 0;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+  text-transform: none; /* Case normal según jerarquía editorial */
+}
+
+.profile-col-title-link:hover .profile-col-name {
+  color: var(--accent, #E84E1B);
+}
+
+body.dark-mode .profile-col-name {
+  color: var(--fg, #F8F1DF);
+}
+
+body.dark-mode .profile-col-title-link:hover .profile-col-name {
+  color: var(--accent, #FF7528);
+}
+
+.profile-col-visibility-badge {
+  font-family: 'Inter', sans-serif;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 1px 5px;
+  border-radius: 0 !important;
+  border: 1px solid var(--border-strong, #141411);
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.profile-col-visibility-badge.is-public {
+  color: var(--accent, #E84E1B);
+  border-color: var(--accent, #E84E1B);
+  background: rgba(232, 78, 27, 0.08);
+}
+
+body.dark-mode .profile-col-visibility-badge.is-public {
+  color: var(--accent, #FF7528);
+  border-color: var(--accent, #FF7528);
+  background: rgba(255, 117, 40, 0.12);
+}
+
+.profile-col-visibility-badge.is-private {
+  color: var(--fg-dim, #68655D);
+  border-color: var(--border-strong, #141411);
+  background: var(--bg-raised, #ECE6D8);
+}
+
+body.dark-mode .profile-col-visibility-badge.is-private {
+  color: var(--fg-dim, #9A9A9A);
+  border-color: var(--border-strong, #4E4E48);
+  background: #252522;
+}
+
+.profile-col-visibility-badge.is-friends {
+  color: #2F6B4F;
+  border-color: #2F6B4F;
+  background: rgba(47, 107, 79, 0.08);
+}
+
+body.dark-mode .profile-col-visibility-badge.is-friends {
+  color: #52B788;
+  border-color: #52B788;
+  background: rgba(82, 183, 136, 0.12);
+}
+
+.profile-col-visibility-badge.is-followed {
+  color: var(--accent, #E84E1B);
+  border-color: var(--accent, #E84E1B);
+  background: rgba(232, 78, 27, 0.08);
+}
+
+/* Metadatos */
+.profile-col-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  color: var(--fg-dim, #68655D);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.dark-mode .profile-col-meta-row {
+  color: var(--fg-dim, #9A9A9A);
+}
+
+.profile-col-works-count {
+  font-weight: 700;
+  color: var(--fg, #141411);
+}
+
+body.dark-mode .profile-col-works-count {
+  color: var(--fg, #F8F1DF);
+}
+
+.profile-col-meta-sep {
+  opacity: 0.4;
+}
+
+.profile-col-desc {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Botones de acción en fila */
+.profile-col-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.profile-col-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1.5px solid var(--border-strong, #141411);
+  background: var(--bg-raised, #ECE6D8);
+  color: var(--fg, #141411);
+  cursor: pointer;
+  border-radius: 0 !important;
+  text-decoration: none;
+  transition: all 0.1s ease;
+  touch-action: manipulation;
+}
+
+body.dark-mode .profile-col-action-btn {
+  border-color: var(--border-strong, #4E4E48);
+  background: #252522;
+  color: var(--fg, #F8F1DF);
+}
+
+.profile-col-action-btn:hover {
+  border-color: var(--accent, #E84E1B);
+  color: var(--accent, #E84E1B);
+  background: var(--bg-panel, #F8F1DF);
+  transform: translate(-1px, -1px);
+  box-shadow: 2px 2px 0 var(--border-strong, #141411);
+}
+
+body.dark-mode .profile-col-action-btn:hover {
+  border-color: var(--accent, #FF7528);
+  color: var(--accent, #FF7528);
+  background: #1C1C1A;
+  box-shadow: 2px 2px 0 var(--border-strong, #4E4E48);
+}
+
+.profile-col-action-btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: none;
+}
+
+.profile-col-action-btn.btn-delete {
+  color: var(--fg-dim, #68655D);
+}
+
+body.dark-mode .profile-col-action-btn.btn-delete {
+  color: var(--fg-dim, #9A9A9A);
+}
+
+.profile-col-action-btn.btn-delete:hover,
+.profile-col-action-btn.btn-delete:focus-visible {
+  background: #D6201D;
+  border-color: #D6201D;
+  color: #FFFFFF;
+  box-shadow: 2px 2px 0 var(--border-strong, #141411);
+}
+
+body.dark-mode .profile-col-action-btn.btn-delete:hover,
+body.dark-mode .profile-col-action-btn.btn-delete:focus-visible {
+  box-shadow: 2px 2px 0 var(--border-strong, #4E4E48);
+}
+
+@media (max-width: 360px) {
+  .profile-rich-collection-card {
+    gap: 8px;
+    padding: 8px 10px;
+  }
+  .profile-col-thumb-square {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
+  }
+  .profile-col-action-btn {
+    width: 26px;
+    height: 26px;
+  }
+}
+
 .profile-collection-card-head {
   display: flex;
   align-items: flex-start;
