@@ -23,38 +23,14 @@ let currentSearchResults = [];
 let cacheObrasGlobales = null;
 
 function renderizarTarjetaObra(obra, distance = null) {
-  return renderObraCard(obra, { variant: 'search', className: 'nearby-item search-work-card', distance: distance != null && state.userLocation && Number.isFinite(distance) ? formatearDistancia(distance) : '' });
-
-  const catClave = normalizarCategoria(obra.categoria);
-  const catTexto = formatCategoria(obra.categoria);
-  const metaCat = CATEGORY_META[catClave] || CATEGORY_META['otro'];
-  const catColor = metaCat?.color || '#E84E1B';
-
-  const titulo = escapeHtml(obra.nombre_obra || t('sheet_untitled_work'));
-  const arq = escapeHtml(obra.arquitecto || t('sheet_architect_unknown'));
-  const anio = obra.año_construccion ? escapeHtml(String(obra.año_construccion)) : '';
-  const ciudad = obra.ciudad || obra.place ? escapeHtml(String(obra.ciudad || obra.place)) : '';
-  
-  const metaParts = [arq];
-  if (anio) metaParts.push(anio);
-  if (ciudad) metaParts.push(ciudad);
-  if (distance != null && state.userLocation && Number.isFinite(distance)) {
-    metaParts.push(formatearDistancia(distance));
-  }
-
-  return `
-    <button type="button" class="nearby-item search-work-card" data-feature-id="${escapeHtml(obra.featureId)}" data-lng="${obra.coordenadas[0]}" data-lat="${obra.coordenadas[1]}" aria-label="${t('search_view_work_aria', { title: titulo })}">
-      <div class="search-card-main">
-        <div class="search-card-top-row">
-          <span class="search-cat-tag" style="color:${catColor};">${escapeHtml(catTexto)}</span>
-        </div>
-        <div class="search-card-title">${titulo}</div>
-        <div class="search-card-meta">
-          <span class="search-meta-text">${metaParts.join(' · ')}</span>
-        </div>
-      </div>
-    </button>
-  `;
+  const distText = distance != null && state.userLocation && Number.isFinite(distance) ? formatearDistancia(distance) : '';
+  return renderObraCard(obra, {
+    variant: 'search',
+    className: 'nearby-item search-work-card',
+    distance: distText,
+    featureId: obra.featureId || obra.id,
+    tag: 'article'
+  });
 }
 
 export function initSearchUI() {

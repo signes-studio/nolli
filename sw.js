@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nolli-shell-v88';
+const CACHE_NAME = 'nolli-shell-v89';
 const CATALOG_FRESHNESS_MINUTES = 60;
 const CATALOG_CACHE_TTL_MS = CATALOG_FRESHNESS_MINUTES * 60 * 1000;
 const APP_SHELL = [
@@ -45,6 +45,7 @@ const APP_SHELL = [
   './js/siteFooter.js',
   './js/imageProxy.js',
   './js/state.js',
+  './js/workCard.js',
   './js/i18n.js',
   './locales/es.json',
   './locales/en.json',

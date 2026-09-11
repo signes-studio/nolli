@@ -786,19 +786,11 @@ function renderList() {
     return;
   }
 
-  list.innerHTML = results.map((obra) => renderObraCard(obra, { variant: 'my-places', className: 'my-place-item', featureId: obra.id })).join('');
-  if (window.lucide) window.lucide.createIcons();
-  return;
-
-  list.innerHTML = results.map((obra) => `
-    <button type="button" class="my-place-item" data-feature-id="${obra.id}">
-      <div class="my-place-item-main">
-        <strong class="my-place-item-title">${escapeHtml(obra.nombre_obra)}</strong>
-        <span class="my-place-meta">${escapeHtml(obra.arquitecto || 'Arquitecto no especificado')}</span>
-      </div>
-      <span class="my-place-arrow">→</span>
-    </button>
-  `).join('');
+  list.innerHTML = results.map((obra) => renderObraCard(obra, {
+    variant: 'my-places',
+    className: 'my-place-item',
+    featureId: obra.id
+  })).join('');
   if (window.lucide) window.lucide.createIcons();
 }
 
@@ -815,17 +807,14 @@ function renderCollections() {
     const rows = collectionItems.map((item) => {
       const obra = state.OBRAS.find((candidate) => String(candidate.id) === String(item.building_id));
       if (!obra) return '';
-      return `
-        <div class="my-collection-item-row">
-          <button type="button" class="my-place-item in-collection" data-feature-id="${obra.id}">
-            <div class="my-place-item-main">
-              <strong class="my-place-item-title">${escapeHtml(obra.nombre_obra)}</strong>
-              <span class="my-place-meta">${escapeHtml(obra.arquitecto || '')}</span>
-            </div>
-          </button>
-          <button type="button" class="btn-remove-collection" data-collection-id="${collection.id}" data-remove-from-collection="${obra.id}" title="Quitar de la lista" aria-label="Quitar de la lista">✕</button>
-        </div>
-      `;
+      const removeBtn = `<button type="button" class="btn-remove-collection" data-collection-id="${collection.id}" data-remove-from-collection="${obra.id}" title="${escapeHtml(t('profile_remove_from_list_title', null, 'Quitar de la lista'))}" aria-label="${escapeHtml(t('profile_remove_from_list_title', null, 'Quitar de la lista'))}">✕</button>`;
+      return renderObraCard(obra, {
+        variant: 'collection-item',
+        className: 'my-collection-item-card my-place-item in-collection',
+        featureId: obra.id,
+        action: removeBtn,
+        actionClass: 'collection-item-remove-slot'
+      });
     }).join('') || `<div class="nearby-empty" style="font-size:10px;">${t('empty_list_no_works')}</div>`;
 
     const collectionEmoji = collection.icon ? `<span style="margin-right: 6px;">${escapeHtml(collection.icon)}</span>` : '';

@@ -1172,19 +1172,181 @@ body.dark-mode .nolli-empty-action:hover {
   opacity: 1;
 }
 
-/* Fuente única de presentación para obras en listas, búsqueda, radar y perfil. */
-.obra-card { display:flex; gap:12px; align-items:stretch; width:100%; padding:10px; background:var(--bg-panel, #F8F1DF); border:1px solid var(--border, #D6D0BF); color:var(--fg, #141411); text-align:left; cursor:pointer; }
-.obra-card:hover, .obra-card:focus-visible { border-color:var(--fg, #141411); outline:none; }
-.obra-card__thumb { width:82px; min-width:82px; height:82px; overflow:hidden; background:var(--bg-raised, #EEE8D8); }
-.obra-card__thumb img { width:100%; height:100%; object-fit:cover; display:block; }
-.obra-card__body { min-width:0; flex:1; display:flex; flex-direction:column; gap:4px; justify-content:center; }
-.obra-card__topline { display:flex; justify-content:space-between; gap:8px; align-items:center; }
-.obra-card__category { color:var(--obra-category); font:700 10px/1 Inter, sans-serif; letter-spacing:.025em; }
-.obra-card__importance { display:inline-block; width:7px; height:7px; margin-right:5px; border-radius:50%; background:currentColor; vertical-align:baseline; }
-.obra-card__importance.importance-0 { width:9px; height:9px; box-shadow:0 0 0 1px var(--fg, #141411); }
-.obra-card__importance.importance-3 { opacity:.4; }
-.obra-card__distance { font:700 10px/1 Inter, sans-serif; color:var(--accent, #E84E1B); white-space:nowrap; }
-.obra-card__title { margin:0; font:800 16px/1.05 'League Spartan', sans-serif; overflow:hidden; text-overflow:ellipsis; }
-.obra-card__meta { margin:0; color:var(--fg-dim, #68655D); font:500 11px/1.35 Inter, sans-serif; overflow:hidden; text-overflow:ellipsis; }
-.obra-card__action { align-self:center; }
-.obra-card--radar { margin-bottom:8px; }
+/* Fuente única de presentación para obras en listas, búsqueda, radar, perfil y mis lugares */
+.obra-card {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+  width: 100%;
+  padding: 10px;
+  background: var(--bg-panel, #F8F1DF);
+  border: 1.5px solid var(--border, #D6D0BF);
+  color: var(--fg, #141411);
+  text-align: left;
+  cursor: pointer;
+  box-sizing: border-box;
+  text-decoration: none;
+  position: relative;
+  transition: border-color 0.12s ease, background-color 0.12s ease, transform 0.08s ease;
+}
+button.obra-card {
+  font: inherit;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.obra-card:hover,
+.obra-card:focus-visible {
+  border-color: var(--fg, #141411);
+  outline: none;
+}
+.obra-card:active {
+  transform: translateY(1px);
+}
+.obra-card__thumb {
+  width: 76px;
+  min-width: 76px;
+  height: 76px;
+  overflow: hidden;
+  background: var(--bg-raised, #EEE8D8);
+  flex-shrink: 0;
+}
+.obra-card__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.obra-card__body {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  justify-content: center;
+}
+.obra-card__topline {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+}
+.obra-card__category {
+  color: var(--obra-category, var(--fg-dim));
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.obra-card__importance {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50% !important;
+  background: currentColor;
+  flex-shrink: 0;
+}
+.obra-card__importance.importance-0 {
+  width: 8px;
+  height: 8px;
+  box-shadow: 0 0 0 1.5px var(--fg, #141411);
+}
+.obra-card__importance.importance-1 {
+  width: 7px;
+  height: 7px;
+}
+.obra-card__importance.importance-2 {
+  width: 6px;
+  height: 6px;
+  opacity: 0.85;
+}
+.obra-card__importance.importance-3 {
+  width: 5px;
+  height: 5px;
+  opacity: 0.5;
+}
+.obra-card__distance {
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--accent, #E84E1B);
+  white-space: nowrap;
+}
+.obra-card__title {
+  margin: 0;
+  font-family: 'League Spartan', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--fg, #141411);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-transform: none !important;
+}
+.obra-card__meta {
+  margin: 0;
+  color: var(--fg-dim, #68655D);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-transform: none !important;
+}
+.obra-card__action {
+  align-self: center;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* Variantes contextuales */
+.obra-card--radar {
+  margin-bottom: 8px;
+}
+.obra-card--search {
+  margin-bottom: 6px;
+}
+.obra-card--mobile-search {
+  margin-bottom: 4px;
+  padding: 8px 10px;
+}
+.obra-card--profile {
+  margin-bottom: 0;
+}
+.obra-card--my-places {
+  margin-bottom: 6px;
+}
+.obra-card--collection-item {
+  padding: 6px 8px;
+  border-width: 1px;
+}
+.obra-card--collection-item .obra-card__thumb {
+  width: 52px;
+  min-width: 52px;
+  height: 52px;
+}
+.obra-card--collection-item .obra-card__title {
+  font-size: 13px;
+}
+.obra-card--compact {
+  padding: 6px 8px;
+  gap: 8px;
+}
+.obra-card--compact .obra-card__thumb {
+  width: 56px;
+  min-width: 56px;
+  height: 56px;
+}
+.obra-card--compact .obra-card__title {
+  font-size: 13px;
+}
+

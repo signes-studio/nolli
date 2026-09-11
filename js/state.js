@@ -207,38 +207,6 @@ export function extraerAnioDefensivo(valor) {
   return match ? match[0] : null;
 }
 
-export function formatCategoria(valor) {
-  const norm = normalizarCategoria(valor);
-  const mapKeys = {
-    residencial: 'cat_residential',
-    dotacional_equipamiento: 'cat_civic',
-    industrial_logistico: 'cat_industrial',
-    religioso_funerario: 'cat_religious',
-    comercial_terciario: 'cat_commercial',
-    espacio_publico_paisaje: 'cat_public_space',
-    infraestructura_urbanismo: 'cat_infrastructure',
-    otro: 'cat_other',
-  };
-  const key = mapKeys[norm];
-  if (key && typeof window !== 'undefined' && window.__nolli_t) {
-    const translated = window.__nolli_t(key);
-    if (translated && translated !== key) return translated.toUpperCase();
-  }
-  return {
-    residencial: 'RESIDENCIAL',
-    dotacional_equipamiento: 'DOTACIONAL Y EQUIPAMIENTO',
-    industrial_logistico: 'INDUSTRIAL Y LOGÍSTICO',
-    religioso_funerario: 'RELIGIOSO Y FUNERARIO',
-    comercial_terciario: 'COMERCIAL Y TERCIARIO',
-    espacio_publico_paisaje: 'ESPACIO PÚBLICO Y PAISAJE',
-    infraestructura_urbanismo: 'INFRAESTRUCTURA Y URBANISMO',
-    otro: 'OTRO',
-  }[norm] || 'OTRO';
-}
-
-// Compatibilidad para consumidores externos anteriores a la centralización.
-export const nombreCategoria = formatCategoria;
-
 export const CATEGORY_COLORS = {
   residencial: '#E95C0C',
   dotacional_equipamiento: '#EFBC02',
@@ -248,7 +216,7 @@ export const CATEGORY_COLORS = {
   espacio_publico_paisaje: '#0D682F',
   infraestructura_urbanismo: '#E41F23',
   otro: '#691B14'
-};                                   
+};
 
 export const CATEGORY_NAMES = {
   residencial: 'RESIDENCIAL',
@@ -277,53 +245,83 @@ export const CATEGORY_META = {
   dotacional_equipamiento: {
     key: 'dotacional_equipamiento',
     label: 'Dotacional / Equipamiento',
-    labelShort: 'DOTACIONAL Y EQUIPAMIENTO',
+    labelShort: 'DOTACIONAL / EQUIPAMIENTO',
     color: '#EFBC02',
     icon: 'building-2'
   },
   industrial_logistico: {
     key: 'industrial_logistico',
     label: 'Industrial / Logístico',
-    labelShort: 'INDUSTRIAL Y LOGÍSTICO',
+    labelShort: 'INDUSTRIAL / LOGÍSTICO',
     color: '#064773',
     icon: 'factory'
   },
   religioso_funerario: {
     key: 'religioso_funerario',
     label: 'Religioso / Funerario',
-    labelShort: 'RELIGIOSO Y FUNERARIO',
+    labelShort: 'RELIGIOSO / FUNERARIO',
     color: '#F2ACCD',
     icon: 'cross'
   },
   comercial_terciario: {
     key: 'comercial_terciario',
     label: 'Comercial / Terciario',
-    labelShort: 'COMERCIAL Y TERCIARIO',
+    labelShort: 'COMERCIAL / TERCIARIO',
     color: '#4388C6',
     icon: 'shopping-bag'
   },
   espacio_publico_paisaje: {
     key: 'espacio_publico_paisaje',
     label: 'Espacio Público / Paisaje',
-    labelShort: 'ESPACIO PÚBLICO Y PAISAJE',
+    labelShort: 'ESPACIO PÚBLICO / PAISAJE',
     color: '#0D682F',
     icon: 'trees'
   },
   infraestructura_urbanismo: {
     key: 'infraestructura_urbanismo',
     label: 'Infraestructura / Urbanismo',
-    labelShort: 'INFRAESTRUCTURA Y URBANISMO',
+    labelShort: 'INFRAESTRUCTURA / URBANISMO',
     color: '#E41F23',
     icon: 'bridge'
   },
   otro: {
     key: 'otro',
-    label: 'Otros',
+    label: 'Otro',
     labelShort: 'OTRO',
     color: '#691B14',
     icon: 'map-pin'
   }
 };
+
+export function formatCategoria(valor, options = {}) {
+  const norm = normalizarCategoria(valor);
+  const meta = CATEGORY_META[norm] || CATEGORY_META.otro;
+  const mapKeys = {
+    residencial: 'cat_residential',
+    dotacional_equipamiento: 'cat_civic',
+    industrial_logistico: 'cat_industrial',
+    religioso_funerario: 'cat_religious',
+    comercial_terciario: 'cat_commercial',
+    espacio_publico_paisaje: 'cat_public_space',
+    infraestructura_urbanismo: 'cat_infrastructure',
+    otro: 'cat_other',
+  };
+  const key = mapKeys[norm];
+  let text = meta ? meta.label : 'Otro';
+  if (key && typeof window !== 'undefined' && window.__nolli_t) {
+    const translated = window.__nolli_t(key);
+    if (translated && translated !== key) {
+      text = translated;
+    }
+  }
+  if (options && options.uppercase) {
+    return (meta?.labelShort || text).toUpperCase();
+  }
+  return text;
+}
+
+// Compatibilidad para consumidores externos anteriores a la centralización.
+export const nombreCategoria = formatCategoria;
 
 export function escapeHtml(str) {
   if (str == null) return '';

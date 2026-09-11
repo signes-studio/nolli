@@ -850,13 +850,6 @@ function renderBuildingsFeed(buildings, tabKey) {
   content.innerHTML = '';
   
   const htmlChunks = buildings.map((obra) => {
-    const photo = getOptimizedPhotoUrl(obra.foto_miniatura || obra.foto_url || '', { width: 160 });
-    const title = obra.nombre_obra || 'Obra de arquitectura';
-    const year = obra.año_construccion || 'S. XX';
-    const architect = obra.arquitectos ? (Array.isArray(obra.arquitectos) ? obra.arquitectos.join(', ') : obra.arquitectos) : (obra.arquitecto || 'Arquitecto');
-    const city = obra.place || obra.ciudad || '';
-    const metaParts = [year, architect, city].filter(Boolean).join(' · ');
-
     const actionBtnHtml = isVisited
       ? `<button type="button" class="profile-card-action-btn danger" data-remove-visited="${obra.id}" title="${escapeHtml(t('profile_remove_visited_aria', null, 'Quitar de visitados'))}" aria-label="${escapeHtml(t('profile_remove_visited_aria', null, 'Quitar de visitados'))}">
           <i data-lucide="check" width="12" height="12"></i>
@@ -868,24 +861,6 @@ function renderBuildingsFeed(buildings, tabKey) {
         </button>`;
 
     return `<div class="profile-feed-row"><a href="${getUrlPrefix()}/obra/${encodeURIComponent(obra.id || obra.featureId)}" class="profile-feed-item">${renderObraCard(obra, { variant: 'profile', featureId: obra.id || obra.featureId })}</a><div class="profile-feed-row-actions">${actionBtnHtml}</div></div>`;
-    /*
-      <div class="profile-feed-row">
-        <a href="${getUrlPrefix()}/obra/${encodeURIComponent(obra.id || obra.featureId)}" class="profile-feed-item" aria-label="${escapeHtml(t('sheet_view_map_btn', null, 'Ver'))} ${escapeHtml(title)}">
-          ${photo ? `
-            <img src="${escapeHtml(photo)}" alt="${escapeHtml(title)}" class="profile-feed-thumb" loading="lazy" onerror="this.outerHTML='<div class=\\'profile-feed-thumb-fallback\\'></div>'">
-          ` : `
-            <div class="profile-feed-thumb-fallback"></div>
-          `}
-          <div class="profile-feed-info">
-            <h3 class="profile-feed-title">${escapeHtml(title)}</h3>
-            <p class="profile-feed-meta">${escapeHtml(metaParts)}</p>
-          </div>
-        </a>
-        <div class="profile-feed-row-actions">
-          ${actionBtnHtml}
-        </div>
-      </div>
-    `; */
   });
   
   renderInChunks(content, htmlChunks, 10, () => {
@@ -944,23 +919,13 @@ function renderCollectionsFeed() {
           </div>
         `;
       }
-      const photo = getOptimizedPhotoUrl(obra.foto_miniatura || obra.foto_url || '', { width: 160 });
-      const title = obra.nombre_obra || 'Obra';
-      const architect = obra.arquitecto || obra.arquitectos || '';
-      const year = obra.año_construccion ? ` · ${obra.año_construccion}` : '';
-
+      const removeBtn = `<button type="button" class="profile-collection-item-remove-btn" data-collection-id="${col.id}" data-remove-item="${obra.id}" title="${escapeHtml(t('profile_remove_from_list_title', null, 'Quitar de la lista'))}">✕</button>`;
       return `
         <div class="profile-collection-work-row">
-          <a href="${getUrlPrefix()}/obra/${encodeURIComponent(obra.id)}" class="profile-collection-work-link">
-            ${photo ? `
-              <img src="${escapeHtml(photo)}" alt="${escapeHtml(title)}" class="profile-collection-work-thumb" loading="lazy" onerror="this.style.display='none'">
-            ` : ''}
-            <div style="min-width:0; flex:1;">
-              <div class="profile-collection-work-title">${escapeHtml(title)}</div>
-              <div class="profile-collection-work-meta">${escapeHtml(architect)}${escapeHtml(year)}</div>
-            </div>
+          <a href="${getUrlPrefix()}/obra/${encodeURIComponent(obra.id)}" class="profile-collection-work-link" style="flex:1; min-width:0; text-decoration:none;">
+            ${renderObraCard(obra, { variant: 'collection-item', featureId: obra.id, showPhoto: true })}
           </a>
-          <button type="button" class="profile-collection-item-remove-btn" data-collection-id="${col.id}" data-remove-item="${obra.id}" title="${escapeHtml(t('profile_remove_from_list_title', null, 'Quitar de la lista'))}">✕</button>
+          ${removeBtn}
         </div>
       `;
     }).join('') || `<div style="font-size:11px; color:var(--fg-dim); padding:6px 0;">${t('profile_empty_collection_items', null, '[ Lista sin obras añadidas aún ]')}</div>`;

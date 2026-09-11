@@ -13,6 +13,7 @@ import { actualizarFuenteMapa } from './mapData.js';
 import { activarFiltroBusquedaEnMapa } from './searchUI.js';
 import { localizarDispositivo } from './mapController.js';
 import { t } from './i18n.js';
+import { renderObraCard } from './workCard.js';
 
 export function initMobileBottomNav() {
   const bottomBar = document.getElementById('mobile-bottom-bar');
@@ -673,35 +674,12 @@ function initMobileSearchWidget() {
         </button>
       `;
 
-      const listHtml = matches.slice(0, 40).map((obra) => {
-        const catClave = normalizarCategoria(obra.categoria);
-        const catTexto = formatCategoria(obra.categoria);
-        const metaCat = CATEGORY_META[catClave] || CATEGORY_META['otro'];
-        const catColor = metaCat?.color || '#E84E1B';
-
-        const titulo = escapeHtml(obra.nombre_obra || t('sheet_untitled_work'));
-        const arq = escapeHtml(obra.arquitecto || t('sheet_architect_unknown'));
-        const anio = obra.año_construccion ? escapeHtml(String(obra.año_construccion)) : '';
-        const ciudad = obra.ciudad || obra.place ? escapeHtml(String(obra.ciudad || obra.place)) : '';
-
-        const metaParts = [arq];
-        if (anio) metaParts.push(anio);
-        if (ciudad) metaParts.push(ciudad);
-
-        return `
-          <button type="button" class="mobile-search-item" data-obra-id="${escapeHtml(obra.id || obra.featureId)}" aria-label="${t('search_view_work_aria', { title: titulo })}">
-            <div class="mobile-search-item-main">
-              <div class="mobile-search-item-top-row">
-                <span class="mobile-search-cat-tag" style="color: ${catColor};">${escapeHtml(catTexto)}</span>
-              </div>
-              <div class="mobile-search-item-title">${titulo}</div>
-              <div class="mobile-search-item-sub">
-                <span class="mobile-search-meta-text">${metaParts.join(' · ')}</span>
-              </div>
-            </div>
-          </button>
-        `;
-      }).join('');
+      const listHtml = matches.slice(0, 40).map((obra) => renderObraCard(obra, {
+        variant: 'mobile-search',
+        className: 'mobile-search-item',
+        featureId: obra.id || obra.featureId,
+        tag: 'article'
+      })).join('');
 
       resultsContainer.innerHTML = headerActionHtml + listHtml;
       if (window.lucide) window.lucide.createIcons({ context: resultsContainer });

@@ -8,7 +8,6 @@ import { getOptimizedPhotoUrl } from './imageProxy.js';
 import { CURATED_ROUTES, matchWorksForRoute } from './itinerariesConfig.js';
 import { t } from './i18n.js';
 import { renderObraCard } from './workCard.js';
-import { renderObraCard } from './workCard.js';
 
 export { CURATED_ROUTES, matchWorksForRoute };
 
@@ -291,43 +290,13 @@ export function renderRadarList(works, container, countSpan) {
     if (radarSort === 'importance') return Number(a.importancia ?? 99) - Number(b.importancia ?? 99) || a._dist - b._dist;
     return a._dist - b._dist;
   });
-  container.innerHTML = sortedWorks.slice(0, 50).map((obra) => renderObraCard(obra, { variant: 'radar', className: 'radar-proximity-card', featureId: obra.featureId || obra.id, distance: formatearDistanciaRadar(obra._dist), showPhoto: Boolean(state.sessionToken) })).join('');
-  /* Legacy renderer kept below for migration reference; bypassed by the shared card. */
-  /*
-  container.innerHTML = works.slice(0, 50).map((obra) => {
-    const catKey = obra.categoria || 'otro';
-    const metaCat = CATEGORY_META[catKey] || CATEGORY_META['otro'];
-    const catColor = metaCat?.color || '#E84E1B';
-    const distText = formatearDistanciaRadar(obra._dist);
-    const photo = state.sessionToken ? getOptimizedPhotoUrl(obra.foto_url || obra.foto_miniatura || '', { width: 160 }) : '';
-    const city = obra.place || obra.ciudad || '';
-    const architects = obra.arquitectos || t('sheet_architect_unknown');
-    const year = obra.año_construccion ? ` · ${escapeHtml(obra.año_construccion)}` : '';
-
-    return `
-      <article class="radar-proximity-card" data-radar-feature-id="${escapeHtml(obra.featureId || obra.id)}" role="button" tabindex="0" aria-label="${escapeHtml(obra.nombre_obra)}">
-        <div class="radar-proximity-header">
-          <span class="radar-vermillon-badge">${distText}</span>
-          <span class="radar-cat-badge" style="color:${catColor};">${escapeHtml(formatCategoria(obra.categoria))}</span>
-        </div>
-        <div class="radar-proximity-body">
-          ${photo ? `
-            <div class="radar-proximity-thumb">
-              <img src="${escapeHtml(photo)}" alt="${escapeHtml(obra.nombre_obra)}" loading="lazy" onerror="this.parentElement.style.display='none'">
-            </div>
-          ` : ''}
-          <div class="radar-proximity-info">
-            <h4 class="radar-proximity-title">${escapeHtml(obra.nombre_obra)}</h4>
-            <div class="radar-proximity-meta">
-              <span class="architect-pill-badge">${escapeHtml(architects)}</span>
-              ${year}
-            </div>
-            ${city ? `<div class="radar-proximity-city">${escapeHtml(city)}</div>` : ''}
-          </div>
-        </div>
-      </article>
-    `;
-  }).join(''); */
+  container.innerHTML = sortedWorks.slice(0, 50).map((obra) => renderObraCard(obra, {
+    variant: 'radar',
+    className: 'radar-proximity-card',
+    featureId: obra.featureId || obra.id,
+    distance: formatearDistanciaRadar(obra._dist),
+    showPhoto: Boolean(state.sessionToken)
+  })).join('');
 
   window.lucide?.createIcons({ context: document.getElementById('itinerary-filter-badge') });
 }

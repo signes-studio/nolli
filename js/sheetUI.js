@@ -11,6 +11,7 @@ import { getOptimizedPhotoUrl } from './imageProxy.js';
 import { showNeoToast } from './renderUtils.js';
 import { addFilterChip } from './filterEngine.js';
 import { t, getUrlPrefix } from './i18n.js';
+import { renderObraCard } from './workCard.js';
 
 const sheet = document.getElementById('sheet');
 let organizerMode = 'collections';
@@ -76,34 +77,13 @@ async function abrirFichaArquitecto(nombreArquitecto) {
   const countLabel = obras.length === 1 ? t('architect_single_work_label') : t('architect_multiple_works_label');
   document.getElementById('architect-profile-count').textContent = t('architect_works_count', { count: obras.length, label: countLabel });
 
-  works.innerHTML = obras.length ? obras.map((obra) => {
-    const catKey = obra.categoria || 'otro';
-    const metaCat = CATEGORY_META[catKey] || CATEGORY_META['otro'];
-    const catColor = metaCat?.color || '#E95C0C';
-    const yearText = obra.año_construccion || '----';
-    const cityName = obra.ciudad || '';
-    return `
-      <button type="button" class="architect-work-card" data-architect-work-id="${escapeHtml(obra.featureId)}" aria-label="Ver ficha de ${escapeHtml(obra.nombre_obra)}">
-        <div class="architect-work-year-box">
-          <span class="architect-work-year-val">${escapeHtml(yearText)}</span>
-        </div>
-        <div class="architect-work-info">
-          <div class="architect-work-title">${escapeHtml(obra.nombre_obra)}</div>
-          <div class="architect-work-meta-row">
-            <span class="architect-cat-pill" style="border-left: 3px solid ${catColor};">
-              ${escapeHtml(formatCategoria(obra.categoria))}
-            </span>
-            ${cityName ? `<span class="architect-city-tag">· ${escapeHtml(cityName)}</span>` : ''}
-          </div>
-        </div>
-        ${obra.foto_url && isValidHttpsUrl(obra.foto_url) && state.sessionToken ? `
-          <div class="architect-work-thumb-wrap">
-            <img src="${escapeHtml(getOptimizedPhotoUrl(obra.foto_url, { width: 96 }))}" alt="${escapeHtml(obra.nombre_obra)}" class="architect-work-thumb" loading="lazy">
-          </div>
-        ` : ''}
-      </button>
-    `;
-  }).join('') : `<p class="architect-profile-empty">${t('architect_no_works')}</p>`;
+  works.innerHTML = obras.length ? obras.map((obra) => renderObraCard(obra, {
+    variant: 'architect',
+    className: 'architect-work-card',
+    featureId: obra.featureId || obra.id,
+    showPhoto: Boolean(obra.foto_url && isValidHttpsUrl(obra.foto_url) && state.sessionToken),
+    tag: 'button'
+  })).join('') : `<p class="architect-profile-empty">${t('architect_no_works')}</p>`;
 
   window.lucide?.createIcons({ context: modal });
 }
