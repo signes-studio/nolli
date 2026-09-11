@@ -55,7 +55,8 @@ export function renderObraCard(obra, {
     ${photoUrl ? `<div class="obra-card__thumb"><img src="${escapeHtml(photoUrl)}" alt="${escapeHtml(title)}" loading="lazy" onerror="this.parentElement.style.display='none'"></div>` : ''}
     <div class="obra-card__body">
       <div class="obra-card__topline">
-        <span class="obra-card__category" style="--obra-category:${color}; color:${color};">
+        <span class="obra-card__category" style="--obra-category:${color};">
+          <span class="obra-card__cat-pip" style="background:${color};"></span>
           ${hasImportance ? `<i class="obra-card__importance importance-${importanceLevel}" title="${escapeHtml(importanceLabel)}" aria-label="${escapeHtml(importanceLabel)}"></i>` : ''}
           ${escapeHtml(formattedCat)}
           ${hasImportance && importanceLevel === 0 ? `<span class="obra-card__badge-hito">HITO</span>` : ''}

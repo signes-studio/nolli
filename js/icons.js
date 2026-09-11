@@ -113,8 +113,13 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
   const isPending = Boolean(options.isPending || color === '#FFCC00');
   const isLightSelection = color === '#FFFFFF' || color === '#ffffff' || color === '#F5F4F0' || color === '#f5f4f0';
   const isDarkSelection = color === '#141411';
-  const strokeColor = isDarkSelection ? '#F8F1DF' : '#141411';
-  const haloColor = isDarkSelection ? '#141411' : '#F8F1DF';
+  const isSelected = Boolean(options.isSelected || isLightSelection || isDarkSelection);
+  const isDark = Boolean(options.isDark);
+  const isFullColor = Boolean(options.isFullColor);
+
+  // Paleta estructural Neo-Bauhaus: tinta arquitectónica y halo de recorte técnico
+  const inkColor = isDark ? '#FFFFFF' : '#141411';
+  const haloColor = isDark ? '#141411' : '#F8F1DF';
 
   if (importance === 0) {
     // 0: OBRA CUMBRE — Diamante técnico Neo-Bauhaus (45°), escala moderada y limpia
@@ -122,25 +127,40 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
     ctx.translate(c, c);
     ctx.rotate(Math.PI / 4);
 
-    const half = s * 0.20;
+    const half = s * 0.16;
 
-    // Halo perimetral fino
+    // Halo perimetral técnico
     ctx.fillStyle = haloColor;
-    ctx.fillRect(-half - 1.8, -half - 1.8, (half + 1.8) * 2, (half + 1.8) * 2);
+    ctx.fillRect(-half - 2, -half - 2, (half + 2) * 2, (half + 2) * 2);
 
-    // Relleno cromático de categoría
-    ctx.fillStyle = isLightSelection ? '#FFFFFF' : (isDarkSelection ? '#141411' : color);
-    ctx.fillRect(-half, -half, half * 2, half * 2);
+    if (isSelected) {
+      // Estado seleccionado: fondo invertido blanco/negro con alto contraste
+      ctx.fillStyle = inkColor;
+      ctx.fillRect(-half, -half, half * 2, half * 2);
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = haloColor;
+      ctx.strokeRect(-half, -half, half * 2, half * 2);
 
-    // Contorno técnico negro
-    ctx.lineWidth = 1.8;
-    ctx.strokeStyle = strokeColor;
-    ctx.strokeRect(-half, -half, half * 2, half * 2);
+      ctx.fillStyle = haloColor;
+      const inner = half * 0.45;
+      ctx.fillRect(-inner, -inner, inner * 2, inner * 2);
+    } else {
+      // Estado disciplinado estándar: cuerpo en tinta negra con pip central de categoría
+      ctx.fillStyle = isFullColor ? color : inkColor;
+      ctx.fillRect(-half, -half, half * 2, half * 2);
 
-    // Núcleo técnico central
-    ctx.fillStyle = strokeColor;
-    const inner = half * 0.32;
-    ctx.fillRect(-inner, -inner, inner * 2, inner * 2);
+      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = isFullColor ? inkColor : haloColor;
+      ctx.strokeRect(-half, -half, half * 2, half * 2);
+
+      // Núcleo de categoría: gema cuadrada central de alta vibración
+      const inner = half * 0.46;
+      ctx.fillStyle = isFullColor ? inkColor : color;
+      ctx.fillRect(-inner, -inner, inner * 2, inner * 2);
+      ctx.lineWidth = 0.8;
+      ctx.strokeStyle = isFullColor ? haloColor : inkColor;
+      ctx.strokeRect(-inner, -inner, inner * 2, inner * 2);
+    }
 
     ctx.restore();
 
@@ -150,33 +170,50 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
       drawPendingBadge(ctx, c, s);
     }
   } else if (importance === 1) {
-    // 1: IMPRESCINDIBLE — Nodo circular de color limpio sin anillo blanco exterior masivo
-    const r = s * 0.18;
+    // 1: IMPRESCINDIBLE — Diana técnica con núcleo de categoría
+    const r = s * 0.14;
 
-    // Halo de contraste perimetral sutil
+    // Halo perimetral
     ctx.fillStyle = haloColor;
     ctx.beginPath();
-    ctx.arc(c, c, r + 1.6, 0, Math.PI * 2);
+    ctx.arc(c, c, r + 1.8, 0, Math.PI * 2);
     ctx.fill();
 
-    // Relleno cromático de categoría
-    ctx.fillStyle = isLightSelection ? '#FFFFFF' : (isDarkSelection ? '#141411' : color);
-    ctx.beginPath();
-    ctx.arc(c, c, r, 0, Math.PI * 2);
-    ctx.fill();
+    if (isSelected) {
+      ctx.fillStyle = inkColor;
+      ctx.beginPath();
+      ctx.arc(c, c, r, 0, Math.PI * 2);
+      ctx.fill();
 
-    // Contorno técnico negro
-    ctx.lineWidth = 1.8;
-    ctx.strokeStyle = strokeColor;
-    ctx.beginPath();
-    ctx.arc(c, c, r, 0, Math.PI * 2);
-    ctx.stroke();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = haloColor;
+      ctx.stroke();
 
-    // Micro-núcleo central de precisión
-    ctx.fillStyle = strokeColor;
-    ctx.beginPath();
-    ctx.arc(c, c, r * 0.32, 0, Math.PI * 2);
-    ctx.fill();
+      ctx.fillStyle = haloColor;
+      ctx.beginPath();
+      ctx.arc(c, c, r * 0.45, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      // Cuerpo en tinta negra con núcleo de color de categoría
+      ctx.fillStyle = isFullColor ? color : inkColor;
+      ctx.beginPath();
+      ctx.arc(c, c, r, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = isFullColor ? inkColor : haloColor;
+      ctx.stroke();
+
+      // Pip central de categoría
+      const pipR = r * 0.52;
+      ctx.fillStyle = isFullColor ? inkColor : color;
+      ctx.beginPath();
+      ctx.arc(c, c, pipR, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.lineWidth = 0.8;
+      ctx.strokeStyle = isFullColor ? haloColor : inkColor;
+      ctx.stroke();
+    }
 
     if (isVisited) {
       drawVisitedBadge(ctx, c, s);
@@ -184,27 +221,36 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
       drawPendingBadge(ctx, c, s);
     }
   } else if (importance === 2) {
-    // 2: RECOMENDADA — Micro-nodo compacto en color de categoría
-    const r = s * 0.14;
+    // 2: RECOMENDADA — Micro-nodo técnico
+    const r = s * 0.11;
 
-    // Halo perimetral fino
     ctx.fillStyle = haloColor;
     ctx.beginPath();
-    ctx.arc(c, c, r + 1.4, 0, Math.PI * 2);
+    ctx.arc(c, c, r + 1.5, 0, Math.PI * 2);
     ctx.fill();
 
-    // Relleno cromático de categoría
-    ctx.fillStyle = isLightSelection ? '#FFFFFF' : (isDarkSelection ? '#141411' : color);
-    ctx.beginPath();
-    ctx.arc(c, c, r, 0, Math.PI * 2);
-    ctx.fill();
+    if (isSelected) {
+      ctx.fillStyle = inkColor;
+      ctx.beginPath();
+      ctx.arc(c, c, r, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.fillStyle = isFullColor ? color : inkColor;
+      ctx.beginPath();
+      ctx.arc(c, c, r, 0, Math.PI * 2);
+      ctx.fill();
 
-    // Contorno técnico nítido
-    ctx.lineWidth = 1.4;
-    ctx.strokeStyle = strokeColor;
-    ctx.beginPath();
-    ctx.arc(c, c, r, 0, Math.PI * 2);
-    ctx.stroke();
+      ctx.lineWidth = 1.0;
+      ctx.strokeStyle = isFullColor ? inkColor : haloColor;
+      ctx.stroke();
+
+      // Pip central fino de categoría
+      const pipR = r * 0.48;
+      ctx.fillStyle = isFullColor ? inkColor : color;
+      ctx.beginPath();
+      ctx.arc(c, c, pipR, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
     if (isVisited) {
       drawVisitedBadge(ctx, c, s);
@@ -213,26 +259,34 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
     }
   } else {
     // 3: DOCUMENTADA — Micro-punto cartográfico de precisión
-    const r = s * 0.10;
+    const r = s * 0.08;
 
-    // Halo perimetral
     ctx.fillStyle = haloColor;
     ctx.beginPath();
     ctx.arc(c, c, r + 1.2, 0, Math.PI * 2);
     ctx.fill();
 
-    // Punto sólido en color de categoría
-    ctx.fillStyle = isLightSelection ? '#FFFFFF' : (isDarkSelection ? '#141411' : color);
-    ctx.beginPath();
-    ctx.arc(c, c, r, 0, Math.PI * 2);
-    ctx.fill();
+    if (isSelected) {
+      ctx.fillStyle = inkColor;
+      ctx.beginPath();
+      ctx.arc(c, c, r, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.fillStyle = isFullColor ? color : inkColor;
+      ctx.beginPath();
+      ctx.arc(c, c, r, 0, Math.PI * 2);
+      ctx.fill();
 
-    // Contorno fino
-    ctx.lineWidth = 1.1;
-    ctx.strokeStyle = strokeColor;
-    ctx.beginPath();
-    ctx.arc(c, c, r, 0, Math.PI * 2);
-    ctx.stroke();
+      ctx.lineWidth = 0.8;
+      ctx.strokeStyle = isFullColor ? inkColor : haloColor;
+      ctx.stroke();
+
+      const pipR = r * 0.45;
+      ctx.fillStyle = isFullColor ? inkColor : color;
+      ctx.beginPath();
+      ctx.arc(c, c, pipR, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
     if (isVisited) {
       drawVisitedBadge(ctx, c, s);
@@ -249,65 +303,78 @@ export function drawPrivateSquareIcon(ctx, color, importance, s, options = {}) {
   const c = s / 2;
   const isVisited = Boolean(options.isVisited || color === '#82c812');
   const isPending = Boolean(options.isPending || color === '#FFCC00');
+  const isDark = Boolean(options.isDark);
+  const inkColor = isDark ? '#FFFFFF' : '#141411';
+  const haloColor = isDark ? '#141411' : '#F8F1DF';
+
   ctx.save();
 
   if (importance === 0) {
     ctx.translate(c, c);
     ctx.rotate(Math.PI / 4);
-    const half = s * 0.20;
+    const half = s * 0.16;
 
-    ctx.fillStyle = '#F4F1EA';
+    ctx.fillStyle = haloColor;
     ctx.fillRect(-half - 2, -half - 2, (half + 2) * 2, (half + 2) * 2);
 
-    ctx.fillStyle = color;
+    ctx.fillStyle = inkColor;
     ctx.fillRect(-half, -half, half * 2, half * 2);
 
-    ctx.lineWidth = 1.8;
-    ctx.strokeStyle = '#111111';
+    ctx.lineWidth = 1.2;
+    ctx.strokeStyle = haloColor;
     ctx.strokeRect(-half, -half, half * 2, half * 2);
 
-    ctx.fillStyle = '#111111';
-    ctx.fillRect(-half * 0.32, -half * 0.32, half * 0.64, half * 0.64);
-  } else if (importance === 1) {
-    const half = s * 0.18;
-
-    ctx.fillStyle = '#F4F1EA';
-    ctx.fillRect(c - half - 1.6, c - half - 1.6, (half + 1.6) * 2, (half + 1.6) * 2);
-
+    const inner = half * 0.46;
     ctx.fillStyle = color;
-    ctx.fillRect(c - half, c - half, half * 2, half * 2);
-
-    ctx.lineWidth = 1.8;
-    ctx.strokeStyle = '#111111';
-    ctx.strokeRect(c - half, c - half, half * 2, half * 2);
-
-    ctx.fillStyle = '#111111';
-    const inner = half * 0.32;
-    ctx.fillRect(c - inner, c - inner, inner * 2, inner * 2);
-  } else if (importance === 2) {
+    ctx.fillRect(-inner, -inner, inner * 2, inner * 2);
+  } else if (importance === 1) {
     const half = s * 0.14;
 
-    ctx.fillStyle = '#F4F1EA';
-    ctx.fillRect(c - half - 1.4, c - half - 1.4, (half + 1.4) * 2, (half + 1.4) * 2);
+    ctx.fillStyle = haloColor;
+    ctx.fillRect(c - half - 1.8, c - half - 1.8, (half + 1.8) * 2, (half + 1.8) * 2);
 
-    ctx.fillStyle = color;
+    ctx.fillStyle = inkColor;
     ctx.fillRect(c - half, c - half, half * 2, half * 2);
 
-    ctx.lineWidth = 1.4;
-    ctx.strokeStyle = '#111111';
+    ctx.lineWidth = 1.2;
+    ctx.strokeStyle = haloColor;
     ctx.strokeRect(c - half, c - half, half * 2, half * 2);
-  } else {
-    const half = s * 0.10;
 
-    ctx.fillStyle = '#F4F1EA';
+    const inner = half * 0.48;
+    ctx.fillStyle = color;
+    ctx.fillRect(c - inner, c - inner, inner * 2, inner * 2);
+  } else if (importance === 2) {
+    const half = s * 0.11;
+
+    ctx.fillStyle = haloColor;
+    ctx.fillRect(c - half - 1.5, c - half - 1.5, (half + 1.5) * 2, (half + 1.5) * 2);
+
+    ctx.fillStyle = inkColor;
+    ctx.fillRect(c - half, c - half, half * 2, half * 2);
+
+    ctx.lineWidth = 1.0;
+    ctx.strokeStyle = haloColor;
+    ctx.strokeRect(c - half, c - half, half * 2, half * 2);
+
+    const inner = half * 0.46;
+    ctx.fillStyle = color;
+    ctx.fillRect(c - inner, c - inner, inner * 2, inner * 2);
+  } else {
+    const half = s * 0.08;
+
+    ctx.fillStyle = haloColor;
     ctx.fillRect(c - half - 1.2, c - half - 1.2, (half + 1.2) * 2, (half + 1.2) * 2);
 
-    ctx.fillStyle = color;
+    ctx.fillStyle = inkColor;
     ctx.fillRect(c - half, c - half, half * 2, half * 2);
 
-    ctx.lineWidth = 1.1;
-    ctx.strokeStyle = '#111111';
+    ctx.lineWidth = 0.8;
+    ctx.strokeStyle = haloColor;
     ctx.strokeRect(c - half, c - half, half * 2, half * 2);
+
+    const inner = half * 0.45;
+    ctx.fillStyle = color;
+    ctx.fillRect(c - inner, c - inner, inner * 2, inner * 2);
   }
 
   ctx.restore();

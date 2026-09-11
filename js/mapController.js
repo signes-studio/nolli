@@ -183,11 +183,11 @@ export function cargarMapaMapbox() {
         const explorePrefix = `icon-explore-l${importance}-${cat}`;
 
         try {
-          addOrUpdateImage(prefix, buildIcon(drawTargetIcon, color, importance));
-          addOrUpdateImage(`${prefix}-visited`, buildIcon(drawTargetIcon, color, importance, 64, { isVisited: true }));
-          addOrUpdateImage(`${prefix}-pending`, buildIcon(drawTargetIcon, color, importance, 64, { isPending: true }));
-          addOrUpdateImage(`${prefix}-private`, buildIcon(drawPrivateSquareIcon, color, importance));
-          addOrUpdateImage(`${prefix}-selected`, buildIcon(drawTargetIcon, selectedColor, importance, 64, { isSelected: true }));
+          addOrUpdateImage(prefix, buildIcon(drawTargetIcon, color, importance, 64, { isDark }));
+          addOrUpdateImage(`${prefix}-visited`, buildIcon(drawTargetIcon, color, importance, 64, { isVisited: true, isDark }));
+          addOrUpdateImage(`${prefix}-pending`, buildIcon(drawTargetIcon, color, importance, 64, { isPending: true, isDark }));
+          addOrUpdateImage(`${prefix}-private`, buildIcon(drawPrivateSquareIcon, color, importance, 64, { isDark }));
+          addOrUpdateImage(`${prefix}-selected`, buildIcon(drawTargetIcon, selectedColor, importance, 64, { isSelected: true, isDark }));
 
           // Iconos de búsqueda
           addOrUpdateImage(searchPrefix, buildIcon(drawSearchLupaIcon, color, importance));

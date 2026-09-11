@@ -1231,7 +1231,7 @@ button.obra-card {
   align-items: center;
 }
 .obra-card__category {
-  color: var(--obra-category, var(--fg-dim));
+  color: var(--fg, #141411) !important;
   font-family: 'Inter', -apple-system, sans-serif;
   font-size: 10px;
   font-weight: 700;
@@ -1240,11 +1240,21 @@ button.obra-card {
   text-transform: uppercase;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
+}
+.obra-card__cat-pip {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  min-width: 6px;
+  min-height: 6px;
+  flex-shrink: 0;
+  border: 1px solid var(--border-strong, #141411);
+  border-radius: 0 !important;
 }
 .obra-card__importance {
   display: inline-block;
-  border-radius: 50% !important;
+  border-radius: 0 !important;
   background: currentColor;
   flex-shrink: 0;
   vertical-align: middle;

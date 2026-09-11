@@ -213,7 +213,7 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
         <div class="tech-col">
           <span class="tech-label">${t('sheet_category')}</span>
           <span class="tech-value">
-            <span class="sheet-cat-badge" style="border-left: 3px solid ${catColor};">${formatCategoria(building.categoria)}</span>
+            <span class="sheet-cat-badge"><span class="cat-pip" style="background: ${catColor};"></span>${formatCategoria(building.categoria)}</span>
           </span>
         </div>
       </div>
