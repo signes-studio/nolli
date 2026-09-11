@@ -254,7 +254,7 @@
       if (user.school) {
         const schoolChip = document.getElementById('user-school-chip');
         if (schoolChip) {
-          schoolChip.textContent = `🏛️ ${user.school}`;
+          schoolChip.textContent = `// ${user.school.toUpperCase()}`;
           schoolChip.classList.remove('hidden');
         }
       }
@@ -262,7 +262,7 @@
       // Puntos Nolli
       const pointsBadge = document.getElementById('user-points-badge');
       if (pointsBadge) {
-        pointsBadge.textContent = `⭐ ${user.total_points || 0} PTS NOLLI`;
+        pointsBadge.textContent = `* ${user.total_points || 0} PTS NOLLI`;
         pointsBadge.title = `Visitas: ${user.points_visitor || 0} pts | Aportaciones: ${user.points_contributor || 0} pts`;
       }
     }

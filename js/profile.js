@@ -513,7 +513,7 @@ function renderHero() {
   const schoolBadge = document.getElementById('profile-school-badge');
   if (schoolBadge) {
     if (db.school) {
-      schoolBadge.textContent = `🏛️ ${db.school}`;
+      schoolBadge.textContent = `// ${db.school.toUpperCase()}`;
       schoolBadge.classList.remove('hidden');
     } else {
       schoolBadge.classList.add('hidden');
@@ -522,7 +522,7 @@ function renderHero() {
 
   const pointsDisplay = document.getElementById('profile-points-display');
   if (pointsDisplay) {
-    pointsDisplay.textContent = `⭐ ${db.total_points || 0} PTS NOLLI`;
+    pointsDisplay.textContent = `* ${db.total_points || 0} PTS NOLLI`;
     pointsDisplay.title = `Visitas: ${db.points_visitor || 0} pts | Aportaciones: ${db.points_contributor || 0} pts`;
   }
 
@@ -562,7 +562,7 @@ function getGamificationTier(points) {
     return {
       level: 1,
       badge: 'Explorador Inicial',
-      icon: '🧭',
+      icon: '№ 01',
       min: 0,
       next: 100,
       nextBadge: 'Urbanista Curioso',
@@ -571,7 +571,7 @@ function getGamificationTier(points) {
     return {
       level: 2,
       badge: 'Urbanista Curioso',
-      icon: '📐',
+      icon: '№ 02',
       min: 100,
       next: 250,
       nextBadge: 'Cronista de Barrio',
@@ -580,7 +580,7 @@ function getGamificationTier(points) {
     return {
       level: 3,
       badge: 'Cronista de Barrio',
-      icon: '🏛️',
+      icon: '№ 03',
       min: 250,
       next: 500,
       nextBadge: 'Maestro Bauhaus',
@@ -589,7 +589,7 @@ function getGamificationTier(points) {
     return {
       level: 4,
       badge: 'Maestro Bauhaus',
-      icon: '🏗️',
+      icon: '№ 04',
       min: 500,
       next: 1000,
       nextBadge: 'Arquitecto Mayor',
@@ -598,7 +598,7 @@ function getGamificationTier(points) {
     return {
       level: 5,
       badge: 'Arquitecto Mayor',
-      icon: '👑',
+      icon: '№ 05',
       min: 1000,
       next: null,
       nextBadge: null,
@@ -904,11 +904,11 @@ async function renderNetworkFeed() {
               const s = req.sender || {};
               const name = s.first_name || s.nick || 'Usuario';
               const nick = s.nick ? `@${s.nick}` : '';
-              const school = s.school ? ` · 🏛️ ${escapeHtml(s.school)}` : '';
+              const school = s.school ? ` · // ${escapeHtml(s.school.toUpperCase())}` : '';
               return `
                 <div class="my-collection-card" style="background: var(--bg-panel); border: 1.5px solid var(--border-strong); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                   <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="width: 38px; height: 38px; border-radius: 50%; background: var(--accent); color:#fff; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 1px solid var(--border-strong);">
+                    <div style="width: 38px; height: 38px; border-radius: 0 !important; background: var(--accent); color:#fff; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid var(--border-strong);">
                       ${escapeHtml(name[0].toUpperCase())}
                     </div>
                     <div>
@@ -954,12 +954,12 @@ async function renderNetworkFeed() {
           ${friends.map(f => {
             const name = f.first_name || f.nick || 'Usuario';
             const nick = f.nick ? `@${f.nick}` : '';
-            const school = f.school ? ` · 🏛️ ${escapeHtml(f.school)}` : '';
+            const school = f.school ? ` · // ${escapeHtml(f.school.toUpperCase())}` : '';
             const location = [f.city, f.country].filter(Boolean).join(', ');
             return `
               <div class="my-collection-card" style="background: var(--bg-panel); border: 1px solid var(--border-strong); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                  <div style="width: 38px; height: 38px; border-radius: 50%; background: var(--fg); color: var(--bg); display: flex; align-items: center; justify-content: center; font-weight: bold; border: 1px solid var(--border-strong);">
+                  <div style="width: 38px; height: 38px; border-radius: 0 !important; background: var(--fg); color: var(--bg); display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid var(--border-strong);">
                     ${escapeHtml(name[0].toUpperCase())}
                   </div>
                   <div>
@@ -1115,7 +1115,7 @@ function renderCollectionsFeed() {
     }
 
     const fallbackBg = col.color || 'var(--bg-raised)';
-    const colSymbol = col.icon || '📐';
+    const colSymbol = (col.icon && !/\p{Extended_Pictographic}/u.test(col.icon)) ? col.icon : '№';
 
     const thumbHtml = thumbUrl
       ? `
@@ -1193,7 +1193,7 @@ function renderCollectionsFeed() {
       const col = f.user_collections || f;
       if (!col) return '';
       const creatorName = col.profiles?.nick ? `@${col.profiles.nick}` : (col.profiles?.first_name ? `@${col.profiles.first_name}` : t('profile_community_name', null, 'Comunidad Nolli'));
-      const emoji = col.icon || '🔖';
+      const emoji = (col.icon && !/\p{Extended_Pictographic}/u.test(col.icon)) ? col.icon : '№';
       const title = col.name || 'Lista pública';
       const desc = col.description || '';
       const itemsCount = col.work_ids?.length || 0;
