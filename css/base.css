@@ -36,6 +36,15 @@
   box-sizing: border-box;
 }
 
+/* Salvaguarda general Neo-Bauhaus: Iconografía técnica con terminaciones planas y uniones angulosas */
+svg,
+svg *,
+.lucide,
+.lucide * {
+  stroke-linecap: square !important;
+  stroke-linejoin: miter !important;
+}
+
 :focus-visible {
   outline: 2px solid var(--accent, #E95C0C) !important;
   outline-offset: 2px;

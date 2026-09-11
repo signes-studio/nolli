@@ -1502,4 +1502,34 @@ body.dark-mode .neo-options-grid--cream .neo-option-box.active {
   pointer-events: none;
 }
 
+/* =========================================================================
+   SISTEMA DE ICONOGRAFÍA CONSTRUCTIVISTA NEO-BAUHAUS (FASE 2)
+   Geometría plana, trazo técnico reforzado (2.5px - 3px) y terminaciones cuadradas
+   ========================================================================= */
+.mobile-bottom-bar svg,
+.mobile-map-controls svg,
+.map-tools-toggle svg,
+.fab svg,
+.sheet-hero-actions svg,
+.sheet-close-button svg,
+.sheet-reports-actions svg,
+.mobile-nav-btn svg,
+.speed-dial-icon svg,
+.equal-option svg,
+.neo-option-icon svg,
+.modal-head svg,
+.filter-head svg,
+.neo-icon,
+.neo-nav-icon {
+  stroke-width: 2.5px !important;
+  stroke-linecap: square !important;
+  stroke-linejoin: miter !important;
+  vector-effect: non-scaling-stroke;
+}
+
+.mobile-fab-toggle svg,
+.fab-toggle-icon {
+  stroke-width: 3px !important;
+}
+
 
