@@ -1974,3 +1974,184 @@ body.dark-mode .profile-admin-link:focus-visible {
   color: var(--accent, #E84E1B);
   border-color: var(--accent, #E84E1B);
 }
+
+/* =========================================================================
+   FASE 4: LISTA DE AJUSTES UNIFICADA - NEO-BAUHAUS
+   ========================================================================= */
+.profile-settings-section {
+  margin: 32px 0 40px;
+  width: 100%;
+}
+
+.profile-settings-header {
+  margin-bottom: 8px;
+}
+
+.profile-settings-kicker {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--fg-dim, #68655D);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+body.dark-mode .profile-settings-kicker {
+  color: var(--fg-dim, #9A9A9A);
+}
+
+.neo-list-group {
+  background: var(--bg-panel, #F8F1DF);
+  border: 1.5px solid var(--border-strong, #141411);
+  box-shadow: 3px 3px 0 var(--border-strong, #141411);
+  border-radius: 0 !important;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+body.dark-mode .neo-list-group {
+  background: #1C1C1A;
+  border-color: var(--border-strong, #4E4E48);
+  box-shadow: 3px 3px 0 var(--border-strong, #4E4E48);
+}
+
+.neo-list-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  border: none;
+  border-bottom: 1px solid var(--border, #D8D6CE);
+  background: transparent;
+  color: var(--fg, #141411);
+  text-decoration: none;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 0 !important;
+  transition: background 0.1s ease, color 0.1s ease;
+  text-align: left;
+}
+
+body.dark-mode .neo-list-row {
+  color: var(--fg, #F8F1DF);
+  border-bottom-color: var(--border, #2E2E2A);
+}
+
+.neo-list-row:last-child {
+  border-bottom: none;
+}
+
+.neo-list-row:hover,
+.neo-list-row:focus-visible {
+  background: var(--bg-raised, #ECE6D8);
+  outline: none;
+}
+
+body.dark-mode .neo-list-row:hover,
+body.dark-mode .neo-list-row:focus-visible {
+  background: #252522;
+}
+
+.neo-list-row-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: var(--fg-dim, #68655D);
+  flex-shrink: 0;
+  transition: color 0.1s ease;
+}
+
+body.dark-mode .neo-list-row-icon {
+  color: var(--fg-dim, #9A9A9A);
+}
+
+.neo-list-row:hover .neo-list-row-icon {
+  color: var(--accent, #E84E1B);
+}
+
+body.dark-mode .neo-list-row:hover .neo-list-row-icon {
+  color: var(--accent, #FF7528);
+}
+
+.neo-list-row-label {
+  flex: 1;
+  min-width: 0;
+  color: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.neo-list-row-value {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--fg-dim, #68655D);
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+
+body.dark-mode .neo-list-row-value {
+  color: var(--fg-dim, #9A9A9A);
+}
+
+.neo-list-row-chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fg-dim, #68655D);
+  flex-shrink: 0;
+  transition: transform 0.12s ease, color 0.12s ease;
+}
+
+body.dark-mode .neo-list-row-chevron {
+  color: var(--fg-dim, #9A9A9A);
+}
+
+.neo-list-row:hover .neo-list-row-chevron {
+  transform: translateX(2px);
+  color: var(--fg, #141411);
+}
+
+body.dark-mode .neo-list-row:hover .neo-list-row-chevron {
+  color: var(--fg, #F8F1DF);
+}
+
+/* Fila de acción destructiva (Cerrar sesión) */
+.neo-list-row.is-danger {
+  color: var(--fg, #141411);
+}
+
+.neo-list-row.is-danger:hover,
+.neo-list-row.is-danger:focus-visible {
+  background: rgba(214, 32, 29, 0.08);
+  color: #D6201D;
+}
+
+.neo-list-row.is-danger:hover .neo-list-row-icon,
+.neo-list-row.is-danger:hover .neo-list-row-chevron {
+  color: #D6201D;
+}
+
+body.dark-mode .neo-list-row.is-danger {
+  color: var(--fg, #F8F1DF);
+}
+
+body.dark-mode .neo-list-row.is-danger:hover,
+body.dark-mode .neo-list-row.is-danger:focus-visible {
+  background: rgba(255, 75, 75, 0.12);
+  color: #FF5C5C;
+}
+
+body.dark-mode .neo-list-row.is-danger:hover .neo-list-row-icon,
+body.dark-mode .neo-list-row.is-danger:hover .neo-list-row-chevron {
+  color: #FF5C5C;
+}
+

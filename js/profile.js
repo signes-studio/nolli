@@ -45,7 +45,7 @@ import {
 import { renderInChunks, initTabsScrollIndicator } from './renderUtils.js';
 import { getOptimizedPhotoUrl } from './imageProxy.js';
 import { renderObraCard } from './workCard.js';
-import { t, initI18n, getUrlPrefix, applyI18nToDOM, setupLanguageSwitchers } from './i18n.js';
+import { t, initI18n, getUrlPrefix, applyI18nToDOM, setupLanguageSwitchers, getLanguage, switchLanguage } from './i18n.js';
 
 const SESSION_KEY = 'nolli_admin_session_token';
 const content = document.getElementById('profile-content');
@@ -134,8 +134,8 @@ function initTheme() {
 }
 
 function updateThemeIcon(isDark) {
-  if (!themeIcon) return;
-  themeIcon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+  if (themeIcon) themeIcon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+  updateSettingsDisplays();
   if (window.lucide) window.lucide.createIcons();
 }
 
@@ -295,6 +295,7 @@ async function init() {
   setupFeedActionHandlers();
   setupLoginModal();
   syncBottomNavLinks();
+  bindSettingsListActions();
   if (window.lucide) window.lucide.createIcons();
 
   const token = getSessionToken();
@@ -330,11 +331,13 @@ async function init() {
       profileState.items = state.userCollectionItems || [];
       profileState.labels = state.userPrivateLabels || [];
     } catch {}
+    syncAdminBadge();
   }
   if (cachedDbProfileStr) {
     try {
       profileState.dbProfile = JSON.parse(cachedDbProfileStr);
     } catch {}
+    syncAdminBadge();
   }
   if (cachedStatusesStr) {
     try {
@@ -661,6 +664,7 @@ if (typeof window !== 'undefined') window.renderGamificationProgress = renderGam
 
 function syncAdminBadge() {
   const cardAdmin = document.getElementById('profile-admin-card');
+  const adminRow = document.getElementById('profile-admin-row');
   const userEmail = String(profileState.user?.email || '').toLowerCase().trim();
   const metaRole = String(profileState.user?.app_metadata?.role || profileState.user?.user_metadata?.role || '').toLowerCase();
   const dbRole = String(profileState.dbProfile?.role || '').toLowerCase();
@@ -668,6 +672,87 @@ function syncAdminBadge() {
   const role = dbRole || metaRole || (isMasterOwner ? 'superadmin' : 'user');
   const isAdmin = isMasterOwner || role === 'admin' || role === 'superadmin';
   if (cardAdmin) cardAdmin.classList.toggle('hidden', !isAdmin);
+  if (adminRow) adminRow.classList.toggle('hidden', !isAdmin);
+}
+
+// -------------------------------------------------------------------------
+// 2.7. LISTA UNIFICADA DE AJUSTES (NEO-BAUHAUS)
+// -------------------------------------------------------------------------
+function updateSettingsDisplays() {
+  const isDark = document.body.classList.contains('dark-mode');
+  const themeVal = document.getElementById('row-theme-value');
+  const themeRowIcon = document.getElementById('row-theme-icon');
+  if (themeVal) themeVal.textContent = isDark ? 'Oscuro' : 'Claro';
+  if (themeRowIcon) themeRowIcon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+
+  const langVal = document.getElementById('row-lang-value');
+  if (langVal) {
+    const cur = (typeof getLanguage === 'function') ? getLanguage() : 'es';
+    const names = { es: 'Castellano', en: 'English', ca: 'Català' };
+    langVal.textContent = names[cur] || cur.toUpperCase();
+  }
+
+  const notifVal = document.getElementById('row-notifications-value');
+  if (notifVal) {
+    const isMuted = localStorage.getItem('nolli_notifications_muted') === 'true';
+    notifVal.textContent = isMuted ? 'Silenciadas' : 'Activas';
+  }
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
+function bindSettingsListActions() {
+  updateSettingsDisplays();
+
+  // 1. Personalizar perfil
+  const rowEdit = document.getElementById('row-edit-profile');
+  if (rowEdit) {
+    rowEdit.onclick = () => openEditProfileModal();
+  }
+
+  // 2. Tema visual
+  const rowTheme = document.getElementById('row-theme-toggle');
+  if (rowTheme) {
+    rowTheme.onclick = () => {
+      const isDark = document.body.classList.contains('dark-mode');
+      const newDark = !isDark;
+      document.documentElement.classList.toggle('dark-mode', newDark);
+      document.body.classList.toggle('dark-mode', newDark);
+      localStorage.setItem('nolli_theme', newDark ? 'dark' : 'light');
+      localStorage.setItem('nolli_map_style', newDark ? 'dark' : 'light');
+      const meta = document.getElementById('meta-theme-color');
+      if (meta) meta.setAttribute('content', newDark ? '#141411' : '#F8F1DF');
+      updateThemeIcon(newDark);
+      updateSettingsDisplays();
+    };
+  }
+
+  // 3. Idioma
+  const rowLang = document.getElementById('row-lang-toggle');
+  if (rowLang) {
+    rowLang.onclick = () => {
+      const cur = (typeof getLanguage === 'function') ? getLanguage() : 'es';
+      const cycle = { es: 'en', en: 'ca', ca: 'es' };
+      const nextLang = cycle[cur] || 'es';
+      switchLanguage(nextLang);
+    };
+  }
+
+  // 4. Notificaciones
+  const rowNotif = document.getElementById('row-notifications-toggle');
+  if (rowNotif) {
+    rowNotif.onclick = () => {
+      const isMuted = localStorage.getItem('nolli_notifications_muted') === 'true';
+      localStorage.setItem('nolli_notifications_muted', String(!isMuted));
+      updateSettingsDisplays();
+    };
+  }
+
+  // 5. Cerrar sesión
+  const rowLogout = document.getElementById('row-logout');
+  if (rowLogout) {
+    rowLogout.onclick = logout;
+  }
 }
 
 function syncBottomNavLinks() {

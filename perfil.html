@@ -201,29 +201,70 @@
       <!-- 5. Feed de Obras (Archivo con padding-bottom de 160px para scroll fluido) -->
       <section id="profile-content" class="profile-feed-list" aria-live="polite"></section>
 
-      <!-- Apoyo comunitario discreto no intrusivo -->
-      <div class="profile-support-inline">
-        <a href="https://ko-fi.com/nollimap" target="_blank" rel="noopener noreferrer" class="profile-support-link">
-          <span style="font-size:13px;">☕</span>
-          <span data-i18n="profile_support_cta">APOYAR A NOLLI EN KO-FI ↗</span>
-        </a>
-      </div>
+      <!-- 6. Lista Unificada de Ajustes y Configuración (Neo-Bauhaus) -->
+      <section class="profile-settings-section" aria-label="Ajustes y configuración">
+        <div class="profile-settings-header">
+          <span class="profile-settings-kicker">// AJUSTES DE CUENTA</span>
+        </div>
 
-      <!-- Panel de Administración Centralizado (Solo visible si es Admin/Superadmin al final del perfil) -->
-      <section id="profile-admin-card" class="hidden profile-admin-access">
-        <a href="./admin" class="profile-admin-link" data-i18n="profile_admin_btn">Panel de administración →</a>
+        <div class="neo-list-group">
+          <!-- 1. Personalizar perfil -->
+          <button type="button" class="neo-list-row" id="row-edit-profile">
+            <span class="neo-list-row-icon"><i data-lucide="user" width="16" height="16"></i></span>
+            <span class="neo-list-row-label" data-i18n="profile_edit_title">Personalizar perfil</span>
+            <span class="neo-list-row-value">Nombre y bio</span>
+            <span class="neo-list-row-chevron"><i data-lucide="chevron-right" width="16" height="16"></i></span>
+          </button>
+
+          <!-- 2. Tema visual -->
+          <button type="button" class="neo-list-row" id="row-theme-toggle">
+            <span class="neo-list-row-icon"><i data-lucide="moon" width="16" height="16" id="row-theme-icon"></i></span>
+            <span class="neo-list-row-label">Tema visual</span>
+            <span class="neo-list-row-value" id="row-theme-value">Claro</span>
+            <span class="neo-list-row-chevron"><i data-lucide="chevron-right" width="16" height="16"></i></span>
+          </button>
+
+          <!-- 3. Idioma -->
+          <button type="button" class="neo-list-row" id="row-lang-toggle">
+            <span class="neo-list-row-icon"><i data-lucide="globe" width="16" height="16"></i></span>
+            <span class="neo-list-row-label">Idioma</span>
+            <span class="neo-list-row-value" id="row-lang-value">Castellano</span>
+            <span class="neo-list-row-chevron"><i data-lucide="chevron-right" width="16" height="16"></i></span>
+          </button>
+
+          <!-- 4. Notificaciones -->
+          <button type="button" class="neo-list-row" id="row-notifications-toggle">
+            <span class="neo-list-row-icon"><i data-lucide="bell" width="16" height="16" id="row-notif-icon"></i></span>
+            <span class="neo-list-row-label">Notificaciones</span>
+            <span class="neo-list-row-value" id="row-notifications-value">Activas</span>
+            <span class="neo-list-row-chevron"><i data-lucide="chevron-right" width="16" height="16"></i></span>
+          </button>
+
+          <!-- 5. Panel de administración: ordinaria, mismo peso visual, solo visible para admins -->
+          <a href="./admin" class="neo-list-row hidden" id="profile-admin-row">
+            <span class="neo-list-row-icon"><i data-lucide="shield-check" width="16" height="16"></i></span>
+            <span class="neo-list-row-label" data-i18n="profile_admin_btn">Panel de administración</span>
+            <span class="neo-list-row-value">Gestión</span>
+            <span class="neo-list-row-chevron"><i data-lucide="chevron-right" width="16" height="16"></i></span>
+          </a>
+
+          <!-- 6. Apoyar en Ko-fi -->
+          <a href="https://ko-fi.com/nollimap" target="_blank" rel="noopener noreferrer" class="neo-list-row" id="row-kofi">
+            <span class="neo-list-row-icon"><i data-lucide="coffee" width="16" height="16"></i></span>
+            <span class="neo-list-row-label" data-i18n="profile_support_cta">Apoyar a Nolli en Ko-fi</span>
+            <span class="neo-list-row-value">Comunidad</span>
+            <span class="neo-list-row-chevron"><i data-lucide="chevron-right" width="16" height="16"></i></span>
+          </a>
+
+          <!-- 7. Cerrar sesión -->
+          <button type="button" class="neo-list-row is-danger" id="row-logout">
+            <span class="neo-list-row-icon"><i data-lucide="log-out" width="16" height="16"></i></span>
+            <span class="neo-list-row-label" data-i18n="profile_logout_btn">Cerrar sesión</span>
+            <span class="neo-list-row-value"></span>
+            <span class="neo-list-row-chevron"><i data-lucide="chevron-right" width="16" height="16"></i></span>
+          </button>
+        </div>
       </section>
-
-      <!-- Pie de página sutil: selector discreto de idioma -->
-      <footer class="profile-footer-lang" aria-label="Idioma de la interfaz" data-i18n-aria="lang_switcher_aria">
-        <span data-i18n="lang_footer_label">IDIOMA</span>
-        <span>·</span>
-        <button type="button" class="lang-link" data-lang-btn="es" data-i18n="lang_castellano">Castellano</button>
-        <span>·</span>
-        <button type="button" class="lang-link" data-lang-btn="en" data-i18n="lang_english">English</button>
-        <span>·</span>
-        <button type="button" class="lang-link" data-lang-btn="ca" data-i18n="lang_catala">Català</button>
-      </footer>
     </main>
   </div>
 
