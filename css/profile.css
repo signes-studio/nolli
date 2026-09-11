@@ -1096,12 +1096,26 @@ body.dark-mode .profile-card-action-btn {
 }
 
 .profile-card-action-btn.danger {
-  color: #D6201D;
-  border-color: #D6201D;
+  color: var(--fg-dim, #68655D);
+  border-color: var(--border, #D8D6CE);
 }
 
-.profile-card-action-btn.danger:hover {
+.profile-card-action-btn.danger:hover,
+.profile-card-action-btn.danger:focus-visible {
   background: #D6201D;
+  border-color: #D6201D;
+  color: #FFFFFF;
+}
+
+body.dark-mode .profile-card-action-btn.danger {
+  color: var(--fg-dim, #A0A09A);
+  border-color: var(--border, #32322E);
+}
+
+body.dark-mode .profile-card-action-btn.danger:hover,
+body.dark-mode .profile-card-action-btn.danger:focus-visible {
+  background: #D6201D;
+  border-color: #D6201D;
   color: #FFFFFF;
 }
 
@@ -1203,12 +1217,26 @@ body.dark-mode .profile-collection-tool-btn {
 }
 
 .profile-collection-tool-btn.btn-delete {
-  color: #D6201D;
-  border-color: #D6201D;
+  color: var(--fg-dim, #68655D);
+  border-color: var(--border, #D8D6CE);
 }
 
-.profile-collection-tool-btn.btn-delete:hover {
+.profile-collection-tool-btn.btn-delete:hover,
+.profile-collection-tool-btn.btn-delete:focus-visible {
   background: #D6201D;
+  border-color: #D6201D;
+  color: #FFFFFF;
+}
+
+body.dark-mode .profile-collection-tool-btn.btn-delete {
+  color: var(--fg-dim, #A0A09A);
+  border-color: var(--border, #32322E);
+}
+
+body.dark-mode .profile-collection-tool-btn.btn-delete:hover,
+body.dark-mode .profile-collection-tool-btn.btn-delete:focus-visible {
+  background: #D6201D;
+  border-color: #D6201D;
   color: #FFFFFF;
 }
 
@@ -1379,6 +1407,45 @@ body.dark-mode .profile-support-link {
   border-color: var(--accent, #E84E1B);
 }
 
-.profile-admin-access { margin: 0 0 20px; }
-.profile-admin-link { display: inline-flex; padding: 8px 0; color: var(--fg, #141411); font: 700 12px/1.2 Inter, sans-serif; text-decoration: none; border-bottom: 1px solid currentColor; }
-.profile-admin-link:hover, .profile-admin-link:focus-visible { color: var(--accent, #E84E1B); outline: none; }
+.profile-admin-access {
+  margin: 20px 0 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.profile-admin-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  color: var(--fg-dim, #68655D);
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+  border: 1px dashed var(--border-strong, #141411);
+  background: var(--bg-raised, #ECE6D8);
+  letter-spacing: 0.04em;
+  transition: all 0.12s ease;
+}
+
+.profile-admin-link:hover,
+.profile-admin-link:focus-visible {
+  color: var(--accent, #E84E1B);
+  border-color: var(--accent, #E84E1B);
+  border-style: solid;
+  background: var(--bg-panel, #F8F1DF);
+  outline: none;
+}
+
+body.dark-mode .profile-admin-link {
+  color: var(--fg-dim, #A0A09A);
+  border-color: var(--border-strong, #4E4E48);
+  background: #252522;
+}
+
+body.dark-mode .profile-admin-link:hover,
+body.dark-mode .profile-admin-link:focus-visible {
+  color: var(--accent, #E84E1B);
+  border-color: var(--accent, #E84E1B);
+}

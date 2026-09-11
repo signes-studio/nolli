@@ -665,14 +665,17 @@ body.dark-mode .places-tabs-scroll-wrap {
   padding: 6px 8px;
   border: 1px solid var(--border);
   background: var(--bg-panel);
-  color: var(--red);
+  color: var(--fg-dim, #68655D);
   font-size: 11px;
   cursor: pointer;
   line-height: 1;
+  transition: all 0.12s ease;
 }
-.btn-remove-collection:hover {
+.btn-remove-collection:hover,
+.btn-remove-collection:focus-visible {
   background: rgba(214, 32, 29, 0.1);
-  border-color: var(--red);
+  border-color: var(--red, #D6201D);
+  color: var(--red, #D6201D);
 }
 .my-collection-card {
   border: 1px solid var(--border-strong);

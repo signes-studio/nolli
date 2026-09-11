@@ -350,7 +350,7 @@
   "places_visibility_public": "Public (visible to others)",
   "places_visited_list": "Visited Works",
   "places_visited_tab": "VISITED",
-  "profile_admin_btn": "OPEN ADMIN CONSOLE ↗",
+  "profile_admin_btn": "Administration panel →",
   "profile_admin_desc": "Curating, Reports and Users Console",
   "profile_admin_title": "ADMIN MODE // ACTIVE PRIVILEGES",
   "profile_auth_required_desc": "Sign in to Nolli to sync and manage your visited works, favorites and private notes.",
