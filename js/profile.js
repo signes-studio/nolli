@@ -1099,8 +1099,8 @@ function renderCollectionsFeed() {
   const cardsHtml = collections.map((col) => {
     const items = (profileState.items || []).filter((item) => String(item.collection_id) === String(col.id));
     const countText = `${items.length} ${items.length === 1 ? t('building_singular', null, 'obra') : t('building_plural', null, 'obras')}`;
-    const isPublic = col.status === 'public' || col.is_public === true;
-    const isFriends = col.status === 'friends';
+    const isPublic = (col.visibility ? col.visibility === 'public' : (col.status === 'public' || col.is_public === true));
+    const isFriends = (col.visibility ? col.visibility === 'friends' : col.status === 'friends');
 
     // Determinar miniatura (cover_photo_url -> primera foto de obra en la lista -> fallback geométrico Bauhaus)
     let thumbUrl = col.cover_photo_url || null;
@@ -1618,13 +1618,12 @@ function setupCollectionModal() {
           col.name = name;
           col.icon = icon;
           col.description = description;
-          col.status = status;
-          col.is_public = status === 'public';
+          col.visibility = status;
           col.show_on_map = show_on_map;
         }
         guardarColeccionesLocalmente();
         renderFeedContent();
-        await updateUserCollection(editId, { name, icon, description, status, show_on_map }, token);
+        await updateUserCollection(editId, { name, icon, description, visibility: status, show_on_map }, token);
       } else {
         // Crear nueva lista
         const fallbackId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now());
@@ -1634,13 +1633,15 @@ function setupCollectionModal() {
           name,
           icon,
           description,
-          status,
-          is_public: status === 'public',
+          visibility: status,
+          is_wishlist: false,
+          is_collaborative: false,
+          cover_photo_url: null,
           show_on_map,
           created_at: new Date().toISOString(),
         };
         const created = await createUserCollection(newCol, token).catch(() => [newCol]);
-        const savedCol = (Array.isArray(created) && created[0]) ? { ...created[0], show_on_map, status } : (created?.id ? { ...created, show_on_map, status } : newCol);
+        const savedCol = (Array.isArray(created) && created[0]) ? { ...created[0], show_on_map, visibility: status } : (created?.id ? { ...created, show_on_map, visibility: status } : newCol);
         profileState.collections.push(savedCol);
         guardarColeccionesLocalmente();
         renderFeedContent();
@@ -1691,7 +1692,7 @@ function abrirModalEditarLista(colId) {
   const col = profileState.collections.find((c) => String(c.id) === String(colId));
   if (!col) return;
 
-  const isPublic = col.status === 'public' || col.is_public === true;
+  const isPublic = (col.visibility ? col.visibility === 'public' : (col.status === 'public' || col.is_public === true));
   const title = document.getElementById('modal-collection-title');
   const editIdInput = document.getElementById('collection-edit-id');
   const iconInput = document.getElementById('collection-icon');

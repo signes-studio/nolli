@@ -494,8 +494,10 @@ export async function crearListaDesdeModal() {
     name,
     icon,
     description,
-    status,
-    is_public: status === 'public',
+    visibility: status,
+    is_wishlist: false,
+    is_collaborative: false,
+    cover_photo_url: null,
     show_on_map,
     created_at: new Date().toISOString()
   };
@@ -507,11 +509,13 @@ export async function crearListaDesdeModal() {
       name: newCollectionPayload.name,
       icon: newCollectionPayload.icon,
       description: newCollectionPayload.description,
-      status: newCollectionPayload.status,
+      visibility: newCollectionPayload.visibility,
+      is_wishlist: newCollectionPayload.is_wishlist,
+      is_collaborative: newCollectionPayload.is_collaborative,
       show_on_map: newCollectionPayload.show_on_map,
     }, state.sessionToken);
 
-    const savedCollection = (Array.isArray(created) && created[0]) ? { ...created[0], show_on_map, status } : (created?.id ? { ...created, show_on_map, status } : newCollectionPayload);
+    const savedCollection = (Array.isArray(created) && created[0]) ? { ...created[0], show_on_map, visibility: status } : (created?.id ? { ...created, show_on_map, visibility: status } : newCollectionPayload);
     state.userCollections.push(savedCollection);
     guardarZonaPersonalLocal(state.userId);
     registrarIconosColecciones();
@@ -538,7 +542,7 @@ function abrirModalEditarLista(collectionId) {
   const collection = state.userCollections.find((item) => String(item.id) === String(collectionId));
   if (!collection) return;
 
-  const isPublic = collection.status === 'public' || collection.is_public === true;
+  const isPublic = (collection.visibility ? collection.visibility === 'public' : (collection.status === 'public' || collection.is_public === true));
 
   removerModalExistente();
   const modalHTML = `
@@ -613,8 +617,7 @@ async function guardarEdicionListaModal(collectionId) {
   collection.name = newName;
   collection.icon = newIcon;
   collection.description = newDesc;
-  collection.status = status;
-  collection.is_public = status === 'public';
+  collection.visibility = status;
   collection.show_on_map = show_on_map;
 
   guardarZonaPersonalLocal(state.userId);
@@ -625,7 +628,7 @@ async function guardarEdicionListaModal(collectionId) {
 
   if (state.sessionToken) {
     try {
-      await updateUserCollection(collectionId, { name: newName, icon: newIcon, description: newDesc, status, show_on_map }, state.sessionToken);
+      await updateUserCollection(collectionId, { name: newName, icon: newIcon, description: newDesc, visibility: status, show_on_map }, state.sessionToken);
     } catch (err) {
       console.warn('Error sincronizando edición de lista con el servidor:', err);
     }
@@ -798,7 +801,7 @@ function renderCollections() {
   const ownCards = (state.userCollections || []).map((collection) => {
     const collectionItems = (state.userCollectionItems || []).filter((item) => String(item.collection_id) === String(collection.id));
     const isMapActive = collection.show_on_map !== false;
-    const isPublic = collection.status === 'public' || collection.is_public === true;
+    const isPublic = (collection.visibility ? collection.visibility === 'public' : (collection.status === 'public' || collection.is_public === true));
 
     const eyeIconSvg = isMapActive
       ? `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`

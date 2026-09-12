@@ -378,25 +378,30 @@ export async function fetchUserCollections(userId, sessionToken) {
     const rows = await fallbackResponse.json();
     return rows.map((col) => ({
       ...col,
-      status: col.status || (col.is_public ? 'public' : 'private'),
-      is_public: col.status === 'public' || col.is_public === true,
+      visibility: col.visibility || (col.status === 'public' || col.is_public ? 'public' : 'private'),
+      is_wishlist: !!col.is_wishlist,
+      is_collaborative: !!col.is_collaborative,
+      cover_photo_url: col.cover_photo_url || null,
     }));
   }
   const data = await response.json();
   return (Array.isArray(data) ? data : []).map((col) => ({
     ...col,
-    status: col.status || (col.is_public ? 'public' : 'private'),
-    is_public: col.status === 'public' || col.is_public === true,
+    visibility: col.visibility || (col.status === 'public' || col.is_public ? 'public' : 'private'),
+    is_wishlist: !!col.is_wishlist,
+    is_collaborative: !!col.is_collaborative,
+    cover_photo_url: col.cover_photo_url || null,
   }));
 }
 
 export async function createUserCollection(collection, sessionToken) {
-  const isPublic = collection.status === 'public' || collection.is_public === true;
+  const visibility = collection.visibility || ((collection.status === 'public' || collection.is_public === true) ? 'public' : 'private');
   const payload = {
     user_id: collection.user_id,
     name: collection.name,
-    status: isPublic ? 'public' : 'private',
-    is_public: isPublic,
+    visibility,
+    is_wishlist: !!collection.is_wishlist,
+    is_collaborative: !!collection.is_collaborative,
   };
   
   // Validar si el id pasado es un UUID válido; si no, dejar que Supabase lo genere
@@ -406,6 +411,7 @@ export async function createUserCollection(collection, sessionToken) {
   if (collection.icon !== undefined) payload.icon = collection.icon;
   if (collection.description !== undefined) payload.description = collection.description;
   if (collection.show_on_map !== undefined) payload.show_on_map = collection.show_on_map;
+  if (collection.cover_photo_url !== undefined) payload.cover_photo_url = collection.cover_photo_url;
 
   const response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections`, {
     method: 'POST',
@@ -425,7 +431,7 @@ export async function createUserCollection(collection, sessionToken) {
       name: collection.name,
       icon: collection.icon,
       description: collection.description,
-      status: isPublic ? 'public' : 'private',
+      visibility,
     };
     const retryResponse = await fetch(`${SUPABASE_URL}/rest/v1/user_collections`, {
       method: 'POST',
@@ -451,13 +457,17 @@ export async function updateUserCollection(collectionId, updates, sessionToken) 
   if (updates.description !== undefined) payload.description = updates.description;
   if (updates.show_on_map !== undefined) payload.show_on_map = updates.show_on_map;
   
-  if (updates.status !== undefined) {
-    payload.status = updates.status;
-    payload.is_public = updates.status === 'public';
+  if (updates.visibility !== undefined) {
+    payload.visibility = updates.visibility;
+  } else if (updates.status !== undefined) {
+    payload.visibility = updates.status;
   } else if (updates.is_public !== undefined) {
-    payload.is_public = updates.is_public;
-    payload.status = updates.is_public ? 'public' : 'private';
+    payload.visibility = updates.is_public ? 'public' : 'private';
   }
+
+  if (updates.is_wishlist !== undefined) payload.is_wishlist = !!updates.is_wishlist;
+  if (updates.is_collaborative !== undefined) payload.is_collaborative = !!updates.is_collaborative;
+  if (updates.cover_photo_url !== undefined) payload.cover_photo_url = updates.cover_photo_url;
 
   const response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?id=eq.${encodeURIComponent(collectionId)}`, {
     method: 'PATCH',
@@ -475,7 +485,7 @@ export async function updateUserCollection(collectionId, updates, sessionToken) 
     if (updates.name !== undefined) simplified.name = updates.name;
     if (updates.icon !== undefined) simplified.icon = updates.icon;
     if (updates.description !== undefined) simplified.description = updates.description;
-    if (updates.status !== undefined) simplified.status = updates.status;
+    if (payload.visibility !== undefined) simplified.visibility = payload.visibility;
     
     const retryResponse = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?id=eq.${encodeURIComponent(collectionId)}`, {
       method: 'PATCH',
@@ -1339,11 +1349,23 @@ export async function fetchPublicProfileById(userId) {
 }
 
 export async function fetchPublicUserCollections(userId) {
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?user_id=eq.${encodeURIComponent(userId)}&or=(status.eq.public,is_public.eq.true)&select=*&order=created_at.asc`, {
+  let response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?user_id=eq.${encodeURIComponent(userId)}&visibility=eq.public&select=*&order=created_at.asc`, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
   });
+  if (!response.ok) {
+    response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?user_id=eq.${encodeURIComponent(userId)}&or=(status.eq.public,is_public.eq.true)&select=*&order=created_at.asc`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
+    });
+  }
   if (!response.ok) return [];
-  return response.json().catch(() => []);
+  const rows = await response.json().catch(() => []);
+  return rows.map((col) => ({
+    ...col,
+    visibility: col.visibility || (col.status === 'public' || col.is_public ? 'public' : 'private'),
+    is_wishlist: !!col.is_wishlist,
+    is_collaborative: !!col.is_collaborative,
+    cover_photo_url: col.cover_photo_url || null,
+  }));
 }
 
 export async function fetchPublicUserBuildingStatuses(userId) {
@@ -1356,19 +1378,19 @@ export async function fetchPublicUserBuildingStatuses(userId) {
 
 /** Descarga todas las colecciones marcadas como públicas por cualquier usuario. */
 export async function fetchAllPublicCollections() {
-  // 1. Intentar consulta con filtro status o is_public
-  let response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?or=(status.eq.public,is_public.eq.true)&select=*&order=created_at.desc`, {
+  // 1. Intentar consulta con filtro de visibilidad unificada
+  let response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?visibility=eq.public&select=*&order=created_at.desc`, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
   });
 
   if (!response.ok) {
-    response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?status=eq.public&select=*&order=created_at.desc`, {
+    response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?or=(status.eq.public,is_public.eq.true)&select=*&order=created_at.desc`, {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
     });
   }
 
   if (!response.ok) {
-    response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?is_public=eq.true&select=*&order=created_at.desc`, {
+    response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?status=eq.public&select=*&order=created_at.desc`, {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
     });
   }
@@ -1377,11 +1399,13 @@ export async function fetchAllPublicCollections() {
   const rawList = await response.json().catch(() => []);
   if (!Array.isArray(rawList) || rawList.length === 0) return [];
 
-  // Normalizar campos status e is_public
+  // Normalizar campos de visibilidad unificada
   const collections = rawList.map((col) => ({
     ...col,
-    status: col.status || (col.is_public ? 'public' : 'private'),
-    is_public: col.status === 'public' || col.is_public === true,
+    visibility: col.visibility || (col.status === 'public' || col.is_public ? 'public' : 'private'),
+    is_wishlist: !!col.is_wishlist,
+    is_collaborative: !!col.is_collaborative,
+    cover_photo_url: col.cover_photo_url || null,
   }));
 
   // Enriquecer con perfiles de autores desde la vista segura public_profiles
@@ -1409,18 +1433,27 @@ export async function fetchAllPublicCollections() {
 /** Carga una colección por su identificador único (pública o del usuario). */
 export async function fetchCollectionById(collectionId, sessionToken = null) {
   const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken || SUPABASE_KEY}` };
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?id=eq.${encodeURIComponent(collectionId)}&select=id,name,icon,description,status,is_public,created_at,user_id&limit=1`, { headers });
+  let response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?id=eq.${encodeURIComponent(collectionId)}&select=id,name,icon,description,visibility,is_wishlist,is_collaborative,cover_photo_url,created_at,user_id&limit=1`, { headers });
+  if (!response.ok) {
+    response = await fetch(`${SUPABASE_URL}/rest/v1/user_collections?id=eq.${encodeURIComponent(collectionId)}&select=id,name,icon,description,status,is_public,created_at,user_id&limit=1`, { headers });
+  }
   if (!response.ok) return null;
   const list = await response.json().catch(() => []);
   const collection = list[0] || null;
-  if (collection && collection.user_id) {
-    try {
-      const pRes = await fetch(`${SUPABASE_URL}/rest/v1/public_profiles?id=eq.${encodeURIComponent(collection.user_id)}&select=id,nick,first_name,avatar_url`, { headers });
-      if (pRes.ok) {
-        const profs = await pRes.json().catch(() => []);
-        collection.profiles = profs[0] || null;
-      }
-    } catch {}
+  if (collection) {
+    collection.visibility = collection.visibility || (collection.status === 'public' || collection.is_public ? 'public' : 'private');
+    collection.is_wishlist = !!collection.is_wishlist;
+    collection.is_collaborative = !!collection.is_collaborative;
+    collection.cover_photo_url = collection.cover_photo_url || null;
+    if (collection.user_id) {
+      try {
+        const pRes = await fetch(`${SUPABASE_URL}/rest/v1/public_profiles?id=eq.${encodeURIComponent(collection.user_id)}&select=id,nick,first_name,avatar_url`, { headers });
+        if (pRes.ok) {
+          const profs = await pRes.json().catch(() => []);
+          collection.profiles = profs[0] || null;
+        }
+      } catch {}
+    }
   }
   return collection;
 }
@@ -1428,12 +1461,21 @@ export async function fetchCollectionById(collectionId, sessionToken = null) {
 /** Obtiene las colecciones seguidas/guardadas por el usuario actual. */
 export async function fetchFollowedCollections(userId, sessionToken) {
   if (!userId || !sessionToken) return [];
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/user_followed_collections?user_id=eq.${encodeURIComponent(userId)}&select=collection_id,created_at,user_collections:collection_id(id,name,icon,description,status,is_public,user_id)&order=created_at.desc`, {
+  let response = await fetch(`${SUPABASE_URL}/rest/v1/user_followed_collections?user_id=eq.${encodeURIComponent(userId)}&select=collection_id,created_at,user_collections:collection_id(id,name,icon,description,visibility,is_wishlist,is_collaborative,cover_photo_url,user_id)&order=created_at.desc`, {
     headers: {
       'apikey': SUPABASE_KEY,
       'Authorization': `Bearer ${sessionToken}`,
     },
   });
+
+  if (!response.ok) {
+    response = await fetch(`${SUPABASE_URL}/rest/v1/user_followed_collections?user_id=eq.${encodeURIComponent(userId)}&select=collection_id,created_at,user_collections:collection_id(id,name,icon,description,status,is_public,user_id)&order=created_at.desc`, {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${sessionToken}`,
+      },
+    });
+  }
 
   if (!response.ok) {
     // Fallback directo

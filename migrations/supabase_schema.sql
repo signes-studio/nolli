@@ -77,7 +77,7 @@ CREATE POLICY "Admins can view and manage reports" ON public.reports
     )
   );
 
--- 4. COLECCIONES PÚBLICAS/PRIVADAS Y LISTAS SEGUIDAS (COLABORATIVAS)
+-- 4. COLECCIONES CON VISIBILIDAD UNIFICADA Y LISTAS SEGUIDAS
 CREATE TABLE IF NOT EXISTS public.user_collections (
   id TEXT PRIMARY KEY,
   created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -85,55 +85,16 @@ CREATE TABLE IF NOT EXISTS public.user_collections (
   name TEXT NOT NULL,
   icon TEXT,
   description TEXT,
-  status TEXT DEFAULT 'private' CHECK (status IN ('private', 'public')),
-  is_public BOOLEAN DEFAULT false,
+  visibility public.visibility_level NOT NULL DEFAULT 'private',
+  is_wishlist BOOLEAN NOT NULL DEFAULT false,
+  is_collaborative BOOLEAN NOT NULL DEFAULT false,
+  cover_photo_url TEXT,
   show_on_map BOOLEAN DEFAULT true
 );
 
-DO $$
-BEGIN
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'user_collections') THEN
-    ALTER TABLE public.user_collections 
-      ADD COLUMN IF NOT EXISTS is_public BOOLEAN DEFAULT false,
-      ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'private',
-      ADD COLUMN IF NOT EXISTS show_on_map BOOLEAN DEFAULT true;
-    
-    -- Sincronizar columna status con is_public si existía previamente
-    UPDATE public.user_collections 
-      SET status = 'public', is_public = true 
-      WHERE (is_public = true OR status = 'public');
-
-    UPDATE public.user_collections 
-      SET status = 'private', is_public = false 
-      WHERE status IS NULL OR (status <> 'public' AND status <> 'private');
-  END IF;
-END $$;
-
-CREATE INDEX IF NOT EXISTS idx_user_collections_status ON public.user_collections(status);
-CREATE INDEX IF NOT EXISTS idx_user_collections_is_public ON public.user_collections(is_public);
+CREATE INDEX IF NOT EXISTS idx_user_collections_visibility ON public.user_collections(visibility);
 CREATE INDEX IF NOT EXISTS idx_user_collections_user_id ON public.user_collections(user_id);
-
--- Trigger para sincronizar automáticamente status e is_public
-CREATE OR REPLACE FUNCTION public.sync_user_collections_status()
-RETURNS TRIGGER AS $$
-BEGIN
-  IF NEW.status IS NOT NULL THEN
-    NEW.is_public := (NEW.status = 'public');
-  ELSIF NEW.is_public IS NOT NULL THEN
-    NEW.status := CASE WHEN NEW.is_public THEN 'public' ELSE 'private' END;
-  ELSE
-    NEW.status := 'private';
-    NEW.is_public := false;
-  END IF;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-DROP TRIGGER IF EXISTS trg_sync_user_collections_status ON public.user_collections;
-CREATE TRIGGER trg_sync_user_collections_status
-  BEFORE INSERT OR UPDATE ON public.user_collections
-  FOR EACH ROW
-  EXECUTE FUNCTION public.sync_user_collections_status();
+CREATE INDEX IF NOT EXISTS idx_user_collections_is_wishlist ON public.user_collections(is_wishlist) WHERE is_wishlist = true;
 
 -- Tabla de Listas Seguidas / Guardadas de otros usuarios
 DROP TABLE IF EXISTS public.user_followed_collections CASCADE;
@@ -155,22 +116,39 @@ CREATE POLICY "Users can manage own followed collections" ON public.user_followe
   FOR ALL USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
 
--- Políticas RLS para user_collections:
--- A) Lectura: El dueño puede ver sus colecciones Y todo el mundo puede ver las colecciones públicas
-DROP POLICY IF EXISTS "Users can view own collections or public collections" ON public.user_collections;
-CREATE POLICY "Users can view own collections or public collections" ON public.user_collections
+-- Políticas RLS Consolidadas para user_collections:
+-- A) SELECT: Público si visibility='public'. Si 'friends', requiere auth y are_friends(). Dueño y admins siempre.
+DROP POLICY IF EXISTS "user_collections_select_policy" ON public.user_collections;
+CREATE POLICY "user_collections_select_policy" ON public.user_collections
   FOR SELECT USING (
-    status = 'public'
-    OR is_public = true 
-    OR auth.uid() = user_id
-    OR public.is_admin()
+    visibility = 'public'
+    OR (
+      auth.uid() IS NOT NULL AND (
+        auth.uid() = user_id
+        OR (visibility = 'friends' AND public.are_friends(auth.uid(), user_id))
+        OR public.is_admin()
+      )
+    )
   );
 
--- B) Modificación: Solo el dueño (o admin) puede crear/actualizar/borrar sus colecciones
-DROP POLICY IF EXISTS "Users can manage own collections" ON public.user_collections;
-CREATE POLICY "Users can manage own collections" ON public.user_collections
-  FOR ALL USING (auth.uid() = user_id OR public.is_admin())
+-- B) INSERT: Solo el dueño autenticado o admin
+DROP POLICY IF EXISTS "user_collections_insert_policy" ON public.user_collections;
+CREATE POLICY "user_collections_insert_policy" ON public.user_collections
+  FOR INSERT TO authenticated
   WITH CHECK (auth.uid() = user_id OR public.is_admin());
+
+-- C) UPDATE: Solo el dueño autenticado o admin
+DROP POLICY IF EXISTS "user_collections_update_policy" ON public.user_collections;
+CREATE POLICY "user_collections_update_policy" ON public.user_collections
+  FOR UPDATE TO authenticated
+  USING (auth.uid() = user_id OR public.is_admin())
+  WITH CHECK (auth.uid() = user_id OR public.is_admin());
+
+-- D) DELETE: Solo el dueño autenticado o admin
+DROP POLICY IF EXISTS "user_collections_delete_policy" ON public.user_collections;
+CREATE POLICY "user_collections_delete_policy" ON public.user_collections
+  FOR DELETE TO authenticated
+  USING (auth.uid() = user_id OR public.is_admin());
 
 -- 5. VISIBILIDAD DE ETIQUETAS Y NOTAS PRIVADAS PARA SUPERADMIN
 CREATE TABLE IF NOT EXISTS public.user_private_labels (
