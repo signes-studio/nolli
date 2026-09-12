@@ -1310,15 +1310,15 @@ body.dark-mode .admin-importance-tag.imp-3 {
     border: 0 !important;
     border-top: 2px solid var(--border-strong, #141411) !important;
     background: var(--bg-panel, #F8F1DF) !important;
-    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.32) !important;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.18) !important;
     z-index: 50 !important;
     display: flex !important;
     flex-direction: column !important;
-    transform: translateY(100%) translate3d(0, 0, 0) !important;
+    --sheet-drag-y: 0px;
+    transform: translateY(calc(100% + var(--sheet-drag-y, 0px))) translate3d(0, 0, 0) !important;
     opacity: 0 !important;
     visibility: hidden !important;
     pointer-events: none !important;
-    will-change: transform, opacity !important;
     transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease, visibility 0s linear 0.24s !important;
     padding-bottom: max(16px, env(safe-area-inset-bottom)) !important;
   }
@@ -1403,11 +1403,14 @@ body.dark-mode .admin-importance-tag.imp-3 {
   .search-panel.open,
   .my-places-panel.open,
   .map-style-panel.open,
-  .admin-panel.open {
-    transform: translateY(0) translate3d(0, 0, 0) !important;
+  .admin-panel.open,
+  .explore-panel.open,
+  .radar-panel.open {
+    transform: translateY(var(--sheet-drag-y, 0px)) translate3d(0, 0, 0) !important;
     opacity: 1 !important;
     visibility: visible !important;
     pointer-events: auto !important;
+    will-change: transform !important;
     transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease !important;
   }
 
@@ -3061,6 +3064,8 @@ body.dark-mode .radar-sort-select {
   cursor: pointer;
   touch-action: manipulation;
   transition: transform 0.08s ease;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 110px;
 }
 
 body.dark-mode .radar-proximity-card {

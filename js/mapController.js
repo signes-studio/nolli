@@ -820,7 +820,8 @@ function initMapCompass() {
   };
 
   state.map.on('rotate', updateCompass);
-  state.map.on('move', updateCompass);
+  state.map.on('rotatestart', updateCompass);
+  state.map.on('rotateend', updateCompass);
   updateCompass();
 
   compassBtn.addEventListener('click', (e) => {
@@ -1071,6 +1072,7 @@ function initHudReadout() {
   if (!hL && !hLa && !hZ) return;
 
   function actualizarHud(lngLat) {
+    if (window.innerWidth <= 768) return; // En pantallas táctiles móviles el HUD no se muestra; cero mutaciones DOM
     if (lngLat) {
       if (hL) hL.textContent = lngLat.lng.toFixed(5);
       if (hLa) hLa.textContent = lngLat.lat.toFixed(5);
@@ -1081,8 +1083,27 @@ function initHudReadout() {
   }
 
   state.map.on('mousemove', (e) => actualizarHud(e.lngLat));
-  state.map.on('move', () => actualizarHud());
+  state.map.on('moveend', () => actualizarHud());
   state.map.on('load', () => actualizarHud(state.map.getCenter()));
+}
+
+let lastObrasIndexRef = null;
+const obraFastLookupMap = new Map();
+
+function getObraByIdFast(targetId, propId, featureId) {
+  if (!state.OBRAS) return null;
+  if (state.OBRAS !== lastObrasIndexRef) {
+    lastObrasIndexRef = state.OBRAS;
+    obraFastLookupMap.clear();
+    state.OBRAS.forEach((o) => {
+      if (o.id != null) obraFastLookupMap.set(String(o.id), o);
+      if (o.featureId != null) obraFastLookupMap.set(String(o.featureId), o);
+    });
+  }
+  if (targetId && obraFastLookupMap.has(String(targetId))) return obraFastLookupMap.get(String(targetId));
+  if (propId && obraFastLookupMap.has(String(propId))) return obraFastLookupMap.get(String(propId));
+  if (featureId && obraFastLookupMap.has(String(featureId))) return obraFastLookupMap.get(String(featureId));
+  return null;
 }
 
 function resolveMapFeatureTarget(feature) {
@@ -1092,7 +1113,7 @@ function resolveMapFeatureTarget(feature) {
   const rawTargetId = props.id ?? props.featureId ?? props.building_id ?? props.obra_id ?? feature.id ?? null;
   const targetId = rawTargetId == null ? null : String(rawTargetId);
 
-  const obra = state.OBRAS.find((item) => {
+  const obra = getObraByIdFast(targetId, props.id, props.featureId) || state.OBRAS.find((item) => {
     const itemId = String(item.id ?? '');
     const featureId = String(item.featureId ?? '');
     return itemId === targetId || featureId === targetId || itemId === String(props.id ?? '') || featureId === String(props.featureId ?? '');

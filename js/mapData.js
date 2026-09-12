@@ -117,35 +117,55 @@ export function actualizarFuenteMapa() {
         const activeCollection = coleccionPorObra.get(String(obra.id));
         const hasCustomEmoji = activeCollection && activeCollection.icon && activeCollection.id && state.map.hasImage && state.map.hasImage(`collection-emoji-${activeCollection.id}`);
 
-        const cleanName = (obra.nombre_obra || '')
-          .normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '')
-          .toUpperCase()
-          .trim();
-        const c1 = cleanName.length > 0 ? (cleanName.charCodeAt(0) - 64) : 1;
-        const c2 = cleanName.length > 1 ? (cleanName.charCodeAt(1) - 64) : 1;
-        const c3 = cleanName.length > 2 ? (cleanName.charCodeAt(2) - 64) : 1;
-        const safeC1 = Math.max(1, Math.min(26, c1));
-        const safeC2 = Math.max(1, Math.min(26, c2));
-        const safeC3 = Math.max(1, Math.min(26, c3));
-        const alphaRank = (safeC1 * 676) + (safeC2 * 26) + safeC3;
+        // Caché perezosa de alpha_rank para evitar 10.000 normalizaciones de cadenas en cada frame/actualización
+        if (obra._alphaRank === undefined) {
+          const cleanName = (obra.nombre_obra || '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toUpperCase()
+            .trim();
+          const c1 = cleanName.length > 0 ? (cleanName.charCodeAt(0) - 64) : 1;
+          const c2 = cleanName.length > 1 ? (cleanName.charCodeAt(1) - 64) : 1;
+          const c3 = cleanName.length > 2 ? (cleanName.charCodeAt(2) - 64) : 1;
+          const safeC1 = Math.max(1, Math.min(26, c1));
+          const safeC2 = Math.max(1, Math.min(26, c2));
+          const safeC3 = Math.max(1, Math.min(26, c3));
+          obra._alphaRank = (safeC1 * 676) + (safeC2 * 26) + safeC3;
+        }
+        const alphaRank = obra._alphaRank;
 
         const coordKey = obra.coordenadas.join(',');
         const sharedCount = ubicacionesCompartidas.get(coordKey) || 1;
 
-        const nombreObra = String(obra.nombre_obra || '').trim();
-        const arqNombre = formatArquitectosParaEtiqueta(obra);
-        const textoEtiqueta = (nombreObra && arqNombre)
-          ? `${nombreObra}\n${arqNombre}`
-          : (nombreObra || arqNombre || '');
+        // Caché perezosa del texto de etiqueta formateado y arquitectos
+        if (obra._textoEtiqueta === undefined) {
+          const nombreObra = String(obra.nombre_obra || '').trim();
+          const arqNombre = formatArquitectosParaEtiqueta(obra);
+          obra._nombreObraLimpio = nombreObra || 'Obra de arquitectura';
+          obra._arqNombre = arqNombre;
+          obra._textoEtiqueta = (nombreObra && arqNombre)
+            ? `${nombreObra}\n${arqNombre}`
+            : (nombreObra || arqNombre || '');
+        }
+        const nombreObra = obra._nombreObraLimpio;
+        const arqNombre = obra._arqNombre;
+        const textoEtiqueta = obra._textoEtiqueta;
+
+        let coordsVisuales;
+        if (sharedCount > 1) {
+          if (!obra._sharedCoords) obra._sharedCoords = coordenadasVisuales(obra, true);
+          coordsVisuales = obra._sharedCoords;
+        } else {
+          coordsVisuales = obra.coordenadas;
+        }
 
         const feature = {
           type: 'Feature',
           id: obra.featureId,
-          geometry: { type: 'Point', coordinates: coordenadasVisuales(obra, sharedCount > 1) },
+          geometry: { type: 'Point', coordinates: coordsVisuales },
           properties: {
             ...obra,
-            nombre_obra: nombreObra || 'Obra de arquitectura',
+            nombre_obra: nombreObra,
             alpha_rank: alphaRank,
             texto_etiqueta: textoEtiqueta,
             arquitecto: arqNombre,
@@ -191,5 +211,5 @@ export function actualizarFuenteMapa() {
     } catch (err) {
       console.warn('Aviso en sincronización de datos de mapa:', err);
     }
-  }, 30);
+  });
 }

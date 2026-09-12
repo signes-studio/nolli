@@ -634,6 +634,8 @@ body.dark-mode .topbar-btn-profile:hover {
     transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
     box-sizing: border-box;
     border-radius: 0 !important;
+    content-visibility: auto;
+    contain-intrinsic-size: auto 90px;
   }
 
   body.dark-mode .mobile-search-item {

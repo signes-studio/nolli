@@ -51,33 +51,40 @@ export function initMobileBottomNav() {
     return window.innerWidth <= 768;
   }
 
+  let syncRafPending = false;
   function syncNavButtons() {
     if (!isMobile()) return;
+    if (syncRafPending) return;
+    syncRafPending = true;
 
-    const isExploreOpen = Boolean(explorePanel?.classList.contains('open'));
-    const isRadarOpen = Boolean(radarPanel?.classList.contains('open'));
-    const isPlacesOpen = Boolean(myPlacesPanel?.classList.contains('open'));
-    const isSearchOpen = Boolean(searchPanel?.classList.contains('open'));
-    const isFilterOpen = Boolean(filterPanel?.classList.contains('open'));
-    const isLayersOpen = Boolean(mapStylePanel?.classList.contains('open'));
-    const isAdminOpen = Boolean(adminPanel?.classList.contains('open'));
-    const isSheetOpen = Boolean(sheet?.classList.contains('open'));
-    const isAnyPanelOpen = isExploreOpen || isRadarOpen || isPlacesOpen || isSearchOpen || isFilterOpen || isLayersOpen || isAdminOpen || isSheetOpen;
+    requestAnimationFrame(() => {
+      syncRafPending = false;
 
-    btnMap?.classList.toggle('active', !isAnyPanelOpen);
-    btnExplore?.classList.toggle('active', isExploreOpen);
-    btnRadar?.classList.toggle('active', isRadarOpen);
-    btnPlaces?.classList.toggle('active', isPlacesOpen);
+      const isExploreOpen = Boolean(explorePanel?.classList.contains('open'));
+      const isRadarOpen = Boolean(radarPanel?.classList.contains('open'));
+      const isPlacesOpen = Boolean(myPlacesPanel?.classList.contains('open'));
+      const isSearchOpen = Boolean(searchPanel?.classList.contains('open'));
+      const isFilterOpen = Boolean(filterPanel?.classList.contains('open'));
+      const isLayersOpen = Boolean(mapStylePanel?.classList.contains('open'));
+      const isAdminOpen = Boolean(adminPanel?.classList.contains('open'));
+      const isSheetOpen = Boolean(sheet?.classList.contains('open'));
+      const isAnyPanelOpen = isExploreOpen || isRadarOpen || isPlacesOpen || isSearchOpen || isFilterOpen || isLayersOpen || isAdminOpen || isSheetOpen;
 
-    // Controles Flotantes
-    btnFloatLayers?.classList.toggle('active-state', isLayersOpen);
-    btnFloatFilters?.classList.toggle('active-state', isFilterOpen);
-    document.getElementById('btn-explore-float')?.classList.toggle('active-state', isExploreOpen);
-    document.getElementById('btn-radar-float')?.classList.toggle('active-state', isRadarOpen);
+      btnMap?.classList.toggle('active', !isAnyPanelOpen);
+      btnExplore?.classList.toggle('active', isExploreOpen);
+      btnRadar?.classList.toggle('active', isRadarOpen);
+      btnPlaces?.classList.toggle('active', isPlacesOpen);
 
-    if (panelBackdrop) {
-      panelBackdrop.classList.toggle('active', isAnyPanelOpen);
-    }
+      // Controles Flotantes
+      btnFloatLayers?.classList.toggle('active-state', isLayersOpen);
+      btnFloatFilters?.classList.toggle('active-state', isFilterOpen);
+      document.getElementById('btn-explore-float')?.classList.toggle('active-state', isExploreOpen);
+      document.getElementById('btn-radar-float')?.classList.toggle('active-state', isRadarOpen);
+
+      if (panelBackdrop) {
+        panelBackdrop.classList.toggle('active', isAnyPanelOpen);
+      }
+    });
   }
 
   function closeSpeedDial() {
@@ -134,6 +141,9 @@ export function initMobileBottomNav() {
   }
 
   async function cargarPanel(nombreModulo, nombreExportInit, targetPanel) {
+    if (window.nolliPanelModules?.has(nombreModulo)) {
+      return window.nolliPanelModules.get(nombreModulo);
+    }
     const loading = document.createElement('div');
     loading.className = 'panel-loading-status';
     loading.textContent = 'CARGANDO PANEL...';
@@ -645,16 +655,17 @@ function initMobileSearchWidget() {
       const tokens = q.split(/\s+/).filter(Boolean);
 
       const matches = catalogo.filter((obra) => {
-        const name = normalize(obra.nombre_obra);
-        const arq = normalize(Array.isArray(obra.arquitectos) ? obra.arquitectos.join(' ') : obra.arquitecto);
-        const city = normalize(obra.ciudad || obra.place);
-        const style = normalize(obra.estilo);
-        const cat = normalize(obra.categoria);
-        const tags = normalize(Array.isArray(obra.tags) ? obra.tags.join(' ') : obra.tags);
-        const year = String(obra.año_construccion || '');
-
-        const allHaystack = `${name} ${arq} ${city} ${style} ${cat} ${tags} ${year}`;
-        return allHaystack.includes(q) || tokens.every((token) => allHaystack.includes(token));
+        if (!obra._searchHaystack) {
+          const name = normalize(obra.nombre_obra);
+          const arq = normalize(Array.isArray(obra.arquitectos) ? obra.arquitectos.join(' ') : obra.arquitecto);
+          const city = normalize(obra.ciudad || obra.place);
+          const style = normalize(obra.estilo);
+          const cat = normalize(obra.categoria);
+          const tags = normalize(Array.isArray(obra.tags) ? obra.tags.join(' ') : obra.tags);
+          const year = String(obra.año_construccion || '');
+          obra._searchHaystack = `${name} ${arq} ${city} ${style} ${cat} ${tags} ${year}`;
+        }
+        return obra._searchHaystack.includes(q) || tokens.every((token) => obra._searchHaystack.includes(token));
       });
 
       currentMobileMatches = matches;
@@ -755,104 +766,178 @@ function initMobileSearchWidget() {
 }
 
 /* =========================================================================
-   GESTO TÁCTIL SWIPE-DOWN PARA CERRAR EL BOTTOM SHEET DE OBRA
+   CONTROLADOR UNIVERSAL DE GESTOS TÁCTILES A 60 FPS (BOTTOM SHEETS MÓVILES)
+   - Coalescencia con requestAnimationFrame para sincronizar a 60/120Hz
+   - Variable CSS --sheet-drag-y para evitar layout thrashing
+   - Física de inercia: cálculo de velocidad (px/ms) para gestos rápidos de 'flick'
+   - Transición de salida suave continua sin saltos visuales a 0px
    ========================================================================= */
 function initSheetTouchGestures() {
-  const sheetEl = document.getElementById('sheet');
-  const dragHandle = document.getElementById('sheet-drag-handle');
-  const sheetHeader = sheetEl?.querySelector('.sheet-header');
+  const panelBackdrop = document.getElementById('panel-backdrop');
 
-  if (!sheetEl) return;
-
-  let startY = 0;
-  let currentY = 0;
-  let isDragging = false;
-
-  function onTouchStart(e) {
-    if (window.innerWidth > 768) return;
-    const touch = e.touches ? e.touches[0] : e;
-    startY = touch.clientY;
-    currentY = startY;
-    isDragging = true;
-    sheetEl.style.transition = 'none';
-  }
-
-  function onTouchMove(e) {
-    if (!isDragging || window.innerWidth > 768) return;
-    const touch = e.touches ? e.touches[0] : e;
-    currentY = touch.clientY;
-    const deltaY = currentY - startY;
-    if (deltaY > 0) {
-      sheetEl.style.transform = `translateY(${deltaY}px) translate3d(0, 0, 0)`;
+  const panelsConfig = [
+    {
+      panel: document.getElementById('sheet'),
+      handles: ['#sheet-drag-handle', '.sheet-header'],
+      onDismiss: () => {
+        document.dispatchEvent(new CustomEvent('radar:cerrar-ficha'));
+        import('./sheetUI.js').then(({ cerrarFicha }) => cerrarFicha?.());
+      }
+    },
+    {
+      panel: document.getElementById('explore-panel'),
+      handles: ['#explore-drag-handle', '.sheet-header'],
+      onDismiss: null
+    },
+    {
+      panel: document.getElementById('radar-panel'),
+      handles: ['#radar-drag-handle', '.sheet-header'],
+      onDismiss: null
+    },
+    {
+      panel: document.getElementById('my-places-panel'),
+      handles: ['.sheet-drag-handle', '.filter-head'],
+      onDismiss: null
+    },
+    {
+      panel: document.getElementById('filter-panel'),
+      handles: ['.sheet-drag-handle', '.filter-head'],
+      onDismiss: null
+    },
+    {
+      panel: document.getElementById('map-style-panel'),
+      handles: ['.sheet-drag-handle', '.filter-head'],
+      onDismiss: null
+    },
+    {
+      panel: document.getElementById('admin-panel'),
+      handles: ['.sheet-drag-handle', '.filter-head'],
+      onDismiss: null
+    },
+    {
+      panel: document.querySelector('#modal-architect .architect-profile-box'),
+      parentModal: document.getElementById('modal-architect'),
+      handles: ['#architect-drag-handle', '.modal-head'],
+      onDismiss: () => {
+        document.getElementById('modal-architect')?.classList.remove('open');
+      }
     }
-  }
+  ];
 
-  function onTouchEnd() {
-    if (!isDragging || window.innerWidth > 768) return;
-    isDragging = false;
-    sheetEl.style.transition = '';
-    const deltaY = currentY - startY;
-    sheetEl.style.transform = '';
+  panelsConfig.forEach(({ panel, parentModal, handles, onDismiss }) => {
+    if (!panel) return;
 
-    if (deltaY > 75) {
-      sheetEl.classList.remove('open');
-      document.getElementById('panel-backdrop')?.classList.remove('active');
-      document.dispatchEvent(new CustomEvent('radar:cerrar-ficha'));
-    }
-  }
+    let startY = 0;
+    let currentY = 0;
+    let lastY = 0;
+    let startTime = 0;
+    let lastTime = 0;
+    let velocityY = 0;
+    let isDragging = false;
+    let rafPending = false;
 
-  [dragHandle, sheetHeader].filter(Boolean).forEach((el) => {
-    el.addEventListener('touchstart', onTouchStart, { passive: true });
-    el.addEventListener('touchmove', onTouchMove, { passive: true });
-    el.addEventListener('touchend', onTouchEnd, { passive: true });
-  });
-
-  // Gesto táctil para ficha de arquitecto
-  const architectModal = document.getElementById('modal-architect');
-  const architectDragHandle = document.getElementById('architect-drag-handle');
-  const architectHeader = architectModal?.querySelector('.modal-head');
-  const architectBox = architectModal?.querySelector('.architect-profile-box');
-
-  if (architectModal && architectBox) {
-    let archStartY = 0;
-    let archCurrentY = 0;
-    let archDragging = false;
-
-    function onArchTouchStart(e) {
+    function onTouchStart(e) {
       if (window.innerWidth > 768) return;
+      const targetPanel = parentModal || panel;
+      if (!targetPanel.classList.contains('open')) return;
+
       const touch = e.touches ? e.touches[0] : e;
-      archStartY = touch.clientY;
-      archCurrentY = archStartY;
-      archDragging = true;
-      architectBox.style.transition = 'none';
+      startY = touch.clientY;
+      currentY = startY;
+      lastY = startY;
+      startTime = performance.now();
+      lastTime = startTime;
+      velocityY = 0;
+      isDragging = true;
+
+      panel.style.transition = 'none';
+      panel.style.willChange = 'transform';
     }
 
-    function onArchTouchMove(e) {
-      if (!archDragging || window.innerWidth > 768) return;
+    function onTouchMove(e) {
+      if (!isDragging || window.innerWidth > 768) return;
       const touch = e.touches ? e.touches[0] : e;
-      archCurrentY = touch.clientY;
-      const deltaY = archCurrentY - archStartY;
-      if (deltaY > 0) {
-        architectBox.style.transform = `translateY(${deltaY}px) translate3d(0, 0, 0)`;
+      currentY = touch.clientY;
+      const now = performance.now();
+      const dt = now - lastTime;
+      if (dt > 16) {
+        velocityY = (currentY - lastY) / dt;
+        lastY = currentY;
+        lastTime = now;
+      }
+
+      if (!rafPending) {
+        rafPending = true;
+        requestAnimationFrame(() => {
+          if (isDragging) {
+            const deltaY = currentY - startY;
+            const visualDelta = deltaY > 0 ? deltaY : deltaY * 0.2;
+            panel.style.setProperty('--sheet-drag-y', `${visualDelta}px`);
+          }
+          rafPending = false;
+        });
       }
     }
 
-    function onArchTouchEnd() {
-      if (!archDragging || window.innerWidth > 768) return;
-      archDragging = false;
-      architectBox.style.transition = '';
-      const deltaY = archCurrentY - archStartY;
-      architectBox.style.transform = '';
+    function onTouchEnd() {
+      if (!isDragging || window.innerWidth > 768) return;
+      isDragging = false;
+      const deltaY = currentY - startY;
+      const targetPanel = parentModal || panel;
 
-      if (deltaY > 75) {
-        architectModal.classList.remove('open');
+      // Criterio de despido: arrastre > 65px O flick rápido hacia abajo (velocidad > 0.45 px/ms y desplazamiento > 20px)
+      const shouldDismiss = deltaY > 65 || (velocityY > 0.45 && deltaY > 20);
+
+      if (shouldDismiss) {
+        // Animación de salida fluida hacia abajo a 60 FPS
+        panel.style.transition = 'transform 0.22s cubic-bezier(0.16, 1, 0.3, 1)';
+        panel.style.setProperty('--sheet-drag-y', '100%');
+        if (panelBackdrop && !parentModal) panelBackdrop.classList.remove('active');
+
+        setTimeout(() => {
+          targetPanel.classList.remove('open');
+          panel.style.transition = '';
+          panel.style.willChange = '';
+          panel.style.removeProperty('--sheet-drag-y');
+          if (typeof onDismiss === 'function') {
+            onDismiss();
+          }
+          const syncFn = () => {
+            const btnMap = document.getElementById('mobile-nav-map');
+            const btnExplore = document.getElementById('mobile-nav-explore');
+            const btnRadar = document.getElementById('mobile-nav-radar');
+            const btnPlaces = document.getElementById('mobile-nav-places');
+            const hasOpen = Boolean(document.querySelector('.sheet.open, .filter-panel.open, .search-panel.open, .my-places-panel.open, .map-style-panel.open, .admin-panel.open, .explore-panel.open, .radar-panel.open'));
+            btnMap?.classList.toggle('active', !hasOpen);
+            btnExplore?.classList.toggle('active', Boolean(document.getElementById('explore-panel')?.classList.contains('open')));
+            btnRadar?.classList.toggle('active', Boolean(document.getElementById('radar-panel')?.classList.contains('open')));
+            btnPlaces?.classList.toggle('active', Boolean(document.getElementById('my-places-panel')?.classList.contains('open')));
+            if (panelBackdrop) panelBackdrop.classList.toggle('active', hasOpen);
+          };
+          syncFn();
+        }, 220);
+      } else {
+        // Regreso amortiguado a la posición inicial si no se alcanzó el umbral
+        panel.style.transition = 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)';
+        panel.style.setProperty('--sheet-drag-y', '0px');
+
+        setTimeout(() => {
+          panel.style.transition = '';
+          panel.style.willChange = '';
+          panel.style.removeProperty('--sheet-drag-y');
+        }, 200);
       }
     }
 
-    [architectDragHandle, architectHeader].filter(Boolean).forEach((el) => {
-      el.addEventListener('touchstart', onArchTouchStart, { passive: true });
-      el.addEventListener('touchmove', onArchTouchMove, { passive: true });
-      el.addEventListener('touchend', onArchTouchEnd, { passive: true });
+    // Registrar listeners táctiles en los tiradores y cabeceras
+    handles.forEach((selector) => {
+      const el = panel.querySelector(selector) || document.querySelector(selector);
+      if (el) {
+        el.addEventListener('touchstart', onTouchStart, { passive: true });
+        el.addEventListener('touchmove', onTouchMove, { passive: true });
+        el.addEventListener('touchend', onTouchEnd, { passive: true });
+        el.addEventListener('touchcancel', onTouchEnd, { passive: true });
+      }
     });
-  }
+  });
 }
