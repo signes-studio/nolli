@@ -188,7 +188,7 @@ export async function initI18n() {
  * @param {object} vars - Variables para interpolar (ej: { count: 5 })
  * @returns {string} Texto traducido o clave original si no existe
  */
-export function t(key, vars = {}) {
+export function t(key, vars = {}, defaultValue = null) {
   if (!key) return '';
 
   let text = translations[key];
@@ -196,7 +196,13 @@ export function t(key, vars = {}) {
     text = fallbackTranslations[key];
   }
   if (text == null) {
-    text = key;
+    if (defaultValue != null) {
+      text = defaultValue;
+    } else if (typeof vars === 'string') {
+      text = vars;
+    } else {
+      text = key;
+    }
   }
 
   if (vars && typeof vars === 'object') {
@@ -224,32 +230,36 @@ export function applyI18nToDOM(root = document) {
       if (varsAttr) {
         try { vars = JSON.parse(varsAttr); } catch {}
       }
-      el.textContent = t(key, vars);
+      const existing = el.textContent ? el.textContent.trim() : null;
+      el.textContent = t(key, vars, existing);
     }
   });
 
   // 2. HTML directo
   root.querySelectorAll('[data-i18n-html]').forEach((el) => {
     const key = el.getAttribute('data-i18n-html');
-    if (key) el.innerHTML = t(key);
+    if (key) {
+      const existing = el.innerHTML ? el.innerHTML.trim() : null;
+      el.innerHTML = t(key, {}, existing);
+    }
   });
 
   // 3. Placeholders
   root.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
     const key = el.getAttribute('data-i18n-placeholder');
-    if (key) el.placeholder = t(key);
+    if (key) el.placeholder = t(key, {}, el.placeholder || null);
   });
 
   // 4. Aria Labels
   root.querySelectorAll('[data-i18n-aria]').forEach((el) => {
     const key = el.getAttribute('data-i18n-aria');
-    if (key) el.setAttribute('aria-label', t(key));
+    if (key) el.setAttribute('aria-label', t(key, {}, el.getAttribute('aria-label') || null));
   });
 
   // 5. Títulos / Tooltips
   root.querySelectorAll('[data-i18n-title]').forEach((el) => {
     const key = el.getAttribute('data-i18n-title');
-    if (key) el.title = t(key);
+    if (key) el.title = t(key, {}, el.title || null);
   });
 
   // 6. Configurar y sincronizar selectores de idioma en el DOM
