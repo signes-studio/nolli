@@ -1,5 +1,8 @@
 const { categoryClass, categoryLabel } = require('./_lib/categories.js');
 const { detectServerLanguage, getLangPrefix, getSSRText, getHreflangTags, getOgLocaleTags } = require('./_lib/i18n.js');
+const { createRateLimiter } = require('./_lib/rateLimiter.js');
+
+const checkRateLimit = createRateLimiter({ windowMs: 60 * 1000, maxRequests: 60 });
 
 const SITE_URL = 'https://nollimap.app';
 const FALLBACK_SUPABASE_URL = 'https://ldtfvpjigzvcagtciipn.supabase.co';
@@ -324,25 +327,47 @@ function renderNotFoundPage(lang = 'es') {
 
 module.exports = async (request, response) => {
   response.setHeader('X-Robots-Tag', 'noindex, follow');
+
+  // 1. Rate limiting defensivo por IP en caso de cache MISS
+  const rate = checkRateLimit(request, response);
+  if (rate.limited) {
+    response.setHeader('Content-Type', 'text/html; charset=utf-8');
+    return response.status(429).send(`<!DOCTYPE html><html><head><title>Too Many Requests</title></head><body style="font-family:sans-serif;padding:40px;text-align:center;"><h1>429 - Límite de solicitudes excedido</h1><p>Has realizado demasiadas consultas. Por favor, espera un momento.</p></body></html>`);
+  }
+
   try {
     const lang = detectServerLanguage(request);
     const id = String(request.query?.id || '').trim();
     if (!id) {
       response.setHeader('Content-Type', 'text/html; charset=utf-8');
+      response.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=3600');
+      response.setHeader('Vercel-Cache-Tag', 'obra-404,catalog');
+      response.setHeader('Cache-Tag', 'obra-404,catalog');
       return response.status(404).send(renderNotFoundPage(lang));
     }
+
     const building = await fetchPublicBuilding(id);
     if (!building) {
       response.setHeader('Content-Type', 'text/html; charset=utf-8');
+      response.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=3600');
+      response.setHeader('Vercel-Cache-Tag', 'obra-404,catalog');
+      response.setHeader('Cache-Tag', 'obra-404,catalog');
       return response.status(404).send(renderNotFoundPage(lang));
     }
+
     response.setHeader('Content-Type', 'text/html; charset=utf-8');
-    response.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+    // Cache Edge CDN: 24 horas fresca (86400s), hasta 7 días sirviendo stale mientras revalida en background
+    response.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
+    // Tags granulares para invalidación selectiva por ID de obra sin purgar todo el catálogo
+    const cacheTag = `building-${id},obra-${id},catalog`;
+    response.setHeader('Vercel-Cache-Tag', cacheTag);
+    response.setHeader('Cache-Tag', cacheTag);
     return response.status(200).send(renderBuildingPage(building, lang));
   } catch (error) {
     console.error('Error al generar la ficha de obra:', error);
     const lang = detectServerLanguage(request);
     response.setHeader('Content-Type', 'text/html; charset=utf-8');
+    response.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=1800');
     return response.status(404).send(renderNotFoundPage(lang));
   }
 };

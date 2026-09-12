@@ -1,3 +1,6 @@
+const { purgeBuildingCdnCache } = require('./_lib/cdnPurge.js');
+const { slugify, extractCityName } = require('./_lib/slugs.js');
+
 const FALLBACK_SUPABASE_URL = 'https://ldtfvpjigzvcagtciipn.supabase.co';
 const FALLBACK_SUPABASE_KEY = 'sb_publishable_kYQ7Fa8nBsrkp1f8C4AuAg_4-5uBFm0';
 const FALLBACK_SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkdGZ2cGppZ3p2Y2FndGNpaXBuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NzU3OTg2NywiZXhwIjoyMTAzMTU1ODY3fQ.iRn-X5EzmW9eoKqL5qdW3s6I7NfcLfnJRmXTNwjCNnY';
@@ -142,86 +145,11 @@ function sanitizeBuildingPayload(data, isUpdate = false) {
 }
 
 /**
- * Invalida/purga la caché CDN de /api/catalog en Vercel Edge y Cloudflare
- * de manera granular por tags y URLs.
+ * Invalida/purga la caché CDN en Vercel Edge y Cloudflare de manera granular
+ * por tags y URLs (catálogo general + obra individual y agregaciones si procede).
  */
-async function purgeCatalogCdnCache() {
-  const purgeTasks = [];
-
-  // 1. Purga por tags en Vercel Edge CDN (API oficial)
-  const vercelToken = process.env.VERCEL_TOKEN || process.env.VERCEL_API_TOKEN;
-  const vercelProjectId = process.env.VERCEL_PROJECT_ID || process.env.VERCEL_GIT_REPO_SLUG || 'nolli';
-  const vercelTeamId = process.env.VERCEL_TEAM_ID;
-
-  const cfZoneId = process.env.CLOUDFLARE_ZONE_ID;
-  const cfToken = process.env.CLOUDFLARE_API_TOKEN;
-
-  if (!vercelToken && !cfToken) {
-    console.error('[PURGE ERROR] No se encontró VERCEL_TOKEN ni CLOUDFLARE_API_TOKEN en variables de entorno de producción. La purga de caché CDN no se pudo disparar.');
-    return [{ status: 'rejected', reason: 'NO_PURGE_TOKEN_CONFIGURED' }];
-  }
-
-  if (vercelToken) {
-    const vercelParams = new URLSearchParams({ projectIdOrName: vercelProjectId });
-    if (vercelTeamId) vercelParams.append('teamId', vercelTeamId);
-
-    const vercelPurgePromise = fetch(`https://api.vercel.com/v1/edge-cache/invalidate-by-tags?${vercelParams.toString()}`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${vercelToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ tags: ['catalog'] }),
-    }).then(async (res) => {
-      if (!res.ok) {
-        const errText = await res.text().catch(() => '');
-        console.error(`[PURGE ERROR] Fallo al invalidar caché Vercel CDN (HTTP ${res.status}):`, errText);
-        return { provider: 'vercel', success: false, status: res.status, error: errText };
-      }
-      console.log('[PURGE SUCCESS] Caché Vercel CDN invalidado con éxito para tag "catalog" (HTTP 200).');
-      return { provider: 'vercel', success: true, status: 200 };
-    }).catch((err) => {
-      console.error('[PURGE ERROR] Excepción de red al solicitar purga a Vercel CDN:', err.message);
-      return { provider: 'vercel', success: false, error: err.message };
-    });
-
-    purgeTasks.push(vercelPurgePromise);
-  }
-
-  // 2. Purga en Cloudflare CDN si el dominio está configurado con Cloudflare
-  if (cfZoneId && cfToken) {
-    const cfPurgePromise = fetch(`https://api.cloudflare.com/client/v4/zones/${cfZoneId}/purge_cache`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${cfToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        tags: ['catalog'],
-        files: [
-          'https://nollimap.app/api/catalog',
-          'https://nollimap.app/api/catalog?light=true',
-          'https://nollimap.app/api/catalog?light=1',
-        ],
-      }),
-    }).then(async (res) => {
-      if (!res.ok) {
-        const errText = await res.text().catch(() => '');
-        console.error(`[PURGE ERROR] Fallo al purgar Cloudflare CDN (HTTP ${res.status}):`, errText);
-        return { provider: 'cloudflare', success: false, status: res.status, error: errText };
-      }
-      console.log('[PURGE SUCCESS] Caché Cloudflare purgado con éxito para /api/catalog (HTTP 200).');
-      return { provider: 'cloudflare', success: true, status: 200 };
-    }).catch((err) => {
-      console.error('[PURGE ERROR] Excepción de red al solicitar purga a Cloudflare:', err.message);
-      return { provider: 'cloudflare', success: false, error: err.message };
-    });
-
-    purgeTasks.push(cfPurgePromise);
-  }
-
-  const results = await Promise.allSettled(purgeTasks);
-  return results;
+async function purgeCatalogCdnCache(buildingId = null, meta = {}) {
+  return purgeBuildingCdnCache(buildingId, meta);
 }
 
 module.exports = async function handler(req, res) {
@@ -344,8 +272,13 @@ module.exports = async function handler(req, res) {
       }
 
       const inserted = await response.json();
+      const newBuilding = Array.isArray(inserted) ? inserted[0] : inserted;
       if (cleanPayload.estado_revision === 'publicada') {
-        await purgeCatalogCdnCache();
+        await purgeCatalogCdnCache(newBuilding?.id, {
+          architectSlug: cleanPayload.arquitecto ? slugify(cleanPayload.arquitecto) : null,
+          categorySlug: cleanPayload.categoria ? String(cleanPayload.categoria).toLowerCase() : null,
+          citySlug: cleanPayload.place ? slugify(extractCityName(cleanPayload.place)) : null,
+        });
       }
       return res.status(201).json(inserted);
     }
@@ -410,7 +343,11 @@ module.exports = async function handler(req, res) {
         return res.status(404).json({ error: `No se encontró ninguna obra con el ID ${id}.` });
       }
 
-      await purgeCatalogCdnCache();
+      await purgeCatalogCdnCache(id, {
+        architectSlug: cleanPayload.arquitecto ? slugify(cleanPayload.arquitecto) : null,
+        categorySlug: cleanPayload.categoria ? String(cleanPayload.categoria).toLowerCase() : null,
+        citySlug: cleanPayload.place ? slugify(extractCityName(cleanPayload.place)) : null,
+      });
       return res.status(200).json(updated);
     }
 
@@ -445,7 +382,7 @@ module.exports = async function handler(req, res) {
       }
 
       const deleted = await response.json().catch(() => []);
-      await purgeCatalogCdnCache();
+      await purgeCatalogCdnCache(id);
       return res.status(200).json(deleted);
     }
 

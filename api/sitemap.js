@@ -7,6 +7,9 @@
 const { getCategorySlugs } = require('./_lib/categories.js');
 const { getMultilingualSitemapEntries, escapeXml } = require('./_lib/i18n.js');
 const { slugify, extractCityName, isIgnoredArchitect } = require('./_lib/slugs.js');
+const { createRateLimiter } = require('./_lib/rateLimiter.js');
+
+const checkRateLimit = createRateLimiter({ windowMs: 5 * 60 * 1000, maxRequests: 30 });
 
 const SITE_URL = 'https://nollimap.app';
 const FALLBACK_SUPABASE_URL = 'https://ldtfvpjigzvcagtciipn.supabase.co';
@@ -114,6 +117,13 @@ async function fetchAllCitySlugs() {
 }
 
 module.exports = async (request, response) => {
+  // 1. Rate limiting defensivo por IP en caso de cache MISS
+  const rate = checkRateLimit(request, response);
+  if (rate.limited) {
+    response.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    return response.status(429).send('Límite de solicitudes de sitemaps excedido. Por favor, espera unos minutos.');
+  }
+
   const type = String(request.query?.type || 'index').toLowerCase().trim();
   const today = new Date().toISOString().slice(0, 10);
 
@@ -149,6 +159,8 @@ module.exports = async (request, response) => {
 
       response.setHeader('Content-Type', 'application/xml; charset=utf-8');
       response.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
+      response.setHeader('Vercel-Cache-Tag', 'sitemap-index,sitemap,catalog');
+      response.setHeader('Cache-Tag', 'sitemap-index,sitemap,catalog');
       return response.status(200).send(xml);
     }
 
@@ -173,6 +185,8 @@ module.exports = async (request, response) => {
 
       response.setHeader('Content-Type', 'application/xml; charset=utf-8');
       response.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
+      response.setHeader('Vercel-Cache-Tag', 'sitemap-static,sitemap,catalog');
+      response.setHeader('Cache-Tag', 'sitemap-static,sitemap,catalog');
       return response.status(200).send(xml);
     }
 
@@ -193,6 +207,8 @@ module.exports = async (request, response) => {
 
       response.setHeader('Content-Type', 'application/xml; charset=utf-8');
       response.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
+      response.setHeader('Vercel-Cache-Tag', 'sitemap-categories,sitemap,catalog');
+      response.setHeader('Cache-Tag', 'sitemap-categories,sitemap,catalog');
       return response.status(200).send(xml);
     }
 
@@ -213,6 +229,8 @@ module.exports = async (request, response) => {
 
       response.setHeader('Content-Type', 'application/xml; charset=utf-8');
       response.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
+      response.setHeader('Vercel-Cache-Tag', 'sitemap-architects,sitemap,catalog');
+      response.setHeader('Cache-Tag', 'sitemap-architects,sitemap,catalog');
       return response.status(200).send(xml);
     }
 
@@ -233,21 +251,26 @@ module.exports = async (request, response) => {
 
       response.setHeader('Content-Type', 'application/xml; charset=utf-8');
       response.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
+      response.setHeader('Vercel-Cache-Tag', 'sitemap-cities,sitemap,catalog');
+      response.setHeader('Cache-Tag', 'sitemap-cities,sitemap,catalog');
       return response.status(200).send(xml);
     }
 
     // 6. Sitemaps de edificios obsoletos
     if (type === 'buildings') {
       response.setHeader('Content-Type', 'text/plain; charset=utf-8');
+      response.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
       response.setHeader('X-Robots-Tag', 'noindex, nofollow');
       return response.status(404).send('Sitemap obsoleto: Las fichas individuales de obra (/obra/:id) están configuradas como noindex y han sido retiradas de los sitemaps.');
     }
 
     response.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    response.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
     return response.status(400).send('Tipo de sitemap no reconocido.');
   } catch (error) {
     console.error(`No se pudo generar el sitemap (tipo: ${type}):`, error);
     response.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    response.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=1800');
     return response.status(500).send('No se pudo generar el sitemap.');
   }
 };

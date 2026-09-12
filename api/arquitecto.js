@@ -5,6 +5,9 @@
 const { categoryLabel } = require('./_lib/categories.js');
 const { detectServerLanguage, getLangPrefix, getSSRText, getHreflangTags, getOgLocaleTags } = require('./_lib/i18n.js');
 const { slugify, slugToRegex, extractCityName, escapeHtml, getOptimizedUrl } = require('./_lib/slugs.js');
+const { createRateLimiter } = require('./_lib/rateLimiter.js');
+
+const checkRateLimit = createRateLimiter({ windowMs: 60 * 1000, maxRequests: 60 });
 
 const SITE_URL = 'https://nollimap.app';
 const PAGE_SIZE = 50;
@@ -451,11 +454,19 @@ function renderArchitectPage(data, page, lang = 'es') {
 }
 
 module.exports = async (request, response) => {
+  // 1. Rate limiting defensivo por IP en caso de cache MISS
+  const rate = checkRateLimit(request, response);
+  if (rate.limited) {
+    response.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    return response.status(429).send('Límite de solicitudes excedido. Por favor, espera un momento.');
+  }
+
   try {
     const lang = detectServerLanguage(request);
     const rawInput = String(request.query?.slug || request.query?.nombre || '').trim();
     if (!rawInput) {
       response.setHeader('Content-Type', 'text/plain; charset=utf-8');
+      response.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=3600');
       return response.status(400).send('Falta el nombre o slug del arquitecto.');
     }
 
@@ -464,7 +475,13 @@ module.exports = async (request, response) => {
     const architectData = await fetchArchitectData(rawInput, page);
 
     response.setHeader('Content-Type', 'text/html; charset=utf-8');
-    response.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+    // Cache Edge CDN: 48 horas fresca (172800s), hasta 7 días sirviendo stale mientras revalida en background
+    response.setHeader('Cache-Control', 'public, s-maxage=172800, stale-while-revalidate=604800');
+    const canonicalSlug = architectData?.canonicalSlug || slugify(rawInput);
+    const cacheTag = `architect-${canonicalSlug},architect,catalog`;
+    response.setHeader('Vercel-Cache-Tag', cacheTag);
+    response.setHeader('Cache-Tag', cacheTag);
+
     if (lang !== 'es') {
       response.setHeader('X-Robots-Tag', 'noindex, follow');
     }
@@ -472,6 +489,7 @@ module.exports = async (request, response) => {
   } catch (error) {
     console.error('No se pudo generar la página de arquitecto:', error);
     response.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    response.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=1800');
     return response.status(500).send('No se pudo cargar la página de arquitecto.');
   }
 };
