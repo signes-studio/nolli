@@ -2063,3 +2063,87 @@ export async function deleteBuildingVisit(visitId, sessionToken) {
   });
   return response.ok;
 }
+
+/* =========================================================================
+   FOTOS Y ANÁLISIS DE VISITAS (visit_photos) — FASE 2
+   ========================================================================= */
+
+/**
+ * Obtiene las fotos asociadas a una obra arquitectónica según permisos RLS del usuario.
+ */
+export async function fetchBuildingVisitPhotos(buildingId, sessionToken = null) {
+  if (!buildingId) return [];
+  const headers = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${sessionToken || SUPABASE_KEY}`,
+  };
+
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/visit_photos?building_id=eq.${encodeURIComponent(buildingId)}&select=id,visit_id,user_id,building_id,photo_url,thumbnail_url,photo_type,caption,visibility,is_featured_in_catalog,metadata,created_at&order=created_at.desc`, {
+    headers,
+  });
+
+  if (!response.ok) return [];
+  return response.json().catch(() => []);
+}
+
+/**
+ * Obtiene fotos destacadas para el catálogo público de la obra (Bypass RLS para todos, incluso anon).
+ */
+export async function fetchFeaturedCatalogPhotos(buildingId) {
+  if (!buildingId) return [];
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/visit_photos?building_id=eq.${encodeURIComponent(buildingId)}&is_featured_in_catalog=eq.true&select=id,photo_url,thumbnail_url,photo_type,caption,user_id,created_at&order=created_at.desc`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+    },
+  });
+
+  if (!response.ok) return [];
+  return response.json().catch(() => []);
+}
+
+/**
+ * Registra una foto de visita, blindada estrictamente contra URLs de Supabase Storage.
+ */
+export async function createVisitPhoto(photoData, sessionToken) {
+  if (!sessionToken) throw new Error('Usuario no autenticado.');
+  if (!photoData.photo_url) throw new Error('URL de foto requerida.');
+
+  // Validación estricta anti-egress de seguridad en cliente
+  const trimmedUrl = photoData.photo_url.toLowerCase();
+  if (trimmedUrl.includes('supabase.co/storage') || trimmedUrl.includes('.supabase.in/storage')) {
+    throw new Error('Infracción de seguridad anti-egress: No se permite almacenar fotos en Supabase Storage.');
+  }
+
+  const payload = {
+    visit_id: photoData.visit_id || null,
+    user_id: photoData.user_id,
+    building_id: photoData.building_id,
+    photo_url: photoData.photo_url,
+    thumbnail_url: photoData.thumbnail_url || null,
+    photo_type: photoData.photo_type || 'standard',
+    caption: photoData.caption || null,
+    visibility: photoData.visibility || 'friends',
+    is_featured_in_catalog: !!photoData.is_featured_in_catalog,
+    metadata: photoData.metadata || {},
+  };
+
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/visit_photos`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.message || err.details || 'No se pudo guardar la fotografía.');
+  }
+
+  const created = await response.json().catch(() => []);
+  return Array.isArray(created) ? created[0] : created;
+}

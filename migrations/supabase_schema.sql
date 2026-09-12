@@ -402,5 +402,77 @@ CREATE POLICY "building_visits_delete_policy" ON public.building_visits
 GRANT SELECT ON TABLE public.building_visits TO anon, authenticated;
 GRANT INSERT, UPDATE, DELETE ON TABLE public.building_visits TO authenticated;
 
+-- 10. FOTOGRAFÍAS Y ANÁLISIS DE VISITAS (visit_photos)
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'photo_type') THEN
+    CREATE TYPE public.photo_type AS ENUM (
+      'standard',
+      'analysis_sketch',
+      'analysis_diagram',
+      'analysis_detail'
+    );
+  END IF;
+END $$;
+
+CREATE TABLE IF NOT EXISTS public.visit_photos (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  visit_id UUID REFERENCES public.building_visits(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  building_id BIGINT NOT NULL REFERENCES public.Buildings(id) ON DELETE CASCADE,
+  photo_url TEXT NOT NULL,
+  thumbnail_url TEXT,
+  photo_type public.photo_type NOT NULL DEFAULT 'standard',
+  caption TEXT,
+  visibility public.visibility_level NOT NULL DEFAULT 'friends',
+  is_featured_in_catalog BOOLEAN NOT NULL DEFAULT false,
+  metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT chk_no_supabase_storage CHECK (photo_url NOT LIKE '%supabase.co/storage%')
+);
+
+CREATE INDEX IF NOT EXISTS idx_visit_photos_visit_id ON public.visit_photos(visit_id);
+CREATE INDEX IF NOT EXISTS idx_visit_photos_user_id ON public.visit_photos(user_id);
+CREATE INDEX IF NOT EXISTS idx_visit_photos_building_id ON public.visit_photos(building_id);
+CREATE INDEX IF NOT EXISTS idx_visit_photos_photo_type ON public.visit_photos(photo_type);
+CREATE INDEX IF NOT EXISTS idx_visit_photos_featured ON public.visit_photos(is_featured_in_catalog) WHERE is_featured_in_catalog = true;
+CREATE INDEX IF NOT EXISTS idx_visit_photos_visibility ON public.visit_photos(visibility);
+
+ALTER TABLE public.visit_photos ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "visit_photos_select_policy" ON public.visit_photos;
+CREATE POLICY "visit_photos_select_policy" ON public.visit_photos
+  FOR SELECT USING (
+    is_featured_in_catalog = true
+    OR visibility = 'public'
+    OR (
+      auth.uid() IS NOT NULL AND (
+        auth.uid() = user_id
+        OR (visibility = 'friends' AND public.are_friends(auth.uid(), user_id))
+        OR public.is_admin()
+      )
+    )
+  );
+
+DROP POLICY IF EXISTS "visit_photos_insert_policy" ON public.visit_photos;
+CREATE POLICY "visit_photos_insert_policy" ON public.visit_photos
+  FOR INSERT TO authenticated
+  WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "visit_photos_update_policy" ON public.visit_photos;
+CREATE POLICY "visit_photos_update_policy" ON public.visit_photos
+  FOR UPDATE TO authenticated
+  USING (auth.uid() = user_id OR public.is_admin())
+  WITH CHECK (auth.uid() = user_id OR public.is_admin());
+
+DROP POLICY IF EXISTS "visit_photos_delete_policy" ON public.visit_photos;
+CREATE POLICY "visit_photos_delete_policy" ON public.visit_photos
+  FOR DELETE TO authenticated
+  USING (auth.uid() = user_id OR public.is_admin());
+
+GRANT SELECT ON TABLE public.visit_photos TO anon, authenticated;
+GRANT INSERT, UPDATE, DELETE ON TABLE public.visit_photos TO authenticated;
+
+
 
 
