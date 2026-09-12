@@ -1243,6 +1243,13 @@ button.obra-card {
   gap: 8px;
   align-items: center;
 }
+.obra-card__tags {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex-wrap: nowrap;
+}
 .obra-card__category {
   color: var(--fg, #141411) !important;
   font-family: 'Inter', -apple-system, sans-serif;
@@ -1253,7 +1260,8 @@ button.obra-card {
   text-transform: uppercase;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
+  flex-shrink: 0;
 }
 .obra-card__cat-pip {
   display: inline-block;
@@ -1265,35 +1273,28 @@ button.obra-card {
   border: 1px solid var(--border-strong, #141411);
   border-radius: 0 !important;
 }
-.obra-card__importance {
-  display: inline-block;
-  border-radius: 0 !important;
-  background: currentColor;
+.obra-card__importance-meter {
+  display: inline-flex;
+  align-items: center;
+  gap: 2.5px;
   flex-shrink: 0;
   vertical-align: middle;
+  padding: 1px 0;
 }
-.obra-card__importance.importance-0 {
-  width: 8px;
-  height: 8px;
-  background: var(--accent, #E84E1B);
-  box-shadow: 0 0 0 1.5px var(--fg, #141411);
-}
-.obra-card__importance.importance-1 {
-  width: 7px;
-  height: 7px;
-  background: currentColor;
-}
-.obra-card__importance.importance-2 {
-  width: 6px;
-  height: 6px;
-  background: currentColor;
-  opacity: 0.75;
-}
-.obra-card__importance.importance-3 {
+.obra-card__importance-sq {
+  display: inline-block;
   width: 5px;
   height: 5px;
-  background: currentColor;
-  opacity: 0.45;
+  min-width: 5px;
+  min-height: 5px;
+  box-sizing: border-box;
+  border: 1px solid var(--border-strong, #141411);
+  background: transparent;
+  border-radius: 0 !important;
+  flex-shrink: 0;
+}
+.obra-card__importance-sq.is-filled {
+  background: var(--fg, #141411);
 }
 .obra-card__badge-hito {
   font-family: 'Inter', -apple-system, sans-serif;
@@ -1304,10 +1305,10 @@ button.obra-card {
   color: #FFFFFF !important;
   padding: 1.5px 4.5px;
   border-radius: 0 !important;
-  margin-left: 3px;
   line-height: 1;
   display: inline-block;
   vertical-align: middle;
+  flex-shrink: 0;
 }
 .obra-card__distance {
   font-family: 'Inter', -apple-system, sans-serif;
@@ -1586,7 +1587,7 @@ img,
 .sheet-cat-badge,
 .cat-pip,
 .obra-card__cat-pip,
-.obra-card__importance,
+.obra-card__importance-sq,
 .filter-pill-chip,
 .filter-pill-dot,
 .filter-pill-close,

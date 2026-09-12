@@ -30,10 +30,16 @@ export function renderObraCard(obra, {
   const year = obra?.año_construccion || obra?.ano_construccion || obra?.year ? String(obra?.año_construccion || obra?.ano_construccion || obra?.year).trim() : '';
   const city = String(obra?.place || obra?.ciudad || obra?.city || '').trim();
 
-  const rawImportance = Number(obra?.importancia);
+  const rawImportance = obra?.importancia != null ? Number(obra.importancia) : NaN;
   const hasImportance = Number.isFinite(rawImportance) && rawImportance >= 0 && rawImportance <= 3;
   const importanceLevel = hasImportance ? Math.min(3, Math.max(0, Math.round(rawImportance))) : 3;
-  const importanceLabels = ['Hito / Obra Maestra (Nivel 0)', 'Importancia Alta (Nivel 1)', 'Importancia Media (Nivel 2)', 'Importancia Menor (Nivel 3)'];
+  const filledCount = 4 - importanceLevel;
+  const importanceLabels = [
+    'Hito / Obra Cumbre (Nivel 0 — 4/4)',
+    'Importancia Alta (Nivel 1 — 3/4)',
+    'Importancia Media (Nivel 2 — 2/4)',
+    'Importancia Menor (Nivel 3 — 1/4)'
+  ];
   const importanceLabel = hasImportance ? importanceLabels[importanceLevel] : '';
 
   const rawPhoto = obra?.foto_miniatura || obra?.foto_url || '';
@@ -55,12 +61,14 @@ export function renderObraCard(obra, {
     ${photoUrl ? `<div class="obra-card__thumb"><img src="${escapeHtml(photoUrl)}" alt="${escapeHtml(title)}" loading="lazy" onerror="this.parentElement.style.display='none'"></div>` : ''}
     <div class="obra-card__body">
       <div class="obra-card__topline">
-        <span class="obra-card__category" style="--obra-category:${color};">
-          <span class="obra-card__cat-pip" style="background:${color};"></span>
-          ${hasImportance ? `<i class="obra-card__importance importance-${importanceLevel}" title="${escapeHtml(importanceLabel)}" aria-label="${escapeHtml(importanceLabel)}"></i>` : ''}
-          ${escapeHtml(formattedCat)}
+        <div class="obra-card__tags">
+          <span class="obra-card__category" style="--obra-category:${color};">
+            <span class="obra-card__cat-pip" style="background:${color};"></span>
+            <span>${escapeHtml(formattedCat)}</span>
+          </span>
+          ${hasImportance ? `<span class="obra-card__importance-meter" title="${escapeHtml(importanceLabel)}" aria-label="${escapeHtml(importanceLabel)}" role="img">${[1, 2, 3, 4].map((n) => `<span class="obra-card__importance-sq ${n <= filledCount ? 'is-filled' : ''}"></span>`).join('')}</span>` : ''}
           ${hasImportance && importanceLevel === 0 ? `<span class="obra-card__badge-hito">HITO</span>` : ''}
-        </span>
+        </div>
         ${distance ? `<span class="obra-card__distance">${escapeHtml(distance)}</span>` : ''}
       </div>
       <h3 class="obra-card__title">${escapeHtml(title)}</h3>
