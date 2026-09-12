@@ -580,6 +580,11 @@ function abrirModalEditarLista(collectionId) {
         ` : ''}
 
         <label class="keep-session" style="font-size:10px; cursor:pointer;">
+          <input id="modal-edit-wishlist-toggle" type="checkbox" ${collection.is_wishlist === true ? 'checked' : ''}>
+          <span>Marcar como Lista de Deseos (radar de proximidad)</span>
+        </label>
+
+        <label class="keep-session" style="font-size:10px; cursor:pointer;">
           <input id="modal-edit-map-toggle" type="checkbox" ${collection.show_on_map !== false ? 'checked' : ''}>
           <span>Mostrar obras en el mapa con este icono</span>
         </label>
@@ -601,12 +606,14 @@ async function guardarEdicionListaModal(collectionId) {
   const nameInput = document.getElementById('modal-edit-name');
   const descInput = document.getElementById('modal-edit-desc');
   const mapToggle = document.getElementById('modal-edit-map-toggle');
+  const wishlistToggle = document.getElementById('modal-edit-wishlist-toggle');
   const statusRadio = document.querySelector('input[name="modal-edit-status"]:checked');
 
   const newName = String(nameInput?.value || '').trim();
   const newIcon = String(emojiInput?.value || '').trim();
   const newDesc = String(descInput?.value || '').trim();
   const show_on_map = Boolean(mapToggle?.checked);
+  const is_wishlist = Boolean(wishlistToggle?.checked);
   const status = statusRadio?.value === 'public' ? 'public' : 'private';
 
   if (!newName) {
@@ -618,6 +625,7 @@ async function guardarEdicionListaModal(collectionId) {
   collection.icon = newIcon;
   collection.description = newDesc;
   collection.visibility = status;
+  collection.is_wishlist = is_wishlist;
   collection.show_on_map = show_on_map;
 
   guardarZonaPersonalLocal(state.userId);
@@ -628,7 +636,7 @@ async function guardarEdicionListaModal(collectionId) {
 
   if (state.sessionToken) {
     try {
-      await updateUserCollection(collectionId, { name: newName, icon: newIcon, description: newDesc, visibility: status, show_on_map }, state.sessionToken);
+      await updateUserCollection(collectionId, { name: newName, icon: newIcon, description: newDesc, visibility: status, is_wishlist, show_on_map }, state.sessionToken);
     } catch (err) {
       console.warn('Error sincronizando edición de lista con el servidor:', err);
     }

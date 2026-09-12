@@ -67,6 +67,88 @@ export function getNearbyRoutes(maxDistanceMeters = CURATED_PROXIMITY_METERS) {
   return results;
 }
 
+/**
+ * Resuelve "obras de mi lista de deseos cerca de mí" COMPLETAMENTE en el cliente,
+ * sin realizar peticiones de red ni endpoints/queries de servidor (0 coste / 0 egress).
+ * Cruza las colecciones del usuario con is_wishlist=true contra sus ítems y
+ * el catálogo local en memoria (state.OBRAS / state.BUILDING_CATALOG).
+ *
+ * @param {number|null} maxRadiusMeters - Radio máximo en metros (default: radarRadius)
+ * @returns {Array<Object>} Obras de la lista de deseos con distancia calculada (_dist)
+ */
+export function getWishlistNearbyWorks(maxRadiusMeters = null) {
+  const [refLon, refLat] = getRadarCenter();
+  const radius = Number.isFinite(maxRadiusMeters) ? maxRadiusMeters : radarRadius;
+
+  const wishlistCols = (state.userCollections || []).filter((c) => c.is_wishlist === true);
+  if (!wishlistCols.length) return [];
+
+  const wishlistColIds = new Set(wishlistCols.map((c) => String(c.id)));
+
+  const wishlistBuildingIds = new Set(
+    (state.userCollectionItems || [])
+      .filter((item) => wishlistColIds.has(String(item.collection_id)))
+      .map((item) => String(item.building_id))
+  );
+  if (!wishlistBuildingIds.size) return [];
+
+  const pool = dedupeBuildings([...(state.OBRAS || []), ...(state.BUILDING_CATALOG || [])]);
+  const matching = [];
+
+  for (const bId of wishlistBuildingIds) {
+    const obra = pool.find((o) => String(o.id) === String(bId));
+    if (!obra) continue;
+
+    const coords = (Array.isArray(obra.coordenadas) && obra.coordenadas.length === 2 && Number.isFinite(obra.coordenadas[0]))
+      ? obra.coordenadas
+      : (Number.isFinite(obra.longitud) && Number.isFinite(obra.latitud) ? [Number(obra.longitud), Number(obra.latitud)] : null);
+
+    if (!coords) continue;
+    const dist = calcularDistanciaMetros(refLon, refLat, coords[0], coords[1]);
+    if (radius === null || dist <= radius) {
+      matching.push({
+        ...obra,
+        _dist: dist,
+        isWishlistWork: true,
+      });
+    }
+  }
+
+  matching.sort((a, b) => a._dist - b._dist);
+  return matching;
+}
+
+export function renderWishlistRadarBadge(wishlistWorks) {
+  let badgeContainer = document.getElementById('radar-wishlist-banner');
+  if (!badgeContainer) {
+    const head = document.querySelector('.radar-detected-section .radar-section-head');
+    if (head && head.parentNode) {
+      badgeContainer = document.createElement('div');
+      badgeContainer.id = 'radar-wishlist-banner';
+      badgeContainer.className = 'radar-wishlist-banner';
+      head.parentNode.insertBefore(badgeContainer, head.nextSibling);
+    }
+  }
+  if (!badgeContainer) return;
+  if (!wishlistWorks || !wishlistWorks.length) {
+    badgeContainer.style.display = 'none';
+    badgeContainer.innerHTML = '';
+    return;
+  }
+  badgeContainer.style.display = 'flex';
+  const nearest = wishlistWorks[0];
+  const count = wishlistWorks.length;
+  badgeContainer.innerHTML = `
+    <div style="width:100%; display:flex; align-items:center; justify-content:space-between; background:rgba(232,78,27,0.08); border:1.5px solid var(--accent); padding:8px 10px; margin-bottom:8px; font-family:'Inter',sans-serif; font-size:10px; font-weight:700;">
+      <div style="display:flex; align-items:center; gap:6px;">
+        <span style="display:inline-block; width:8px; height:8px; background:var(--accent);"></span>
+        <span>${count} ${count === 1 ? 'OBRA DE TU LISTA DE DESEOS' : 'OBRAS DE TU LISTA DE DESEOS'} EN TU RADIO</span>
+      </div>
+      <span style="font-size:9px; color:var(--accent); font-weight:800; letter-spacing:.04em;">${formatearDistanciaRadar(nearest._dist)}</span>
+    </div>
+  `;
+}
+
 export function renderCuratedCarousel() {
   const container = document.getElementById('radar-curated-carousel');
   if (!container) return;
@@ -339,6 +421,7 @@ export async function renderRadarUI() {
   let initialWorks = radarCachedData.length && radarCacheKey === currentKey ? radarCachedData : localWorks;
   initialWorks.sort((a, b) => a._dist - b._dist);
   renderRadarList(initialWorks, container, countSpan);
+  renderWishlistRadarBadge(getWishlistNearbyWorks(radarRadius));
 
   // 2. Consulta en vivo a toda la base de datos (incluso fuera del viewport)
   radarAbortController?.abort();
@@ -388,6 +471,7 @@ export async function renderRadarUI() {
     radarCacheKey = currentKey;
 
     renderRadarList(allWorks, container, countSpan);
+    renderWishlistRadarBadge(getWishlistNearbyWorks(radarRadius));
   } catch (err) {
     if (err.name === 'AbortError' || radarAbortController?.signal?.aborted) return;
     console.warn('Aviso al consultar obras en el radar:', err);
