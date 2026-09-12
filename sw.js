@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nolli-shell-v107';
+const CACHE_NAME = 'nolli-shell-v108';
 const CATALOG_FRESHNESS_MINUTES = 60;
 const CATALOG_CACHE_TTL_MS = CATALOG_FRESHNESS_MINUTES * 60 * 1000;
 const APP_SHELL = [
@@ -76,8 +76,26 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
-  if (!event.request.url.startsWith(self.location.origin)) return;
   const url = new URL(event.request.url);
+
+  // Fuentes de Google Fonts (Cache-First / Stale-While-Revalidate para 0ms y uso offline)
+  if (url.origin === 'https://fonts.googleapis.com' || url.origin === 'https://fonts.gstatic.com') {
+    event.respondWith(
+      caches.match(event.request).then((cached) => {
+        if (cached) return cached;
+        return fetch(event.request).then((response) => {
+          if (response && (response.ok || response.type === 'opaque')) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return response;
+        });
+      })
+    );
+    return;
+  }
+
+  if (!event.request.url.startsWith(self.location.origin)) return;
   const isStaticAsset = /^\/(?:css|js|icons|img|locales)\//.test(url.pathname) || /\.(?:webp|png|svg|ico|webmanifest|json)$/.test(url.pathname);
 
   if (isStaticAsset) {
@@ -110,12 +128,19 @@ self.addEventListener('fetch', (event) => {
           try {
             const networkResponse = await fetch(event.request);
             if (networkResponse && networkResponse.ok) {
-          const clone1 = networkResponse.clone();
-          const clone2 = networkResponse.clone();
-          await cache.put(event.request, clone1);
-          try {
-            await cache.put('/api/catalog', clone2);
-            } catch {}
+              const clone1 = networkResponse.clone();
+              const clone2 = networkResponse.clone();
+              await cache.put(event.request, clone1);
+              try {
+                await cache.put('/api/catalog', clone2);
+              } catch {}
+              try {
+                await cache.put('/api/catalog-timestamp', new Response(String(Date.now())));
+              } catch {}
+              return networkResponse;
+            }
+            return networkResponse;
+          } catch (err) {
             if (cachedResponse) return cachedResponse;
             throw err;
           }

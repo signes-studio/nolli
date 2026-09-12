@@ -13,6 +13,11 @@
   -webkit-touch-callout: none !important;
   user-select: none !important;
   -webkit-user-select: none !important;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  will-change: transform;
 }
 
 /* Controles de atribucion/branding para Mapbox y MapLibre */
@@ -54,6 +59,11 @@
   display: flex;
   align-items: center;
   box-sizing: border-box;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  contain: layout paint;
 }
 .topbar-inner {
   display: flex;
@@ -381,6 +391,11 @@ body.dark-mode .topbar-btn-profile:hover {
     padding: 0;
     height: 48px;
     box-sizing: border-box;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    contain: layout paint;
   }
 
   body.dark-mode .mobile-identity-widget {
@@ -417,6 +432,10 @@ body.dark-mode .topbar-btn-profile:hover {
   display: flex !important;
   z-index: 45;
   transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
   .mobile-search-trigger {
@@ -522,6 +541,7 @@ body.dark-mode .topbar-btn-profile:hover {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: contain;
+    contain: content;
     background: var(--bg-panel, #F4F1EA);
     border: 2px solid var(--border-strong, #111111);
     box-shadow: 4px 4px 0px var(--border-strong, #111111);
@@ -715,6 +735,11 @@ body.dark-mode .topbar-btn-profile:hover {
     touch-action: manipulation;
     border-radius: 0 !important;
     padding: 0;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    contain: layout paint;
     transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1),
                 transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
                 background 0.12s ease,
@@ -835,6 +860,10 @@ body.dark-mode .topbar-btn-profile:hover {
     gap: 10px;
     pointer-events: auto;
     align-items: flex-end;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
   }
 
   /* Backdrop atenuador para cerrar Speed-Dial al pulsar fuera */
@@ -1019,6 +1048,11 @@ body.dark-mode .topbar-btn-profile:hover {
     padding-bottom: max(6px, env(safe-area-inset-bottom));
     min-height: 56px;
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08);
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    contain: layout paint;
   }
 
   .mobile-nav-btn {

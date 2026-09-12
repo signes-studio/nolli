@@ -45,21 +45,13 @@
 <script src="js/siteFooter.js" defer></script>
 <script src="js/lucide.min.js" defer></script>
 
-<!-- Hojas de estilo no bloqueantes (Asynchronous Preload) -->
-<link rel="preload" href="css/legal-components.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-<link rel="preload" href="css/utilities.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-<link rel="preload" href="css/base.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-<link rel="preload" href="css/panels.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-<link rel="preload" href="css/components.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-<link rel="preload" href="css/profile.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-<noscript>
-  <link rel="stylesheet" href="css/legal-components.css">
-  <link rel="stylesheet" href="css/utilities.css">
-  <link rel="stylesheet" href="css/base.css">
-  <link rel="stylesheet" href="css/panels.css">
-  <link rel="stylesheet" href="css/components.css">
-  <link rel="stylesheet" href="css/profile.css">
-</noscript>
+<!-- Hojas de estilo críticas con caché instantánea Service Worker -->
+<link rel="stylesheet" href="css/legal-components.css">
+<link rel="stylesheet" href="css/utilities.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/panels.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/profile.css">
 
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#F8F1DF" id="meta-theme-color">

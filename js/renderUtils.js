@@ -120,14 +120,18 @@ export function createVirtualList(container, items = [], renderItem = null, item
     visibleContainer.appendChild(fragment);
   }
   
-  // Debounce scroll events
-  let scrollTimeout = null;
+  // Coalesce scroll events via requestAnimationFrame
+  let scrollRafId = null;
   const parentScroll = container.parentElement;
   if (parentScroll) {
     parentScroll.addEventListener('scroll', () => {
-      clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(updateVisibleItems, 16); // ~60fps
-    });
+      if (!scrollRafId) {
+        scrollRafId = requestAnimationFrame(() => {
+          updateVisibleItems();
+          scrollRafId = null;
+        });
+      }
+    }, { passive: true });
   }
   
   updateVisibleItems();

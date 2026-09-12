@@ -43,8 +43,8 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=League+Spartan:wght@600;700;800;900&display=swap">
 </noscript>
 
-<!-- Mapbox GL JS & CSS (Preload paralelo sin bloquear el parser) -->
-<link rel="preload" href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<!-- Mapbox GL JS & CSS -->
+<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css">
 <link rel="preload" href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js" as="script">
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js" defer></script>
 
@@ -55,22 +55,13 @@
 <!-- Lucide Icons local diferido (0 redirects, sin latencia unpkg) -->
 <script src="/js/lucide.min.js" defer></script>
 
-<!-- Hojas de estilo no bloqueantes (Asynchronous Preload) -->
-<link rel="preload" href="/css/legal-components.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-<link rel="preload" href="/css/utilities.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-<link rel="preload" href="/css/base.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-<link rel="preload" href="/css/map-hud.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-<link rel="preload" href="/css/panels.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-<link rel="preload" href="/css/components.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-<noscript>
-  <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css">
-  <link rel="stylesheet" href="/css/legal-components.css">
-  <link rel="stylesheet" href="/css/utilities.css">
-  <link rel="stylesheet" href="/css/base.css">
-  <link rel="stylesheet" href="/css/map-hud.css">
-  <link rel="stylesheet" href="/css/panels.css">
-  <link rel="stylesheet" href="/css/components.css">
-</noscript>
+<!-- Hojas de estilo críticas con caché instantánea Service Worker -->
+<link rel="stylesheet" href="/css/legal-components.css">
+<link rel="stylesheet" href="/css/utilities.css">
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/map-hud.css">
+<link rel="stylesheet" href="/css/panels.css">
+<link rel="stylesheet" href="/css/components.css">
 
 <link rel="prefetch" href="/perfil.html">
 <link rel="prefetch" href="/css/profile.css">

@@ -51,12 +51,13 @@ function coordenadasVisuales(obra, isShared = false) {
   ];
 }
 
-let updateTimeout = null;
+let updateRafId = null;
 
 export function actualizarFuenteMapa() {
-  if (updateTimeout) clearTimeout(updateTimeout);
+  if (updateRafId) cancelAnimationFrame(updateRafId);
 
-  updateTimeout = setTimeout(() => {
+  updateRafId = requestAnimationFrame(() => {
+    updateRafId = null;
     if (!state.map) return;
 
     try {

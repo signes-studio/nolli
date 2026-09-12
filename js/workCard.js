@@ -58,7 +58,7 @@ export function renderObraCard(obra, {
   const formattedCat = formatCategoria(obra?.categoria);
 
   return `<${tag} class="obra-card obra-card--${escapeHtml(variant)} ${escapeHtml(className)}" data-feature-id="${escapeHtml(safeFeatureId)}" data-id="${escapeHtml(safeId)}" data-obra-id="${escapeHtml(safeId)}" data-radar-feature-id="${escapeHtml(safeFeatureId)}" data-search-feature-id="${escapeHtml(safeFeatureId)}" data-architect-work-id="${escapeHtml(safeFeatureId)}" data-lng="${escapeHtml(String(lng))}" data-lat="${escapeHtml(String(lat))}" ${tagAttrs} aria-label="Ver ${escapeHtml(title)}">
-    ${photoUrl ? `<div class="obra-card__thumb"><img src="${escapeHtml(photoUrl)}" alt="${escapeHtml(title)}" loading="lazy" onerror="this.parentElement.style.display='none'"></div>` : ''}
+    ${photoUrl ? `<div class="obra-card__thumb"><img src="${escapeHtml(photoUrl)}" alt="${escapeHtml(title)}" loading="lazy" decoding="async" onerror="this.parentElement.style.display='none'"></div>` : ''}
     <div class="obra-card__body">
       <div class="obra-card__topline">
         <div class="obra-card__tags">

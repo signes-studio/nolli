@@ -7,12 +7,18 @@
   position: absolute; left: 0; right: 0; bottom: 0; z-index: 40;
   background: var(--bg-panel);
   border-top: 1px solid var(--accent);
-  transform: translateY(100%);
+  transform: translate3d(0, 100%, 0);
+  -webkit-transform: translate3d(0, 100%, 0);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  contain: layout paint;
   visibility: hidden; pointer-events: none; opacity: 0;
   transition: transform .22s cubic-bezier(.2,.8,.2,1), opacity .15s, visibility 0s linear .22s;
   max-height: 62vh; overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
-.sheet.open { transform: translateY(0); visibility: visible; pointer-events: auto; opacity: 1; transition-delay: 0s; }
+.sheet.open { transform: translate3d(0, 0, 0); -webkit-transform: translate3d(0, 0, 0); visibility: visible; pointer-events: auto; opacity: 1; transition-delay: 0s; }
 .sheet-header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 10px 14px; border-bottom: 1px solid var(--border);
@@ -498,7 +504,12 @@ body.dark-mode .sheet-restricted-link-btn:hover {
   background: var(--bg-panel, #F8F1DF);
   border: 1px solid var(--border-strong, #141411);
   box-shadow: 3px 3px 0px var(--border-strong, #141411);
-  transform: translateY(calc(100% + 150px));
+  transform: translate3d(0, calc(100% + 150px), 0);
+  -webkit-transform: translate3d(0, calc(100% + 150px), 0);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  contain: layout paint;
   visibility: hidden;
   pointer-events: none;
   opacity: 0;
@@ -507,7 +518,8 @@ body.dark-mode .sheet-restricted-link-btn:hover {
   box-sizing: border-box;
 }
 .my-places-panel.open {
-  transform: translateY(0);
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
   visibility: visible;
   pointer-events: auto;
   opacity: 1;
@@ -522,7 +534,12 @@ body.dark-mode .sheet-restricted-link-btn:hover {
     left: 50% !important;
     right: auto !important;
     bottom: 24px !important;
-    transform: translateX(-50%) translateY(calc(100% + 150px)) !important;
+    transform: translate3d(-50%, calc(100% + 150px), 0) !important;
+    -webkit-transform: translate3d(-50%, calc(100% + 150px), 0) !important;
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    contain: layout paint;
     width: min(680px, calc(100vw - 48px)) !important;
     height: auto !important;
     max-height: 80vh !important;
@@ -542,7 +559,8 @@ body.dark-mode .sheet-restricted-link-btn:hover {
 
   .explore-panel.open,
   .radar-panel.open {
-    transform: translateX(-50%) translateY(0) !important;
+    transform: translate3d(-50%, 0, 0) !important;
+    -webkit-transform: translate3d(-50%, 0, 0) !important;
     visibility: visible !important;
     pointer-events: auto !important;
     opacity: 1 !important;

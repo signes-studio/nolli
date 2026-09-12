@@ -71,6 +71,12 @@ export function cargarMapaMapbox() {
   if (typeof mapboxgl.setTelemetryEnabled === 'function') {
     mapboxgl.setTelemetryEnabled(Boolean(window.nolliHasConsent?.('mapa_terceros')));
   }
+  // Aceleración de procesamiento multi-hilo en Web Workers
+  try {
+    mapboxgl.workerCount = Math.min(navigator.hardwareConcurrency || 4, 6);
+    mapboxgl.maxParallelImageRequests = 32;
+  } catch (e) {}
+
   const savedStyle = localStorage.getItem('nolli_map_style');
   const savedTheme = localStorage.getItem('nolli_theme');
   if (savedStyle && MAP_STYLES[savedStyle]) {
@@ -93,8 +99,10 @@ export function cargarMapaMapbox() {
     zoom: DEFAULT_ZOOM,
     attributionControl: true,
     fadeDuration: 0, // Cero delay de transición/fade para carga instantánea
-    maxTileCacheSize: 200, // Caché extendida en memoria
+    maxTileCacheSize: 300, // Caché extendida de teselas en memoria RAM
     crossSourceCollisions: false,
+    renderWorldCopies: false, // Optimización GPU: no duplicar el mundo fuera de los límites
+    pixelRatio: Math.min(window.devicePixelRatio || 1, 2), // Límite 2x: ahorra >50% de fill rate en pantallas 3x/4x sin merma visual
     touchZoomRotate: true,
     dragPan: true,
     dragRotate: true,
@@ -102,6 +110,11 @@ export function cargarMapaMapbox() {
     pitchWithRotate: false,
     cooperativeGestures: false,
     clickTolerance: 4,
+    canvasContextAttributes: {
+      powerPreference: 'high-performance',
+      preserveDrawingBuffer: false,
+      antialias: true
+    }
   });
   window.nolliMap = state.map;
 

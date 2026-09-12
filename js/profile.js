@@ -1120,7 +1120,7 @@ function renderCollectionsFeed() {
     const thumbHtml = thumbUrl
       ? `
         <div class="profile-col-thumb-square">
-          <img src="${escapeHtml(thumbUrl)}" alt="${escapeHtml(col.name)}" class="profile-col-thumb-img" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+          <img src="${escapeHtml(thumbUrl)}" alt="${escapeHtml(col.name)}" class="profile-col-thumb-img" loading="lazy" decoding="async" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
           <div class="profile-col-thumb-fallback profile-col-thumb-blueprint" style="display:none; background:${escapeHtml(fallbackBg)};">
             <span class="profile-col-thumb-symbol">${escapeHtml(colSymbol)}</span>
           </div>
@@ -1202,7 +1202,7 @@ function renderCollectionsFeed() {
       const thumbHtml = col.cover_photo_url
         ? `
           <div class="profile-col-thumb-square">
-            <img src="${escapeHtml(col.cover_photo_url)}" alt="${escapeHtml(title)}" class="profile-col-thumb-img" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+            <img src="${escapeHtml(col.cover_photo_url)}" alt="${escapeHtml(title)}" class="profile-col-thumb-img" loading="lazy" decoding="async" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
             <div class="profile-col-thumb-fallback profile-col-thumb-blueprint" style="display:none; background:var(--bg-raised);">
               <span class="profile-col-thumb-symbol">${escapeHtml(emoji)}</span>
             </div>
@@ -1286,7 +1286,7 @@ function renderNotesFeed() {
         <div class="profile-collection-card-head">
           <div style="display:flex; align-items:center; gap:12px; min-width:0; flex:1;">
             ${photo ? `
-              <img src="${escapeHtml(photo)}" alt="${escapeHtml(title)}" class="profile-feed-thumb" style="width:50px; height:50px; min-width:50px; min-height:50px;" loading="lazy">
+              <img src="${escapeHtml(photo)}" alt="${escapeHtml(title)}" class="profile-feed-thumb" style="width:50px; height:50px; min-width:50px; min-height:50px;" loading="lazy" decoding="async">
             ` : `
               <div class="profile-feed-thumb-fallback" style="width:50px; height:50px; min-width:50px; min-height:50px; font-size:16px;"></div>
             `}

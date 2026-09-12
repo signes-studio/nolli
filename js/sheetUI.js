@@ -192,7 +192,7 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
     ${building.foto_url && isValidHttpsUrl(building.foto_url) && state.sessionToken ? `
       <div class="sheet-gallery-wrap">
         <button type="button" class="photo-thumb sheet-photo-banner" data-photo-url="${escapeHtml(building.foto_url)}" aria-label="${t('sheet_photo_expand_aria')}">
-          <img class="sheet-photo" src="${escapeHtml(getOptimizedPhotoUrl(building.foto_url, { width: 1000 }))}" alt="Fotografía de ${escapeHtml(building.nombre_obra)}" loading="lazy"${openedFromUrl ? ' fetchpriority="high"' : ''}>
+          <img class="sheet-photo" src="${escapeHtml(getOptimizedPhotoUrl(building.foto_url, { width: 1000 }))}" alt="Fotografía de ${escapeHtml(building.nombre_obra)}" loading="lazy" decoding="async"${openedFromUrl ? ' fetchpriority="high"' : ''}>
           <span class="photo-zoom-badge"><i data-lucide="maximize-2" width="12" height="12"></i> ${t('sheet_photo_expand')}</span>
         </button>
       </div>

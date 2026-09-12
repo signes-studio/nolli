@@ -215,6 +215,8 @@ body.dark-mode .location-reticle {
   cursor: pointer;
   touch-action: manipulation;
   transition: transform 0.08s ease, background 0.12s ease;
+  content-visibility: auto;
+  contain-intrinsic-size: auto none auto 68px;
 }
 
 .architect-work-card:hover {
@@ -611,6 +613,7 @@ body.dark-mode .location-reticle {
   pointer-events: none;
   transition: opacity .15s linear;
   padding: 16px;
+  will-change: opacity;
 }
 
 .modal-overlay.open {
@@ -626,6 +629,11 @@ body.dark-mode .location-reticle {
   box-shadow: 4px 4px 0px var(--border-strong, #111111);
   border-radius: 0 !important;
   box-sizing: border-box;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  will-change: transform, opacity;
 }
 
 body.dark-mode .modal-box {
@@ -1389,6 +1397,8 @@ body.dark-mode .nolli-empty-action:hover {
   text-decoration: none;
   position: relative;
   transition: border-color 0.12s ease, background-color 0.12s ease, transform 0.08s ease;
+  content-visibility: auto;
+  contain-intrinsic-size: auto none auto 98px;
 }
 button.obra-card {
   font: inherit;
