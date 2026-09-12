@@ -1723,15 +1723,15 @@ body.dark-mode .neo-options-grid--cream .neo-option-box.active {
 .filter-head svg,
 .neo-icon,
 .neo-nav-icon {
-  stroke-width: 2.5px !important;
-  stroke-linecap: square !important;
-  stroke-linejoin: miter !important;
+  stroke-width: 1.5px !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
   vector-effect: non-scaling-stroke;
 }
 
 .mobile-fab-toggle svg,
 .fab-toggle-icon {
-  stroke-width: 3px !important;
+  stroke-width: 1.75px !important;
 }
 
 /* =========================================================================

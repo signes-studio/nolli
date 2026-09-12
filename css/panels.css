@@ -3642,7 +3642,7 @@ body.dark-mode .itinerary-badge-close:hover {
 .itinerary-badge-close svg {
   width: 11px !important;
   height: 11px !important;
-  stroke-width: 2.5px !important;
+  stroke-width: 1.5px !important;
 }
 
 /* Estado vacío de combinación de filtros (Fase 4) */

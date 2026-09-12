@@ -169,21 +169,21 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
     <!-- Botonera de Acción Rápida (Hero Actions) -->
     <div class="sheet-hero-actions">
       <a href="https://www.google.com/maps/dir/?api=1&destination=${coords[1]},${coords[0]}" target="_blank" rel="noopener noreferrer" class="sheet-hero-btn btn-primary" title="${t('sheet_directions')}">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"><line x1="5" y1="19" x2="19" y2="5"></line><polyline points="8 5 19 5 19 16"></polyline></svg>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="18" x2="18" y2="6"></line><polyline points="9 6 18 6 18 15"></polyline></svg>
         <span>${t('sheet_directions')}</span>
       </a>
       ${state.sessionToken ? `
         <button type="button" class="sheet-hero-btn ${isVis ? 'active visited' : ''}" data-status="visited">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"><polyline points="4 12 9 17 20 6"></polyline></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"></circle><polyline points="8 12 11 15 16 9"></polyline></svg>
           <span>${isVis ? t('sheet_visited') : t('sheet_visit')}</span>
         </button>
         <button type="button" class="sheet-hero-btn ${isSaved ? 'active saved' : ''}" data-save-collection>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="${isSaved ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"><path d="M5 3h14v18l-7-5-7 5V3z"></path></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="${isSaved ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="3.5" width="13.5" height="13.5"></rect><path d="M3.5 7.5v13h13"></path><circle cx="13.5" cy="10" r="1.5" fill="currentColor"></circle></svg>
           <span>${isSaved ? t('sheet_saved') : t('sheet_save')}</span>
         </button>
       ` : ''}
       <button type="button" class="sheet-hero-btn" data-share-action="open">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"><rect x="15" y="3" width="6" height="6"></rect><rect x="3" y="9" width="6" height="6"></rect><rect x="15" y="15" width="6" height="6"></rect><line x1="9" y1="11" x2="15" y2="6"></line><line x1="9" y1="13" x2="15" y2="18"></line></svg>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.5"></circle><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="19" r="2.5"></circle><line x1="8.5" y1="10.8" x2="15.5" y2="6.7"></line><line x1="8.5" y1="13.2" x2="15.5" y2="17.3"></line></svg>
         <span>${t('sheet_share')}</span>
       </button>
     </div>
@@ -286,11 +286,11 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
     <!-- Botones de Reporte de Incidencias Neo-Bauhaus -->
     <div class="sheet-reports-actions">
       <button type="button" class="sheet-report-btn" data-open-report="error_datos">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"><polygon points="12 2 22 20 2 20 12 2"></polygon><line x1="12" y1="9" x2="12" y2="13"></line><rect x="11" y="16" width="2" height="2" fill="currentColor"></rect></svg>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 20 2 20 12 2"></polygon><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
         <span>${t('sheet_report_error')}</span>
       </button>
       <button type="button" class="sheet-report-btn" data-open-report="duplicado">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"><rect x="8" y="8" width="13" height="13"></rect><path d="M5 16H3V3h13v2"></path></svg>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12.5" height="12.5"></rect><path d="M4.5 15.5V4.5h11"></path></svg>
         <span>${t('sheet_report_duplicate')}</span>
       </button>
     </div>

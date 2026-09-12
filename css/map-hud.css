@@ -847,7 +847,7 @@ body.dark-mode .topbar-btn-profile:hover {
     width: 19px !important;
     height: 19px !important;
     stroke: currentColor !important;
-    stroke-width: 2px !important;
+    stroke-width: 1.5px !important;
     fill: none !important;
     display: block !important;
   }
@@ -906,7 +906,7 @@ body.dark-mode .topbar-btn-profile:hover {
     width: 22px !important;
     height: 22px !important;
     stroke: #FFFFFF !important;
-    stroke-width: 2.2px !important;
+    stroke-width: 1.75px !important;
     fill: none !important;
     display: block !important;
     transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
