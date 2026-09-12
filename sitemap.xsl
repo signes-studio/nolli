@@ -436,7 +436,7 @@
                 </xsl:choose>
               </h1>
               <p class="header-desc">
-                Este archivo XML ha sido generado según el protocolo estándar de sitemaps (<a href="https://www.sitemaps.org" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">sitemaps.org</a>) para motores de búsqueda (Google, Bing, Yandex). Se visualiza con una hoja de transformación XSLT para facilitar su lectura humana, auditoría SEO e inspección técnica.
+                Este archivo XML ha sido generado según el protocolo estándar de sitemaps (<a href="https://www.sitemaps.org" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">sitemaps.org</a>) para motores de búsqueda (Google, Bing, Yandex). Indexación exclusiva en español. Se visualiza con una hoja de transformación XSLT para facilitar su lectura humana, auditoría SEO e inspección técnica.
               </p>
             </div>
           </header>
@@ -484,7 +484,7 @@
           <xsl:if test="sitemap:urlset">
             <section class="toolbar">
               <div class="toolbar-stats">
-                <span class="stat-tag">TIPO: LISTA DE ENLACES</span>
+                <span class="stat-tag">TIPO: LISTA DE ENLACES (ES)</span>
                 <span class="stat-counter">
                   Mostrando <strong id="visible-count"><xsl:value-of select="count(sitemap:urlset/sitemap:url)"/></strong> de <strong id="total-count"><xsl:value-of select="count(sitemap:urlset/sitemap:url)"/></strong> URLs
                 </span>
@@ -499,8 +499,8 @@
                 <thead>
                   <tr>
                     <th style="width: 44px;">#</th>
-                    <th>URL</th>
-                    <th style="width: 130px;">Idiomas</th>
+                    <th>URL Canónica (ES)</th>
+                    <th style="width: 80px;">Idioma</th>
                     <th style="width: 95px;">Prioridad</th>
                     <th style="width: 110px;">Frecuencia</th>
                     <th style="width: 150px;">Modificación</th>
@@ -516,20 +516,7 @@
                         </a>
                       </td>
                       <td class="col-lang">
-                        <xsl:choose>
-                          <xsl:when test="contains(sitemap:loc, '/en/') or substring(sitemap:loc, string-length(sitemap:loc) - 2) = '/en'">
-                            <span class="badge-lang badge-lang--en">EN</span>
-                          </xsl:when>
-                          <xsl:when test="contains(sitemap:loc, '/ca/') or substring(sitemap:loc, string-length(sitemap:loc) - 2) = '/ca'">
-                            <span class="badge-lang badge-lang--ca">CA</span>
-                          </xsl:when>
-                          <xsl:otherwise>
-                            <span class="badge-lang badge-lang--es">ES</span>
-                          </xsl:otherwise>
-                        </xsl:choose>
-                        <xsl:if test="xhtml:link">
-                          <span class="badge-lang badge-lang--alt" title="Variantes hreflang multilingüe">+ALT</span>
-                        </xsl:if>
+                        <span class="badge-lang badge-lang--es">ES</span>
                       </td>
                       <td class="col-priority">
                         <span class="badge-priority">

@@ -152,7 +152,8 @@ function renderArchitectPage(data, page, lang = 'es') {
   const prefix = getLangPrefix(lang);
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
   const pageParam = page > 1 ? `?page=${page}` : '';
-  const canonicalUrl = `${SITE_URL}${prefix}/arquitecto/${encodeURIComponent(canonicalSlug)}${pageParam}`;
+  const canonicalUrl = `${SITE_URL}/arquitecto/${encodeURIComponent(canonicalSlug)}${pageParam}`;
+  const isIndexable = lang === 'es';
 
   const title = getSSRText('architect_title', lang, { nombre: canonicalName });
   const description = getSSRText('architect_desc', lang, {
@@ -281,9 +282,8 @@ function renderArchitectPage(data, page, lang = 'es') {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${escapeHtml(title)}</title>
   <meta name="description" content="${escapeHtml(description)}">
-  <meta name="robots" content="index, follow">
+  <meta name="robots" content="${isIndexable ? 'index, follow' : 'noindex, follow'}">
   <link rel="canonical" href="${escapeHtml(canonicalUrl)}">
-  ${getHreflangTags('/arquitecto/' + encodeURIComponent(canonicalSlug) + pageParam)}
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="nolli.">
   <meta property="og:title" content="${escapeHtml(title)}">
@@ -465,6 +465,9 @@ module.exports = async (request, response) => {
 
     response.setHeader('Content-Type', 'text/html; charset=utf-8');
     response.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+    if (lang !== 'es') {
+      response.setHeader('X-Robots-Tag', 'noindex, follow');
+    }
     return response.status(200).send(renderArchitectPage(architectData, page, lang));
   } catch (error) {
     console.error('No se pudo generar la página de arquitecto:', error);

@@ -56,7 +56,7 @@ async function fetchPublicBuilding(id) {
 
 function renderBuildingPage(building, lang = 'es') {
   const prefix = getLangPrefix(lang);
-  const canonicalUrl = `${SITE_URL}${prefix}/obra/${encodeURIComponent(building.id)}`;
+  const canonicalUrl = `${SITE_URL}/obra/${encodeURIComponent(building.id)}`;
   const title = `${building.nombre_obra} | nolli.`;
   const description = buildingDescription(building) || getSSRText('default_work_desc', lang);
   const image = building.foto_url || `${SITE_URL}/icon.svg`;
@@ -149,7 +149,6 @@ function renderBuildingPage(building, lang = 'es') {
   <meta name="description" content="${escapeHtml(description)}">
   <meta name="robots" content="noindex, follow">
   <link rel="canonical" href="${escapeHtml(canonicalUrl)}">
-  ${getHreflangTags('/obra/' + encodeURIComponent(building.id))}
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="nolli.">
   <meta property="og:title" content="${escapeHtml(title)}">

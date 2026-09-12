@@ -16,6 +16,15 @@
       ]
     },
     {
+      "source": "/(en|ca)(/.*)?",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
       "source": "/(css|js)/(.*)",
       "headers": [
         {

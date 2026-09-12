@@ -180,15 +180,10 @@ function getSSRText(key, lang = 'es', vars = {}) {
 
 /**
  * Genera las etiquetas <link rel="alternate" hreflang="...">
+ * Al indexar exclusivamente la versión en español, no se emiten hreflang hacia páginas con noindex (en/ca).
  */
-function getHreflangTags(cleanPath, siteUrl = 'https://nollimap.app') {
-  const path = cleanPath.startsWith('/') ? cleanPath : '/' + cleanPath;
-  return [
-    `<link rel="alternate" hreflang="es" href="${siteUrl}${path}">`,
-    `<link rel="alternate" hreflang="en" href="${siteUrl}/en${path}">`,
-    `<link rel="alternate" hreflang="ca" href="${siteUrl}/ca${path}">`,
-    `<link rel="alternate" hreflang="x-default" href="${siteUrl}${path}">`,
-  ].join('\n  ');
+function getHreflangTags() {
+  return '';
 }
 
 /**
@@ -196,9 +191,9 @@ function getHreflangTags(cleanPath, siteUrl = 'https://nollimap.app') {
  */
 function getOgLocaleTags(lang = 'es') {
   const LOCALES = {
-    es: { primary: 'es_ES', alternates: ['en_US', 'ca_ES'] },
-    en: { primary: 'en_US', alternates: ['es_ES', 'ca_ES'] },
-    ca: { primary: 'ca_ES', alternates: ['es_ES', 'en_US'] },
+    es: { primary: 'es_ES', alternates: [] },
+    en: { primary: 'en_US', alternates: ['es_ES'] },
+    ca: { primary: 'ca_ES', alternates: ['es_ES'] },
   };
   const config = LOCALES[lang] || LOCALES.es;
   const tags = [
@@ -218,34 +213,21 @@ function escapeXml(value) {
 }
 
 /**
- * Genera bloques <url> para sitemaps con etiquetas xhtml:link según estándar Google
+ * Genera bloques <url> para sitemaps exclusivamente en español según el estándar oficial.
  */
 function getMultilingualSitemapEntries(cleanPath, lastmod, changefreq, priority, siteUrl = 'https://nollimap.app') {
   const rawPath = cleanPath.startsWith('/') ? cleanPath : '/' + cleanPath;
   const path = rawPath === '/' ? '' : rawPath;
   const esUrl = `${siteUrl}${path || '/'}`;
-  const enUrl = `${siteUrl}/en${path || '/'}`;
-  const caUrl = `${siteUrl}/ca${path || '/'}`;
-  const xDefaultUrl = esUrl;
 
-  const alternateLinks = [
-    `    <xhtml:link rel="alternate" hreflang="es" href="${escapeXml(esUrl)}"/>`,
-    `    <xhtml:link rel="alternate" hreflang="en" href="${escapeXml(enUrl)}"/>`,
-    `    <xhtml:link rel="alternate" hreflang="ca" href="${escapeXml(caUrl)}"/>`,
-    `    <xhtml:link rel="alternate" hreflang="x-default" href="${escapeXml(xDefaultUrl)}"/>`,
-  ].join('\n');
-
-  const variants = [esUrl, enUrl, caUrl];
-
-  return variants.map((loc) => [
+  return [
     '  <url>',
-    `    <loc>${escapeXml(loc)}</loc>`,
-    alternateLinks,
+    `    <loc>${escapeXml(esUrl)}</loc>`,
     `    <lastmod>${lastmod}</lastmod>`,
     `    <changefreq>${changefreq}</changefreq>`,
     `    <priority>${priority}</priority>`,
     '  </url>',
-  ].join('\n')).join('\n');
+  ].join('\n');
 }
 
 module.exports = {
