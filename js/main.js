@@ -41,6 +41,7 @@ async function cargarPanelBajoDemanda(nombreModulo, nombreExportInit, ...args) {
 
 window.nolliCargarPanelBajoDemanda = cargarPanelBajoDemanda;
 window.nolliPanelModules = panelModules;
+window.nolliState = state;
 
 async function cargarEdificiosVisibles() {
   const requestId = ++publicLoadRequest;
@@ -392,11 +393,12 @@ try { initFilterEngine(); } catch (err) { console.warn('Init FilterEngine:', err
 const adminPanelButton = document.getElementById('btn-admin-panel');
 adminPanelButton?.addEventListener('click', async (event) => {
   event.preventDefault();
+  event.stopPropagation();
   if (!esRolAdmin(state.userRole)) return;
   try {
+    const adminMod = await import('./adminUI.js');
     await cargarPanelBajoDemanda('adminUI', 'initAdminUI');
-    const { toggleAdminPanel } = await import('./adminUI.js');
-    toggleAdminPanel();
+    adminMod.toggleAdminPanel();
   } catch (err) {
     console.warn('Init AdminUI:', err);
   }

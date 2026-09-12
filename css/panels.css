@@ -820,27 +820,39 @@ body.dark-mode .places-tabs-scroll-wrap {
 .admin-panel { 
   position: absolute; 
   left: 14px; 
-  top: 112px; 
+  top: 60px; 
   z-index: 60; 
-  width: min(560px, calc(100vw - 28px)); 
-  max-height: calc(100vh - 130px); 
-  overflow-y: auto; 
+  width: min(580px, calc(100vw - 28px)); 
+  height: min(84vh, calc(100vh - 74px)); 
+  max-height: calc(100vh - 74px); 
+  display: flex !important; 
+  flex-direction: column !important; 
+  overflow: hidden !important; 
   background: var(--bg-panel); 
   border: 2px solid var(--border-strong); 
   box-shadow: 4px 4px 0px var(--border-strong); 
-  border-radius: 0 !important;
-  transform: translateY(calc(-100% - 140px)); 
+  border-radius: 0 !important; 
+  transform: translate3d(0, -12px, 0); 
+  -webkit-transform: translate3d(0, -12px, 0); 
   visibility: hidden; 
   pointer-events: none; 
   opacity: 0; 
-  transition: transform .22s cubic-bezier(.2,.8,.2,1), opacity .15s, visibility 0s linear .22s; 
+  will-change: transform, opacity; 
+  contain: layout paint; 
+  backface-visibility: hidden; 
+  -webkit-backface-visibility: hidden; 
+  transition: transform 0.20s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.16s ease, visibility 0s linear 0.20s; 
 }
 .admin-panel.open { 
-  transform: translateY(0) !important; 
+  transform: translate3d(0, 0, 0) !important; 
+  -webkit-transform: translate3d(0, 0, 0) !important; 
   visibility: visible !important; 
   pointer-events: auto !important; 
   opacity: 1 !important; 
-  transition-delay: 0s; 
+  transition-delay: 0s !important; 
+}
+.admin-panel .filter-head {
+  flex-shrink: 0;
 }
 .map-style-panel { position: absolute; right: 14px; bottom: 14px; z-index: 40; width: min(260px, calc(100vw - 28px)); background: var(--bg-panel); border: 1px solid var(--border-strong); transform: translateY(calc(100% + 150px)); visibility: hidden; pointer-events: none; opacity: 0; transition: transform .22s cubic-bezier(.2,.8,.2,1), opacity .15s, visibility 0s linear .22s; }
 .map-style-panel.open { transform: translateY(0); visibility: visible; pointer-events: auto; opacity: 1; transition-delay: 0s; }
@@ -862,6 +874,7 @@ body.dark-mode .places-tabs-scroll-wrap {
   padding: 10px 12px; 
   border-bottom: 1px solid var(--border-strong); 
   background: var(--bg-raised);
+  flex-shrink: 0;
 }
 .admin-toolbar .tech-input { flex: 1 1 150px; min-width: 120px; }
 .admin-toolbar #admin-review-filter { flex: 0 1 150px; min-width: 110px; }
@@ -869,6 +882,27 @@ body.dark-mode .places-tabs-scroll-wrap {
   display: flex; 
   border-bottom: 1px solid var(--border-strong); 
   background: var(--bg-raised);
+  flex-shrink: 0;
+}
+.admin-projects-view,
+.admin-architects-view,
+.admin-reports-view,
+.admin-users-view {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.admin-project-list,
+#admin-architect-list,
+#admin-report-list,
+#admin-user-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
 }
 .admin-tab { 
   flex: 1; 

@@ -48,8 +48,12 @@ let ratingAverages = new Map();
 let cachedReports = [];
 let cachedUsers = [];
 let currentAdminTab = 'projects';
+let visibleProjectsCount = 50;
 let visibleArchitectsCount = 60;
 const expandedFloatingArqs = new Set();
+let isTogglingAdmin = false;
+let searchDebounceTimer = null;
+let archSearchDebounceTimer = null;
 
 function cleanDiacritics(str) {
   return String(str || '')
@@ -66,34 +70,41 @@ function getAdminButtons() {
 }
 
 export function initAdminUI() {
-  getAdminButtons().forEach((btn) => {
-    if (btn.__adminClickBound) return;
-    btn.__adminClickBound = true;
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      toggleAdminPanel();
-    });
-  });
-
   // Router Global por Hash (#admin)
   window.addEventListener('hashchange', handleAdminHashRoute);
   if (window.location.hash === '#admin') {
     setTimeout(handleAdminHashRoute, 100);
   }
 
-  if (search) search.addEventListener('input', renderList);
+  if (search) {
+    search.addEventListener('input', () => {
+      clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(() => {
+        visibleProjectsCount = 50;
+        renderList();
+      }, 150);
+    });
+  }
   if (reviewFilter) {
     reviewFilter.addEventListener('change', () => {
+      visibleProjectsCount = 50;
       renderList();
       actualizarFuenteMapa();
     });
   }
-  if (sortFilter) sortFilter.addEventListener('change', renderList);
+  if (sortFilter) {
+    sortFilter.addEventListener('change', () => {
+      visibleProjectsCount = 50;
+      renderList();
+    });
+  }
   if (architectSearch) {
     architectSearch.addEventListener('input', () => {
-      visibleArchitectsCount = 60;
-      renderArchitects();
+      clearTimeout(archSearchDebounceTimer);
+      archSearchDebounceTimer = setTimeout(() => {
+        visibleArchitectsCount = 60;
+        renderArchitects();
+      }, 150);
     });
   }
   if (architectSort) {
@@ -191,6 +202,13 @@ export function initAdminUI() {
       return;
     }
 
+    const loadMoreProjects = event.target.closest('#btn-admin-load-more-projects');
+    if (loadMoreProjects) {
+      visibleProjectsCount += 50;
+      renderList();
+      return;
+    }
+
     const loadMoreArqs = event.target.closest('#btn-admin-load-more-arqs');
     if (loadMoreArqs) {
       visibleArchitectsCount += 60;
@@ -239,8 +257,13 @@ export function initAdminUI() {
     }
   });
 
-  // Atajo de teclado: Alt + A para alternar panel admin
+  // Atajos de teclado: Escape para cerrar, Alt + A para alternar panel admin
   window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && panel?.classList.contains('open')) {
+      e.preventDefault();
+      toggleAdminPanel(false);
+      return;
+    }
     if (e.altKey && (e.key === 'a' || e.key === 'A')) {
       if (esRolAdmin(state.userRole)) {
         e.preventDefault();
@@ -292,28 +315,50 @@ export function initAdminUI() {
 
 export async function toggleAdminPanel(forceOpen = null) {
   if (!panel) return;
-  const shouldOpen = forceOpen !== null ? forceOpen : !panel.classList.contains('open');
-  
-  if (shouldOpen) {
-    if (!state.sessionToken) {
-      renderAuthRequired();
+  if (isTogglingAdmin) return;
+
+  const isCurrentlyOpen = panel.classList.contains('open');
+  const shouldOpen = forceOpen !== null ? forceOpen : !isCurrentlyOpen;
+
+  // Evitar re-ejecución si ya está en el estado deseado
+  if (shouldOpen === isCurrentlyOpen) return;
+
+  isTogglingAdmin = true;
+  try {
+    if (shouldOpen) {
+      if (!state.sessionToken) {
+        renderAuthRequired();
+        panel.classList.add('open');
+        return;
+      }
+
+      if (!esRolAdmin(state.userRole)) {
+        mostrarAlertaSeguridad('ACCESO DENEGADO', 'Se requieren privilegios de administración para abrir este panel.');
+        return;
+      }
+
       panel.classList.add('open');
-      return;
-    }
+      getAdminButtons().forEach((b) => b.classList.add('active-state'));
 
-    if (!esRolAdmin(state.userRole)) {
-      mostrarAlertaSeguridad('ACCESO DENEGADO', 'Se requieren privilegios de administración para abrir este panel.');
-      return;
-    }
+      // 1. Renderizado instantáneo y fluido con datos actuales en memoria
+      renderCurrentTab();
 
-    panel.classList.add('open');
-    getAdminButtons().forEach((b) => b.classList.add('active-state'));
-    renderCurrentTab();
-    await syncAllAdminData();
-    renderCurrentTab();
-  } else {
-    panel.classList.remove('open');
-    getAdminButtons().forEach((b) => b.classList.remove('active-state'));
+      // 2. Sincronización en segundo plano sin congelar la animación ni la interfaz
+      syncAllAdminData().then(() => {
+        if (panel.classList.contains('open')) {
+          renderCurrentTab();
+        }
+      }).catch((err) => {
+        console.warn('Aviso sincronizando datos de administración en segundo plano:', err);
+      });
+    } else {
+      panel.classList.remove('open');
+      getAdminButtons().forEach((b) => b.classList.remove('active-state'));
+    }
+  } finally {
+    setTimeout(() => {
+      isTogglingAdmin = false;
+    }, 120);
   }
 }
 
@@ -549,9 +594,18 @@ async function renderList() {
     .filter((obra) => !filterVal || obra.estado_revision === filterVal);
 
   const pendingTotal = allProjects.filter((o) => o.estado_revision === 'pendiente').length;
+  const visibleProjects = filtered.slice(0, visibleProjectsCount);
 
   if (count) {
-    count.textContent = pendingTotal > 0 ? `${pendingTotal} PENDIENTES · ${filtered.length} TOTAL` : `${filtered.length} / ${state.OBRAS.length}`;
+    if (visibleProjects.length < filtered.length) {
+      count.textContent = pendingTotal > 0
+        ? `${pendingTotal} PENDIENTES · ${visibleProjects.length}/${filtered.length} OBRAS`
+        : `${visibleProjects.length} DE ${filtered.length} OBRAS`;
+    } else {
+      count.textContent = pendingTotal > 0
+        ? `${pendingTotal} PENDIENTES · ${filtered.length} TOTAL`
+        : `${filtered.length} OBRAS`;
+    }
   }
 
   if (!filtered.length) {
@@ -560,7 +614,7 @@ async function renderList() {
   }
 
   if (list) {
-    list.innerHTML = filtered.map((obra) => {
+    const cardsHtml = visibleProjects.map((obra) => {
       const safeId = escapeHtml(obra.id);
       const safeFeatureId = escapeHtml(obra.featureId || obra.id);
       const safeNombre = escapeHtml(obra.nombre_obra || 'Obra sin título');
@@ -571,6 +625,7 @@ async function renderList() {
       const rawDate = obra.created_at || obra.updated_at;
       const formattedDate = rawDate ? new Date(rawDate).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : null;
       const impInfo = formatearImportancia(obra.importancia);
+      const knownCity = obra.ciudad || obra.place || obra.municipio || '';
 
       return `
         <div class="admin-project ${isPending ? 'admin-project-pending' : ''}">
@@ -581,7 +636,7 @@ async function renderList() {
               ${isPending ? '<span style="font-size:9px; font-weight:800; background:var(--accent-2, #EFBC02); color:#141411; padding:1px 4px;">PENDIENTE</span>' : ''}
             </div>
             <span>${safeArquitecto}</span>
-            <span class="admin-project-city" data-city-for="${safeFeatureId}">LOCALIZACIÓN...</span>
+            <span class="admin-project-city" data-city-for="${safeFeatureId}">${escapeHtml(knownCity || 'LOCALIZACIÓN...')}</span>
             ${formattedDate ? `<span style="font-size:9px; color:var(--fg-dim); font-family:monospace;">ALTA: ${escapeHtml(formattedDate)}</span>` : ''}
             <span class="admin-project-rating" style="font-size:9.5px;">${safeRating}</span>
             <span class="admin-project-status ${isPending ? 'pending' : ''}">${safeStatus}</span>
@@ -601,7 +656,30 @@ async function renderList() {
       `;
     }).join('');
 
-    filtered.slice(0, 30).forEach(async (obra) => {
+    const loadMoreBtnHtml = visibleProjects.length < filtered.length ? `
+      <div style="padding: 14px; text-align: center; background: var(--bg-panel); border-top: 1px solid var(--border-strong);">
+        <button type="button" id="btn-admin-load-more-projects" class="btn btn-auth-primary" style="font-size: 10px; font-weight: 800; letter-spacing: 0.05em; padding: 6px 16px; cursor: pointer;">
+          CARGAR MÁS PROYECTOS (${Math.min(50, filtered.length - visibleProjects.length)} MÁS DE ${filtered.length - visibleProjects.length} RESTANTES) ↓
+        </button>
+      </div>
+    ` : '';
+
+    list.innerHTML = cardsHtml + loadMoreBtnHtml;
+
+    if (!list.__scrollBound) {
+      list.__scrollBound = true;
+      list.addEventListener('scroll', () => {
+        if (list.scrollTop + list.clientHeight >= list.scrollHeight - 140) {
+          if (visibleProjectsCount < allProjects.length) {
+            visibleProjectsCount += 50;
+            renderList();
+          }
+        }
+      }, { passive: true });
+    }
+
+    visibleProjects.slice(0, 15).forEach(async (obra) => {
+      if (obra.ciudad || obra.place || obra.municipio) return;
       const cityElement = list.querySelector(`[data-city-for="${obra.featureId || obra.id}"]`);
       if (!cityElement) return;
       cityElement.textContent = await obtenerCiudad(obra);
@@ -1085,7 +1163,7 @@ function formatearMedia(buildingId) {
 }
 
 async function obtenerCiudad(obra) {
-  if (obra.ciudad) return obra.ciudad;
+  if (obra.ciudad || obra.place || obra.municipio) return obra.ciudad || obra.place || obra.municipio;
   const coordinates = obra.coordenadas || [];
   if (coordinates.length !== 2 || !coordinates.every(Number.isFinite)) return 'Ubicación no disponible';
   const cacheKey = coordinates.join(',');
