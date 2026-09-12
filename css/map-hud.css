@@ -701,6 +701,68 @@ body.dark-mode .topbar-btn-profile:hover {
     color: var(--fg-dim, #9A9A92);
   }
 
+  /* Indicador de Norte / Brújula Cartográfica Neo-Bauhaus */
+  .map-compass-btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    z-index: 45;
+    background: var(--bg-panel, #F4F1EA);
+    border: 2px solid var(--border-strong, #111111);
+    box-shadow: 2px 2px 0px var(--border-strong, #111111);
+    color: var(--fg, #111111);
+    cursor: pointer;
+    touch-action: manipulation;
+    border-radius: 0 !important;
+    padding: 0;
+    transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+                background 0.12s ease,
+                border-color 0.12s ease,
+                box-shadow 0.12s ease;
+  }
+
+  body.dark-mode .map-compass-btn {
+    background: #1C1C1A !important;
+    border-color: var(--border-strong, #4E4E48);
+    box-shadow: 2px 2px 0px var(--border-strong, #4E4E48);
+    color: #F4F1EA;
+  }
+
+  .map-compass-btn:hover {
+    background: var(--bg-subtle, #EBE7DF);
+  }
+
+  body.dark-mode .map-compass-btn:hover {
+    background: #262624 !important;
+  }
+
+  .map-compass-btn:active {
+    transform: scale(0.92);
+  }
+
+  .map-compass-btn .compass-dial-icon {
+    display: block;
+    pointer-events: none;
+    overflow: visible;
+  }
+
+  .map-compass-btn .compass-needle {
+    transform-origin: 12px 12px;
+    will-change: transform;
+  }
+
+  /* Indicación cromática sutil cuando el mapa está rotado (no a 0°) */
+  .map-compass-btn.is-rotated {
+    border-color: var(--accent, #E95C0C);
+    box-shadow: 2px 2px 0px var(--accent, #E95C0C);
+  }
+
+  body.dark-mode .map-compass-btn.is-rotated {
+    border-color: var(--accent, #E95C0C);
+    box-shadow: 2px 2px 0px var(--accent, #E95C0C);
+  }
+
   @media (min-width: 769px) {
     .mobile-search-widget {
       position: absolute;
@@ -722,6 +784,13 @@ body.dark-mode .topbar-btn-profile:hover {
     .mobile-search-dropdown {
       top: calc(100% + 6px);
     }
+    .map-compass-btn {
+      position: absolute;
+      top: 60px;
+      right: 66px;
+      width: 44px;
+      height: 44px;
+    }
   }
 
   @media (max-width: 768px) {
@@ -740,6 +809,19 @@ body.dark-mode .topbar-btn-profile:hover {
     }
     .mobile-search-bar {
       height: 38px;
+    }
+    .map-compass-btn {
+      position: fixed;
+      top: max(10px, env(safe-area-inset-top));
+      right: 66px;
+      width: 48px;
+      height: 48px;
+    }
+    .mobile-search-widget.expanded ~ .map-compass-btn,
+    body:has(.mobile-search-widget.expanded) .map-compass-btn {
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transform: scale(0.85);
     }
 
   /* Controles Flotantes Derechos (Móvil) — Speed-Dial FAB Consolidado */

@@ -97,12 +97,13 @@ export function cargarMapaMapbox() {
     crossSourceCollisions: false,
     touchZoomRotate: true,
     dragPan: true,
-    dragRotate: false,
+    dragRotate: true,
     touchPitch: false,
     pitchWithRotate: false,
     cooperativeGestures: false,
     clickTolerance: 4,
   });
+  window.nolliMap = state.map;
 
   state.map.on('error', (e) => {
     console.warn('Mapbox GL error:', e);
@@ -117,11 +118,11 @@ export function cargarMapaMapbox() {
     state.map.setPadding({ top: 10, bottom: 64, left: 0, right: 0 });
   }
 
-  state.map.dragRotate?.disable?.();
+  state.map.dragRotate?.enable?.();
   state.map.touchPitch?.disable?.();
   if (state.map.touchZoomRotate) {
     state.map.touchZoomRotate.enable();
-    state.map.touchZoomRotate.disableRotation();
+    state.map.touchZoomRotate.enableRotation();
   }
   if (state.map.dragPan) {
     state.map.dragPan.enable();
@@ -732,11 +733,12 @@ export function cargarMapaMapbox() {
   }
 
   document.getElementById('btn-recenter')?.addEventListener('click', () => {
-    state.map.flyTo({ center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM });
+    state.map.flyTo({ center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM, bearing: 0, pitch: 0 });
   });
   document.getElementById('btn-location')?.addEventListener('click', localizarDispositivo);
   document.getElementById('btn-add-project')?.addEventListener('click', activarModoAñadir);
   initMapStyleSelector();
+  initMapCompass();
   document.addEventListener('radar:admin-login', actualizarFuenteMapa);
   document.addEventListener('radar:user-login', actualizarFuenteMapa);
   document.addEventListener('radar:logout', actualizarFuenteMapa);
@@ -776,6 +778,38 @@ function aplicarTratamientoSatelite() {
       state.map.setPaintProperty(layer.id, 'raster-contrast', 0.08);
       state.map.setPaintProperty(layer.id, 'raster-brightness-min', 0.04);
       state.map.setPaintProperty(layer.id, 'raster-brightness-max', 0.92);
+    }
+  });
+}
+
+function initMapCompass() {
+  const compassBtn = document.getElementById('btn-map-compass');
+  const needle = document.getElementById('compass-needle');
+  if (!compassBtn) return;
+
+  const updateCompass = () => {
+    if (!state.map) return;
+    const bearing = state.map.getBearing() || 0;
+    // La aguja rota en sentido inverso al bearing del mapa para apuntar siempre al Norte geográfico
+    if (needle) {
+      needle.style.transform = `rotate(${-bearing}deg)`;
+    }
+    const isRotated = Math.abs(bearing) > 0.5;
+    compassBtn.classList.toggle('is-rotated', isRotated);
+    compassBtn.setAttribute('data-rotated', isRotated ? 'true' : 'false');
+  };
+
+  state.map.on('rotate', updateCompass);
+  state.map.on('move', updateCompass);
+  updateCompass();
+
+  compassBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (!state.map) return;
+    if (typeof state.map.resetNorthPitch === 'function') {
+      state.map.resetNorthPitch({ duration: 450 });
+    } else {
+      state.map.easeTo({ bearing: 0, pitch: 0, duration: 450 });
     }
   });
 }

@@ -316,6 +316,8 @@
   "login_init_btn_aria": "Inicia la sessió",
   "map_aria": "Mapa interactiu d'obres arquitectòniques",
   "map_aria_label": "Mapa interactiu d'obres arquitectòniques",
+  "map_compass_aria": "Restablir orientació al Nord",
+  "map_compass_title": "Orientar al Nord",
   "map_style_btn_aria": "Canviar tipus de mapa",
   "map_style_btn_title": "Tipus de mapa",
   "map_style_close_aria": "Tancar tipus de mapa",

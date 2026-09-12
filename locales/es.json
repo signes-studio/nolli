@@ -316,6 +316,8 @@
   "login_init_btn_aria": "Iniciar sesión",
   "map_aria": "Mapa interactivo de obras arquitectónicas",
   "map_aria_label": "Mapa interactivo de obras arquitectónicas",
+  "map_compass_aria": "Restablecer orientación al Norte",
+  "map_compass_title": "Orientar al Norte",
   "map_style_btn_aria": "Cambiar tipo de mapa",
   "map_style_btn_title": "Tipo de mapa",
   "map_style_close_aria": "Cerrar tipos de mapa",

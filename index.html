@@ -272,6 +272,20 @@
     </div>
   </div>
 
+  <!-- Indicador de Norte / Brújula Cartográfica Interactiva (Orientar al Norte) -->
+  <button type="button" id="btn-map-compass" class="map-compass-btn" aria-label="Restablecer orientación al Norte" title="Orientar al Norte" data-i18n-title="map_compass_title" data-i18n-aria="map_compass_aria">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="compass-dial-icon" aria-hidden="true">
+      <circle cx="12" cy="12" r="9.5" stroke-width="1.2" class="compass-ring"></circle>
+      <line x1="12" y1="1.5" x2="12" y2="3.5" stroke-width="1.5" stroke="var(--accent)" stroke-linecap="round"></line>
+      <g class="compass-needle" id="compass-needle">
+        <path d="M12 3.5 L15.5 12 L12 10.2 L8.5 12 Z" fill="var(--accent)" stroke="none"></path>
+        <path d="M12 20.5 L15.5 12 L12 13.8 L8.5 12 Z" fill="currentColor" stroke="none" opacity="0.35"></path>
+        <circle cx="12" cy="12" r="1.3" fill="currentColor"></circle>
+        <text x="12" y="8.8" font-family="'League Spartan', sans-serif" font-size="5" font-weight="900" text-anchor="middle" fill="#FFFFFF">N</text>
+      </g>
+    </svg>
+  </button>
+
   <!-- Chips Flotantes de Filtro Activo en Mapa (Pill Style - Strava/Komoot) -->
   <aside id="itinerary-filter-badge" class="active-filter-chips-bar itinerary-filter-badge hidden" role="status" aria-live="polite">
     <div id="active-filter-chips-list" class="filter-chips-scroll-wrap">

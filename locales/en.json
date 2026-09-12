@@ -316,6 +316,8 @@
   "login_init_btn_aria": "Sign in",
   "map_aria": "Interactive architectural map",
   "map_aria_label": "Interactive architectural works map",
+  "map_compass_aria": "Reset orientation to North",
+  "map_compass_title": "Orient North",
   "map_style_btn_aria": "Change map type",
   "map_style_btn_title": "Map type",
   "map_style_close_aria": "Close map types",
