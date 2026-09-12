@@ -354,26 +354,26 @@ export function cargarMapaMapbox() {
     const IMPORTANCE_LABEL_CONFIG = {
       0: {
         font: ['Inter Bold', 'Open Sans Bold', 'Inter Bold'],
-        size: 14.5,
+        size: 14.0,
         minzoom: 5.5,
         isUppercase: true,
       },
       1: {
         font: ['Inter SemiBold', 'Open Sans Semibold', 'Inter Bold'],
-        size: 11.8,
-        minzoom: 7.5,
+        size: 10.8,
+        minzoom: 13.8,
         isUppercase: false,
       },
       2: {
         font: ['Inter Medium', 'Open Sans Regular', 'Inter Regular'],
-        size: 10.5,
-        minzoom: 11.0,
+        size: 9.6,
+        minzoom: 15.0,
         isUppercase: false,
       },
       3: {
         font: ['Inter Regular', 'Open Sans Regular', 'Inter Regular'],
-        size: 9.5,
-        minzoom: 15.0,
+        size: 8.8,
+        minzoom: 16.0,
         isUppercase: false,
       },
     };
