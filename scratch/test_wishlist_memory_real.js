@@ -226,3 +226,4 @@ runWishlistVerification().catch((err) => {
   console.error('Error crítico en la ejecución del test:', err);
   process.exitCode = 1;
 });
+
