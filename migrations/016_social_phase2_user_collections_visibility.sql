@@ -49,27 +49,17 @@ END $$;
 DROP TRIGGER IF EXISTS trg_sync_user_collections_status ON public.user_collections;
 DROP FUNCTION IF EXISTS public.sync_user_collections_status();
 
--- 5. Eliminar columnas deprecadas tras auditar y actualizar frontend
-ALTER TABLE public.user_collections
-  DROP COLUMN IF EXISTS status,
-  DROP COLUMN IF EXISTS is_public;
-
--- 6. Índices optimizados
-DROP INDEX IF EXISTS public.idx_user_collections_status;
-DROP INDEX IF EXISTS public.idx_user_collections_is_public;
-
-CREATE INDEX IF NOT EXISTS idx_user_collections_visibility ON public.user_collections(visibility);
-CREATE INDEX IF NOT EXISTS idx_user_collections_user_id ON public.user_collections(user_id);
-CREATE INDEX IF NOT EXISTS idx_user_collections_is_wishlist ON public.user_collections(is_wishlist) WHERE is_wishlist = true;
-
--- 7. Consolidación limpia de Políticas RLS
+-- 5. Eliminar primero todas las políticas viejas antes de eliminar las columnas status e is_public
+-- (PostgreSQL bloquea DROP COLUMN si alguna política activa depende de dichas columnas)
 ALTER TABLE public.user_collections ENABLE ROW LEVEL SECURITY;
 
--- Limpieza exhaustiva de políticas previas redundantes o duplicadas
 DROP POLICY IF EXISTS "Users can view own collections or public collections" ON public.user_collections;
 DROP POLICY IF EXISTS "Users can view own collections" ON public.user_collections;
-DROP POLICY IF EXISTS "collections_select_own" ON public.user_collections;
 DROP POLICY IF EXISTS "Users can manage own collections" ON public.user_collections;
+DROP POLICY IF EXISTS "Users can insert own collections" ON public.user_collections;
+DROP POLICY IF EXISTS "Users can update own collections" ON public.user_collections;
+DROP POLICY IF EXISTS "Users can delete own collections" ON public.user_collections;
+DROP POLICY IF EXISTS "collections_select_own" ON public.user_collections;
 DROP POLICY IF EXISTS "collections_manage_own" ON public.user_collections;
 DROP POLICY IF EXISTS "collections_insert_own" ON public.user_collections;
 DROP POLICY IF EXISTS "collections_update_own" ON public.user_collections;
@@ -78,6 +68,21 @@ DROP POLICY IF EXISTS "user_collections_select_policy" ON public.user_collection
 DROP POLICY IF EXISTS "user_collections_insert_policy" ON public.user_collections;
 DROP POLICY IF EXISTS "user_collections_update_policy" ON public.user_collections;
 DROP POLICY IF EXISTS "user_collections_delete_policy" ON public.user_collections;
+
+-- 6. Eliminar columnas deprecadas ahora que ninguna política depende de ellas
+ALTER TABLE public.user_collections
+  DROP COLUMN IF EXISTS status,
+  DROP COLUMN IF EXISTS is_public;
+
+-- 7. Índices optimizados
+DROP INDEX IF EXISTS public.idx_user_collections_status;
+DROP INDEX IF EXISTS public.idx_user_collections_is_public;
+
+CREATE INDEX IF NOT EXISTS idx_user_collections_visibility ON public.user_collections(visibility);
+CREATE INDEX IF NOT EXISTS idx_user_collections_user_id ON public.user_collections(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_collections_is_wishlist ON public.user_collections(is_wishlist) WHERE is_wishlist = true;
+
+-- 8. Crear políticas canónicas consolidadas (una por operación)
 
 -- A) POLÍTICA CANÓNICA SELECT
 -- Visible para anon y authenticated si visibility = 'public'.
@@ -130,6 +135,6 @@ USING (
   OR public.is_admin()
 );
 
--- 8. Permisos a roles de Supabase
+-- 9. Permisos a roles de Supabase
 GRANT SELECT ON TABLE public.user_collections TO anon, authenticated;
 GRANT INSERT, UPDATE, DELETE ON TABLE public.user_collections TO authenticated;

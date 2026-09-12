@@ -16,7 +16,7 @@ END $$;
 CREATE TABLE IF NOT EXISTS public.building_visits (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    building_id BIGINT NOT NULL REFERENCES public.Buildings(id) ON DELETE CASCADE,
+    building_id TEXT NOT NULL REFERENCES public.Buildings(id) ON DELETE CASCADE,
     visited_at DATE NOT NULL DEFAULT CURRENT_DATE,
     notes TEXT,
     rating SMALLINT CHECK (rating >= 1 AND rating <= 5),

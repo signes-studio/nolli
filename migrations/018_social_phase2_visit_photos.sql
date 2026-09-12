@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS public.visit_photos (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     visit_id UUID REFERENCES public.building_visits(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    building_id BIGINT NOT NULL REFERENCES public.Buildings(id) ON DELETE CASCADE,
+    building_id TEXT NOT NULL REFERENCES public.Buildings(id) ON DELETE CASCADE,
     photo_url TEXT NOT NULL,
     thumbnail_url TEXT,
     photo_type public.photo_type NOT NULL DEFAULT 'standard',

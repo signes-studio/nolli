@@ -117,6 +117,18 @@ CREATE POLICY "Users can manage own followed collections" ON public.user_followe
   WITH CHECK (auth.uid() = user_id);
 
 -- Políticas RLS Consolidadas para user_collections:
+DROP POLICY IF EXISTS "Users can view own collections or public collections" ON public.user_collections;
+DROP POLICY IF EXISTS "Users can view own collections" ON public.user_collections;
+DROP POLICY IF EXISTS "Users can manage own collections" ON public.user_collections;
+DROP POLICY IF EXISTS "Users can insert own collections" ON public.user_collections;
+DROP POLICY IF EXISTS "Users can update own collections" ON public.user_collections;
+DROP POLICY IF EXISTS "Users can delete own collections" ON public.user_collections;
+DROP POLICY IF EXISTS "collections_select_own" ON public.user_collections;
+DROP POLICY IF EXISTS "collections_manage_own" ON public.user_collections;
+DROP POLICY IF EXISTS "collections_insert_own" ON public.user_collections;
+DROP POLICY IF EXISTS "collections_update_own" ON public.user_collections;
+DROP POLICY IF EXISTS "collections_delete_own" ON public.user_collections;
+
 -- A) SELECT: Público si visibility='public'. Si 'friends', requiere auth y are_friends(). Dueño y admins siempre.
 DROP POLICY IF EXISTS "user_collections_select_policy" ON public.user_collections;
 CREATE POLICY "user_collections_select_policy" ON public.user_collections
@@ -155,7 +167,7 @@ CREATE TABLE IF NOT EXISTS public.user_private_labels (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-  building_id BIGINT REFERENCES public.Buildings(id) ON DELETE CASCADE,
+  building_id TEXT REFERENCES public.Buildings(id) ON DELETE CASCADE,
   label TEXT NOT NULL,
   notes TEXT,
   color TEXT DEFAULT '#E84E1B'
@@ -353,7 +365,7 @@ CREATE POLICY "Admins can view all profiles with presence" ON public.profiles
 CREATE TABLE IF NOT EXISTS public.building_visits (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  building_id BIGINT NOT NULL REFERENCES public.Buildings(id) ON DELETE CASCADE,
+  building_id TEXT NOT NULL REFERENCES public.Buildings(id) ON DELETE CASCADE,
   visited_at DATE NOT NULL DEFAULT CURRENT_DATE,
   notes TEXT,
   rating SMALLINT CHECK (rating >= 1 AND rating <= 5),
@@ -419,7 +431,7 @@ CREATE TABLE IF NOT EXISTS public.visit_photos (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   visit_id UUID REFERENCES public.building_visits(id) ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  building_id BIGINT NOT NULL REFERENCES public.Buildings(id) ON DELETE CASCADE,
+  building_id TEXT NOT NULL REFERENCES public.Buildings(id) ON DELETE CASCADE,
   photo_url TEXT NOT NULL,
   thumbnail_url TEXT,
   photo_type public.photo_type NOT NULL DEFAULT 'standard',
