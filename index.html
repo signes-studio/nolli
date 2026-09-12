@@ -878,6 +878,11 @@
       </button>
     </div>
     <div class="modal-body">
+      <div class="login-brand-header">
+        <div class="login-brand-eyebrow" data-i18n="auth_brand_eyebrow">GUÍA COLECTIVA DE ARQUITECTURA</div>
+        <div class="login-brand-logo">nolli<span class="text-accent" style="color:var(--accent)">.</span></div>
+        <p class="login-brand-desc" data-i18n="auth_brand_desc">Explora el mapa interactivo, cataloga obras y descubre la arquitectura de tu entorno.</p>
+      </div>
       <form id="login-form" class="flex flex-col gap-3" autocomplete="on">
         <div class="login-entry-field">
           <label for="login-email" class="tech-label" data-i18n="auth_label_email">USER_EMAIL_</label>
@@ -926,6 +931,12 @@
         <button id="btn-forgot-password" type="button" class="forgot-password login-entry-field" data-i18n="auth_forgot_password">¿OLVIDASTE LA CONTRASEÑA?</button>
         <button id="btn-do-login" type="submit" class="btn btn-auth-primary mt-2 w-full login-entry-field" data-i18n="auth_btn_login">AUTORIZAR ACCESO</button>
         <button id="btn-register-mode" type="button" class="btn btn-auth-secondary mt-1 w-full login-entry-field" data-i18n="auth_btn_register_mode">CREAR CUENTA</button>
+        <div class="guest-login-block login-entry-field">
+          <div class="guest-divider">
+            <span data-i18n="auth_guest_divider">// O BIEN</span>
+          </div>
+          <button id="btn-guest-login" type="button" class="btn btn-auth-guest w-full" data-i18n="auth_btn_guest">ENTRAR COMO INVITADO →</button>
+        </div>
         <button id="btn-logout" type="button" class="btn hidden mt-1 w-full" data-i18n="auth_btn_logout">CERRAR SESIÓN</button>
       </form>
 

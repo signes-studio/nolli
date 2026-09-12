@@ -859,6 +859,194 @@ body.dark-mode .btn-auth-secondary {
   border-color: #4E4E48 !important;
 }
 
+/* Acceso Invitado & Identidad Editorial (Neo-Bauhaus) */
+.login-brand-header {
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 2px solid var(--border-strong, #111111);
+}
+
+body.dark-mode .login-brand-header {
+  border-bottom-color: var(--border-strong, #4E4E48);
+}
+
+.login-brand-eyebrow {
+  font-family: 'League Spartan', sans-serif !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  color: var(--accent, #E84E1B) !important;
+  margin-bottom: 3px !important;
+}
+
+.login-brand-logo {
+  font-family: 'League Spartan', sans-serif !important;
+  font-size: 34px !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.04em !important;
+  line-height: 1 !important;
+  color: var(--fg, #111111) !important;
+  margin-bottom: 6px !important;
+}
+
+body.dark-mode .login-brand-logo {
+  color: #FFFFFF !important;
+}
+
+.login-brand-desc {
+  font-size: 12px !important;
+  line-height: 1.45 !important;
+  color: var(--fg-dim, #6B6B6B) !important;
+  margin: 0 !important;
+  font-weight: 500 !important;
+}
+
+body.dark-mode .login-brand-desc {
+  color: #9A9A9A !important;
+}
+
+.guest-login-block {
+  margin-top: 4px;
+}
+
+.guest-divider {
+  position: relative;
+  text-align: center;
+  margin: 14px 0 10px;
+}
+
+.guest-divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--border, #D8D6CE);
+  z-index: 1;
+}
+
+body.dark-mode .guest-divider::before {
+  background: var(--border-strong, #4E4E48);
+}
+
+.guest-divider span {
+  position: relative;
+  z-index: 2;
+  background: var(--bg-panel, #F8F1DF);
+  padding: 0 10px;
+  font-family: 'League Spartan', sans-serif !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.1em !important;
+  color: var(--fg-dim, #6B6B6B);
+  text-transform: uppercase;
+}
+
+body.dark-mode .guest-divider span {
+  background: #171715;
+  color: #9A9A9A;
+}
+
+.btn-auth-guest {
+  background: transparent !important;
+  color: var(--fg, #111111) !important;
+  border: 2px solid var(--border-strong, #111111) !important;
+  box-shadow: 3px 3px 0px var(--border-strong, #111111) !important;
+  font-family: 'League Spartan', sans-serif !important;
+  font-weight: 800 !important;
+  font-size: 12px !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  padding: 11px 16px !important;
+  border-radius: 0 !important;
+  cursor: pointer !important;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease, color 0.12s ease !important;
+  text-align: center !important;
+  display: block !important;
+}
+
+.btn-auth-guest:hover {
+  background: var(--border-strong, #111111) !important;
+  color: var(--bg, #F8F1DF) !important;
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px var(--border-strong, #111111) !important;
+}
+
+.btn-auth-guest:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px var(--border-strong, #111111) !important;
+}
+
+body.dark-mode .btn-auth-guest {
+  color: #FFFFFF !important;
+  border-color: #FFFFFF !important;
+  box-shadow: 3px 3px 0px #000000 !important;
+}
+
+body.dark-mode .btn-auth-guest:hover {
+  background: #FFFFFF !important;
+  color: #111111 !important;
+}
+
+/* Puerta de Enlace Móvil a Pantalla Completa */
+@media (max-width: 768px) {
+  #modal-login.modal-overlay {
+    padding: 0 !important;
+    align-items: stretch !important;
+    justify-content: stretch !important;
+    background: var(--bg-panel, #F8F1DF) !important;
+    z-index: 10000 !important;
+  }
+
+  body.dark-mode #modal-login.modal-overlay {
+    background: #171715 !important;
+  }
+
+  #modal-login .modal-box {
+    max-width: 100% !important;
+    width: 100% !important;
+    height: 100% !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    border: none !important;
+    box-shadow: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    background: var(--bg-panel, #F8F1DF) !important;
+  }
+
+  body.dark-mode #modal-login .modal-box {
+    background: #171715 !important;
+  }
+
+  #modal-login .modal-head {
+    border-bottom: 2px solid var(--border-strong, #111111) !important;
+    padding: 14px 18px !important;
+    flex-shrink: 0 !important;
+    background: var(--bg-raised, #ECE6D8) !important;
+  }
+
+  body.dark-mode #modal-login .modal-head {
+    background: #20201D !important;
+    border-bottom-color: var(--border-strong, #4E4E48) !important;
+  }
+
+  #modal-login .modal-body {
+    padding: 24px 20px 36px !important;
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    max-width: 440px !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+  }
+}
+
 /* Pantalla de Confirmación de Registro (Neo-Bauhaus) */
 .register-success-view {
   display: flex;

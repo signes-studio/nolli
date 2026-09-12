@@ -478,14 +478,19 @@
     <div class="modal-box">
       <div class="modal-head">
         <div class="flex items-center gap-2">
-          <i data-lucide="terminal" width="14" height="14" style="color:var(--accent)"></i>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter" style="color:var(--accent)"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
           <span id="modal-login-title" style="letter-spacing:.06em; font-size:11px; font-weight:800; font-family:'League Spartan',sans-serif;" data-i18n="auth_modal_title">AUTENTICACIÓN REQUERIDA</span>
         </div>
         <button type="button" id="btn-login-close" class="sheet-close-button" aria-label="Cerrar login" data-i18n-aria="auth_close_aria">
-          <i data-lucide="x" width="16" height="16"></i>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg>
         </button>
       </div>
       <div class="modal-body">
+        <div class="login-brand-header">
+          <div class="login-brand-eyebrow" data-i18n="auth_brand_eyebrow">GUÍA COLECTIVA DE ARQUITECTURA</div>
+          <div class="login-brand-logo">nolli<span class="text-accent" style="color:var(--accent)">.</span></div>
+          <p class="login-brand-desc" data-i18n="auth_brand_desc">Explora el mapa interactivo, cataloga obras y descubre la arquitectura de tu entorno.</p>
+        </div>
         <form id="login-form" class="flex flex-col gap-3" autocomplete="on">
           <div class="login-entry-field">
             <label for="login-email" class="tech-label" data-i18n="auth_label_email">USER_EMAIL_</label>
@@ -496,7 +501,7 @@
             <div class="password-input-wrap">
               <input type="password" id="login-password" name="password" placeholder="••••••••" class="tech-input" autocomplete="current-password" required>
               <button type="button" id="toggle-password" class="password-toggle" aria-label="Mostrar contraseña" aria-pressed="false" data-i18n-aria="auth_show_password_aria">
-                <i data-lucide="eye" width="15" height="15"></i>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"><polygon points="12 5 22 12 12 19 2 12"></polygon><circle cx="12" cy="12" r="3" fill="currentColor"></circle></svg>
               </button>
             </div>
           </div>
@@ -534,13 +539,19 @@
           <button id="btn-forgot-password" type="button" class="forgot-password login-entry-field" data-i18n="auth_forgot_password">¿OLVIDASTE LA CONTRASEÑA?</button>
           <button id="btn-do-login" type="submit" class="btn btn-auth-primary mt-2 w-full login-entry-field" data-i18n="auth_btn_login">AUTORIZAR ACCESO</button>
           <button id="btn-register-mode" type="button" class="btn btn-auth-secondary mt-1 w-full login-entry-field" data-i18n="auth_btn_register_mode">CREAR CUENTA</button>
+          <div class="guest-login-block login-entry-field">
+            <div class="guest-divider">
+              <span data-i18n="auth_guest_divider">// O BIEN</span>
+            </div>
+            <button id="btn-guest-login" type="button" class="btn btn-auth-guest w-full" data-i18n="auth_btn_guest">ENTRAR COMO INVITADO →</button>
+          </div>
           <button id="btn-logout" type="button" class="btn hidden mt-1 w-full" data-i18n="auth_btn_logout">CERRAR SESIÓN</button>
         </form>
 
         <!-- Vista de Transición / Confirmación de Registro Exitoso (Neo-Bauhaus) -->
         <div id="register-success-view" class="register-success-view hidden" role="status" aria-live="polite">
           <div class="register-success-icon-wrap">
-            <i data-lucide="mail-check" width="28" height="28" style="color:var(--accent, #E84E1B)"></i>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" stroke-linejoin="miter" style="color:var(--accent, #E84E1B)"><rect x="2" y="4" width="20" height="16"></rect><path d="M22 6l-10 7L2 6"></path><polyline points="15 15 18 18 22 13"></polyline></svg>
           </div>
           <h3 class="register-success-title" data-i18n="auth_success_title">REGISTRO COMPLETADO</h3>
           <p class="register-success-msg" data-i18n="auth_success_msg">

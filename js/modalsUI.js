@@ -97,6 +97,8 @@ async function initLoginModal() {
   const forgotPasswordButton = document.getElementById('btn-forgot-password');
   const passwordInput = document.getElementById('login-password');
   const togglePassword = document.getElementById('toggle-password');
+  const btnGuestLogin = document.getElementById('btn-guest-login');
+  const guestBlock = document.querySelector('.guest-login-block');
   let registerMode = false;
 
   const marcarSesionIniciada = (role) => {
@@ -217,6 +219,7 @@ async function initLoginModal() {
     registerOnlyFields.forEach((field) => field.classList.add('hidden'));
     forgotPasswordButton?.classList.remove('hidden');
     document.querySelector('.keep-session')?.classList.remove('hidden');
+    if (guestBlock) guestBlock.classList.remove('hidden');
     if (passwordInput) passwordInput.autocomplete = 'current-password';
     const err = document.getElementById('login-error');
     if (err) err.classList.add('hidden');
@@ -266,8 +269,22 @@ async function initLoginModal() {
     }
   });
   document.addEventListener('click', (e) => {
-    if (e.target.closest('#btn-login-close')) mLogin.classList.remove('open');
+    if (e.target.closest('#btn-login-close')) {
+      try {
+        sessionStorage.setItem('nolli:guest_session', 'true');
+      } catch (err) {}
+      if (mLogin) mLogin.classList.remove('open');
+    }
   });
+
+  if (btnGuestLogin) {
+    btnGuestLogin.addEventListener('click', () => {
+      try {
+        sessionStorage.setItem('nolli:guest_session', 'true');
+      } catch (err) {}
+      if (mLogin) mLogin.classList.remove('open');
+    });
+  }
 
   const termsCheckbox = document.getElementById('register-terms');
   const newsletterCheckbox = document.getElementById('register-newsletter');
@@ -372,12 +389,16 @@ async function initLoginModal() {
     registerOnlyFields.forEach((field) => field.classList.toggle('hidden', !registerMode));
     forgotPasswordButton.classList.toggle('hidden', registerMode);
     document.querySelector('.keep-session')?.classList.toggle('hidden', registerMode);
+    if (guestBlock) guestBlock.classList.toggle('hidden', registerMode);
     passwordInput.autocomplete = registerMode ? 'new-password' : 'current-password';
     document.getElementById('login-error')?.classList.add('hidden');
   });
 
   logoutButton.addEventListener('click', () => {
     clearSessionAndUserCaches();
+    try {
+      sessionStorage.removeItem('nolli:guest_session');
+    } catch (e) {}
     if (adminModeControl) adminModeControl.classList.add('hidden');
     if (adminModeToggle) adminModeToggle.checked = false;
     document.dispatchEvent(new CustomEvent('radar:user-status-ready'));
@@ -392,6 +413,21 @@ async function initLoginModal() {
     if (mLogin) mLogin.classList.remove('open');
     document.dispatchEvent(new CustomEvent('radar:logout'));
   });
+
+  // Modo Puerta de Enlace Móvil: Si se abre en versión móvil sin sesión activa ni invitado previo
+  const esMovil = window.innerWidth <= 768 || (window.matchMedia && window.matchMedia('(max-width: 768px)').matches);
+  const sesionIniciada = Boolean(state.sessionToken);
+  const invitadoSesion = sessionStorage.getItem('nolli:guest_session') === 'true';
+
+  if (esMovil && !sesionIniciada && !invitadoSesion && mLogin) {
+    const splash = document.getElementById('mobile-splash-screen');
+    if (splash) {
+      splash.style.display = 'none';
+      splash.classList.add('splash-hidden');
+      try { sessionStorage.setItem('nolli_splash_shown', 'true'); } catch (e) {}
+    }
+    mLogin.classList.add('open');
+  }
 }
 
 /* -------------------------------------------------------------------------

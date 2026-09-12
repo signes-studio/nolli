@@ -1943,6 +1943,8 @@ function setupLoginModal() {
   const forgotPasswordButton = document.getElementById('btn-forgot-password');
   const passwordInput = document.getElementById('login-password');
   const togglePassword = document.getElementById('toggle-password');
+  const btnGuestLogin = document.getElementById('btn-guest-login');
+  const guestBlock = document.querySelector('.guest-login-block');
   const err = document.getElementById('login-error');
   const termsCheckbox = document.getElementById('register-terms');
   const newsletterCheckbox = document.getElementById('register-newsletter');
@@ -1961,6 +1963,7 @@ function setupLoginModal() {
     registerOnlyFields.forEach((field) => field.classList.add('hidden'));
     forgotPasswordButton?.classList.remove('hidden');
     document.querySelector('.keep-session')?.classList.remove('hidden');
+    if (guestBlock) guestBlock.classList.remove('hidden');
     if (passwordInput) {
       passwordInput.value = '';
       passwordInput.autocomplete = 'current-password';
@@ -1998,6 +2001,15 @@ function setupLoginModal() {
     });
   }
 
+  if (btnGuestLogin) {
+    btnGuestLogin.addEventListener('click', () => {
+      try {
+        sessionStorage.setItem('nolli:guest_session', 'true');
+      } catch (e) {}
+      window.location.href = './';
+    });
+  }
+
   if (togglePassword && passwordInput) {
     togglePassword.addEventListener('click', () => {
       const showing = passwordInput.type === 'text';
@@ -2017,6 +2029,7 @@ function setupLoginModal() {
       registerButton.textContent = registerMode ? t('auth_btn_back_to_login', null, 'VOLVER A INICIO DE SESIÓN') : t('auth_btn_register_mode', null, 'CREAR CUENTA');
       if (termsCheckbox) termsCheckbox.required = registerMode;
       if (termsCheckbox && !registerMode) termsCheckbox.checked = false;
+      if (guestBlock) guestBlock.classList.toggle('hidden', registerMode);
       if (err) err.classList.add('hidden');
       if (window.lucide) window.lucide.createIcons();
     });
