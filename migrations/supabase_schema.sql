@@ -349,4 +349,58 @@ CREATE POLICY "Admins can view all profiles with presence" ON public.profiles
     )
   );
 
+-- 9. VISITAS ARQUITECTÓNICAS (building_visits)
+CREATE TABLE IF NOT EXISTS public.building_visits (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  building_id BIGINT NOT NULL REFERENCES public.Buildings(id) ON DELETE CASCADE,
+  visited_at DATE NOT NULL DEFAULT CURRENT_DATE,
+  notes TEXT,
+  rating SMALLINT CHECK (rating >= 1 AND rating <= 5),
+  visibility public.visibility_level NOT NULL DEFAULT 'friends',
+  is_location_blurred BOOLEAN NOT NULL DEFAULT false,
+  points_awarded INTEGER NOT NULL DEFAULT 10,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_building_visits_user_id ON public.building_visits(user_id);
+CREATE INDEX IF NOT EXISTS idx_building_visits_building_id ON public.building_visits(building_id);
+CREATE INDEX IF NOT EXISTS idx_building_visits_visited_at ON public.building_visits(visited_at DESC);
+CREATE INDEX IF NOT EXISTS idx_building_visits_visibility ON public.building_visits(visibility);
+
+ALTER TABLE public.building_visits ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "building_visits_select_policy" ON public.building_visits;
+CREATE POLICY "building_visits_select_policy" ON public.building_visits
+  FOR SELECT USING (
+    visibility = 'public'
+    OR (
+      auth.uid() IS NOT NULL AND (
+        auth.uid() = user_id
+        OR (visibility = 'friends' AND public.are_friends(auth.uid(), user_id))
+        OR public.is_admin()
+      )
+    )
+  );
+
+DROP POLICY IF EXISTS "building_visits_insert_policy" ON public.building_visits;
+CREATE POLICY "building_visits_insert_policy" ON public.building_visits
+  FOR INSERT TO authenticated
+  WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "building_visits_update_policy" ON public.building_visits;
+CREATE POLICY "building_visits_update_policy" ON public.building_visits
+  FOR UPDATE TO authenticated
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "building_visits_delete_policy" ON public.building_visits;
+CREATE POLICY "building_visits_delete_policy" ON public.building_visits
+  FOR DELETE TO authenticated
+  USING (auth.uid() = user_id);
+
+GRANT SELECT ON TABLE public.building_visits TO anon, authenticated;
+GRANT INSERT, UPDATE, DELETE ON TABLE public.building_visits TO authenticated;
+
+
 

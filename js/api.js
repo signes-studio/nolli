@@ -1959,3 +1959,107 @@ export async function fetchUserFriends(sessionToken) {
   });
   return profilesRes.json().catch(() => []);
 }
+
+/* =========================================================================
+   VISITAS ARQUITECTÓNICAS (building_visits) — FASE 2
+   ========================================================================= */
+
+/** Obtiene las visitas registradas para una obra, respetando RLS (públicas, de amigos o propias) */
+export async function fetchBuildingVisits(buildingId, sessionToken = null) {
+  if (!buildingId) return [];
+  const headers = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${sessionToken || SUPABASE_KEY}`,
+  };
+
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/building_visits?building_id=eq.${encodeURIComponent(buildingId)}&select=id,user_id,building_id,visited_at,notes,rating,visibility,is_location_blurred,points_awarded,created_at&order=visited_at.desc`, {
+    headers,
+  });
+
+  if (!response.ok) return [];
+  const visits = await response.json().catch(() => []);
+  if (!Array.isArray(visits) || !visits.length) return [];
+
+  // Enriquecer con los perfiles públicos de los autores
+  try {
+    const authorIds = [...new Set(visits.map(v => v.user_id).filter(Boolean))];
+    if (authorIds.length > 0) {
+      const pRes = await fetch(`${SUPABASE_URL}/rest/v1/public_profiles?id=in.(${authorIds.map(id => `"${encodeURIComponent(id)}"`).join(',')})&select=id,nick,first_name,avatar_url,school,is_verified_pro`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${sessionToken || SUPABASE_KEY}` },
+      });
+      if (pRes.ok) {
+        const profiles = await pRes.json().catch(() => []);
+        const pMap = new Map(profiles.map(p => [String(p.id), p]));
+        visits.forEach(v => {
+          v.profile = pMap.get(String(v.user_id)) || null;
+        });
+      }
+    }
+  } catch {}
+
+  return visits;
+}
+
+/** Obtiene las visitas realizadas por un usuario específico */
+export async function fetchUserVisits(userId, sessionToken = null) {
+  if (!userId) return [];
+  const headers = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${sessionToken || SUPABASE_KEY}`,
+  };
+
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/building_visits?user_id=eq.${encodeURIComponent(userId)}&select=id,user_id,building_id,visited_at,notes,rating,visibility,is_location_blurred,points_awarded,created_at&order=visited_at.desc`, {
+    headers,
+  });
+
+  if (!response.ok) return [];
+  return response.json().catch(() => []);
+}
+
+/** Registra una nueva visita a una obra arquitectónica */
+export async function createBuildingVisit(visitData, sessionToken) {
+  if (!sessionToken) throw new Error('Usuario no autenticado.');
+  const payload = {
+    user_id: visitData.user_id,
+    building_id: visitData.building_id,
+    visited_at: visitData.visited_at || new Date().toISOString().split('T')[0],
+    visibility: visitData.visibility || 'friends',
+    is_location_blurred: !!visitData.is_location_blurred,
+  };
+  if (visitData.notes !== undefined) payload.notes = visitData.notes;
+  if (visitData.rating !== undefined && visitData.rating >= 1 && visitData.rating <= 5) {
+    payload.rating = Math.round(visitData.rating);
+  }
+
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/building_visits`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.message || err.details || 'No se pudo registrar la visita.');
+  }
+
+  const created = await response.json().catch(() => []);
+  return Array.isArray(created) ? created[0] : created;
+}
+
+/** Elimina una visita por su identificador */
+export async function deleteBuildingVisit(visitId, sessionToken) {
+  if (!visitId || !sessionToken) throw new Error('Parámetros inválidos.');
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/building_visits?id=eq.${encodeURIComponent(visitId)}`, {
+    method: 'DELETE',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+    },
+  });
+  return response.ok;
+}
