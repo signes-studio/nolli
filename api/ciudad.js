@@ -431,7 +431,7 @@ function renderCityPage(data, page, lang = 'es') {
 
     <div class="hub-actions">
       <a href="${escapeHtml(mapUrl)}" class="btn-action-primary">
-        📍 ${getSSRText('view_city_map', lang, { city: canonicalCity })}
+        ${getSSRText('view_city_map', lang, { city: canonicalCity })} ↗
       </a>
     </div>
   </section>

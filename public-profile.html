@@ -97,7 +97,7 @@
             <span id="user-school-chip" class="hidden" style="color: var(--fg, #141411); background: var(--bg-raised, #F0E9D2); padding: 2px 7px; border: 1px solid var(--border-strong, #141411); font-weight: 700; font-size: 10px;"></span>
           </div>
           <div style="display: flex; gap: 10px; align-items: center; margin-top: 4px; flex-wrap: wrap;">
-            <span id="user-points-badge" style="font-size: 11px; font-weight: 800; color: var(--accent, #E95C0C); letter-spacing: 0.04em;">0 PTS NOLLI</span>
+            <span id="user-points-badge" style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 800; color: var(--accent, #E95C0C); letter-spacing: 0.04em;"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/></svg><span>0 PTS NOLLI</span></span>
             <span id="user-pro-title" class="hidden" style="font-size: 10px; color: var(--fg-dim, #666); font-style: italic;"></span>
           </div>
         </div>
@@ -262,7 +262,7 @@
       // Puntos Nolli
       const pointsBadge = document.getElementById('user-points-badge');
       if (pointsBadge) {
-        pointsBadge.textContent = `* ${user.total_points || 0} PTS NOLLI`;
+        pointsBadge.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-1px; margin-right:3px;"><polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/></svg><span>${user.total_points || 0} PTS NOLLI</span>`;
         pointsBadge.title = `Visitas: ${user.points_visitor || 0} pts | Aportaciones: ${user.points_contributor || 0} pts`;
       }
     }

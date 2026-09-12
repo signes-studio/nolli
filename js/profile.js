@@ -522,7 +522,7 @@ function renderHero() {
 
   const pointsDisplay = document.getElementById('profile-points-display');
   if (pointsDisplay) {
-    pointsDisplay.textContent = `* ${db.total_points || 0} PTS NOLLI`;
+    pointsDisplay.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-1px; margin-right:3px;"><polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/></svg><span>${db.total_points || 0} PTS NOLLI</span>`;
     pointsDisplay.title = `Visitas: ${db.points_visitor || 0} pts | Aportaciones: ${db.points_contributor || 0} pts`;
   }
 

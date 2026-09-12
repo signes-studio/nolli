@@ -70,7 +70,7 @@ All values below must be implemented as CSS custom properties (`:root` scope) or
 }
 ```
 
-### ⚠️ Correction against the previously supplied `brand.md`
+### [AVISO] Correction against the previously supplied `brand.md`
 The reference file included with this prompt mislabels two colors — it calls `#EFBC02` **"Constructivist Blue"** and `#064773` **"Mustard/Warm Yellow"**, which is inverted: `#EFBC02` is a mustard/yellow, `#064773` is a deep blue. The token names above (`--semantic-select` / `--semantic-info`) are named by **function**, not by color word, specifically to prevent this class of naming error from ever reaching production code. Agents must use the functional token names, never a color-word alias.
 
 The uploaded reference also omits the Alert Red (`#D6201D`) and the eight categorization colors — both are part of the canonical system and are included above. Any component touching error states or typology badges must use these, not the semantic Mustard/Blue pair.

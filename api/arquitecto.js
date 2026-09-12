@@ -401,7 +401,7 @@ function renderArchitectPage(data, page, lang = 'es') {
 
     <div class="hub-actions">
       <a href="${SITE_URL}${prefix}/?q=${encodeURIComponent(canonicalName)}" class="btn-action-primary">
-        ⚡ ${getSSRText('explore_on_map', lang)}
+        ${getSSRText('explore_on_map', lang)} ↗
       </a>
     </div>
   </section>
