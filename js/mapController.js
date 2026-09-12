@@ -301,9 +301,10 @@ export function cargarMapaMapbox() {
       },
     });
 
-    function crearExpresionEtiquetaFormateada(titleFont, isDark, isSatellite) {
+    function crearExpresionEtiquetaFormateada(titleFont, isDark, isSatellite, options = {}) {
       let titleColor = '#04070B';
       let architectColor = '#525866';
+      const isUppercase = Boolean(options.isUppercase);
 
       if (isSatellite) {
         titleColor = '#FFFFFF';
@@ -313,15 +314,17 @@ export function cargarMapaMapbox() {
         architectColor = '#A3ADC2';
       }
       const architectFont = ['Inter Regular', 'Open Sans Regular', 'Inter Regular'];
+      const rawTitle = ['get', 'nombre_obra'];
+      const titleTextExpr = isUppercase ? ['upcase', rawTitle] : rawTitle;
 
       return [
         'case',
         ['all', ['has', 'arquitecto'], ['!=', ['get', 'arquitecto'], '']],
         [
           'format',
-          ['get', 'nombre_obra'],
+          titleTextExpr,
           {
-            'font-scale': 1.0,
+            'font-scale': isUppercase ? 1.05 : 1.0,
             'text-font': ['literal', titleFont],
             'text-color': titleColor,
           },
@@ -331,16 +334,16 @@ export function cargarMapaMapbox() {
           },
           ['upcase', ['get', 'arquitecto']],
           {
-            'font-scale': 0.78,
+            'font-scale': 0.76,
             'text-font': ['literal', architectFont],
             'text-color': architectColor,
           }
         ],
         [
           'format',
-          ['get', 'nombre_obra'],
+          titleTextExpr,
           {
-            'font-scale': 1.0,
+            'font-scale': isUppercase ? 1.05 : 1.0,
             'text-font': ['literal', titleFont],
             'text-color': titleColor,
           }
@@ -351,23 +354,27 @@ export function cargarMapaMapbox() {
     const IMPORTANCE_LABEL_CONFIG = {
       0: {
         font: ['Inter Bold', 'Open Sans Bold', 'Inter Bold'],
-        size: 12.5,
-        minzoom: 6.5,
+        size: 14.5,
+        minzoom: 5.5,
+        isUppercase: true,
       },
       1: {
-        font: ['Inter Medium', 'Open Sans Semibold', 'Inter Bold'],
-        size: 11.5,
+        font: ['Inter SemiBold', 'Open Sans Semibold', 'Inter Bold'],
+        size: 11.8,
         minzoom: 7.5,
+        isUppercase: false,
       },
       2: {
-        font: ['Inter Medium', 'Open Sans Semibold', 'Inter Bold'],
-        size: 11,
+        font: ['Inter Medium', 'Open Sans Regular', 'Inter Regular'],
+        size: 10.5,
         minzoom: 11.0,
+        isUppercase: false,
       },
       3: {
         font: ['Inter Regular', 'Open Sans Regular', 'Inter Regular'],
-        size: 10,
+        size: 9.5,
         minzoom: 15.0,
+        isUppercase: false,
       },
     };
 
@@ -375,7 +382,7 @@ export function cargarMapaMapbox() {
       const minzoom = (importance === 0 || importance === 1) ? 0 : importance === 2 ? 6.5 : 13.5;
       const baseFilter = ['==', ['get', 'importancia'], importance];
       const sourceId = (importance === 0 || importance === 1) ? 'obras-maestras' : 'obras';
-      const iconSize = importance === 0 ? 0.86 : importance === 1 ? 0.70 : importance === 2 ? 0.55 : 0.46;
+      const iconSize = importance === 0 ? 1.10 : importance === 1 ? 0.82 : importance === 2 ? 0.58 : 0.44;
       const catExpr = ['coalesce', ['get', 'categoria'], 'otro'];
       const permitirSolapamiento = false;
       const sortKeyExpr = (importance === 0 || importance === 1)
@@ -383,7 +390,7 @@ export function cargarMapaMapbox() {
         : importance;
 
       const labelCfg = IMPORTANCE_LABEL_CONFIG[importance];
-      const formattedLabelExpr = crearExpresionEtiquetaFormateada(labelCfg.font, isDark, isSatellite);
+      const formattedLabelExpr = crearExpresionEtiquetaFormateada(labelCfg.font, isDark, isSatellite, { isUppercase: labelCfg.isUppercase });
       const textFieldExpr = ['step', ['zoom'], ['format', ''], labelCfg.minzoom, formattedLabelExpr];
       const haloColor = isSatellite ? '#000000' : (isDark ? '#121212' : '#F8F1DF');
       const textPaint = {

@@ -197,7 +197,7 @@ h1, h2, h3, h4, h5, h6,
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 4px;
+  margin-bottom: 5px;
   color: var(--fg);
 }
 
@@ -205,6 +205,76 @@ h1, h2, h3, h4, h5, h6,
   display: inline-block;
   vertical-align: middle;
   flex-shrink: 0;
+}
+
+.legend-item-name {
+  font-family: 'Inter', sans-serif;
+  line-height: 1.2;
+}
+
+/* Categoría 1: Obra Cumbre — Protagonismo categórico */
+.legend-item--l0 {
+  margin-bottom: 6px;
+  padding-bottom: 3px;
+  border-bottom: 1px dashed var(--border);
+}
+.legend-item-name--l0 {
+  font-family: 'League Spartan', 'Inter', sans-serif;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--fg);
+}
+.legend-tag-hito {
+  margin-left: auto;
+  font-family: 'Inter', sans-serif;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  padding: 1.5px 4.5px;
+  background: var(--accent);
+  color: #FFFFFF !important;
+  border-radius: 0 !important;
+  flex-shrink: 0;
+}
+
+/* Categoría 2: Imprescindible — Nivel 2 equilibrado */
+.legend-item--l1 {
+  margin-bottom: 5px;
+}
+.legend-item-name--l1 {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--fg);
+}
+.legend-tag-sub {
+  margin-left: auto;
+  font-family: 'Inter', sans-serif;
+  font-size: 7.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  padding: 1px 3.5px;
+  border: 1px solid var(--border-strong);
+  color: var(--fg-dim);
+  background: transparent;
+  border-radius: 0 !important;
+  flex-shrink: 0;
+}
+
+/* Niveles 3 y 4: Recomendada y Documentada */
+.legend-item-name--l2 {
+  font-size: 9.5px;
+  font-weight: 400;
+  color: var(--fg);
+}
+.legend-item-name--l3 {
+  font-size: 9px;
+  font-weight: 400;
+  color: var(--fg-dim);
 }
 
 .legend-color-grid {
