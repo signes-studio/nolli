@@ -2147,3 +2147,13 @@ export async function createVisitPhoto(photoData, sessionToken) {
   const created = await response.json().catch(() => []);
   return Array.isArray(created) ? created[0] : created;
 }
+
+// Re-exportar helpers de subida directa a Cloudflare R2 (Cero Egress)
+export {
+  PHOTO_STORAGE_CONFIG,
+  isSafePhotoUrl,
+  getPhotoThumbnailUrl,
+  requestPhotoUploadUrl,
+  uploadPhotoFileToR2,
+  uploadVisitPhotoWithR2,
+} from './photoStorageConfig.js';
