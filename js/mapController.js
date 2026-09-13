@@ -852,9 +852,10 @@ function initMapCompass() {
   const updateCompass = () => {
     if (!state.map) return;
     const bearing = state.map.getBearing() || 0;
-    // La aguja rota en sentido inverso al bearing del mapa para apuntar siempre al Norte geográfico
+    // La línea perpendicular en el contorno rota hacia el Norte geográfico
     if (needle) {
       needle.style.transform = `rotate(${-bearing}deg)`;
+      needle.setAttribute('transform', `rotate(${-bearing} 16 16)`);
     }
     const isRotated = Math.abs(bearing) > 0.5;
     const cardinal = getCardinalDirection(bearing);

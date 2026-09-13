@@ -854,10 +854,8 @@ body.dark-mode .topbar-btn-profile:hover {
 
   .map-compass-btn .compass-inner {
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 1px;
     width: 100%;
     height: 100%;
     pointer-events: none;
@@ -865,30 +863,46 @@ body.dark-mode .topbar-btn-profile:hover {
 
   .map-compass-btn .compass-dial-icon {
     display: block;
-    width: 16px;
-    height: 16px;
+    width: 32px;
+    height: 32px;
     pointer-events: none;
     overflow: visible;
   }
 
+  .map-compass-btn .compass-dial-circle {
+    stroke: var(--fg, rgb(17, 17, 17));
+    opacity: 0.28;
+    transition: opacity 0.15s ease, stroke 0.15s ease;
+  }
+
+  body.dark-mode .map-compass-btn .compass-dial-circle {
+    stroke: rgb(244, 241, 234);
+    opacity: 0.38;
+  }
+
   .map-compass-btn .compass-needle {
-    transform-origin: 12px 12px;
+    transform-box: view-box;
+    transform-origin: 16px 16px;
     will-change: transform;
     transition: transform 0.05s linear;
   }
 
+  .map-compass-btn .compass-contour-tick {
+    stroke: var(--accent, rgb(233, 92, 12));
+  }
+
   .map-compass-btn .compass-direction-label {
-    font-family: 'Inter', sans-serif;
-    font-size: 10px;
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size: 11.5px;
     font-weight: 800;
-    line-height: 1;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-    color: var(--fg, rgb(17, 17, 17));
+    fill: var(--fg, rgb(17, 17, 17));
+    letter-spacing: -0.01em;
+    user-select: none;
+    -webkit-user-select: none;
   }
 
   body.dark-mode .map-compass-btn .compass-direction-label {
-    color: rgb(244, 241, 234);
+    fill: rgb(244, 241, 234);
   }
 
   /* Indicación cromática y visibilidad cuando el mapa está rotado (no a 0°) */
