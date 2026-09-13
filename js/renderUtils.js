@@ -293,8 +293,8 @@ export function showNeoToast(message, options = {}) {
       gap: 12px;
       opacity: 0;
       transition: opacity 0.2s ease;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.35);
-      border-radius: 0 !important;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25), 0 2px 6px rgba(0, 0, 0, 0.1);
+      border-radius: 8px !important;
     `;
     document.body.appendChild(toast);
   }
@@ -310,6 +310,7 @@ export function showNeoToast(message, options = {}) {
   if (finalActionText) {
     const btn = toast.querySelector('#nolli-toast-action-btn');
     if (btn) {
+      btn.style.setProperty('border-radius', '4px', 'important');
       btn.onclick = () => {
         toast.style.opacity = '0';
         if (onAction) {

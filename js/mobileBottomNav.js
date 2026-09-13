@@ -597,7 +597,6 @@ function initMobileSearchWidget() {
   function openSearch() {
     widget.classList.remove('collapsed');
     widget.classList.add('expanded');
-    setTimeout(() => input.focus(), 100);
     cargarTodasObrasMobile();
   }
 
@@ -612,12 +611,23 @@ function initMobileSearchWidget() {
   btnToggle.addEventListener('click', (e) => {
     e.stopPropagation();
     openSearch();
+    setTimeout(() => input.focus(), 100);
+  });
+
+  input.addEventListener('focus', () => {
+    openSearch();
+  });
+
+  input.addEventListener('click', (e) => {
+    e.stopPropagation();
+    openSearch();
   });
 
   if (btnClose) {
     btnClose.addEventListener('click', (e) => {
       e.stopPropagation();
       closeSearch();
+      input.blur();
     });
   }
 
