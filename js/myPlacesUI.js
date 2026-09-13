@@ -766,9 +766,9 @@ function renderList() {
       return;
     }
 
-    let icon = 'star';
+    let icon = 'heart';
     let title = 'SIN FAVORITOS AÚN';
-    let desc = 'Guarda obras de referencia pulsando el icono de estrella en cualquier ficha.';
+    let desc = 'Guarda obras de referencia pulsando el icono de corazón en cualquier ficha.';
     if (activeTab === 'visited') {
       icon = 'check-circle';
       title = 'SIN VISITAS REGISTRADAS';

@@ -232,17 +232,19 @@ export function cargarMapaMapbox() {
         try {
           addOrUpdateImage(prefix, buildIcon(drawTargetIcon, color, importance, 64, { isDark }));
           addOrUpdateImage(`${prefix}-visited`, buildIcon(drawTargetIcon, color, importance, 64, { isVisited: true, isDark }));
+          addOrUpdateImage(`${prefix}-favorite`, buildIcon(drawTargetIcon, color, importance, 64, { isFavorite: true, isDark }));
+          addOrUpdateImage(`${prefix}-visited-favorite`, buildIcon(drawTargetIcon, color, importance, 64, { isVisited: true, isFavorite: true, isDark }));
           addOrUpdateImage(`${prefix}-pending`, buildIcon(drawTargetIcon, color, importance, 64, { isPending: true, isDark }));
           addOrUpdateImage(`${prefix}-private`, buildIcon(drawPrivateSquareIcon, color, importance, 64, { isDark }));
           addOrUpdateImage(`${prefix}-selected`, buildIcon(drawTargetIcon, selectedColor, importance, 64, { isSelected: true, isDark }));
 
           // Iconos de búsqueda
-          addOrUpdateImage(searchPrefix, buildIcon(drawSearchLupaIcon, color, importance));
-          addOrUpdateImage(`${searchPrefix}-selected`, buildIcon(drawSearchLupaIcon, selectedColor, importance));
+          addOrUpdateImage(searchPrefix, buildIcon(drawSearchLupaIcon, color, importance, 64, { isDark }));
+          addOrUpdateImage(`${searchPrefix}-selected`, buildIcon(drawSearchLupaIcon, selectedColor, importance, 64, { isSelected: true, isDark }));
 
           // Iconos de itinerario Explora
-          addOrUpdateImage(explorePrefix, buildIcon(drawExploreCompassIcon, color, importance));
-          addOrUpdateImage(`${explorePrefix}-selected`, buildIcon(drawExploreCompassIcon, selectedColor, importance));
+          addOrUpdateImage(explorePrefix, buildIcon(drawExploreCompassIcon, color, importance, 64, { isDark }));
+          addOrUpdateImage(`${explorePrefix}-selected`, buildIcon(drawExploreCompassIcon, selectedColor, importance, 64, { isSelected: true, isDark }));
         } catch (e) {}
       });
     });
@@ -275,11 +277,11 @@ export function cargarMapaMapbox() {
       source: 'obras',
       filter: ['==', ['get', 'favorite'], 1],
       paint: {
-        'circle-radius': 14.5,
-        'circle-color': 'transparent',
-        'circle-stroke-color': '#E84E1B',
-        'circle-stroke-width': 2.2,
-        'circle-stroke-opacity': 0.95,
+        'circle-radius': 15,
+        'circle-color': 'rgba(232, 78, 27, 0.08)',
+        'circle-stroke-color': 'rgb(232, 78, 27)',
+        'circle-stroke-width': 1.4,
+        'circle-stroke-opacity': 0.85,
         'circle-blur': 0,
         'circle-opacity': 1,
       },
@@ -291,11 +293,11 @@ export function cargarMapaMapbox() {
       source: 'obras-maestras',
       filter: ['==', ['get', 'favorite'], 1],
       paint: {
-        'circle-radius': 17.5,
-        'circle-color': 'transparent',
-        'circle-stroke-color': '#E84E1B',
-        'circle-stroke-width': 2.5,
-        'circle-stroke-opacity': 0.95,
+        'circle-radius': 18,
+        'circle-color': 'rgba(232, 78, 27, 0.08)',
+        'circle-stroke-color': 'rgb(232, 78, 27)',
+        'circle-stroke-width': 1.6,
+        'circle-stroke-opacity': 0.85,
         'circle-blur': 0,
         'circle-opacity': 1,
       },
@@ -460,6 +462,7 @@ export function cargarMapaMapbox() {
           'icon-image': [
             'case',
             ['has', 'collection_emoji'], ['concat', 'collection-emoji-', ['get', 'collection_id']],
+            ['==', ['get', 'favorite'], 1], ['concat', `icon-l${importance}-`, catExpr, '-favorite'],
             ['concat', `icon-l${importance}-`, catExpr]
           ],
           'icon-size': [
@@ -487,6 +490,7 @@ export function cargarMapaMapbox() {
           'icon-image': [
             'case',
             ['has', 'collection_emoji'], ['concat', 'collection-emoji-', ['get', 'collection_id']],
+            ['==', ['get', 'favorite'], 1], ['concat', `icon-l${importance}-`, catExpr, '-visited-favorite'],
             ['concat', `icon-l${importance}-`, catExpr, '-visited']
           ],
           'icon-size': [

@@ -36,41 +36,88 @@ export function buildEmojiIcon(emoji, isDark = false, size = 64) {
   return ctx.getImageData(0, 0, size, size);
 }
 
-export function drawVisitedBadge(ctx, c, s) {
-  const badgeX = c + s * 0.20;
-  const badgeY = c - s * 0.20;
-  const badgeR = s * 0.12;
+export function drawVisitedBadge(ctx, c, s, positionLeft = false) {
+  const offsetX = positionLeft ? -s * 0.21 : s * 0.21;
+  const badgeX = c + offsetX;
+  const badgeY = c - s * 0.21;
+  const badgeR = s * 0.11;
 
   ctx.save();
-  // Sombra offset técnica de 1px
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.30)';
+  // Halo arquitectónico nítido de contraste (cero sombra borrosa)
+  ctx.fillStyle = 'rgba(248, 241, 223, 0.95)';
   ctx.beginPath();
-  ctx.arc(badgeX + 1, badgeY + 1, badgeR, 0, Math.PI * 2);
+  ctx.arc(badgeX, badgeY, badgeR + 1.2, 0, Math.PI * 2);
   ctx.fill();
 
-  // Fondo circular verde bosque editorial (#1D5C2B)
-  ctx.fillStyle = '#1D5C2B';
+  // Fondo circular verde esmeralda / bosque editorial
+  ctx.fillStyle = 'rgb(22, 101, 52)';
   ctx.beginPath();
   ctx.arc(badgeX, badgeY, badgeR, 0, Math.PI * 2);
   ctx.fill();
 
-  // Borde nítido blanco sólido (#FFFFFF)
-  ctx.lineWidth = 1.4;
-  ctx.strokeStyle = '#FFFFFF';
+  // Borde técnico fino blanco puro
+  ctx.lineWidth = 1.0;
+  ctx.strokeStyle = 'rgb(255, 255, 255)';
   ctx.beginPath();
   ctx.arc(badgeX, badgeY, badgeR, 0, Math.PI * 2);
   ctx.stroke();
 
-  // Trazo técnico de visado / comprobación "✓"
+  // Trazo técnico ortogonal de visado "✓"
   ctx.beginPath();
-  ctx.moveTo(badgeX - badgeR * 0.45, badgeY - badgeR * 0.05);
-  ctx.lineTo(badgeX - badgeR * 0.08, badgeY + badgeR * 0.35);
-  ctx.lineTo(badgeX + badgeR * 0.50, badgeY - badgeR * 0.35);
-  ctx.lineWidth = 1.6;
-  ctx.strokeStyle = '#FFFFFF';
+  ctx.moveTo(badgeX - badgeR * 0.42, badgeY);
+  ctx.lineTo(badgeX - badgeR * 0.08, badgeY + badgeR * 0.38);
+  ctx.lineTo(badgeX + badgeR * 0.46, badgeY - badgeR * 0.32);
+  ctx.lineWidth = 1.4;
+  ctx.strokeStyle = 'rgb(255, 255, 255)';
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   ctx.stroke();
+  ctx.restore();
+}
+
+export function drawFavoriteBadge(ctx, c, s, positionLeft = false) {
+  const offsetX = positionLeft ? -s * 0.21 : s * 0.21;
+  const badgeX = c + offsetX;
+  const badgeY = c - s * 0.21;
+  const badgeR = s * 0.11;
+
+  ctx.save();
+  // Halo arquitectónico nítido de contraste
+  ctx.fillStyle = 'rgba(248, 241, 223, 0.95)';
+  ctx.beginPath();
+  ctx.arc(badgeX, badgeY, badgeR + 1.2, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Fondo circular en Vermillón Nolli
+  ctx.fillStyle = 'rgb(232, 78, 27)';
+  ctx.beginPath();
+  ctx.arc(badgeX, badgeY, badgeR, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Borde técnico fino blanco puro
+  ctx.lineWidth = 1.0;
+  ctx.strokeStyle = 'rgb(255, 255, 255)';
+  ctx.beginPath();
+  ctx.arc(badgeX, badgeY, badgeR, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Icono geométrico interior de corazón técnico
+  const hR = badgeR * 0.52;
+  const topY = badgeY - hR * 0.2;
+  const botY = badgeY + hR * 0.75;
+  const leftX = badgeX - hR;
+  const rightX = badgeX + hR;
+
+  ctx.beginPath();
+  ctx.moveTo(badgeX, topY + hR * 0.3);
+  ctx.bezierCurveTo(badgeX - hR * 0.5, topY - hR * 0.7, leftX, topY - hR * 0.1, leftX, topY + hR * 0.25);
+  ctx.bezierCurveTo(leftX, topY + hR * 0.65, badgeX - hR * 0.3, botY - hR * 0.15, badgeX, botY);
+  ctx.bezierCurveTo(badgeX + hR * 0.3, botY - hR * 0.15, rightX, topY + hR * 0.65, rightX, topY + hR * 0.25);
+  ctx.bezierCurveTo(rightX, topY - hR * 0.1, badgeX + hR * 0.5, topY - hR * 0.7, badgeX, topY + hR * 0.3);
+  ctx.closePath();
+  ctx.fillStyle = 'rgb(255, 255, 255)';
+  ctx.fill();
+
   ctx.restore();
 }
 
@@ -80,37 +127,50 @@ export function drawPendingBadge(ctx, c, s) {
   const badgeR = s * 0.12;
 
   ctx.save();
-  // Sombra offset técnica de 1px
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.30)';
+  ctx.fillStyle = 'rgba(248, 241, 223, 0.95)';
   ctx.beginPath();
-  ctx.arc(badgeX + 1, badgeY + 1, badgeR, 0, Math.PI * 2);
+  ctx.arc(badgeX, badgeY, badgeR + 1.2, 0, Math.PI * 2);
   ctx.fill();
 
-  // Fondo circular ámbar (#EFBC02)
-  ctx.fillStyle = '#EFBC02';
+  // Fondo circular ámbar
+  ctx.fillStyle = 'rgb(239, 188, 2)';
   ctx.beginPath();
   ctx.arc(badgeX, badgeY, badgeR, 0, Math.PI * 2);
   ctx.fill();
 
-  // Borde nítido negro (#141411)
-  ctx.lineWidth = 1.4;
-  ctx.strokeStyle = '#141411';
+  // Borde nítido negro
+  ctx.lineWidth = 1.2;
+  ctx.strokeStyle = 'rgb(20, 20, 17)';
   ctx.beginPath();
   ctx.arc(badgeX, badgeY, badgeR, 0, Math.PI * 2);
   ctx.stroke();
 
   // Punto central técnico
-  ctx.fillStyle = '#141411';
+  ctx.fillStyle = 'rgb(20, 20, 17)';
   ctx.beginPath();
   ctx.arc(badgeX, badgeY, badgeR * 0.35, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 }
 
+export function drawBadges(ctx, c, s, isVisited, isFavorite, isPending) {
+  if (isVisited && isFavorite) {
+    drawVisitedBadge(ctx, c, s, false);
+    drawFavoriteBadge(ctx, c, s, true);
+  } else if (isVisited) {
+    drawVisitedBadge(ctx, c, s, false);
+  } else if (isFavorite) {
+    drawFavoriteBadge(ctx, c, s, false);
+  } else if (isPending) {
+    drawPendingBadge(ctx, c, s);
+  }
+}
+
 export function drawTargetIcon(ctx, color, importance, s, options = {}) {
   const c = s / 2;
   const isVisited = Boolean(options.isVisited || color === '#82c812');
   const isPending = Boolean(options.isPending || color === '#FFCC00');
+  const isFavorite = Boolean(options.isFavorite);
   const isLightSelection = color === '#FFFFFF' || color === '#ffffff' || color === '#F5F4F0' || color === '#f5f4f0';
   const isDarkSelection = color === '#141411';
   const isSelected = Boolean(options.isSelected || isLightSelection || isDarkSelection);
@@ -169,11 +229,7 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
 
     ctx.restore();
 
-    if (isVisited) {
-      drawVisitedBadge(ctx, c, s);
-    } else if (isPending) {
-      drawPendingBadge(ctx, c, s);
-    }
+    drawBadges(ctx, c, s, isVisited, isFavorite, isPending);
   } else if (importance === 1) {
     // 1: IMPRESCINDIBLE (CATEGORÍA 2) — Diana técnica circular en color de categoría con borde fino
     const r = s * 0.16;
@@ -226,11 +282,7 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
       ctx.fill();
     }
 
-    if (isVisited) {
-      drawVisitedBadge(ctx, c, s);
-    } else if (isPending) {
-      drawPendingBadge(ctx, c, s);
-    }
+    drawBadges(ctx, c, s, isVisited, isFavorite, isPending);
   } else if (importance === 2) {
     // 2: RECOMENDADA — Nodo compacto en color de categoría con borde ultrafino
     const r = s * 0.12;
@@ -265,11 +317,7 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
       ctx.fill();
     }
 
-    if (isVisited) {
-      drawVisitedBadge(ctx, c, s);
-    } else if (isPending) {
-      drawPendingBadge(ctx, c, s);
-    }
+    drawBadges(ctx, c, s, isVisited, isFavorite, isPending);
   } else {
     // 3: DOCUMENTADA — Micro-punto cartográfico en color de categoría con borde ultrafino
     const r = s * 0.08;
@@ -297,11 +345,7 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
       ctx.stroke();
     }
 
-    if (isVisited) {
-      drawVisitedBadge(ctx, c, s);
-    } else if (isPending) {
-      drawPendingBadge(ctx, c, s);
-    }
+    drawBadges(ctx, c, s, isVisited, isFavorite, isPending);
   }
 }
 
@@ -312,6 +356,7 @@ export function drawPrivateSquareIcon(ctx, color, importance, s, options = {}) {
   const c = s / 2;
   const isVisited = Boolean(options.isVisited || color === '#82c812');
   const isPending = Boolean(options.isPending || color === '#FFCC00');
+  const isFavorite = Boolean(options.isFavorite);
   const isDark = Boolean(options.isDark);
   const inkColor = isDark ? '#FFFFFF' : '#141411';
   const haloColor = isDark ? '#141411' : '#F8F1DF';
@@ -387,105 +432,115 @@ export function drawPrivateSquareIcon(ctx, color, importance, s, options = {}) {
 
   ctx.restore();
 
-  if (isVisited) {
-    drawVisitedBadge(ctx, c, s);
-  } else if (isPending) {
-    drawPendingBadge(ctx, c, s);
-  }
+  drawBadges(ctx, c, s, isVisited, isFavorite, isPending);
 }
 
 /**
  * Dibuja iconos de lupa para resultados de búsqueda
  */
-export function drawSearchLupaIcon(ctx, color, importance, s) {
+export function drawSearchLupaIcon(ctx, color, importance, s, options = {}) {
   const c = s / 2;
-  const isLightSelection = color === '#FFFFFF' || color === '#ffffff' || color === '#F5F4F0' || color === '#f5f4f0';
-  const isDarkSelection = color === '#141411';
-  const strokeColor = isDarkSelection ? '#F8F1DF' : '#141411';
-  const haloColor = isDarkSelection ? '#141411' : '#F8F1DF';
+  const isDark = Boolean(options.isDark);
+  const isLight = typeof color === 'string' && (color === 'white' || color.includes('255, 255, 255') || color.toLowerCase() === String.fromCharCode(35) + 'ffffff' || color.toLowerCase() === String.fromCharCode(35) + 'f8f1df' || color.toLowerCase() === String.fromCharCode(35) + 'f5f4f0');
+  const isDarkSelection = typeof color === 'string' && (color === 'black' || color.includes('20, 20, 17') || color.toLowerCase() === String.fromCharCode(35) + '141411' || color.toLowerCase() === String.fromCharCode(35) + '000000');
+  const strokeColor = (isDark || isDarkSelection) ? 'rgb(248, 241, 223)' : 'rgb(20, 20, 17)';
+  const haloColor = (isDark || isDarkSelection) ? 'rgb(20, 20, 17)' : 'rgba(248, 241, 223, 0.95)';
+  const bodyColor = isLight ? 'rgb(255, 255, 255)' : (isDarkSelection ? 'rgb(20, 20, 17)' : color);
 
   let lensRadius, handleLen, handleWidth, ringWidth;
 
   if (importance === 0) {
-    lensRadius = s * 0.20;
-    handleLen = s * 0.18;
-    handleWidth = 3.6;
-    ringWidth = 2.4;
-  } else if (importance === 1) {
-    lensRadius = s * 0.17;
-    handleLen = s * 0.15;
-    handleWidth = 3.0;
-    ringWidth = 2.0;
-  } else if (importance === 2) {
-    lensRadius = s * 0.14;
-    handleLen = s * 0.13;
+    lensRadius = s * 0.18;
+    handleLen = s * 0.12;
     handleWidth = 2.4;
-    ringWidth = 1.8;
-  } else {
-    lensRadius = s * 0.11;
+    ringWidth = 1.6;
+  } else if (importance === 1) {
+    lensRadius = s * 0.15;
     handleLen = s * 0.10;
     handleWidth = 2.0;
-    ringWidth = 1.4;
+    ringWidth = 1.3;
+  } else if (importance === 2) {
+    lensRadius = s * 0.12;
+    handleLen = s * 0.08;
+    handleWidth = 1.6;
+    ringWidth = 1.1;
+  } else {
+    lensRadius = s * 0.09;
+    handleLen = s * 0.06;
+    handleWidth = 1.3;
+    ringWidth = 0.9;
   }
 
-  const lensX = c - s * 0.06;
-  const lensY = c - s * 0.06;
-
-  ctx.save();
-
+  // Centro visual calibrado para que el conjunto (lente + mango a 45°) quede perfectamente centrado en c
   const angle = Math.PI / 4;
-  const startX = lensX + Math.cos(angle) * (lensRadius * 0.85);
-  const startY = lensY + Math.sin(angle) * (lensRadius * 0.85);
+  const offset = handleLen * 0.28;
+  const lensX = c - Math.cos(angle) * offset;
+  const lensY = c - Math.sin(angle) * offset;
+
+  const startX = lensX + Math.cos(angle) * (lensRadius * 0.88);
+  const startY = lensY + Math.sin(angle) * (lensRadius * 0.88);
   const endX = startX + Math.cos(angle) * handleLen;
   const endY = startY + Math.sin(angle) * handleLen;
 
-  // Sombra del mango
+  ctx.save();
+
+  // 1. Halo técnico perimetral continuo
+  ctx.beginPath();
+  ctx.moveTo(startX, startY);
+  ctx.lineTo(endX, endY);
+  ctx.strokeStyle = haloColor;
+  ctx.lineWidth = handleWidth + 2.4;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(lensX, lensY, lensRadius + ringWidth + 1.2, 0, Math.PI * 2);
+  ctx.fillStyle = haloColor;
+  ctx.fill();
+
+  // 2. Mango técnico ortogonal
   ctx.beginPath();
   ctx.moveTo(startX, startY);
   ctx.lineTo(endX, endY);
   ctx.strokeStyle = strokeColor;
-  ctx.lineWidth = handleWidth + 2.0;
-  ctx.lineCap = 'round';
-  ctx.stroke();
-
-  // Mango
-  ctx.beginPath();
-  ctx.moveTo(startX, startY);
-  ctx.lineTo(endX, endY);
-  ctx.strokeStyle = isLightSelection ? '#FFFFFF' : color;
   ctx.lineWidth = handleWidth;
   ctx.lineCap = 'round';
   ctx.stroke();
 
-  // Halo perimetral
-  ctx.beginPath();
-  ctx.arc(lensX, lensY, lensRadius + ringWidth, 0, Math.PI * 2);
-  ctx.fillStyle = haloColor;
-  ctx.fill();
-
-  // Lente con color de categoría
+  // 3. Lente circular en color de categoría
   ctx.beginPath();
   ctx.arc(lensX, lensY, lensRadius, 0, Math.PI * 2);
-  ctx.fillStyle = isLightSelection ? '#FFFFFF' : color;
+  ctx.fillStyle = bodyColor;
   ctx.fill();
 
-  // Anillo de contorno
-  ctx.beginPath();
-  ctx.arc(lensX, lensY, lensRadius, 0, Math.PI * 2);
-  ctx.strokeStyle = strokeColor;
+  // 4. Borde nítido de la lente
   ctx.lineWidth = ringWidth;
+  ctx.strokeStyle = strokeColor;
   ctx.stroke();
 
-  if (importance <= 2) {
-    ctx.beginPath();
-    ctx.arc(lensX - lensRadius * 0.32, lensY - lensRadius * 0.32, lensRadius * 0.38, Math.PI * 1.05, Math.PI * 1.55);
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
-    ctx.lineWidth = Math.max(1.0, ringWidth * 0.65);
-    ctx.lineCap = 'round';
-    ctx.stroke();
-  }
-
+  // 5. Retícula interior técnica según jerarquía arquitectónica
   if (importance === 0) {
+    const innerR = lensRadius * 0.42;
+    ctx.beginPath();
+    ctx.arc(lensX, lensY, innerR, 0, Math.PI * 2);
+    ctx.fillStyle = haloColor;
+    ctx.fill();
+    ctx.lineWidth = 0.8;
+    ctx.strokeStyle = strokeColor;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(lensX, lensY, innerR * 0.45, 0, Math.PI * 2);
+    ctx.fillStyle = strokeColor;
+    ctx.fill();
+  } else if (importance === 1) {
+    const innerR = lensRadius * 0.38;
+    ctx.beginPath();
+    ctx.arc(lensX, lensY, innerR, 0, Math.PI * 2);
+    ctx.lineWidth = 0.8;
+    ctx.strokeStyle = strokeColor;
+    ctx.stroke();
+  } else if (importance === 2) {
     ctx.beginPath();
     ctx.arc(lensX, lensY, lensRadius * 0.28, 0, Math.PI * 2);
     ctx.fillStyle = strokeColor;
@@ -498,141 +553,92 @@ export function drawSearchLupaIcon(ctx, color, importance, s) {
 /**
  * Dibuja iconos de brújula / compass para itinerarios de la pestaña Explora
  */
-export function drawExploreCompassIcon(ctx, color, importance, s) {
+export function drawExploreCompassIcon(ctx, color, importance, s, options = {}) {
   const c = s / 2;
-  const isLightSelection = color === '#FFFFFF' || color === '#ffffff' || color === '#F5F4F0' || color === '#f5f4f0';
-  const isDarkSelection = color === '#141411';
-  const strokeColor = isDarkSelection ? '#F8F1DF' : '#141411';
-  const haloColor = isDarkSelection ? '#141411' : '#F8F1DF';
+  const isDark = Boolean(options.isDark);
+  const isLight = typeof color === 'string' && (color === 'white' || color.includes('255, 255, 255') || color.toLowerCase() === String.fromCharCode(35) + 'ffffff' || color.toLowerCase() === String.fromCharCode(35) + 'f8f1df' || color.toLowerCase() === String.fromCharCode(35) + 'f5f4f0');
+  const isDarkSelection = typeof color === 'string' && (color === 'black' || color.includes('20, 20, 17') || color.toLowerCase() === String.fromCharCode(35) + '141411' || color.toLowerCase() === String.fromCharCode(35) + '000000');
+  const strokeColor = (isDark || isDarkSelection) ? 'rgb(248, 241, 223)' : 'rgb(20, 20, 17)';
+  const haloColor = (isDark || isDarkSelection) ? 'rgb(20, 20, 17)' : 'rgba(248, 241, 223, 0.95)';
+  const bodyColor = isLight ? 'rgb(255, 255, 255)' : (isDarkSelection ? 'rgb(20, 20, 17)' : color);
+  const vermilionNolli = 'rgb(232, 78, 27)';
 
-  let outerRadius, ringWidth, needleLen, needleWidth;
+  let outerRadius, ringWidth, tickLen, tickWidth;
 
   if (importance === 0) {
-    outerRadius = s * 0.28;
-    ringWidth = 2.2;
-    needleLen = s * 0.20;
-    needleWidth = 4.8;
+    outerRadius = s * 0.22;
+    ringWidth = 1.4;
+    tickLen = s * 0.08;
+    tickWidth = 2.2;
   } else if (importance === 1) {
-    outerRadius = s * 0.24;
-    ringWidth = 2.0;
-    needleLen = s * 0.17;
-    needleWidth = 4.0;
+    outerRadius = s * 0.18;
+    ringWidth = 1.2;
+    tickLen = s * 0.07;
+    tickWidth = 1.9;
   } else if (importance === 2) {
-    outerRadius = s * 0.20;
-    ringWidth = 1.6;
-    needleLen = s * 0.14;
-    needleWidth = 3.4;
+    outerRadius = s * 0.14;
+    ringWidth = 1.0;
+    tickLen = s * 0.06;
+    tickWidth = 1.6;
   } else {
-    outerRadius = s * 0.16;
-    ringWidth = 1.3;
-    needleLen = s * 0.11;
-    needleWidth = 2.8;
+    outerRadius = s * 0.10;
+    ringWidth = 0.8;
+    tickLen = s * 0.05;
+    tickWidth = 1.3;
   }
 
   ctx.save();
 
-  // Halo perimetral
+  // 1. Halo perimetral de contraste (esfera + espiga Norte)
   ctx.beginPath();
-  ctx.arc(c, c, outerRadius + ringWidth + 1, 0, Math.PI * 2);
+  ctx.arc(c, c, outerRadius + ringWidth + 1.2, 0, Math.PI * 2);
   ctx.fillStyle = haloColor;
   ctx.fill();
 
-  // Cuadrante con color de categoría
-  ctx.beginPath();
-  ctx.arc(c, c, outerRadius, 0, Math.PI * 2);
-  ctx.fillStyle = isLightSelection ? '#FFFFFF' : color;
-  ctx.fill();
-
-  // Anillo perimetral
-  ctx.beginPath();
-  ctx.arc(c, c, outerRadius, 0, Math.PI * 2);
-  ctx.strokeStyle = strokeColor;
-  ctx.lineWidth = ringWidth;
-  ctx.stroke();
-
-  // Ticks cardinales
-  const tickLen = Math.max(2, outerRadius * 0.20);
-  ctx.lineWidth = Math.max(1.0, ringWidth * 0.7);
-  ctx.strokeStyle = '#FFFFFF';
-  ctx.lineCap = 'round';
-
   ctx.beginPath();
   ctx.moveTo(c, c - outerRadius + 1);
-  ctx.lineTo(c, c - outerRadius + tickLen);
+  ctx.lineTo(c, c - outerRadius - tickLen);
+  ctx.strokeStyle = haloColor;
+  ctx.lineWidth = tickWidth + 2.2;
+  ctx.lineCap = 'round';
   ctx.stroke();
 
+  // 2. Esfera / cuadrante en color de categoría
   ctx.beginPath();
-  ctx.moveTo(c, c + outerRadius - 1);
-  ctx.lineTo(c, c + outerRadius - tickLen);
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.moveTo(c + outerRadius - 1, c);
-  ctx.lineTo(c + outerRadius - tickLen, c);
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.moveTo(c - outerRadius + 1, c);
-  ctx.lineTo(c - outerRadius + tickLen, c);
-  ctx.stroke();
-
-  // Aguja a 45°
-  ctx.translate(c, c);
-  ctx.rotate(-Math.PI / 4);
-
-  // Mitad Norte (Blanco)
-  ctx.beginPath();
-  ctx.moveTo(0, -needleLen);
-  ctx.lineTo(needleWidth, 0);
-  ctx.lineTo(0, 0);
-  ctx.closePath();
-  ctx.fillStyle = isLightSelection ? '#141411' : '#FFFFFF';
+  ctx.arc(c, c, outerRadius, 0, Math.PI * 2);
+  ctx.fillStyle = bodyColor;
   ctx.fill();
 
-  ctx.beginPath();
-  ctx.moveTo(0, -needleLen);
-  ctx.lineTo(-needleWidth, 0);
-  ctx.lineTo(0, 0);
-  ctx.closePath();
-  ctx.fillStyle = isLightSelection ? '#333333' : '#F0EAD6';
-  ctx.fill();
-
-  // Mitad Sur (Negro)
-  ctx.beginPath();
-  ctx.moveTo(0, needleLen);
-  ctx.lineTo(needleWidth, 0);
-  ctx.lineTo(0, 0);
-  ctx.closePath();
-  ctx.fillStyle = isLightSelection ? '#666666' : '#141411';
-  ctx.fill();
-
-  ctx.beginPath();
-  ctx.moveTo(0, needleLen);
-  ctx.lineTo(-needleWidth, 0);
-  ctx.lineTo(0, 0);
-  ctx.closePath();
-  ctx.fillStyle = isLightSelection ? '#888888' : '#2A2A26';
-  ctx.fill();
-
-  // Contorno de la aguja
-  ctx.beginPath();
-  ctx.moveTo(0, -needleLen);
-  ctx.lineTo(needleWidth, 0);
-  ctx.lineTo(0, needleLen);
-  ctx.lineTo(-needleWidth, 0);
-  ctx.closePath();
-  ctx.strokeStyle = strokeColor;
-  ctx.lineWidth = 1.0;
-  ctx.stroke();
-
-  // Pivote central
-  ctx.beginPath();
-  ctx.arc(0, 0, Math.max(1.5, needleWidth * 0.4), 0, Math.PI * 2);
-  ctx.fillStyle = '#FFFFFF';
-  ctx.fill();
-  ctx.lineWidth = 0.8;
+  // 3. Contorno nítido de la esfera
+  ctx.lineWidth = ringWidth;
   ctx.strokeStyle = strokeColor;
   ctx.stroke();
+
+  // 4. Línea perpendicular en el contorno mirando al Norte (Vermillón Nolli)
+  ctx.beginPath();
+  ctx.moveTo(c, c - outerRadius + 0.5);
+  ctx.lineTo(c, c - outerRadius - tickLen);
+  ctx.strokeStyle = vermilionNolli;
+  ctx.lineWidth = tickWidth;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+
+  // 5. Letra de dirección "N" centrada en el interior del círculo
+  const fontSize = Math.max(7, Math.round(outerRadius * 1.15));
+  ctx.font = `700 ${fontSize}px 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  if (isLight) {
+    ctx.fillStyle = 'rgb(20, 20, 17)';
+  } else if (isDarkSelection) {
+    ctx.fillStyle = 'rgb(248, 241, 223)';
+  } else {
+    ctx.fillStyle = 'rgb(255, 255, 255)';
+  }
+
+  const textOffsetY = fontSize * 0.04;
+  ctx.fillText('N', c, c + textOffsetY);
 
   ctx.restore();
 }

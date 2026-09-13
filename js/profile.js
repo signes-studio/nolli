@@ -1023,11 +1023,11 @@ function renderBuildingsFeed(buildings, tabKey) {
     : t('profile_empty_favorites', null, 'NO TIENES OBRAS FAVORITAS AÚN. GUARDA OBRAS EN FAVORITOS DESDE EL MAPA.');
 
   if (!buildings.length) {
-    const icon = isVisited ? 'check-circle' : 'star';
+    const icon = isVisited ? 'check-circle' : 'heart';
     const title = isVisited ? 'SIN OBRAS VISITADAS' : 'SIN FAVORITOS AÚN';
     const desc = isVisited
       ? t('profile_empty_visited', null, 'Registra tus visitas desde las fichas del mapa para completar tu pasaporte arquitectónico.')
-      : t('profile_empty_favorites', null, 'Guarda obras de referencia pulsando el icono de estrella en cualquier ficha.');
+      : t('profile_empty_favorites', null, 'Guarda obras de referencia pulsando el icono de corazón en cualquier ficha.');
 
     content.innerHTML = `
       <div class="nolli-empty-state">
@@ -1053,7 +1053,7 @@ function renderBuildingsFeed(buildings, tabKey) {
           <span>${t('remove_upper', null, 'QUITAR')}</span>
         </button>`
       : `<button type="button" class="profile-card-action-btn danger" data-remove-favorite="${obra.id}" title="${escapeHtml(t('profile_remove_favorites_aria', null, 'Quitar de favoritos'))}" aria-label="${escapeHtml(t('profile_remove_favorites_aria', null, 'Quitar de favoritos'))}">
-          <i data-lucide="star" width="12" height="12"></i>
+          <i data-lucide="heart" width="12" height="12"></i>
           <span>${t('remove_upper', null, 'QUITAR')}</span>
         </button>`;
 
