@@ -109,7 +109,7 @@ export function cargarMapaMapbox() {
     touchPitch: false,
     pitchWithRotate: false,
     cooperativeGestures: false,
-    clickTolerance: 4,
+    clickTolerance: 3,
     canvasContextAttributes: {
       powerPreference: 'high-performance',
       preserveDrawingBuffer: false,
@@ -131,12 +131,38 @@ export function cargarMapaMapbox() {
     state.map.setPadding({ top: 10, bottom: 64, left: 0, right: 0 });
   }
 
+  // Estabilización integral de gestos táctiles en móvil
   state.map.dragRotate?.enable?.();
   state.map.touchPitch?.disable?.();
+
+  // Desactivar tapDragZoom (zoom de un dedo por doble toque vertical)
+  // que secuestra el desplazamiento y bloquea el arrastre si se mueve en horizontal
+  if (state.map.touchZoomRotate?._tapDragZoom) {
+    state.map.touchZoomRotate._tapDragZoom.disable();
+  }
+  if (state.map.handlers?._handlersById?.tapDragZoom) {
+    state.map.handlers._handlersById.tapDragZoom.disable();
+  }
+
   if (state.map.touchZoomRotate) {
     state.map.touchZoomRotate.enable();
     state.map.touchZoomRotate.enableRotation();
   }
+
+  // Calibrar umbral de rotación en dispositivos táctiles:
+  // El arco natural de los dedos al pellizcar en diagonal o vertical genera entre 10° y 18° de giro involuntario;
+  // exigir al menos 24 grados asegura que el pellizco a cualquier ángulo sea detectado como zoom y desplazamiento limpio,
+  // y que solo un giro de muñeca deliberado active la rotación del mapa
+  const touchRotateHandler = state.map.handlers?._handlersById?.touchRotate;
+  if (touchRotateHandler && typeof touchRotateHandler._isBelowThreshold === 'function') {
+    const originalIsBelowThreshold = touchRotateHandler._isBelowThreshold.bind(touchRotateHandler);
+    touchRotateHandler._isBelowThreshold = function(vector) {
+      if (!this._startVector) return false;
+      const angleDelta = Math.abs(180 * vector.angleWith(this._startVector) / Math.PI);
+      return angleDelta < 24 && originalIsBelowThreshold(vector);
+    };
+  }
+
   if (state.map.dragPan) {
     state.map.dragPan.enable();
   }

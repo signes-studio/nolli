@@ -542,9 +542,6 @@ document.addEventListener('radar:catalog-invalidated', () => {
 });
 
 async function cargarTodasObrasMobile() {
-  if (state.OBRAS && state.OBRAS.length > 0) {
-    return state.OBRAS;
-  }
   if (cacheObrasMobileSearch && cacheObrasMobileSearch.length > 0) {
     return cacheObrasMobileSearch;
   }
@@ -553,23 +550,32 @@ async function cargarTodasObrasMobile() {
   mobileSearchPromise = (async () => {
     try {
       const filas = await getBuildingsCatalog();
-      cacheObrasMobileSearch = (filas || []).map((fila, index) => ({
-        id: fila.id,
-        featureId: String(fila.id ?? `obra-${index}`),
-        nombre_obra: fila.nombre_obra,
-        foto_url: fila.foto_url || null,
-        enlace_url: fila.enlace_url || null,
-        arquitecto: fila.arquitecto,
-        arquitectos: separarArquitectos(fila.arquitecto),
-        año_construccion: fila.año_construccion,
-        importancia: normalizarImportancia(fila.importancia),
-        categoria: normalizarCategoria(fila.categoria),
-        ciudad: fila.place || fila.ciudad || null,
-        place: fila.place || null,
-        estado_acceso: fila.estado_acceso || (fila.visitable ? 'publico' : 'privado'),
-        coordenadas: [fila.longitud, fila.latitud],
-      }));
-      return cacheObrasMobileSearch;
+      if (Array.isArray(filas) && filas.length > 0) {
+        cacheObrasMobileSearch = filas.map((fila, index) => ({
+          id: fila.id,
+          featureId: String(fila.id ?? `obra-${index}`),
+          nombre_obra: fila.nombre_obra,
+          foto_url: fila.foto_url || null,
+          foto_miniatura: fila.foto_miniatura || fila.foto_url || null,
+          enlace_url: fila.enlace_url || null,
+          arquitecto: fila.arquitecto,
+          arquitectos: Array.isArray(fila.arquitectos) ? fila.arquitectos : separarArquitectos(fila.arquitecto),
+          año_construccion: fila.año_construccion,
+          ano_construccion: fila.año_construccion,
+          importancia: normalizarImportancia(fila.importancia),
+          categoria: normalizarCategoria(fila.categoria),
+          ciudad: fila.place || fila.ciudad || null,
+          place: fila.place || null,
+          estado_acceso: fila.estado_acceso || (fila.visitable ? 'publico' : 'privado'),
+          coordenadas: (fila.longitud != null && fila.latitud != null && !isNaN(fila.longitud) && !isNaN(fila.latitud))
+            ? [Number(fila.longitud), Number(fila.latitud)]
+            : null,
+          longitud: fila.longitud,
+          latitud: fila.latitud,
+        }));
+        return cacheObrasMobileSearch;
+      }
+      return state.OBRAS || [];
     } catch (err) {
       console.warn('Error al precargar obras completas para buscador:', err);
       return state.OBRAS || [];
@@ -592,7 +598,28 @@ function initMobileSearchWidget() {
   const dropdown = document.getElementById('mobile-search-dropdown');
   const resultsContainer = document.getElementById('mobile-search-results');
 
-  if (!widget || !btnToggle || !input) return;
+  if (!widget || !input) return;
+
+  // Precarga silenciosa en segundo plano del catálogo para respuesta instantánea (0ms)
+  if (typeof requestIdleCallback !== 'undefined') {
+    requestIdleCallback(() => { cargarTodasObrasMobile(); }, { timeout: 3500 });
+  } else {
+    setTimeout(() => { cargarTodasObrasMobile(); }, 1200);
+  }
+
+  function showDropdown() {
+    if (!dropdown) return;
+    dropdown.hidden = false;
+    dropdown.style.removeProperty('display');
+    dropdown.style.display = 'block';
+    dropdown.style.visibility = 'visible';
+  }
+
+  function hideDropdown() {
+    if (!dropdown) return;
+    dropdown.hidden = true;
+    dropdown.style.display = 'none';
+  }
 
   function openSearch() {
     widget.classList.remove('collapsed');
@@ -601,27 +628,42 @@ function initMobileSearchWidget() {
   }
 
   function closeSearch() {
-    widget.classList.remove('expanded');
-    widget.classList.add('collapsed');
+    if (window.innerWidth > 768) {
+      widget.classList.remove('expanded');
+      widget.classList.add('collapsed');
+    }
     input.value = '';
-    if (dropdown) dropdown.hidden = true;
+    hideDropdown();
     if (resultsContainer) resultsContainer.innerHTML = '';
+    currentMobileMatches = [];
   }
 
-  btnToggle.addEventListener('click', (e) => {
-    e.stopPropagation();
-    openSearch();
-    setTimeout(() => input.focus(), 100);
-  });
+  if (btnToggle) {
+    btnToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openSearch();
+      setTimeout(() => input.focus(), 100);
+    });
+  }
 
   input.addEventListener('focus', () => {
     openSearch();
+    if (input.value.trim().length >= 1) {
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    }
   });
 
   input.addEventListener('click', (e) => {
     e.stopPropagation();
     openSearch();
+    if (input.value.trim().length >= 1) {
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    }
   });
+
+  input.addEventListener('pointerenter', () => {
+    cargarTodasObrasMobile();
+  }, { once: true, passive: true });
 
   if (btnClose) {
     btnClose.addEventListener('click', (e) => {
@@ -639,23 +681,68 @@ function initMobileSearchWidget() {
       .trim();
   }
 
+  function calcularPuntuacionObra(obra, q, tokens) {
+    const name = normalize(obra.nombre_obra);
+    const arq = normalize(Array.isArray(obra.arquitectos) ? obra.arquitectos.join(' ') : (obra.arquitecto || ''));
+    const place = normalize(obra.ciudad || obra.place || '');
+
+    let score = 0;
+
+    if (name === q) score += 1000;
+    else if (name.startsWith(q)) score += 600;
+    else if (name.includes(q)) score += 400;
+
+    if (arq === q) score += 500;
+    else if (arq.startsWith(q)) score += 350;
+    else if (arq.includes(q)) score += 250;
+
+    if (place === q) score += 300;
+    else if (place.startsWith(q)) score += 200;
+    else if (place.includes(q)) score += 150;
+
+    if (tokens && tokens.length > 1) {
+      tokens.forEach((token) => {
+        if (name.includes(token)) score += 60;
+        if (arq.includes(token)) score += 40;
+        if (place.includes(token)) score += 30;
+      });
+    }
+
+    const imp = obra.importancia != null ? Number(obra.importancia) : 3;
+    score += Math.max(0, 3 - imp) * 10;
+
+    return score;
+  }
+
   let searchDebounce = null;
   let currentMobileMatches = [];
 
   input.addEventListener('input', () => {
+    openSearch();
     clearTimeout(searchDebounce);
     searchDebounce = setTimeout(async () => {
       const rawVal = input.value.trim();
       const q = normalize(rawVal);
       if (!q || q.length < 1) {
-        if (dropdown) dropdown.hidden = true;
+        hideDropdown();
         if (resultsContainer) resultsContainer.innerHTML = '';
         currentMobileMatches = [];
         return;
       }
 
+      if (!cacheObrasMobileSearch) {
+        resultsContainer.innerHTML = `
+          <div style="padding: 16px 12px; font-family: 'Inter', sans-serif; font-size: 11px; color: var(--fg-dim); text-align: center;">${t('search_searching', null, 'Buscando en el catálogo...')}</div>
+        `;
+        showDropdown();
+      }
+
       // Obtener todas las obras (base de datos completa + estado local + obras privadas/recién añadidas)
       const todasLasObras = await cargarTodasObrasMobile();
+
+      // Descartar si el usuario modificó el texto mientras resolvía la promesa
+      if (normalize(input.value.trim()) !== q) return;
+
       const mapaObras = new Map();
       (todasLasObras || []).forEach((o) => { if (o && o.id != null) mapaObras.set(String(o.id), o); });
       (state.OBRAS || []).forEach((o) => { if (o && o.id != null) mapaObras.set(String(o.id), o); });
@@ -667,31 +754,39 @@ function initMobileSearchWidget() {
       const matches = catalogo.filter((obra) => {
         if (!obra._searchHaystack) {
           const name = normalize(obra.nombre_obra);
-          const arq = normalize(Array.isArray(obra.arquitectos) ? obra.arquitectos.join(' ') : obra.arquitecto);
+          const arq = normalize(Array.isArray(obra.arquitectos) ? obra.arquitectos.join(' ') : (obra.arquitecto || ''));
           const city = normalize(obra.ciudad || obra.place);
           const style = normalize(obra.estilo);
           const cat = normalize(obra.categoria);
-          const tags = normalize(Array.isArray(obra.tags) ? obra.tags.join(' ') : obra.tags);
-          const year = String(obra.año_construccion || '');
+          const tags = normalize(Array.isArray(obra.tags) ? obra.tags.join(' ') : (obra.tags || ''));
+          const year = String(obra.año_construccion || obra.ano_construccion || '');
           obra._searchHaystack = `${name} ${arq} ${city} ${style} ${cat} ${tags} ${year}`;
         }
         return obra._searchHaystack.includes(q) || tokens.every((token) => obra._searchHaystack.includes(token));
+      });
+
+      // Ordenar por relevancia semántica
+      matches.sort((a, b) => {
+        const scoreB = calcularPuntuacionObra(b, q, tokens);
+        const scoreA = calcularPuntuacionObra(a, q, tokens);
+        if (scoreB !== scoreA) return scoreB - scoreA;
+        return (a.nombre_obra || '').localeCompare(b.nombre_obra || '');
       });
 
       currentMobileMatches = matches;
 
       if (!matches.length) {
         resultsContainer.innerHTML = `
-          <div style="padding: 14px; font-family: 'Inter', sans-serif; font-size: 10px; color: var(--fg-dim); text-align: center;">${t('search_no_results_db')}</div>
+          <div style="padding: 16px 12px; font-family: 'Inter', sans-serif; font-size: 11px; color: var(--fg-dim); text-align: center; text-transform: uppercase;">${t('search_no_results_db', null, 'SIN RESULTADOS EN LA BASE DE DATOS')}</div>
         `;
-        dropdown.hidden = false;
+        showDropdown();
         return;
       }
 
       const headerActionHtml = `
         <button type="button" class="mobile-search-filter-action" data-action="filter-all-matches">
           <i data-lucide="filter" width="13" height="13"></i>
-          <span>${t('search_filter_all_matches', { count: matches.length })}</span>
+          <span>${t('search_filter_all_matches', { count: matches.length }, `Filtrar las ${matches.length} obras en el mapa`)}</span>
         </button>
       `;
 
@@ -704,7 +799,7 @@ function initMobileSearchWidget() {
 
       resultsContainer.innerHTML = headerActionHtml + listHtml;
       if (window.lucide) window.lucide.createIcons({ context: resultsContainer });
-      dropdown.hidden = false;
+      showDropdown();
     }, 90);
   });
 
@@ -714,33 +809,28 @@ function initMobileSearchWidget() {
       const q = input.value.trim();
       if (q) {
         const matchesToApply = currentMobileMatches && currentMobileMatches.length ? currentMobileMatches : null;
-        closeSearch();
+        hideDropdown();
+        if (window.innerWidth > 768) {
+          widget.classList.remove('expanded');
+          widget.classList.add('collapsed');
+        }
         activarFiltroBusquedaEnMapa(q, matchesToApply);
       }
     }
   });
 
-  resultsContainer?.addEventListener('click', async (e) => {
-    const filterBtn = e.target.closest('[data-action="filter-all-matches"]');
-    if (filterBtn) {
-      e.stopPropagation();
-      const q = input.value.trim();
-      const matchesToApply = currentMobileMatches && currentMobileMatches.length ? currentMobileMatches : null;
-      closeSearch();
-      activarFiltroBusquedaEnMapa(q, matchesToApply);
-      return;
-    }
-
-    const item = e.target.closest('.mobile-search-item');
-    if (!item) return;
-    const obraId = item.dataset.obraId;
-
+  async function seleccionarObraDesdeBuscador(obraId) {
+    if (!obraId) return;
     const todas = await cargarTodasObrasMobile();
     const catalogo = todas && todas.length ? todas : (state.OBRAS || []);
     const obra = catalogo.find((o) => String(o.id) === String(obraId) || String(o.featureId) === String(obraId));
 
     if (obra) {
-      closeSearch();
+      hideDropdown();
+      if (window.innerWidth > 768) {
+        widget.classList.remove('expanded');
+        widget.classList.add('collapsed');
+      }
 
       // Si la obra no estaba cargada en el mapa actual, la incorporamos
       if (!state.OBRAS.some((o) => String(o.id) === String(obra.id))) {
@@ -748,29 +838,74 @@ function initMobileSearchWidget() {
         actualizarFuenteMapa();
       }
 
-      if (state.map && obra.coordenadas) {
+      const coords = (Array.isArray(obra.coordenadas) && obra.coordenadas.length === 2 && !isNaN(obra.coordenadas[0]) && !isNaN(obra.coordenadas[1]))
+        ? obra.coordenadas
+        : (obra.longitud != null && obra.latitud != null && !isNaN(obra.longitud) && !isNaN(obra.latitud) ? [Number(obra.longitud), Number(obra.latitud)] : null);
+
+      if (state.map && coords) {
         state.map.flyTo({
-          center: obra.coordenadas,
+          center: coords,
           zoom: 16,
           padding: { top: 20, bottom: 64, left: 0, right: 0 },
         });
       }
 
       import('./sheetUI.js').then(({ abrirFicha }) => {
-        abrirFicha(obra, obra.coordenadas, obra.featureId);
+        abrirFicha(obra, coords, obra.featureId || obra.id);
       });
+    }
+  }
+
+  resultsContainer?.addEventListener('click', async (e) => {
+    const filterBtn = e.target.closest('[data-action="filter-all-matches"]');
+    if (filterBtn) {
+      e.stopPropagation();
+      const q = input.value.trim();
+      const matchesToApply = currentMobileMatches && currentMobileMatches.length ? currentMobileMatches : null;
+      hideDropdown();
+      if (window.innerWidth > 768) {
+        widget.classList.remove('expanded');
+        widget.classList.add('collapsed');
+      }
+      activarFiltroBusquedaEnMapa(q, matchesToApply);
+      return;
+    }
+
+    const item = e.target.closest('.mobile-search-item');
+    if (!item) return;
+    e.stopPropagation();
+    const obraId = item.dataset.obraId || item.dataset.id || item.dataset.featureId;
+    seleccionarObraDesdeBuscador(obraId);
+  });
+
+  resultsContainer?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      const item = e.target.closest('.mobile-search-item');
+      if (item) {
+        e.preventDefault();
+        const obraId = item.dataset.obraId || item.dataset.id || item.dataset.featureId;
+        seleccionarObraDesdeBuscador(obraId);
+      }
     }
   });
 
   document.addEventListener('click', (e) => {
     if (widget.classList.contains('expanded') && !widget.contains(e.target)) {
-      closeSearch();
+      hideDropdown();
+      if (window.innerWidth > 768) {
+        widget.classList.remove('expanded');
+        widget.classList.add('collapsed');
+      }
     }
   });
 
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && widget.classList.contains('expanded')) {
-      closeSearch();
+    if (e.key === 'Escape') {
+      hideDropdown();
+      if (window.innerWidth > 768 && widget.classList.contains('expanded')) {
+        widget.classList.remove('expanded');
+        widget.classList.add('collapsed');
+      }
     }
   });
 }

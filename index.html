@@ -114,14 +114,20 @@
     --accent: #FF7528;
     --accent-contrast: #141411;
   }
-  * { box-sizing: border-box; border-radius: 0 !important; }
+  * { box-sizing: border-box; }
   html, body {
+    position: fixed;
+    inset: 0;
+    width: 100%;
     height: 100%;
+    height: 100dvh;
     margin: 0;
     padding: 0;
     background-color: var(--bg);
     color: var(--fg);
     overflow: hidden;
+    overscroll-behavior: none;
+    touch-action: none;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   }
   #map {
@@ -131,6 +137,7 @@
     height: 100%;
     background: #E5E0D0;
     touch-action: none;
+    overscroll-behavior: none;
   }
   .topbar {
     position: absolute;
