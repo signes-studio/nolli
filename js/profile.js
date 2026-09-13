@@ -906,22 +906,22 @@ async function renderNetworkFeed() {
               const nick = s.nick ? `@${s.nick}` : '';
               const school = s.school ? ` · // ${escapeHtml(s.school.toUpperCase())}` : '';
               return `
-                <div class="my-collection-card" style="background: var(--bg-panel); border: 1.5px solid var(--border-strong); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                <div class="my-collection-card" style="background: var(--bg-panel); border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 8px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                   <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="width: 38px; height: 38px; border-radius: 0 !important; background: var(--accent); color:#fff; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid var(--border-strong);">
+                    <div style="width: 38px; height: 38px; border-radius: 50% !important; background: var(--accent); color:white; display: flex; align-items: center; justify-content: center; font-weight: 600; border: 1px solid rgba(0, 0, 0, 0.08);">
                       ${escapeHtml(name[0].toUpperCase())}
                     </div>
                     <div>
-                      <strong style="font-size: 12px; display: block;">${escapeHtml(name)} ${s.is_verified_pro ? '<span style="color:var(--accent); font-size:10px;">✓ PRO</span>' : ''}</strong>
+                      <strong style="font-size: 12px; display: block;">${escapeHtml(name)} ${s.is_verified_pro ? '<span style="color:var(--accent); font-size:10px;">✓ pro</span>' : ''}</strong>
                       <span style="font-size: 10px; color: var(--fg-dim);">${escapeHtml(nick)}${school}</span>
                     </div>
                   </div>
                   <div style="display: flex; gap: 8px;">
-                    <button type="button" class="btn-accept-friend filter-action" data-friendship-id="${req.friendshipId}" style="padding: 6px 12px; font-size: 10px; font-weight: 800; background: var(--fg); color: var(--bg); border: 1px solid var(--border-strong); cursor: pointer;">
-                      ✓ ACEPTAR
+                    <button type="button" class="btn-accept-friend filter-action" data-friendship-id="${req.friendshipId}" style="padding: 6px 12px; font-size: 10px; font-weight: 500; text-transform: lowercase; border-radius: 6px; background: var(--fg); color: var(--bg); border: 1px solid rgba(0, 0, 0, 0.1); cursor: pointer;">
+                      ✓ aceptar
                     </button>
-                    <button type="button" class="btn-decline-friend filter-action" data-friendship-id="${req.friendshipId}" style="padding: 6px 12px; font-size: 10px; font-weight: 800; background: var(--bg-raised); color: var(--fg); border: 1px solid var(--border-strong); cursor: pointer;">
-                      ✕ RECHAZAR
+                    <button type="button" class="btn-decline-friend filter-action" data-friendship-id="${req.friendshipId}" style="padding: 6px 12px; font-size: 10px; font-weight: 500; text-transform: lowercase; border-radius: 6px; background: var(--bg-raised); color: var(--fg); border: 1px solid rgba(0, 0, 0, 0.1); cursor: pointer;">
+                      ✕ rechazar
                     </button>
                   </div>
                 </div>
@@ -941,8 +941,8 @@ async function renderNetworkFeed() {
 
     if (!friends.length) {
       html += `
-        <div class="profile-feed-empty" style="padding: 24px; text-align: center; border: 1px dashed var(--border); font-size: 11px;">
-          AÚN NO TIENES AMIGOS EN NOLLI.<br>
+        <div class="profile-feed-empty" style="padding: 24px; text-align: center; border: 1px dashed var(--border); border-radius: 8px; font-size: 11px;">
+          Aún no tienes amigos en Nolli.<br>
           <span style="font-size: 10px; color: var(--fg-dim); margin-top: 6px; display: block;">
             Visita perfiles públicos para enviar solicitudes de amistad y conectar con otros arquitectos.
           </span>
@@ -957,18 +957,18 @@ async function renderNetworkFeed() {
             const school = f.school ? ` · // ${escapeHtml(f.school.toUpperCase())}` : '';
             const location = [f.city, f.country].filter(Boolean).join(', ');
             return `
-              <div class="my-collection-card" style="background: var(--bg-panel); border: 1px solid var(--border-strong); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+              <div class="my-collection-card" style="background: var(--bg-panel); border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 8px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                  <div style="width: 38px; height: 38px; border-radius: 0 !important; background: var(--fg); color: var(--bg); display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid var(--border-strong);">
+                  <div style="width: 38px; height: 38px; border-radius: 50% !important; background: var(--fg); color: var(--bg); display: flex; align-items: center; justify-content: center; font-weight: 600; border: 1px solid rgba(0, 0, 0, 0.08);">
                     ${escapeHtml(name[0].toUpperCase())}
                   </div>
                   <div>
-                    <strong style="font-size: 12px; display: block;">${escapeHtml(name)} ${f.is_verified_pro ? '<span style="color:var(--accent); font-size:10px;">✓ PRO</span>' : ''}</strong>
+                    <strong style="font-size: 12px; display: block;">${escapeHtml(name)} ${f.is_verified_pro ? '<span style="color:var(--accent); font-size:10px;">✓ pro</span>' : ''}</strong>
                     <span style="font-size: 10px; color: var(--fg-dim);">${escapeHtml(nick)}${school}${location ? ` · ${escapeHtml(location)}` : ''}</span>
                   </div>
                 </div>
-                <a href="./public-profile.html?id=${encodeURIComponent(f.id)}" class="filter-action" style="text-decoration: none; padding: 6px 12px; font-size: 10px; font-weight: 800; border: 1px solid var(--border-strong); background: var(--bg-panel); color: var(--fg);">
-                  VER PERFIL ↗
+                <a href="./public-profile.html?id=${encodeURIComponent(f.id)}" class="filter-action" style="text-decoration: none; padding: 6px 12px; font-size: 10px; font-weight: 500; text-transform: lowercase; border-radius: 6px; border: 1px solid rgba(0, 0, 0, 0.1); background: var(--bg-panel); color: var(--fg);">
+                  ver perfil ↗
                 </a>
               </div>
             `;

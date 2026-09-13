@@ -12,20 +12,20 @@
 .nolli-local-fonts .font-display { font-family: system-ui, sans-serif !important; }
 
 .nolli-consent-backdrop { position: fixed; inset: 0; z-index: 200; display: grid; place-items: end center; padding: 16px; background: rgba(20, 20, 17, .38); }
-.nolli-consent-dialog { width: min(680px, 100%); background: var(--bg-panel, #F8F1DF); border: 2px solid var(--border-strong, #141411); padding: 18px; color: var(--fg, #141411); font-family: 'Inter', sans-serif; font-size: 11px; line-height: 1.45; }
-.nolli-consent-kicker { margin: 0 0 5px; color: var(--accent, #E95C0C); font-size: 10px; font-weight: 700; letter-spacing: .04em; }
-.nolli-consent-dialog h2 { margin: 0 0 8px; font-family: 'League Spartan', sans-serif; font-size: 18px; line-height: 1; }
+.nolli-consent-dialog { width: min(680px, 100%); background: var(--bg-panel, rgb(248, 241, 223)); border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 12px !important; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); padding: 18px; color: var(--fg, rgb(20, 20, 17)); font-family: 'Inter', sans-serif; font-size: 11px; line-height: 1.45; }
+.nolli-consent-kicker { margin: 0 0 5px; color: var(--accent, rgb(233, 92, 12)); font-size: 10px; font-weight: 600; letter-spacing: normal; text-transform: lowercase; }
+.nolli-consent-dialog h2 { margin: 0 0 8px; font-family: 'Inter', -apple-system, sans-serif; font-weight: 700; font-size: 18px; line-height: 1.2; }
 .nolli-consent-dialog p { margin: 0; }
 .nolli-consent-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-top: 16px; }
 .nolli-consent-actions button,
-.nolli-consent-preferences button { min-height: 36px; border: 1px solid var(--border-strong, #141411); background: transparent; color: inherit; font: inherit; font-size: 10px; font-weight: 700; cursor: pointer; }
+.nolli-consent-preferences button { min-height: 36px; border: 1px solid rgba(0, 0, 0, 0.1); border-radius: 6px !important; background: transparent; color: inherit; font: inherit; font-size: 10px; font-weight: 500; text-transform: lowercase; cursor: pointer; transition: all 0.12s ease; }
 .nolli-consent-actions button:hover,
-.nolli-consent-preferences button:hover { background: var(--accent, #E95C0C); color: #fff; }
-.nolli-consent-preferences { display: grid; gap: 0; margin-top: 10px; border: 1px solid var(--border-strong, #141411); }
-.nolli-consent-preferences label { display: grid; grid-template-columns: 26px 1fr; gap: 8px; align-items: start; padding: 10px; border-bottom: 1px solid var(--border, #D8D6CE); cursor: pointer; }
-.nolli-consent-preferences input { margin: 2px 0 0; accent-color: var(--accent, #E95C0C); }
-.nolli-consent-preferences strong { display: block; font-size: 10px; color: var(--accent, #E95C0C); }
-.nolli-consent-preferences small { display: block; color: var(--fg-dim, #6B6B6B); font-size: 10px; }
+.nolli-consent-preferences button:hover { background: var(--accent, rgb(233, 92, 12)); color: white; border-color: var(--accent, rgb(233, 92, 12)); }
+.nolli-consent-preferences { display: grid; gap: 0; margin-top: 10px; border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 8px !important; overflow: hidden; }
+.nolli-consent-preferences label { display: grid; grid-template-columns: 26px 1fr; gap: 8px; align-items: start; padding: 10px; border-bottom: 1px solid var(--border, rgb(216, 214, 206)); cursor: pointer; }
+.nolli-consent-preferences input { margin: 2px 0 0; accent-color: var(--accent, rgb(233, 92, 12)); }
+.nolli-consent-preferences strong { display: block; font-size: 10px; color: var(--accent, rgb(233, 92, 12)); }
+.nolli-consent-preferences small { display: block; color: var(--fg-dim, rgb(107, 107, 107)); font-size: 10px; }
 .nolli-consent-preferences button { margin: 10px; }
 .nolli-cookie-settings {
   position: fixed;
@@ -42,21 +42,21 @@
   line-height: 24px;
   border: 0;
   background: transparent;
-  color: var(--fg-dim, #6B6B6B);
+  color: var(--fg-dim, rgb(107, 107, 107));
   padding: 0;
   margin: 0;
   box-sizing: border-box;
   font-family: 'Inter', sans-serif;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 500;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  letter-spacing: normal;
+  text-transform: lowercase;
   cursor: pointer;
-  opacity: .34;
+  opacity: .5;
   transition: opacity .15s ease, color .15s ease;
   vertical-align: middle;
 }
-.nolli-cookie-settings:hover, .nolli-cookie-settings:focus-visible { color: var(--fg, #141411); opacity: 1; outline: 1px solid var(--border-strong, #141411); outline-offset: 3px; }
+.nolli-cookie-settings:hover, .nolli-cookie-settings:focus-visible { color: var(--fg, rgb(20, 20, 17)); opacity: 1; outline: none; }
 .nolli-map-footer {
   position: fixed;
   z-index: 10;
@@ -75,13 +75,13 @@
   margin: 0;
   box-sizing: border-box;
   background: transparent;
-  color: var(--fg-dim, #6B6B6B);
+  color: var(--fg-dim, rgb(107, 107, 107));
   font-family: 'Inter', sans-serif;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 500;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  opacity: .34;
+  letter-spacing: normal;
+  text-transform: lowercase;
+  opacity: .5;
   transition: opacity .15s ease, color .15s ease;
   vertical-align: middle;
 }

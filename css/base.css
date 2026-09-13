@@ -28,22 +28,21 @@
 
 }
 
-/* Reset ligero: sin bordes redondeados en toda la app (estética "instrumento") */
+/* Reset base moderno y accesible */
 *,
 *::before,
 *::after {
-  border-radius: 0 !important;
   text-shadow: none !important;
   box-sizing: border-box;
 }
 
-/* Salvaguarda general Neo-Bauhaus: Iconografía técnica con terminaciones planas y uniones angulosas */
+/* Iconografía refinada y ligera */
 svg,
 svg *,
 .lucide,
 .lucide * {
-  stroke-linecap: square !important;
-  stroke-linejoin: miter !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
 }
 
 :focus-visible {
@@ -123,12 +122,15 @@ h1, h2, h3, h4, h5, h6,
   left: 14px;
   z-index: 35;
   background: var(--bg-panel);
-  border: 1px solid var(--border-strong);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
   color: var(--fg);
   font-family: 'Inter', sans-serif;
   font-size: 10px;
   pointer-events: auto;
   max-width: 240px;
+  overflow: hidden;
 }
 
 .legend-header-btn {
@@ -136,10 +138,10 @@ h1, h2, h3, h4, h5, h6,
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 12px;
-  background: var(--bg-raised);
+  padding: 8px 12px;
+  background: var(--bg-panel);
   border: 0;
-  border-bottom: 1px solid var(--border-strong);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   color: inherit;
   font: inherit;
   cursor: pointer;
@@ -549,43 +551,43 @@ body.dark-mode .lang-switcher-neo .lang-btn.active {
   justify-content: center;
   padding: 6px 10px;
   background: var(--bg-raised, #ECE6D8);
-  border: 1px solid var(--border-strong, #141411);
-  color: var(--fg-dim, #555550);
-  font-family: 'League Spartan', sans-serif;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: var(--fg-dim, rgb(85, 85, 80));
+  font-family: 'Inter', -apple-system, sans-serif;
   font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: lowercase;
   cursor: pointer;
   transition: all 0.12s ease;
-  border-radius: 0;
+  border-radius: 6px !important;
   line-height: 1.2;
 }
 
 body.dark-mode .lang-pill {
-  background: #262622;
-  border-color: var(--border-strong, #4E4E48);
-  color: var(--fg-dim, #A3A39C);
+  background: rgb(38, 38, 34);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: var(--fg-dim, rgb(163, 163, 156));
 }
 
 .lang-pill:hover {
-  border-color: var(--accent, #E84E1B);
-  color: var(--accent, #E84E1B);
+  border-color: var(--accent, rgb(232, 78, 27));
+  color: var(--accent, rgb(232, 78, 27));
 }
 
 .lang-pill.active {
-  background: var(--accent, #E84E1B);
-  border-color: var(--accent, #E84E1B);
-  color: #FFFFFF;
-  box-shadow: 1px 1px 0px var(--border-strong, #141411);
+  background: var(--accent, rgb(232, 78, 27));
+  border-color: var(--accent, rgb(232, 78, 27));
+  color: white;
+  box-shadow: 0 1px 4px rgba(232, 78, 27, 0.25);
   cursor: default;
 }
 
 body.dark-mode .lang-pill.active {
-  background: var(--accent, #FF7528);
-  border-color: var(--accent, #FF7528);
-  color: #141411;
-  box-shadow: 1px 1px 0px #000;
+  background: var(--accent, rgb(255, 117, 40));
+  border-color: var(--accent, rgb(255, 117, 40));
+  color: rgb(20, 20, 17);
+  box-shadow: 0 1px 4px rgba(255, 117, 40, 0.25);
 }
 
 /* Nota explicativa de idioma del dispositivo */

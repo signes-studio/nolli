@@ -268,16 +268,16 @@ export function actualizarEstadoGPSUI() {
       if (!notice) {
         notice = document.createElement('div');
         notice.id = 'radar-gps-notice';
-        notice.style.cssText = 'padding: 10px 14px; background: var(--bg-raised, #F0E9D2); border-bottom: 2px solid var(--border-strong, #141411); font-size: 11px; display: flex; flex-direction: column; gap: 8px; border-radius: 0 !important;';
+        notice.style.cssText = 'padding: 12px 14px; background: var(--bg-raised, rgb(240, 233, 210)); border: 1px solid rgba(0, 0, 0, 0.08); font-size: 11px; display: flex; flex-direction: column; gap: 8px; border-radius: 8px !important; margin-bottom: 12px;';
         notice.innerHTML = `
           <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-            <span style="font-weight: 800; font-family: 'League Spartan', sans-serif; font-size: 13px; color: var(--fg);">SIN ACCESO A GPS</span>
-            <span style="font-size: 9px; font-weight: 700; color: var(--accent, #E95C0C); letter-spacing: 0.05em;">PREDETERMINADO: VALENCIA</span>
+            <span style="font-weight: 600; font-family: 'Inter', sans-serif; font-size: 12px; color: var(--fg); text-transform: lowercase;">sin acceso a gps</span>
+            <span style="font-size: 10px; font-weight: 500; color: var(--accent, rgb(233, 92, 12)); text-transform: lowercase;">valencia</span>
           </div>
-          <p style="margin: 0; font-size: 10px; color: var(--fg-dim); line-height: 1.4;">Para calcular obras a tu alrededor, activa el GPS o busca otra ciudad en el mapa.</p>
+          <p style="margin: 0; font-size: 11px; color: var(--fg-dim); line-height: 1.4;">Para calcular obras a tu alrededor, activa el GPS o busca otra ciudad en el mapa.</p>
           <div style="display: flex; gap: 8px;">
-            <button type="button" id="btn-radar-request-gps" style="background: var(--fg, #141411); color: var(--bg, #F8F1DF); border: none; padding: 6px 10px; font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 800; cursor: pointer; letter-spacing: 0.04em;">ACTIVAR GPS</button>
-            <button type="button" id="btn-radar-go-search" style="background: transparent; color: var(--fg, #141411); border: 1px solid var(--border-strong, #141411); padding: 6px 10px; font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 800; cursor: pointer; letter-spacing: 0.04em;">BUSCAR CIUDAD</button>
+            <button type="button" id="btn-radar-request-gps" style="background: var(--fg, rgb(20, 20, 17)); color: var(--bg, rgb(248, 241, 223)); border: 1px solid rgba(0, 0, 0, 0.1); border-radius: 6px; padding: 6px 12px; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 500; text-transform: lowercase; cursor: pointer;">activar gps</button>
+            <button type="button" id="btn-radar-go-search" style="background: transparent; color: var(--fg, rgb(20, 20, 17)); border: 1px solid rgba(0, 0, 0, 0.1); border-radius: 6px; padding: 6px 12px; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 500; text-transform: lowercase; cursor: pointer;">buscar ciudad</button>
           </div>
         `;
         container.prepend(notice);

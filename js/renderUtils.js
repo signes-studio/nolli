@@ -300,17 +300,17 @@ export function showNeoToast(message, options = {}) {
   }
 
   const isAuthNotice = String(message).toLowerCase().includes('inicia sesión') || String(message).toLowerCase().includes('iniciar sesión');
-  const finalActionText = actionText || (isAuthNotice ? 'INICIAR SESIÓN' : null);
+  const finalActionText = actionText || (isAuthNotice ? 'iniciar sesión' : null);
 
   toast.innerHTML = `
-    <span style="flex:1;">${String(message).toUpperCase()}</span>
-    ${finalActionText ? `<button type="button" id="nolli-toast-action-btn" style="background:#E95C0C; color:#FFFFFF; border:none; padding:6px 10px; font-family:'League Spartan',sans-serif; font-size:11px; font-weight:800; letter-spacing:0.04em; cursor:pointer; text-transform:uppercase; border-radius:0 !important; flex-shrink:0;">${finalActionText}</button>` : ''}
+    <span style="flex:1;">${String(message)}</span>
+    ${finalActionText ? `<button type="button" id="nolli-toast-action-btn" style="background:var(--accent, rgb(233, 92, 12)); color:white; border:none; padding:6px 12px; font-family:'Inter',sans-serif; font-size:11px; font-weight:600; cursor:pointer; text-transform:lowercase; border-radius:6px !important; flex-shrink:0;">${finalActionText}</button>` : ''}
   `;
 
   if (finalActionText) {
     const btn = toast.querySelector('#nolli-toast-action-btn');
     if (btn) {
-      btn.style.setProperty('border-radius', '4px', 'important');
+      btn.style.setProperty('border-radius', '6px', 'important');
       btn.onclick = () => {
         toast.style.opacity = '0';
         if (onAction) {
