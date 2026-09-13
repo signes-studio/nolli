@@ -97,7 +97,7 @@ export function cargarMapaMapbox() {
     style: initialStyle,
     center: DEFAULT_CENTER,
     zoom: DEFAULT_ZOOM,
-    attributionControl: true,
+    attributionControl: false,
     fadeDuration: 0, // Cero delay de transición/fade para carga instantánea
     maxTileCacheSize: 300, // Caché extendida de teselas en memoria RAM
     crossSourceCollisions: false,
@@ -117,6 +117,13 @@ export function cargarMapaMapbox() {
     }
   });
   window.nolliMap = state.map;
+
+  // Atribución Mapbox y OpenStreetMap colapsada en icono de información (i) en la esquina inferior izquierda
+  try {
+    state.map.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-left');
+  } catch (err) {
+    console.warn('Error al inicializar AttributionControl compacto:', err);
+  }
 
   state.map.on('error', (e) => {
     console.warn('Mapbox GL error:', e);
@@ -828,9 +835,18 @@ function aplicarTratamientoSatelite() {
   });
 }
 
+function getCardinalDirection(bearing) {
+  const deg = ((bearing % 360) + 360) % 360;
+  if (deg >= 315 || deg < 45) return 'N';
+  if (deg >= 45 && deg < 135) return 'E';
+  if (deg >= 135 && deg < 225) return 'S';
+  return 'O'; // 225 <= deg < 315 (Oeste en español)
+}
+
 function initMapCompass() {
   const compassBtn = document.getElementById('btn-map-compass');
   const needle = document.getElementById('compass-needle');
+  const dirLabel = document.getElementById('compass-direction-label');
   if (!compassBtn) return;
 
   const updateCompass = () => {
@@ -841,13 +857,20 @@ function initMapCompass() {
       needle.style.transform = `rotate(${-bearing}deg)`;
     }
     const isRotated = Math.abs(bearing) > 0.5;
+    const cardinal = getCardinalDirection(bearing);
+    if (dirLabel && dirLabel.textContent !== cardinal) {
+      dirLabel.textContent = cardinal;
+    }
     compassBtn.classList.toggle('is-rotated', isRotated);
     compassBtn.setAttribute('data-rotated', isRotated ? 'true' : 'false');
+    compassBtn.setAttribute('aria-label', `Orientación ${cardinal}. Restablecer orientación al Norte`);
+    compassBtn.title = `Orientación: ${cardinal} (clic para volver al Norte)`;
   };
 
   state.map.on('rotate', updateCompass);
   state.map.on('rotatestart', updateCompass);
   state.map.on('rotateend', updateCompass);
+  state.map.on('move', updateCompass);
   updateCompass();
 
   compassBtn.addEventListener('click', (e) => {

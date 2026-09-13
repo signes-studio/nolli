@@ -270,13 +270,16 @@
 
   <!-- Indicador de Norte / Brújula Cartográfica Interactiva (Orientar al Norte) -->
   <button type="button" id="btn-map-compass" class="map-compass-btn" aria-label="Restablecer orientación al Norte" title="Orientar al Norte" data-i18n-title="map_compass_title" data-i18n-aria="map_compass_aria">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="compass-dial-icon" aria-hidden="true">
-      <g class="compass-needle" id="compass-needle">
-        <polygon points="12,3 15.5,12 12,10.2 8.5,12" fill="var(--accent)"></polygon>
-        <polygon points="12,21 15.5,12 12,13.8 8.5,12" fill="currentColor" opacity="0.3"></polygon>
-        <circle cx="12" cy="12" r="1.3" fill="currentColor"></circle>
-      </g>
-    </svg>
+    <div class="compass-inner">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="compass-dial-icon" aria-hidden="true">
+        <g class="compass-needle" id="compass-needle">
+          <polygon points="12,2 15.5,12 12,9.8 8.5,12" fill="var(--accent)"></polygon>
+          <polygon points="12,22 15.5,12 12,14.2 8.5,12" fill="currentColor" opacity="0.3"></polygon>
+          <circle cx="12" cy="12" r="1.3" fill="currentColor"></circle>
+        </g>
+      </svg>
+      <span id="compass-direction-label" class="compass-direction-label">N</span>
+    </div>
   </button>
 
   <!-- Chips Flotantes de Filtro Activo en Mapa (Pill Style - Strava/Komoot) -->

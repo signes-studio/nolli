@@ -16,10 +16,84 @@
   overscroll-behavior: none !important;
 }
 
-/* Controles de atribucion/branding para Mapbox y MapLibre */
-.mapboxgl-ctrl-logo, .maplibregl-ctrl-logo, .mapboxgl-ctrl-attrib, .maplibregl-ctrl-attrib { filter: grayscale(1) opacity(0.5); }
-.mapboxgl-ctrl-attrib, .maplibregl-ctrl-attrib { background: rgba(0, 0, 0, 0.5) !important; padding: 1px 4px !important; font-size: 10px !important; }
-.mapboxgl-ctrl-attrib-inner a, .maplibregl-ctrl-attrib-inner a { color: #aaa !important; }
+/* Controles de atribución/branding para Mapbox y MapLibre colapsados en icono (i) */
+.mapboxgl-ctrl-logo,
+.maplibregl-ctrl-logo {
+  display: none !important;
+}
+
+.mapboxgl-ctrl-attrib.mapboxgl-compact,
+.maplibregl-ctrl-attrib.maplibregl-compact {
+  background: var(--bg-panel, rgb(244, 241, 234)) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  filter: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  min-height: 26px !important;
+  line-height: 24px !important;
+  overflow: hidden;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body.dark-mode .mapboxgl-ctrl-attrib.mapboxgl-compact,
+body.dark-mode .maplibregl-ctrl-attrib.maplibregl-compact {
+  background: rgb(28, 28, 26) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45) !important;
+}
+
+.mapboxgl-ctrl-attrib.mapboxgl-compact .mapboxgl-ctrl-attrib-button,
+.maplibregl-ctrl-attrib.maplibregl-compact .maplibregl-ctrl-attrib-button {
+  width: 26px !important;
+  height: 26px !important;
+  background-color: transparent !important;
+  border-radius: 50% !important;
+  filter: opacity(0.7);
+  transition: filter 0.15s ease;
+}
+
+body.dark-mode .mapboxgl-ctrl-attrib.mapboxgl-compact .mapboxgl-ctrl-attrib-button,
+body.dark-mode .maplibregl-ctrl-attrib.maplibregl-compact .maplibregl-ctrl-attrib-button {
+  filter: invert(1) opacity(0.8);
+}
+
+.mapboxgl-ctrl-attrib.mapboxgl-compact .mapboxgl-ctrl-attrib-button:hover,
+.maplibregl-ctrl-attrib.maplibregl-compact .mapboxgl-ctrl-attrib-button:hover {
+  filter: opacity(1);
+}
+
+body.dark-mode .mapboxgl-ctrl-attrib.mapboxgl-compact .mapboxgl-ctrl-attrib-button:hover,
+body.dark-mode .maplibregl-ctrl-attrib.maplibregl-compact .maplibregl-ctrl-attrib-button:hover {
+  filter: invert(1) opacity(1);
+}
+
+.mapboxgl-ctrl-attrib.mapboxgl-compact.mapboxgl-compact-show,
+.maplibregl-ctrl-attrib.maplibregl-compact.maplibregl-compact-show {
+  padding: 0 10px 0 28px !important;
+  z-index: 40 !important;
+}
+
+.mapboxgl-ctrl-attrib.mapboxgl-compact .mapboxgl-ctrl-attrib-inner,
+.maplibregl-ctrl-attrib.maplibregl-compact .mapboxgl-ctrl-attrib-inner {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 11px !important;
+  color: var(--fg-dim, rgb(113, 113, 106)) !important;
+}
+
+.mapboxgl-ctrl-attrib.mapboxgl-compact .mapboxgl-ctrl-attrib-inner a,
+.maplibregl-ctrl-attrib.maplibregl-compact .mapboxgl-ctrl-attrib-inner a {
+  color: var(--fg-dim, rgb(113, 113, 106)) !important;
+  text-decoration: none !important;
+}
+
+.mapboxgl-ctrl-attrib.mapboxgl-compact .mapboxgl-ctrl-attrib-inner a:hover,
+.maplibregl-ctrl-attrib.maplibregl-compact .mapboxgl-ctrl-attrib-inner a:hover {
+  color: var(--accent, rgb(233, 92, 12)) !important;
+  text-decoration: underline !important;
+}
+
 .mapboxgl-popup-tip, .maplibregl-popup-tip { display: none; }
 .mapboxgl-canvas, .maplibregl-canvas { outline: none; }
 
@@ -743,15 +817,17 @@ body.dark-mode .topbar-btn-profile:hover {
     color: var(--fg, rgb(17, 17, 17));
     cursor: pointer;
     touch-action: manipulation;
-    border-radius: 8px !important;
+    border-radius: 50% !important;
     padding: 0;
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: scale(0.85);
+    -webkit-transform: scale(0.85);
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
     contain: layout paint;
-    transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1),
-                transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+    transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
                 background 0.12s ease,
                 border-color 0.12s ease,
                 box-shadow 0.12s ease;
@@ -776,8 +852,21 @@ body.dark-mode .topbar-btn-profile:hover {
     transform: scale(0.92);
   }
 
+  .map-compass-btn .compass-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
   .map-compass-btn .compass-dial-icon {
     display: block;
+    width: 16px;
+    height: 16px;
     pointer-events: none;
     overflow: visible;
   }
@@ -785,17 +874,36 @@ body.dark-mode .topbar-btn-profile:hover {
   .map-compass-btn .compass-needle {
     transform-origin: 12px 12px;
     will-change: transform;
+    transition: transform 0.05s linear;
   }
 
-  /* Indicación cromática sutil cuando el mapa está rotado (no a 0°) */
+  .map-compass-btn .compass-direction-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--fg, rgb(17, 17, 17));
+  }
+
+  body.dark-mode .map-compass-btn .compass-direction-label {
+    color: rgb(244, 241, 234);
+  }
+
+  /* Indicación cromática y visibilidad cuando el mapa está rotado (no a 0°) */
   .map-compass-btn.is-rotated {
-    border-color: var(--accent, rgb(233, 92, 12));
-    box-shadow: 0 0 0 1px var(--accent, rgb(233, 92, 12)), 0 2px 8px rgba(233, 92, 12, 0.25);
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: scale(1) !important;
+    -webkit-transform: scale(1) !important;
+    border-color: var(--accent, rgb(233, 92, 12)) !important;
+    box-shadow: 0 0 0 1px var(--accent, rgb(233, 92, 12)), 0 2px 8px rgba(233, 92, 12, 0.25) !important;
   }
 
   body.dark-mode .map-compass-btn.is-rotated {
-    border-color: var(--accent, rgb(233, 92, 12));
-    box-shadow: 0 0 0 1px var(--accent, rgb(233, 92, 12)), 0 2px 8px rgba(233, 92, 12, 0.35);
+    border-color: var(--accent, rgb(233, 92, 12)) !important;
+    box-shadow: 0 0 0 1px var(--accent, rgb(233, 92, 12)), 0 2px 8px rgba(233, 92, 12, 0.35) !important;
   }
 
   @media (min-width: 769px) {
@@ -827,12 +935,22 @@ body.dark-mode .topbar-btn-profile:hover {
       right: 14px;
       width: 44px;
       height: 44px;
+      border-radius: 50% !important;
     }
     .mobile-search-widget.expanded ~ .map-compass-btn,
     body:has(.mobile-search-widget.expanded) .map-compass-btn {
       opacity: 0 !important;
       pointer-events: none !important;
       transform: scale(0.85);
+    }
+    .mapboxgl-ctrl-bottom-left {
+      bottom: 14px !important;
+      left: 14px !important;
+      z-index: 20 !important;
+      pointer-events: none !important;
+    }
+    .mapboxgl-ctrl-bottom-left .mapboxgl-ctrl {
+      pointer-events: auto !important;
     }
   }
 
@@ -857,8 +975,9 @@ body.dark-mode .topbar-btn-profile:hover {
       position: fixed;
       top: calc(max(10px, env(safe-area-inset-top)) + 56px);
       right: 10px;
-      width: 48px;
-      height: 48px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50% !important;
     }
     .mobile-search-widget.expanded ~ .map-compass-btn,
     body:has(.mobile-search-widget.expanded) .map-compass-btn {
@@ -1121,7 +1240,7 @@ body.dark-mode .topbar-btn-profile:hover {
 /* 3. Brújula Cartográfica Flotante */
 .map-compass-btn {
   border: 1px solid rgba(0, 0, 0, 0.08) !important;
-  border-radius: 8px !important;
+  border-radius: 50% !important;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
 }
 .map-compass-btn:hover {
@@ -1404,6 +1523,7 @@ body.dark-mode .topbar-btn {
   .map-compass-btn {
     top: calc(max(10px, env(safe-area-inset-top)) + 54px) !important;
     right: 10px !important;
+    border-radius: 50% !important;
   }
 
   body.dark-mode .mobile-search-widget {
