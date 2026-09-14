@@ -638,6 +638,17 @@ export async function requestPasswordReset(email) {
   return data;
 }
 
+/** Genera la URL de autorización para el flujo OAuth de Google vía Supabase. */
+export function getGoogleOAuthUrl(redirectTo) {
+  const target = redirectTo || `${window.location.origin}${window.location.pathname}`;
+  return `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(target)}`;
+}
+
+/** Redirige al usuario al proveedor Google para iniciar sesión o registrarse. */
+export function signInWithGoogle(redirectTo) {
+  window.location.href = getGoogleOAuthUrl(redirectTo);
+}
+
 /** Actualiza la contraseña del usuario con sesión activa (usado en recuperación o invitación). */
 export async function updateUserPassword(sessionToken, newPassword) {
   if (!sessionToken) throw new Error('No hay sesión activa para actualizar la contraseña.');

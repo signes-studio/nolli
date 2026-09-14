@@ -155,6 +155,8 @@
   "auth_password_match_err": "Las contraseñas no coinciden.",
   "auth_password_len_err": "La contraseña debe tener al menos 6 caracteres.",
   "auth_password_success": "Contraseña actualizada con éxito.",
+  "auth_btn_google": "CONTINUAR CON GOOGLE",
+  "auth_login_google_success": "Sesión iniciada con éxito con Google.",
   "auth_btn_magic_link": "ACCEDER CON ENLACE MÁGICO (SIN CONTRASEÑA)",
   "auth_magic_link_sent": "¡Enlace mágico enviado! Revisa tu bandeja de entrada.",
   "auth_magic_link_success": "Sesión iniciada con éxito mediante Enlace Mágico.",

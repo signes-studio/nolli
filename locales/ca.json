@@ -155,6 +155,8 @@
   "auth_password_match_err": "Les contrasenyes no coincideixen.",
   "auth_password_len_err": "La contrasenya ha de tenir almenys 6 caràcters.",
   "auth_password_success": "Contrasenya actualitzada amb èxit.",
+  "auth_btn_google": "CONTINUAR AMB GOOGLE",
+  "auth_login_google_success": "Sessió iniciada amb èxit amb Google.",
   "auth_btn_magic_link": "ACCEDIR AMB ENLLAÇ MÀGIC (SENSE CONTRASENYA)",
   "auth_magic_link_sent": "Enllaç màgic enviat! Revisa la teva bústia.",
   "auth_magic_link_success": "Sessió iniciada amb èxit mitjançant Enllaç Màgic.",

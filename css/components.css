@@ -1051,6 +1051,51 @@ body.dark-mode .guest-divider span {
   color: var(--fg-dim);
 }
 
+.btn-auth-google {
+  background: var(--bg-raised) !important;
+  color: var(--fg) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 700 !important;
+  font-size: 11px !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+  padding: 10px 16px !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease, color 0.12s ease !important;
+  text-align: center !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  width: 100% !important;
+}
+
+.btn-auth-google svg {
+  flex-shrink: 0;
+}
+
+.btn-auth-google:hover {
+  background: var(--bg) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06) !important;
+}
+
+.btn-auth-google:active {
+  transform: scale(0.98);
+}
+
+body.dark-mode .btn-auth-google {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+body.dark-mode .btn-auth-google:hover {
+  background: rgba(255, 255, 255, 0.09) !important;
+}
+
 .btn-auth-guest {
   background: transparent !important;
   color: var(--fg) !important;

@@ -35,6 +35,7 @@ import {
   fetchIncomingFriendRequests,
   fetchUserFriends,
   respondFriendshipRpc,
+  signInWithGoogle,
 } from './api.js';
 
 import {
@@ -397,9 +398,44 @@ async function init() {
       fetchFollowedCollections(user.id, token).catch(() => []),
     ]);
 
+    const fullName = user.user_metadata?.full_name || user.user_metadata?.name || '';
+    const nameParts = fullName.trim() ? fullName.trim().split(/\s+/) : [];
+    const oauthFirst = nameParts[0] || user.user_metadata?.first_name || '';
+    const oauthLast = nameParts.slice(1).join(' ') || user.user_metadata?.last_name || '';
+
     if (dbProfile) {
+      if (!dbProfile.first_name && (oauthFirst || oauthLast)) {
+        dbProfile.first_name = oauthFirst;
+        dbProfile.last_name = dbProfile.last_name || oauthLast;
+        upsertCurrentProfile(user, {
+          firstName: oauthFirst,
+          lastName: dbProfile.last_name,
+          bio: dbProfile.bio || '',
+          city: dbProfile.city || '',
+          country: dbProfile.country || '',
+          website: dbProfile.website || '',
+        }, token).catch(() => {});
+      }
       profileState.dbProfile = dbProfile;
       localStorage.setItem('nolli_cached_db_profile', JSON.stringify(dbProfile));
+    } else if (oauthFirst || oauthLast) {
+      profileState.dbProfile = {
+        first_name: oauthFirst,
+        last_name: oauthLast,
+        bio: user.user_metadata?.bio || '',
+        city: user.user_metadata?.city || '',
+        country: user.user_metadata?.country || '',
+        website: user.user_metadata?.website || '',
+      };
+      upsertCurrentProfile(user, {
+        firstName: oauthFirst,
+        lastName: oauthLast,
+        bio: user.user_metadata?.bio || '',
+        city: user.user_metadata?.city || '',
+        country: user.user_metadata?.country || '',
+        website: user.user_metadata?.website || '',
+      }, token).catch(() => {});
+      localStorage.setItem('nolli_cached_db_profile', JSON.stringify(profileState.dbProfile));
     }
     syncAdminBadge();
 
@@ -2006,6 +2042,7 @@ function setupLoginModal() {
   const passwordInput = document.getElementById('login-password');
   const togglePassword = document.getElementById('toggle-password');
   const btnGuestLogin = document.getElementById('btn-guest-login');
+  const btnGoogleLogin = document.getElementById('btn-google-login');
   const guestBlock = document.querySelector('.guest-login-block');
   const err = document.getElementById('login-error');
   const termsCheckbox = document.getElementById('register-terms');
@@ -2070,6 +2107,12 @@ function setupLoginModal() {
         sessionStorage.setItem('nolli:guest_session', 'true');
       } catch (e) {}
       window.location.href = './';
+    });
+  }
+
+  if (btnGoogleLogin) {
+    btnGoogleLogin.addEventListener('click', () => {
+      signInWithGoogle(window.location.href);
     });
   }
 
@@ -2279,6 +2322,7 @@ async function checkIncomingAuthRedirectProfile() {
   const authType = hashParams.get('type') || searchParams.get('type');
   const errorCode = hashParams.get('error') || searchParams.get('error');
   const errorDesc = hashParams.get('error_description') || searchParams.get('error_description');
+  const isGoogleAuth = authType === 'google' || Boolean(hashParams.get('provider_token') || searchParams.get('provider_token'));
 
   if (errorCode || errorDesc) {
     try { history.replaceState(null, '', window.location.pathname); } catch {}
@@ -2296,6 +2340,16 @@ async function checkIncomingAuthRedirectProfile() {
     localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
   } catch {}
 
+  let isGoogle = isGoogleAuth;
+  if (!isGoogle && !authType) {
+    try {
+      const u = await fetchCurrentUser(accessToken);
+      if (u?.app_metadata?.provider === 'google' || u?.app_metadata?.providers?.includes('google')) {
+        isGoogle = true;
+      }
+    } catch {}
+  }
+
   if (authType === 'recovery') {
     const mNewPass = document.getElementById('modal-new-password');
     if (mNewPass) mNewPass.classList.add('open');
@@ -2310,6 +2364,8 @@ async function checkIncomingAuthRedirectProfile() {
     showNeoToast(t('auth_magic_link_success', null, 'Sesión iniciada con éxito mediante Enlace Mágico.'));
   } else if (authType === 'email_change') {
     showNeoToast(t('profile_email_updated_success', null, 'Correo electrónico actualizado con éxito.'));
+  } else if (isGoogle) {
+    showNeoToast(t('auth_login_google_success', null, 'Sesión iniciada con éxito con Google.'));
   } else {
     showNeoToast(t('auth_login_success', null, 'Sesión iniciada con éxito.'));
   }

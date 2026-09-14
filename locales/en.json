@@ -155,6 +155,8 @@
   "auth_password_match_err": "Passwords do not match.",
   "auth_password_len_err": "Password must have at least 6 characters.",
   "auth_password_success": "Password updated successfully.",
+  "auth_btn_google": "CONTINUE WITH GOOGLE",
+  "auth_login_google_success": "Signed in successfully with Google.",
   "auth_btn_magic_link": "SIGN IN WITH MAGIC LINK (PASSWORDLESS)",
   "auth_magic_link_sent": "Magic link sent! Please check your inbox.",
   "auth_magic_link_success": "Signed in successfully via Magic Link.",

@@ -3,7 +3,7 @@
    ========================================================================= */
 
 import { state, separarArquitectos, normalizarCategoria, esRolAdmin, esRolEditor } from './state.js';
-import { loginAdmin, registerUser, refreshUserSession, requestPasswordReset, updateUserPassword, sendMagicLink, updateUserEmail, verifyOtpToken, fetchUserRole, fetchCurrentUser, fetchCurrentProfile, fetchBuildingStatuses, upsertCurrentProfile, createBuildingReport, createBuilding, createPrivateBuilding, updateBuilding, updateUserPresence, invalidateCatalogCache } from './api.js';
+import { loginAdmin, registerUser, refreshUserSession, requestPasswordReset, updateUserPassword, sendMagicLink, updateUserEmail, verifyOtpToken, fetchUserRole, fetchCurrentUser, fetchCurrentProfile, fetchBuildingStatuses, upsertCurrentProfile, createBuildingReport, createBuilding, createPrivateBuilding, updateBuilding, updateUserPresence, invalidateCatalogCache, signInWithGoogle } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
 import { showNeoToast } from './renderUtils.js';
@@ -98,6 +98,7 @@ async function initLoginModal() {
   const passwordInput = document.getElementById('login-password');
   const togglePassword = document.getElementById('toggle-password');
   const btnGuestLogin = document.getElementById('btn-guest-login');
+  const btnGoogleLogin = document.getElementById('btn-google-login');
   const guestBlock = document.querySelector('.guest-login-block');
   let registerMode = false;
 
@@ -143,9 +144,15 @@ async function initLoginModal() {
     state.userId = user.id;
     state.userEmail = user.email || null;
     const dbProfile = await fetchCurrentProfile(user.id, state.sessionToken).catch(() => null);
+
+    const fullName = user.user_metadata?.full_name || user.user_metadata?.name || '';
+    const nameParts = fullName.trim() ? fullName.trim().split(/\s+/) : [];
+    const oauthFirst = nameParts[0] || '';
+    const oauthLast = nameParts.slice(1).join(' ') || '';
+
     state.userProfile = {
-      firstName: dbProfile?.first_name || user.user_metadata?.first_name || '',
-      lastName: dbProfile?.last_name || user.user_metadata?.last_name || '',
+      firstName: dbProfile?.first_name || user.user_metadata?.first_name || oauthFirst || '',
+      lastName: dbProfile?.last_name || user.user_metadata?.last_name || oauthLast || '',
       bio: dbProfile?.bio != null ? dbProfile.bio : (user.user_metadata?.bio || ''),
       city: dbProfile?.city || user.user_metadata?.city || '',
       country: dbProfile?.country || user.user_metadata?.country || '',
@@ -164,6 +171,7 @@ async function initLoginModal() {
     } catch {}
     document.dispatchEvent(new CustomEvent('radar:user-status-ready'));
     document.dispatchEvent(new CustomEvent('radar:user-session-ready'));
+    return user;
   };
 
   const checkIncomingAuthRedirect = async () => {
@@ -179,6 +187,7 @@ async function initLoginModal() {
     const authType = hashParams.get('type') || searchParams.get('type');
     const errorCode = hashParams.get('error') || searchParams.get('error');
     const errorDesc = hashParams.get('error_description') || searchParams.get('error_description');
+    const isGoogleAuth = authType === 'google' || Boolean(hashParams.get('provider_token') || searchParams.get('provider_token'));
 
     if (errorCode || errorDesc) {
       try { history.replaceState(null, '', window.location.pathname); } catch {}
@@ -203,7 +212,8 @@ async function initLoginModal() {
       state.userRole = 'user';
     }
     marcarSesionIniciada(state.userRole);
-    await cargarEstadoUsuario();
+    const currentUser = await cargarEstadoUsuario();
+    const isGoogle = isGoogleAuth || currentUser?.app_metadata?.provider === 'google' || currentUser?.app_metadata?.providers?.includes('google');
 
     if (authType === 'recovery') {
       const mNewPass = document.getElementById('modal-new-password');
@@ -219,6 +229,8 @@ async function initLoginModal() {
       showNeoToast(t('auth_magic_link_success', null, 'Sesión iniciada con éxito mediante Enlace Mágico.'));
     } else if (authType === 'email_change') {
       showNeoToast(t('profile_email_updated_success', null, 'Correo electrónico actualizado con éxito.'));
+    } else if (isGoogle) {
+      showNeoToast(t('auth_login_google_success', null, 'Sesión iniciada con éxito con Google.'));
     } else {
       showNeoToast(t('auth_login_success', null, 'Sesión iniciada con éxito.'));
     }
@@ -386,6 +398,12 @@ async function initLoginModal() {
         sessionStorage.setItem('nolli:guest_session', 'true');
       } catch (err) {}
       if (mLogin) mLogin.classList.remove('open');
+    });
+  }
+
+  if (btnGoogleLogin) {
+    btnGoogleLogin.addEventListener('click', () => {
+      signInWithGoogle();
     });
   }
 
