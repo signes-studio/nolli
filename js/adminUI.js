@@ -670,6 +670,14 @@ function renderCurrentTab() {
   if (reportsView) reportsView.classList.toggle('admin-view-hidden', !isReports);
   if (usersView) usersView.classList.toggle('admin-view-hidden', !isUsers);
 
+  const headTitle = document.getElementById('admin-head-title');
+  if (headTitle) {
+    if (isProjects) headTitle.textContent = 'CATÁLOGO DE OBRAS';
+    else if (isArchitects) headTitle.textContent = 'DIRECTORIO DE ARQUITECTOS';
+    else if (isReports) headTitle.textContent = 'BUZÓN DE INCIDENCIAS';
+    else if (isUsers) headTitle.textContent = 'GESTIÓN DE USUARIOS';
+  }
+
   if (isProjects) renderList();
   else if (isArchitects) renderArchitects();
   else if (isReports) renderReports();

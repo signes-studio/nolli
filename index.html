@@ -446,126 +446,192 @@
     <div class="sheet-drag-handle" aria-hidden="true">
       <span class="sheet-drag-pill"></span>
     </div>
-    <div class="filter-head">
-      <div style="display:flex; align-items:center; gap:8px;">
-        <span style="color:var(--accent-2)" data-i18n="admin_projects_title">ADMIN // PROYECTOS</span>
-        <a href="./admin.html" class="btn btn-admin" style="padding: 2px 6px; font-size: 8.5px; text-decoration: none;" title="Abrir consola de administración dedicada" data-i18n="admin_console_btn">CONSOLA ↗</a>
+
+    <!-- 1. Cabecera principal del panel con estética Bauhaus -->
+    <header class="admin-panel-head">
+      <div class="admin-head-brand">
+        <span class="admin-head-kicker">ADMIN</span>
+        <span class="admin-head-sep">//</span>
+        <span id="admin-head-title" class="admin-head-title" data-i18n="admin_projects_title">CATÁLOGO DE OBRAS</span>
       </div>
-      <button type="button" id="btn-admin-close" class="sheet-close-button" aria-label="Cerrar panel admin" data-i18n-aria="admin_close_aria">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg>
-      </button>
-    </div>
-    <div class="admin-kpi-bar" id="admin-kpi-bar">
-      <button type="button" class="admin-kpi-pill active" data-kpi-filter="all">TODAS <strong id="kpi-count-all">0</strong></button>
-      <button type="button" class="admin-kpi-pill kpi-pending" data-kpi-filter="pending">PENDIENTES <strong id="kpi-count-pending">0</strong></button>
-      <button type="button" class="admin-kpi-pill" data-kpi-filter="published">PUBLICADAS <strong id="kpi-count-published">0</strong></button>
-      <button type="button" class="admin-kpi-pill" data-kpi-filter="rejected">RECHAZADAS <strong id="kpi-count-rejected">0</strong></button>
-      <button type="button" class="admin-kpi-pill kpi-alert" data-kpi-filter="no-photo" title="Obras sin fotografía">SIN FOTO <strong id="kpi-count-no-photo">0</strong></button>
-      <button type="button" class="admin-kpi-pill kpi-alert" data-kpi-filter="no-arq" title="Obras sin arquitecto">SIN ARQ <strong id="kpi-count-no-arq">0</strong></button>
-    </div>
-    <div class="admin-toolbar">
-      <div class="admin-search-wrapper">
-        <svg class="admin-search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <input id="admin-search" class="tech-input admin-search-input" type="search" placeholder="BUSCAR POR NOMBRE, ARQUITECTO, CIUDAD, AÑO, ID..." aria-label="Buscar proyecto" autocomplete="off" spellcheck="false">
-        <button type="button" id="btn-admin-clear-search" class="admin-clear-search-btn hidden" title="Limpiar búsqueda" aria-label="Limpiar búsqueda">✕</button>
+      <div class="admin-head-tools">
+        <a href="./admin.html" class="admin-console-link" title="Abrir consola de administración dedicada" data-i18n="admin_console_btn">CONSOLA ↗</a>
+        <button type="button" id="btn-admin-close" class="admin-close-btn" aria-label="Cerrar panel admin" data-i18n-aria="admin_close_aria">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg>
+        </button>
       </div>
-      <div class="admin-filters-grid">
-        <select id="admin-review-filter" class="tech-input" aria-label="Filtrar por estado de revisión">
-          <option value="">ESTADO: TODOS</option>
-          <option value="pendiente">PENDIENTES</option>
-          <option value="publicada">PUBLICADAS</option>
-          <option value="rechazada">RECHAZADAS</option>
-          <option value="privada">PRIVADAS (USUARIO)</option>
-        </select>
-        <select id="admin-importance-filter" class="tech-input" aria-label="Filtrar por jerarquía">
-          <option value="">JERARQUÍA: TODAS</option>
-          <option value="0">NIVEL 0: OBRAS CUMBRE</option>
-          <option value="1">NIVEL 1: IMPRESCINDIBLES</option>
-          <option value="2">NIVEL 2: RECOMENDADAS</option>
-          <option value="3">NIVEL 3: DOCUMENTADAS</option>
-        </select>
-        <select id="admin-category-filter" class="tech-input" aria-label="Filtrar por categoría">
-          <option value="">CATEGORÍA: TODAS</option>
-        </select>
-        <select id="admin-audit-filter" class="tech-input" aria-label="Auditoría de integridad">
-          <option value="">AUDITORÍA: COMPLETA</option>
-          <option value="sin-foto">⚠️ SIN FOTOGRAFÍA</option>
-          <option value="con-foto">✓ CON FOTOGRAFÍA</option>
-          <option value="sin-arquitecto">⚠️ SIN ARQUITECTO</option>
-          <option value="sin-ano">⚠️ SIN AÑO</option>
-          <option value="sin-coords">⚠️ SIN COORDENADAS</option>
-        </select>
-        <select id="admin-city-filter" class="tech-input" aria-label="Filtrar por ciudad">
-          <option value="">CIUDAD: TODAS</option>
-        </select>
-        <select id="admin-sort-filter" class="tech-input" aria-label="Ordenar proyectos">
-          <option value="recent">MÁS RECIENTES</option>
-          <option value="oldest">MÁS ANTIGUAS</option>
-          <option value="alpha">ALFABÉTICO (A-Z)</option>
-          <option value="alpha-desc">ALFABÉTICO (Z-A)</option>
-          <option value="imp-desc">JERARQUÍA (CUMBRE PRIMERO)</option>
-          <option value="year-desc">AÑO (MÁS RECIENTE)</option>
-          <option value="year-asc">AÑO (MÁS ANTIGUO)</option>
-        </select>
-      </div>
-      <div class="admin-toolbar-footer">
-        <span id="admin-count" class="admin-count"></span>
-        <div class="admin-toolbar-actions">
-          <button type="button" id="btn-admin-view-density" class="btn btn-density" title="Alternar vista compacta / detallada" aria-label="Alternar densidad de vista">
-            <span id="admin-density-label">COMPACTA</span>
-          </button>
-          <button type="button" id="btn-admin-reset-filters" class="btn btn-reset-filters" title="Restablecer todos los filtros" aria-label="Restablecer filtros">
-            RESETEAR
-          </button>
-        </div>
-      </div>
-    </div>
-    <div class="admin-tabs">
+    </header>
+
+    <!-- 2. Pestañas de navegación situadas en la parte superior -->
+    <nav class="admin-tabs" aria-label="Secciones del panel de administración">
       <button type="button" class="admin-tab active" data-admin-tab="projects" data-i18n="admin_tab_projects">PROYECTOS</button>
       <button type="button" class="admin-tab" data-admin-tab="architects" data-i18n="admin_tab_architects">ARQUITECTOS</button>
-      <button type="button" class="admin-tab admin-inbox-button" data-admin-tab="reports" title="Buzón de reportes" aria-label="Abrir buzón de reportes" data-i18n-title="admin_tab_reports_aria" data-i18n-aria="admin_tab_reports_aria"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" stroke-linejoin="miter"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg><span id="admin-report-badge" class="admin-report-badge">0</span></button>
+      <button type="button" class="admin-tab admin-inbox-button" data-admin-tab="reports" title="Buzón de reportes" aria-label="Abrir buzón de reportes" data-i18n-title="admin_tab_reports_aria" data-i18n-aria="admin_tab_reports_aria">
+        <span>BUZÓN</span>
+        <span id="admin-report-badge" class="admin-report-badge">0</span>
+      </button>
       <button type="button" class="admin-tab" data-admin-tab="users" data-i18n="admin_tab_users">USUARIOS</button>
-    </div>
+    </nav>
+
+    <!-- 3. Vista de Proyectos -->
     <div id="admin-projects-view" class="admin-projects-view">
+      <!-- Barra de KPIs específicos de Proyectos -->
+      <div class="admin-kpi-bar" id="admin-kpi-bar" role="group" aria-label="Filtrado rápido por KPI">
+        <button type="button" class="admin-kpi-pill active" data-kpi-filter="all">TODAS <strong id="kpi-count-all">0</strong></button>
+        <button type="button" class="admin-kpi-pill kpi-pending" data-kpi-filter="pending">PENDIENTES <strong id="kpi-count-pending">0</strong></button>
+        <button type="button" class="admin-kpi-pill kpi-published" data-kpi-filter="published">PUBLICADAS <strong id="kpi-count-published">0</strong></button>
+        <button type="button" class="admin-kpi-pill kpi-rejected" data-kpi-filter="rejected">RECHAZADAS <strong id="kpi-count-rejected">0</strong></button>
+        <button type="button" class="admin-kpi-pill kpi-alert" data-kpi-filter="no-photo" title="Obras sin fotografía">SIN FOTO <strong id="kpi-count-no-photo">0</strong></button>
+        <button type="button" class="admin-kpi-pill kpi-alert" data-kpi-filter="no-arq" title="Obras sin arquitecto">SIN ARQ <strong id="kpi-count-no-arq">0</strong></button>
+      </div>
+
+      <!-- Barra de herramientas: Búsqueda y Filtros de Proyectos -->
+      <div class="admin-toolbar">
+        <div class="admin-search-wrapper">
+          <svg class="admin-search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input id="admin-search" class="admin-search-input" type="search" placeholder="BUSCAR POR NOMBRE, ARQUITECTO, CIUDAD, AÑO, ID..." aria-label="Buscar proyecto" autocomplete="off" spellcheck="false">
+          <button type="button" id="btn-admin-clear-search" class="admin-clear-search-btn hidden" title="Limpiar búsqueda" aria-label="Limpiar búsqueda">✕</button>
+        </div>
+        
+        <div class="admin-filters-grid" id="admin-filters-grid">
+          <div class="admin-filter-field">
+            <label class="admin-filter-label" for="admin-review-filter">ESTADO</label>
+            <select id="admin-review-filter" class="admin-select" aria-label="Filtrar por estado de revisión">
+              <option value="">TODOS</option>
+              <option value="pendiente">PENDIENTES</option>
+              <option value="publicada">PUBLICADAS</option>
+              <option value="rechazada">RECHAZADAS</option>
+              <option value="privada">PRIVADAS</option>
+            </select>
+          </div>
+          <div class="admin-filter-field">
+            <label class="admin-filter-label" for="admin-importance-filter">JERARQUÍA</label>
+            <select id="admin-importance-filter" class="admin-select" aria-label="Filtrar por jerarquía">
+              <option value="">TODAS</option>
+              <option value="0">NIVEL 0 // CUMBRE</option>
+              <option value="1">NIVEL 1 // IMPRESCINDIBLE</option>
+              <option value="2">NIVEL 2 // RECOMENDADA</option>
+              <option value="3">NIVEL 3 // DOCUMENTADA</option>
+            </select>
+          </div>
+          <div class="admin-filter-field">
+            <label class="admin-filter-label" for="admin-category-filter">CATEGORÍA</label>
+            <select id="admin-category-filter" class="admin-select" aria-label="Filtrar por categoría">
+              <option value="">TODAS</option>
+            </select>
+          </div>
+          <div class="admin-filter-field">
+            <label class="admin-filter-label" for="admin-audit-filter">AUDITORÍA</label>
+            <select id="admin-audit-filter" class="admin-select" aria-label="Auditoría de integridad">
+              <option value="">COMPLETA</option>
+              <option value="sin-foto">⚠️ SIN FOTOGRAFÍA</option>
+              <option value="con-foto">✓ CON FOTOGRAFÍA</option>
+              <option value="sin-arquitecto">⚠️ SIN ARQUITECTO</option>
+              <option value="sin-ano">⚠️ SIN AÑO</option>
+              <option value="sin-coords">⚠️ SIN COORDENADAS</option>
+            </select>
+          </div>
+          <div class="admin-filter-field">
+            <label class="admin-filter-label" for="admin-city-filter">CIUDAD</label>
+            <select id="admin-city-filter" class="admin-select" aria-label="Filtrar por ciudad">
+              <option value="">TODAS</option>
+            </select>
+          </div>
+          <div class="admin-filter-field">
+            <label class="admin-filter-label" for="admin-sort-filter">ORDEN</label>
+            <select id="admin-sort-filter" class="admin-select" aria-label="Ordenar proyectos">
+              <option value="recent">MÁS RECIENTES</option>
+              <option value="oldest">MÁS ANTIGUAS</option>
+              <option value="alpha">ALFABÉTICO (A-Z)</option>
+              <option value="alpha-desc">ALFABÉTICO (Z-A)</option>
+              <option value="imp-desc">JERARQUÍA (CUMBRE)</option>
+              <option value="year-desc">AÑO (MÁS RECIENTE)</option>
+              <option value="year-asc">AÑO (MÁS ANTIGUO)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="admin-toolbar-footer">
+          <div class="admin-count-wrap">
+            <span id="admin-count" class="admin-count"></span>
+          </div>
+          <div class="admin-toolbar-actions">
+            <button type="button" id="btn-admin-view-density" class="btn btn-density" title="Alternar vista compacta / detallada" aria-label="Alternar densidad de vista">
+              <span id="admin-density-label">COMPACTA</span>
+            </button>
+            <button type="button" id="btn-admin-reset-filters" class="btn btn-reset-filters" title="Restablecer todos los filtros" aria-label="Restablecer filtros">
+              RESETEAR
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista con scroll para proyectos -->
       <div id="admin-project-list" class="admin-project-list"></div>
     </div>
+
+    <!-- 4. Vista de Arquitectos -->
     <div id="admin-architects-view" class="admin-architects-view admin-view-hidden">
       <div class="admin-inbox-head">
         <span data-i18n="admin_architects_title">DIRECTORIO // ARQUITECTOS</span>
         <span id="admin-architects-count" class="admin-count"></span>
       </div>
-      <div style="padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid var(--border-strong); background: var(--bg-raised);">
-        <input id="admin-architect-search" class="tech-input" type="search" placeholder="BUSCAR ARQUITECTO O CIUDAD..." aria-label="Buscar arquitectos">
-        <div style="display: flex; gap: 8px; align-items: center; justify-content: space-between;">
-          <select id="admin-architect-sort" class="tech-input" style="flex: 1; font-size: 10px;" aria-label="Ordenar arquitectos">
-            <option value="count-desc" selected>MÁS OBRAS</option>
-            <option value="count-asc">MENOS OBRAS</option>
-            <option value="alpha-asc">NOMBRE (A-Z)</option>
-            <option value="alpha-desc">NOMBRE (Z-A)</option>
-          </select>
-          <div style="display: flex; gap: 4px;">
-            <button type="button" id="btn-admin-expand-all-arqs" class="btn" style="font-size: 9px; padding: 4px 6px;">EXPANDIR</button>
-            <button type="button" id="btn-admin-collapse-all-arqs" class="btn" style="font-size: 9px; padding: 4px 6px;">COLAPSAR</button>
+      <div class="admin-subview-controls">
+        <div class="admin-search-wrapper">
+          <svg class="admin-search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input id="admin-architect-search" class="admin-search-input" type="search" placeholder="BUSCAR ARQUITECTO O CIUDAD..." aria-label="Buscar arquitectos">
+        </div>
+        <div class="admin-subview-row">
+          <div class="admin-filter-field" style="flex: 1;">
+            <label class="admin-filter-label" for="admin-architect-sort">ORDENAR POR</label>
+            <select id="admin-architect-sort" class="admin-select" aria-label="Ordenar arquitectos">
+              <option value="count-desc" selected>MÁS OBRAS</option>
+              <option value="count-asc">MENOS OBRAS</option>
+              <option value="alpha-asc">NOMBRE (A-Z)</option>
+              <option value="alpha-desc">NOMBRE (Z-A)</option>
+            </select>
+          </div>
+          <div class="admin-subview-actions">
+            <button type="button" id="btn-admin-expand-all-arqs" class="btn btn-subview-tool">EXPANDIR</button>
+            <button type="button" id="btn-admin-collapse-all-arqs" class="btn btn-subview-tool">COLAPSAR</button>
           </div>
         </div>
       </div>
       <div id="admin-architect-list" class="admin-architect-list"></div>
     </div>
+
+    <!-- 5. Vista de Reportes / Incidencias -->
     <div id="admin-reports-view" class="admin-reports-view admin-view-hidden">
-      <div class="admin-inbox-head"><span data-i18n="admin_inbox_title">BUZÓN DE INCIDENCIAS</span><span id="admin-inbox-count" class="admin-count"></span></div>
-      <div style="padding: 0 14px 10px; display: flex; gap: 8px;">
-        <select id="admin-report-filter" class="tech-input" style="flex: 1; font-size: 10px;" aria-label="Filtrar incidencias">
-          <option value="pendiente" selected>PENDIENTES</option>
-          <option value="revisado">REVISADOS</option>
-          <option value="descartado">DESCARTADOS</option>
-          <option value="todos">TODOS LOS REPORTES</option>
-        </select>
+      <div class="admin-inbox-head">
+        <span data-i18n="admin_inbox_title">BUZÓN // INCIDENCIAS</span>
+        <span id="admin-inbox-count" class="admin-count"></span>
+      </div>
+      <div class="admin-subview-controls">
+        <div class="admin-filter-field" style="width: 100%;">
+          <label class="admin-filter-label" for="admin-report-filter">FILTRAR POR ESTADO</label>
+          <select id="admin-report-filter" class="admin-select" aria-label="Filtrar incidencias">
+            <option value="pendiente" selected>PENDIENTES</option>
+            <option value="revisado">REVISADOS</option>
+            <option value="descartado">DESCARTADOS</option>
+            <option value="todos">TODOS LOS REPORTES</option>
+          </select>
+        </div>
       </div>
       <div id="admin-report-list" class="admin-report-list"></div>
     </div>
+
+    <!-- 6. Vista de Usuarios -->
     <div id="admin-users-view" class="admin-users-view admin-view-hidden">
-      <div class="admin-inbox-head"><span data-i18n="admin_users_title">DIRECTORIO // USUARIOS</span><span id="admin-user-count" class="admin-count"></span></div>
-      <input id="admin-user-search" class="tech-input admin-user-search" type="search" placeholder="BUSCAR NOMBRE, EMAIL, CIUDAD O PAÍS..." aria-label="Buscar usuarios" data-i18n-placeholder="admin_users_search_placeholder" data-i18n-aria="admin_users_search_aria">
+      <div class="admin-inbox-head">
+        <span data-i18n="admin_users_title">DIRECTORIO // USUARIOS</span>
+        <span id="admin-user-count" class="admin-count"></span>
+      </div>
+      <div class="admin-subview-controls">
+        <div class="admin-search-wrapper">
+          <svg class="admin-search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input id="admin-user-search" class="admin-search-input" type="search" placeholder="BUSCAR NOMBRE, EMAIL, CIUDAD O PAÍS..." aria-label="Buscar usuarios" data-i18n-placeholder="admin_users_search_placeholder" data-i18n-aria="admin_users_search_aria">
+        </div>
+      </div>
       <div id="admin-user-list" class="admin-user-list"></div>
     </div>
   </section>
