@@ -1,6 +1,4 @@
-const FALLBACK_SUPABASE_URL = 'https://ldtfvpjigzvcagtciipn.supabase.co';
-const FALLBACK_SUPABASE_KEY = 'sb_publishable_kYQ7Fa8nBsrkp1f8C4AuAg_4-5uBFm0';
-const FALLBACK_SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkdGZ2cGppZ3p2Y2FndGNpaXBuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NzU3OTg2NywiZXhwIjoyMTAzMTU1ODY3fQ.iRn-X5EzmW9eoKqL5qdW3s6I7NfcLfnJRmXTNwjCNnY';
+const { getSupabaseConfig } = require('./_lib/supabaseEnv.js');
 
 // Rate limiting in-memory map (por IP en el container edge)
 const rateLimitMap = new Map();
@@ -58,8 +56,7 @@ module.exports = async function handler(req, res) {
     });
   }
 
-  const supabaseUrl = process.env.SUPABASE_URL || FALLBACK_SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || FALLBACK_SERVICE_ROLE_KEY;
+  const { supabaseUrl, serviceRoleKey: supabaseKey } = getSupabaseConfig();
 
   const pageSize = 1000;
   // Excluir enlace_url y añadido_por reduce ~932 KB (-17.1% Brotli) sin afectar pines, filtros ni buscador.

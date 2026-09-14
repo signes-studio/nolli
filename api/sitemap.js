@@ -8,17 +8,14 @@ const { getCategorySlugs } = require('./_lib/categories.js');
 const { getMultilingualSitemapEntries, escapeXml } = require('./_lib/i18n.js');
 const { slugify, extractCityName, isIgnoredArchitect } = require('./_lib/slugs.js');
 const { createRateLimiter } = require('./_lib/rateLimiter.js');
+const { getSupabaseConfig } = require('./_lib/supabaseEnv.js');
 
 const checkRateLimit = createRateLimiter({ windowMs: 5 * 60 * 1000, maxRequests: 30 });
 
 const SITE_URL = 'https://nollimap.app';
-const FALLBACK_SUPABASE_URL = 'https://ldtfvpjigzvcagtciipn.supabase.co';
-const FALLBACK_SUPABASE_KEY = 'sb_publishable_kYQ7Fa8nBsrkp1f8C4AuAg_4-5uBFm0';
-const FALLBACK_SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkdGZ2cGppZ3p2Y2FndGNpaXBuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NzU3OTg2NywiZXhwIjoyMTAzMTU1ODY3fQ.iRn-X5EzmW9eoKqL5qdW3s6I7NfcLfnJRmXTNwjCNnY';
 
 async function fetchAllArchitectSlugs() {
-  const supabaseUrl = process.env.SUPABASE_URL || FALLBACK_SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || FALLBACK_SERVICE_ROLE_KEY;
+  const { supabaseUrl, serviceRoleKey: supabaseKey } = getSupabaseConfig();
   const pageSize = 1000;
   const archMap = new Map();
   let start = 0;
@@ -68,8 +65,7 @@ async function fetchAllArchitectSlugs() {
 }
 
 async function fetchAllCitySlugs() {
-  const supabaseUrl = process.env.SUPABASE_URL || FALLBACK_SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || FALLBACK_SERVICE_ROLE_KEY;
+  const { supabaseUrl, serviceRoleKey: supabaseKey } = getSupabaseConfig();
   const pageSize = 1000;
   const cityMap = new Map();
   let start = 0;

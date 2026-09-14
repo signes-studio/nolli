@@ -1,7 +1,5 @@
 const crypto = require('crypto');
-
-const FALLBACK_SUPABASE_URL = 'https://ldtfvpjigzvcagtciipn.supabase.co';
-const FALLBACK_SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkdGZ2cGppZ3p2Y2FndGNpaXBuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NzU3OTg2NywiZXhwIjoyMTAzMTU1ODY3fQ.iRn-X5EzmW9eoKqL5qdW3s6I7NfcLfnJRmXTNwjCNnY';
+const { getSupabaseConfig } = require('./_lib/supabaseEnv.js');
 
 // Tipos MIME de imagen permitidos
 const ALLOWED_MIME_TYPES = new Set([
@@ -116,8 +114,7 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || FALLBACK_SUPABASE_URL;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || FALLBACK_SERVICE_ROLE_KEY;
+    const { supabaseUrl, serviceRoleKey } = getSupabaseConfig();
 
     // 1. Autenticación de usuario
     const authHeader = req.headers.authorization || '';

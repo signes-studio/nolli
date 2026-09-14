@@ -3,7 +3,7 @@
    Arquitectura Serverless Blindada + Frontend Vanilla Neo-Bauhaus
    ========================================================================= */
 
-import { state, separarArquitectos, esRolAdmin, escapeHtml, formatearImportancia, transformarEdificio, dedupeBuildings, CATEGORY_META } from './state.js';
+import { state, separarArquitectos, esRolAdmin, escapeHtml, formatearImportancia, transformarEdificio, dedupeBuildings, CATEGORY_META, formatCategoria, normalizarCategoria } from './state.js';
 import { getOptimizedPhotoUrl } from './imageProxy.js';
 import { 
   deleteBuilding, 
@@ -96,6 +96,14 @@ function buildObraCorpus(obra) {
     obra.descripcion
   ];
   return cleanDiacritics(parts.filter(Boolean).join(' '));
+}
+
+function formatAdminImpBadge(impVal) {
+  const imp = Number(impVal);
+  if (imp === 0) return { level: 0, label: 'HITO // L0', title: 'Nivel 0: Obra Cumbre (Hito Arquitectónico)' };
+  if (imp === 1) return { level: 1, label: 'L1', title: 'Nivel 1: Imprescindible' };
+  if (imp === 2) return { level: 2, label: 'L2', title: 'Nivel 2: Recomendada' };
+  return { level: 3, label: 'L3', title: 'Nivel 3: Documentada' };
 }
 
 function getAdminButtons() {
@@ -903,52 +911,85 @@ async function renderList() {
       const safeFeatureId = escapeHtml(obra.featureId || obra.id);
       const safeNombre = escapeHtml(obra.nombre_obra || 'Obra sin título');
       const safeArquitecto = escapeHtml(obra.arquitecto || 'Arquitecto no especificado');
-      const safeRating = escapeHtml(formatearMedia(obra.id));
-      const safeStatus = escapeHtml(formatearEstadoRevision(obra.estado_revision));
       const isPending = obra.estado_revision === 'pendiente';
+      const isRejected = obra.estado_revision === 'rechazada';
+      const isPrivate = Boolean(obra.is_personal || obra.is_private || obra.source === 'personal' || obra.origin_source === 'user');
       const isActive = String(obra.id) === String(activeAdminObraId);
-      const rawDate = obra.created_at || obra.updated_at;
-      const formattedDate = rawDate ? new Date(rawDate).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : null;
-      const impInfo = formatearImportancia(obra.importancia);
+      const year = obra.año_construccion || obra.year ? escapeHtml(String(obra.año_construccion || obra.year)) : '';
       const knownCity = obra.ciudad || obra.place || obra.municipio || '';
+      const impBadge = formatAdminImpBadge(obra.importancia);
+
+      const catKey = normalizarCategoria(obra.categoria);
+      const catMeta = CATEGORY_META[catKey] || CATEGORY_META.otro || {};
+      const catName = formatCategoria(obra.categoria);
+      const catColor = catMeta.color || 'var(--accent)';
 
       const rawPhoto = obra.foto || obra.foto_url || obra.imagen || (Array.isArray(obra.fotos) && obra.fotos[0]) || '';
-      const thumbUrl = rawPhoto ? getOptimizedPhotoUrl(rawPhoto, { width: 120, quality: 70 }) : '';
+      const thumbUrl = rawPhoto ? getOptimizedPhotoUrl(rawPhoto, { width: 140, quality: 75 }) : '';
 
-      const alerts = [];
-      if (!rawPhoto) alerts.push('<span class="admin-tag-alert">SIN FOTO</span>');
+      const auditAlerts = [];
       const arqNorm = String(obra.arquitecto || '').trim().toLowerCase();
-      if (!arqNorm || arqNorm === 'sin arquitecto' || arqNorm === 'desconocido') alerts.push('<span class="admin-tag-alert">SIN ARQ</span>');
-      if (!obra.año_construccion && !obra.year) alerts.push('<span class="admin-tag-alert">SIN AÑO</span>');
+      if (!arqNorm || arqNorm === 'sin arquitecto' || arqNorm === 'desconocido') {
+        auditAlerts.push('<span class="admin-audit-pill" title="Obra sin arquitecto registrado">SIN ARQ</span>');
+      }
+      if (!year) {
+        auditAlerts.push('<span class="admin-audit-pill" title="Obra sin año de construcción">SIN AÑO</span>');
+      }
+      const coords = obra.coordenadas;
+      if (!Array.isArray(coords) || coords.length !== 2 || coords[0] === 0 || isNaN(coords[0])) {
+        auditAlerts.push('<span class="admin-audit-pill" title="Obra sin coordenadas geográficas">SIN COORDS</span>');
+      }
+
+      const ratingObj = ratingAverages.get(String(obra.id));
+      const ratingHtml = ratingObj && ratingObj.count > 0
+        ? `<span class="admin-meta-rating" title="Valoración media: ${ratingObj.average.toFixed(1)} / 5 (${ratingObj.count} ${ratingObj.count === 1 ? 'voto' : 'votos'})">★ ${ratingObj.average.toFixed(1)} <small style="font-weight:400; font-size:8px;">(${ratingObj.count})</small></span>`
+        : '';
 
       return `
         <div class="admin-project ${isPending ? 'admin-project-pending' : ''} ${isActive ? 'admin-project-active' : ''}" data-admin-card-id="${safeId}">
           <div class="admin-project-body" data-admin-map="${safeId}">
-            ${thumbUrl 
-              ? `<img src="${escapeHtml(thumbUrl)}" alt="${safeNombre}" class="admin-project-thumb" loading="lazy" onerror="this.outerHTML='<div class=\\'admin-project-thumb-placeholder\\'>SIN FOTO</div>'">` 
-              : '<div class="admin-project-thumb-placeholder">NO FOTO</div>'}
+            <div class="admin-project-thumb-wrap">
+              ${thumbUrl 
+                ? `<img src="${escapeHtml(thumbUrl)}" alt="${safeNombre}" class="admin-project-thumb" loading="lazy" decoding="async" onerror="this.outerHTML='<div class=\\'admin-project-thumb-placeholder\\'>NO FOTO</div>'">` 
+                : '<div class="admin-project-thumb-placeholder">NO FOTO</div>'}
+              ${isPending ? '<span class="admin-thumb-pending-pip" title="Pendiente de revisión"></span>' : ''}
+            </div>
             <div class="admin-project-info">
-              <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                <strong>${safeNombre}</strong>
-                <span class="admin-importance-tag imp-${impInfo.level}" title="${escapeHtml(impInfo.title)}">${escapeHtml(impInfo.label)}</span>
-                ${isPending ? '<span style="font-size:9px; font-weight:800; background:var(--accent-2); color:rgb(20, 20, 17); padding:1px 4px;">PENDIENTE</span>' : ''}
-                ${alerts.join(' ')}
+              <div class="admin-project-header">
+                <h4 class="admin-project-title" title="${safeNombre}">${safeNombre}</h4>
+                <div class="admin-project-badges">
+                  ${isPending ? '<span class="admin-badge admin-badge-pending">PENDIENTE</span>' : ''}
+                  ${isRejected ? '<span class="admin-badge admin-badge-rejected">RECHAZADA</span>' : ''}
+                  ${isPrivate ? '<span class="admin-badge admin-badge-private">PRIVADA</span>' : ''}
+                  <span class="admin-badge admin-badge-imp imp-${impBadge.level}" title="${escapeHtml(impBadge.title)}">${escapeHtml(impBadge.label)}</span>
+                </div>
               </div>
-              <span>${safeArquitecto}</span>
-              <span class="admin-project-city" data-city-for="${safeFeatureId}">${escapeHtml(knownCity || 'LOCALIZACIÓN...')}</span>
-              ${formattedDate ? `<span style="font-size:9px; color:var(--fg-dim); font-family:monospace;">ALTA: ${escapeHtml(formattedDate)}</span>` : ''}
-              <span class="admin-project-rating" style="font-size:9.5px;">${safeRating}</span>
-              <span class="admin-project-status ${isPending ? 'pending' : ''}">${safeStatus}</span>
+              <div class="admin-project-meta">
+                <span class="admin-meta-author" title="${safeArquitecto}">${safeArquitecto}</span>
+                ${year ? `<span class="admin-meta-bullet">·</span><span class="admin-meta-year">${year}</span>` : ''}
+                <span class="admin-meta-bullet">·</span>
+                <span class="admin-meta-city" data-city-for="${safeFeatureId}" title="${escapeHtml(knownCity || 'Ubicación')}">${escapeHtml(knownCity || 'LOCALIZACIÓN...')}</span>
+              </div>
+              <div class="admin-project-submeta">
+                <span class="admin-meta-cat">
+                  <span class="admin-cat-pip" style="background:${catColor};"></span>
+                  <span>${escapeHtml(catName)}</span>
+                </span>
+                ${ratingHtml ? `<span class="admin-meta-bullet">·</span>${ratingHtml}` : ''}
+                <span class="admin-meta-bullet">·</span>
+                <span class="admin-meta-id">#${safeId}</span>
+                ${auditAlerts.length > 0 ? `<span class="admin-meta-bullet">·</span>` + auditAlerts.join(' ') : ''}
+              </div>
             </div>
           </div>
           <div class="admin-project-actions">
+            ${isPending ? `
+              <button type="button" class="btn admin-action-approve" data-admin-review="${safeId}" data-review-status="publicada" title="Aprobar obra">APROBAR</button>
+              <button type="button" class="btn admin-action-reject" data-admin-review="${safeId}" data-review-status="rechazada" title="Rechazar obra">RECHAZAR</button>
+            ` : ''}
             <button type="button" class="btn admin-action-map" data-admin-map="${safeId}" title="Ir a la obra en el mapa">IR AL MAPA</button>
             <button type="button" class="btn admin-action-edit" data-admin-edit="${safeId}" title="Editar ficha de obra">EDITAR</button>
-            ${isPending ? `
-              <button type="button" class="btn admin-action-approve" data-admin-review="${safeId}" data-review-status="publicada">APROBAR</button>
-              <button type="button" class="btn admin-action-reject" data-admin-review="${safeId}" data-review-status="rechazada">RECHAZAR</button>
-            ` : ''}
-            ${esRolAdmin(state.userRole) ? `
+            ${esRolAdmin(state.userRole) && !isPending ? `
               <button type="button" class="btn admin-action-delete" data-admin-delete="${safeId}" title="Eliminar del catálogo">BORRAR</button>
             ` : ''}
           </div>
@@ -1131,14 +1172,14 @@ async function renderArchitects() {
           <div style="display:flex; flex-direction:column; gap:2px; min-width:0; flex:1;">
             <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
               <strong style="font-size:11px; font-weight:800; color:var(--fg);">${safeName}</strong>
-              <span style="font-size:9px; font-weight:800; background:var(--accent); color:#ffffff; padding:1px 5px; border-radius:2px;">
+              <span style="font-size:9px; font-weight:800; background:var(--accent); color:rgb(255, 255, 255); padding:1px 5px; border-radius:2px;">
                 ${item.works.length} ${item.works.length === 1 ? 'OBRA' : 'OBRAS'}
               </span>
               ${item.pendingCount > 0 ? `
-                <span style="font-size:8.5px; font-weight:800; background:var(--accent-2, #EFBC02); color:#141411; padding:1px 5px; border-radius:2px;">${item.pendingCount} PENDIENTE${item.pendingCount > 1 ? 'S' : ''}</span>
+                <span class="admin-badge admin-badge-pending" style="font-size:8.5px;">${item.pendingCount} PENDIENTE${item.pendingCount > 1 ? 'S' : ''}</span>
               ` : ''}
               ${item.publishedCount > 0 ? `
-                <span style="font-size:8.5px; font-weight:700; background:var(--bg-raised); color:var(--fg-dim); padding:1px 5px; border:1px solid var(--border);">${item.publishedCount} PUB</span>
+                <span style="font-size:8.5px; font-weight:700; background:var(--bg-raised); color:var(--fg-dim); padding:1px 5px; border:1px solid var(--border); border-radius:2px;">${item.publishedCount} PUB</span>
               ` : ''}
             </div>
             <div style="font-size:9.5px; color:var(--fg-dim); display:flex; gap:6px; flex-wrap:wrap;">
@@ -1159,17 +1200,19 @@ async function renderArchitects() {
             const year = obra.año_construccion ? escapeHtml(obra.año_construccion) : null;
             const place = obra.place ? escapeHtml(obra.place) : '';
             const isPending = obra.estado_revision === 'pendiente';
-            const impInfo = formatearImportancia(obra.importancia);
+            const impBadge = formatAdminImpBadge(obra.importancia);
 
             return `
               <div class="admin-floating-work-row ${isPending ? 'pending' : ''}">
                 <div style="min-width:0; flex:1;">
-                  <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
-                    <span style="font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${title}">${title}</span>
-                    <span class="admin-importance-tag imp-${impInfo.level}" title="${escapeHtml(impInfo.title)}">${escapeHtml(impInfo.label)}</span>
-                    ${isPending ? '<span style="font-size:8px; font-weight:800; background:var(--accent-2, #EFBC02); color:#141411; padding:0 3px;">PENDIENTE</span>' : ''}
+                  <div style="display:flex; align-items:center; gap:6px; min-width:0;">
+                    <span style="font-weight:700; min-width:0; flex:1 1 auto; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${title}">${title}</span>
+                    <div style="display:inline-flex; align-items:center; gap:4px; flex-shrink:0;">
+                      ${isPending ? '<span class="admin-badge admin-badge-pending">PENDIENTE</span>' : ''}
+                      <span class="admin-badge admin-badge-imp imp-${impBadge.level}" title="${escapeHtml(impBadge.title)}">${escapeHtml(impBadge.label)}</span>
+                    </div>
                   </div>
-                  <div style="color:var(--fg-dim); font-size:9px;">
+                  <div style="color:var(--fg-dim); font-size:9px; margin-top:2px;">
                     ${year ? `<span>${year}</span>` : ''}
                     ${year && place ? `<span> · </span>` : ''}
                     ${place ? `<span>${place}</span>` : ''}

@@ -6,18 +6,15 @@ const { categoryLabel } = require('./_lib/categories.js');
 const { detectServerLanguage, getLangPrefix, getSSRText, getHreflangTags, getOgLocaleTags } = require('./_lib/i18n.js');
 const { slugify, slugToRegex, extractCityName, escapeHtml, getOptimizedUrl } = require('./_lib/slugs.js');
 const { createRateLimiter } = require('./_lib/rateLimiter.js');
+const { getSupabaseConfig } = require('./_lib/supabaseEnv.js');
 
 const checkRateLimit = createRateLimiter({ windowMs: 60 * 1000, maxRequests: 60 });
 
 const SITE_URL = 'https://nollimap.app';
 const PAGE_SIZE = 50;
-const FALLBACK_SUPABASE_URL = 'https://ldtfvpjigzvcagtciipn.supabase.co';
-const FALLBACK_SUPABASE_KEY = 'sb_publishable_kYQ7Fa8nBsrkp1f8C4AuAg_4-5uBFm0';
-const FALLBACK_SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkdGZ2cGppZ3p2Y2FndGNpaXBuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NzU3OTg2NywiZXhwIjoyMTAzMTU1ODY3fQ.iRn-X5EzmW9eoKqL5qdW3s6I7NfcLfnJRmXTNwjCNnY';
 
 async function fetchArchitectData(rawInput, page) {
-  const supabaseUrl = process.env.SUPABASE_URL || FALLBACK_SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || FALLBACK_SERVICE_ROLE_KEY;
+  const { supabaseUrl, serviceRoleKey: supabaseKey } = getSupabaseConfig();
 
   const cleanSlug = slugify(rawInput);
   const regex = slugToRegex(cleanSlug);

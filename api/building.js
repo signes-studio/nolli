@@ -1,9 +1,6 @@
 const { purgeBuildingCdnCache } = require('./_lib/cdnPurge.js');
 const { slugify, extractCityName } = require('./_lib/slugs.js');
-
-const FALLBACK_SUPABASE_URL = 'https://ldtfvpjigzvcagtciipn.supabase.co';
-const FALLBACK_SUPABASE_KEY = 'sb_publishable_kYQ7Fa8nBsrkp1f8C4AuAg_4-5uBFm0';
-const FALLBACK_SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkdGZ2cGppZ3p2Y2FndGNpaXBuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NzU3OTg2NywiZXhwIjoyMTAzMTU1ODY3fQ.iRn-X5EzmW9eoKqL5qdW3s6I7NfcLfnJRmXTNwjCNnY';
+const { getSupabaseConfig } = require('./_lib/supabaseEnv.js');
 
 const ADMIN_EMAILS = [
   'office@signes.studio',
@@ -153,8 +150,7 @@ async function purgeCatalogCdnCache(buildingId = null, meta = {}) {
 }
 
 module.exports = async function handler(req, res) {
-  const supabaseUrl = process.env.SUPABASE_URL || FALLBACK_SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || FALLBACK_SERVICE_ROLE_KEY;
+  const { supabaseUrl, serviceRoleKey: supabaseKey, hasServiceRoleKey } = getSupabaseConfig();
 
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
 
@@ -163,6 +159,12 @@ module.exports = async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, apikey');
     return res.status(204).end();
+  }
+
+  if (!hasServiceRoleKey && req.method !== 'GET') {
+    return res.status(500).json({
+      error: 'Error de configuración en el servidor: SUPABASE_SERVICE_ROLE_KEY no está configurada en las variables de entorno de Vercel. Por favor, añádela en Vercel y realiza un Redeploy.',
+    });
   }
 
   // 1. Consulta pública de obras por ID o lotes de IDs (ej: ?ids=id1,id2 o ?id=id1)

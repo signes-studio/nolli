@@ -6,9 +6,9 @@
 
 const https = require('https');
 
-const SUPABASE_URL = 'https://ldtfvpjigzvcagtciipn.supabase.co';
-const ANON_KEY = 'sb_publishable_kYQ7Fa8nBsrkp1f8C4AuAg_4-5uBFm0';
-const SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkdGZ2cGppZ3p2Y2FndGNpaXBuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NzU3OTg2NywiZXhwIjoyMTAzMTU1ODY3fQ.iRn-X5EzmW9eoKqL5qdW3s6I7NfcLfnJRmXTNwjCNnY';
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://ldtfvpjigzvcagtciipn.supabase.co';
+const ANON_KEY = process.env.SUPABASE_KEY || 'sb_publishable_kYQ7Fa8nBsrkp1f8C4AuAg_4-5uBFm0';
+const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || '';
 
 async function runTests() {
   console.log('===============================================================');
