@@ -3,7 +3,7 @@
    ========================================================================= */
 
 import { state, separarArquitectos, normalizarCategoria, esRolAdmin, esRolEditor } from './state.js';
-import { loginAdmin, registerUser, refreshUserSession, requestPasswordReset, fetchUserRole, fetchCurrentUser, fetchCurrentProfile, fetchBuildingStatuses, upsertCurrentProfile, createBuildingReport, createBuilding, createPrivateBuilding, updateBuilding, updateUserPresence, invalidateCatalogCache } from './api.js';
+import { loginAdmin, registerUser, refreshUserSession, requestPasswordReset, updateUserPassword, sendMagicLink, updateUserEmail, verifyOtpToken, fetchUserRole, fetchCurrentUser, fetchCurrentProfile, fetchBuildingStatuses, upsertCurrentProfile, createBuildingReport, createBuilding, createPrivateBuilding, updateBuilding, updateUserPresence, invalidateCatalogCache } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
 import { showNeoToast } from './renderUtils.js';
@@ -166,41 +166,103 @@ async function initLoginModal() {
     document.dispatchEvent(new CustomEvent('radar:user-session-ready'));
   };
 
-  const sesionGuardada = localStorage.getItem(ADMIN_SESSION_KEY) || sessionStorage.getItem(ADMIN_SESSION_KEY);
-  if (sesionGuardada) {
+  const checkIncomingAuthRedirect = async () => {
+    let hash = window.location.hash;
+    let search = window.location.search;
+    if (!hash && !search) return false;
+
+    let hashParams = new URLSearchParams(hash.startsWith('#') ? hash.substring(1) : hash);
+    let searchParams = new URLSearchParams(search.startsWith('?') ? search.substring(1) : search);
+
+    const accessToken = hashParams.get('access_token') || searchParams.get('access_token');
+    const refreshToken = hashParams.get('refresh_token') || searchParams.get('refresh_token');
+    const authType = hashParams.get('type') || searchParams.get('type');
+    const errorCode = hashParams.get('error') || searchParams.get('error');
+    const errorDesc = hashParams.get('error_description') || searchParams.get('error_description');
+
+    if (errorCode || errorDesc) {
+      try { history.replaceState(null, '', window.location.pathname); } catch {}
+      const cleanMsg = decodeURIComponent((errorDesc || errorCode).replace(/\+/g, ' '));
+      showNeoToast(cleanMsg, { type: 'alert', duration: 6000 });
+      return false;
+    }
+
+    if (!accessToken) return false;
+
+    try { history.replaceState(null, '', window.location.pathname); } catch {}
+
+    const sessionData = { access_token: accessToken, refresh_token: refreshToken || '' };
     try {
-      let savedSession = JSON.parse(sesionGuardada);
-      if (typeof savedSession === 'string') savedSession = { access_token: savedSession };
-      if (!savedSession.access_token && savedSession.refresh_token) savedSession = await refreshUserSession(savedSession.refresh_token);
-      state.sessionToken = savedSession.access_token;
+      localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(sessionData));
+    } catch {}
+    state.sessionToken = accessToken;
+
+    try {
+      state.userRole = await fetchUserRole(state.sessionToken);
+    } catch {
+      state.userRole = 'user';
+    }
+    marcarSesionIniciada(state.userRole);
+    await cargarEstadoUsuario();
+
+    if (authType === 'recovery') {
+      const mNewPass = document.getElementById('modal-new-password');
+      if (mNewPass) mNewPass.classList.add('open');
+      showNeoToast(t('auth_new_password_desc', null, 'Introduce tu nueva contraseña de acceso.'));
+    } else if (authType === 'invite') {
+      const mNewPass = document.getElementById('modal-new-password');
+      if (mNewPass) mNewPass.classList.add('open');
+      showNeoToast(t('auth_invite_accepted', null, '¡Invitación aceptada! Define tu contraseña para comenzar.'));
+    } else if (authType === 'signup') {
+      showNeoToast(t('auth_signup_confirmed', null, '¡Cuenta confirmada con éxito! Bienvenido a Nolli.'));
+    } else if (authType === 'magiclink') {
+      showNeoToast(t('auth_magic_link_success', null, 'Sesión iniciada con éxito mediante Enlace Mágico.'));
+    } else if (authType === 'email_change') {
+      showNeoToast(t('profile_email_updated_success', null, 'Correo electrónico actualizado con éxito.'));
+    } else {
+      showNeoToast(t('auth_login_success', null, 'Sesión iniciada con éxito.'));
+    }
+    return true;
+  };
+
+  const redirected = await checkIncomingAuthRedirect();
+  if (!redirected) {
+    const sesionGuardada = localStorage.getItem(ADMIN_SESSION_KEY) || sessionStorage.getItem(ADMIN_SESSION_KEY);
+    if (sesionGuardada) {
       try {
-        state.userRole = await fetchUserRole(state.sessionToken);
-      } catch (error) {
-        if (savedSession.refresh_token) {
-          try {
-            savedSession = await refreshUserSession(savedSession.refresh_token);
-            state.sessionToken = savedSession.access_token;
-            state.userRole = await fetchUserRole(state.sessionToken);
-          } catch {}
+        let savedSession = JSON.parse(sesionGuardada);
+        if (typeof savedSession === 'string') savedSession = { access_token: savedSession };
+        if (!savedSession.access_token && savedSession.refresh_token) savedSession = await refreshUserSession(savedSession.refresh_token);
+        state.sessionToken = savedSession.access_token;
+        try {
+          state.userRole = await fetchUserRole(state.sessionToken);
+        } catch (error) {
+          if (savedSession.refresh_token) {
+            try {
+              savedSession = await refreshUserSession(savedSession.refresh_token);
+              state.sessionToken = savedSession.access_token;
+              state.userRole = await fetchUserRole(state.sessionToken);
+            } catch {}
+          }
         }
-      }
-      if (!state.userRole) {
-        state.userRole = esRolAdmin() ? 'superadmin' : 'user';
-      }
-      marcarSesionIniciada(state.userRole);
-      await cargarEstadoUsuario();
-      try {
-        localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(savedSession));
-      } catch {}
-    } catch (error) {
-      console.warn('Error restaurando sesión:', error);
-      const msg = String(error?.message || '');
-      if (msg.includes('caducado') || msg.includes('invalid') || msg.includes('JWT') || msg.includes('401')) {
-        localStorage.removeItem(ADMIN_SESSION_KEY);
-        sessionStorage.removeItem(ADMIN_SESSION_KEY);
-        state.sessionToken = null;
-        state.userRole = null;
-        state.adminMode = false;
+        if (!state.userRole) {
+          state.userRole = esRolAdmin() ? 'superadmin' : 'user';
+        }
+        marcarSesionIniciada(state.userRole);
+        await cargarEstadoUsuario();
+        try {
+          localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(savedSession));
+        } catch {}
+      } catch (error) {
+        console.warn('Error restaurando sesión:', error);
+        const msg = String(error?.message || '');
+        if (msg.includes('caducado') || msg.includes('invalid') || msg.includes('JWT') || msg.includes('401')) {
+          localStorage.removeItem(ADMIN_SESSION_KEY);
+          sessionStorage.removeItem(ADMIN_SESSION_KEY);
+          state.sessionToken = null;
+          state.userRole = null;
+          state.adminMode = false;
+        }
       }
     }
   }
@@ -208,6 +270,7 @@ async function initLoginModal() {
   const registerSuccessView = document.getElementById('register-success-view');
   const registerSuccessEmail = document.getElementById('register-success-email');
   const btnSuccessToLogin = document.getElementById('btn-success-to-login');
+  const btnMagicLink = document.getElementById('btn-request-magic-link');
 
   const switchToLoginMode = () => {
     registerMode = false;
@@ -218,6 +281,7 @@ async function initLoginModal() {
     if (registerButton) registerButton.textContent = t('auth_btn_register_mode');
     registerOnlyFields.forEach((field) => field.classList.add('hidden'));
     forgotPasswordButton?.classList.remove('hidden');
+    btnMagicLink?.classList.remove('hidden');
     document.querySelector('.keep-session')?.classList.remove('hidden');
     if (guestBlock) guestBlock.classList.remove('hidden');
     if (passwordInput) passwordInput.autocomplete = 'current-password';
@@ -268,6 +332,45 @@ async function initLoginModal() {
       forgotPasswordButton.textContent = '¿OLVIDASTE LA CONTRASEÑA?';
     }
   });
+
+  if (btnMagicLink) {
+    btnMagicLink.addEventListener('click', async () => {
+      const email = document.getElementById('login-email')?.value.trim();
+      const err = document.getElementById('login-error');
+      if (!email || !email.includes('@')) {
+        if (err) {
+          err.textContent = t('auth_err_enter_email', null, 'Escribe tu email para enviarte el enlace.');
+          err.classList.remove('hidden');
+        }
+        return;
+      }
+      btnMagicLink.disabled = true;
+      const oldText = btnMagicLink.textContent;
+      btnMagicLink.textContent = t('auth_sending_link', null, 'ENVIANDO ENLACE...');
+      try {
+        await sendMagicLink(email);
+        if (err) err.classList.add('hidden');
+        if (loginForm) loginForm.classList.add('hidden');
+        if (registerSuccessView) {
+          registerSuccessView.classList.remove('hidden');
+          if (registerSuccessEmail) registerSuccessEmail.textContent = email;
+          const successTitle = registerSuccessView.querySelector('.register-success-title');
+          if (successTitle) successTitle.textContent = 'ENLACE MÁGICO ENVIADO';
+          const successMsg = registerSuccessView.querySelector('.register-success-msg');
+          if (successMsg) successMsg.textContent = 'Te hemos enviado un enlace de acceso directo a tu correo. Haz clic en él para entrar automáticamente a Nolli sin contraseña.';
+        }
+        showNeoToast(t('auth_magic_link_sent', null, '¡Enlace mágico enviado! Revisa tu bandeja de entrada.'));
+      } catch (error) {
+        if (err) {
+          err.textContent = error.message;
+          err.classList.remove('hidden');
+        }
+      } finally {
+        btnMagicLink.disabled = false;
+        btnMagicLink.textContent = oldText;
+      }
+    });
+  }
   document.addEventListener('click', (e) => {
     if (e.target.closest('#btn-login-close')) {
       try {
@@ -388,6 +491,7 @@ async function initLoginModal() {
     registerButton.textContent = registerMode ? t('auth_back_to_login') : t('auth_btn_register_mode');
     registerOnlyFields.forEach((field) => field.classList.toggle('hidden', !registerMode));
     forgotPasswordButton.classList.toggle('hidden', registerMode);
+    btnMagicLink?.classList.toggle('hidden', registerMode);
     document.querySelector('.keep-session')?.classList.toggle('hidden', registerMode);
     if (guestBlock) guestBlock.classList.toggle('hidden', registerMode);
     passwordInput.autocomplete = registerMode ? 'new-password' : 'current-password';
@@ -404,6 +508,7 @@ async function initLoginModal() {
     document.dispatchEvent(new CustomEvent('radar:user-status-ready'));
     if (logoutButton) logoutButton.classList.add('hidden');
     loginEntryFields.forEach((field) => field.classList.remove('hidden'));
+    btnMagicLink?.classList.remove('hidden');
     if (bLoginT) {
       bLoginT.textContent = t('login_init_btn');
       bLoginT.style.color = 'var(--accent)';
@@ -737,8 +842,157 @@ function handleMapLongPress(lngLat) {
 
 export function initModalsUI() {
   initLoginModal();
+  initNewPasswordModal();
+  initVerifyOtpModal();
   initAddBuildingModal();
   initReportModal();
+}
+
+function initNewPasswordModal() {
+  const modal = document.getElementById('modal-new-password');
+  const btnClose = document.getElementById('btn-new-password-close');
+  const form = document.getElementById('new-password-form');
+  const passInput = document.getElementById('new-password-input');
+  const confirmInput = document.getElementById('confirm-password-input');
+  const errorEl = document.getElementById('new-password-error');
+  const btnSubmit = document.getElementById('btn-submit-new-password');
+  const toggleBtn = document.getElementById('toggle-new-password');
+
+  if (!modal) return;
+
+  const close = () => {
+    modal.classList.remove('open');
+    if (passInput) passInput.value = '';
+    if (confirmInput) confirmInput.value = '';
+    if (errorEl) errorEl.classList.add('hidden');
+  };
+
+  btnClose?.addEventListener('click', close);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) close();
+  });
+
+  if (toggleBtn && passInput) {
+    toggleBtn.addEventListener('click', () => {
+      const showing = passInput.type === 'text';
+      passInput.type = showing ? 'password' : 'text';
+      toggleBtn.setAttribute('aria-label', showing ? 'Mostrar contraseña' : 'Ocultar contraseña');
+      toggleBtn.setAttribute('aria-pressed', String(!showing));
+      toggleBtn.innerHTML = showing
+        ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>'
+        : '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>';
+    });
+  }
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (errorEl) errorEl.classList.add('hidden');
+    const p1 = passInput?.value || '';
+    const p2 = confirmInput?.value || '';
+
+    if (p1.length < 6) {
+      if (errorEl) {
+        errorEl.textContent = t('auth_password_len_err', null, 'La contraseña debe tener al menos 6 caracteres.');
+        errorEl.classList.remove('hidden');
+      }
+      return;
+    }
+    if (p1 !== p2) {
+      if (errorEl) {
+        errorEl.textContent = t('auth_password_match_err', null, 'Las contraseñas no coinciden.');
+        errorEl.classList.remove('hidden');
+      }
+      return;
+    }
+
+    if (!state.sessionToken) {
+      if (errorEl) {
+        errorEl.textContent = 'Enlace caducado o sin sesión activa. Solicita un nuevo enlace.';
+        errorEl.classList.remove('hidden');
+      }
+      return;
+    }
+
+    btnSubmit.disabled = true;
+    const oldLabel = btnSubmit.textContent;
+    btnSubmit.textContent = 'ACTUALIZANDO...';
+
+    try {
+      await updateUserPassword(state.sessionToken, p1);
+      close();
+      showNeoToast(t('auth_password_success', null, 'Contraseña actualizada con éxito.'));
+    } catch (err) {
+      if (errorEl) {
+        errorEl.textContent = err.message || 'Error al actualizar contraseña.';
+        errorEl.classList.remove('hidden');
+      }
+    } finally {
+      btnSubmit.disabled = false;
+      btnSubmit.textContent = oldLabel;
+    }
+  });
+}
+
+function initVerifyOtpModal() {
+  const modal = document.getElementById('modal-verify-otp');
+  const btnClose = document.getElementById('btn-verify-otp-close');
+  const form = document.getElementById('verify-otp-form');
+  const otpInput = document.getElementById('otp-code-input');
+  const errorEl = document.getElementById('otp-error');
+  const btnSubmit = document.getElementById('btn-submit-otp');
+
+  if (!modal) return;
+
+  const close = () => {
+    modal.classList.remove('open');
+    if (otpInput) otpInput.value = '';
+    if (errorEl) errorEl.classList.add('hidden');
+  };
+
+  btnClose?.addEventListener('click', close);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) close();
+  });
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (errorEl) errorEl.classList.add('hidden');
+    const code = otpInput?.value.trim() || '';
+
+    if (code.length !== 6) {
+      if (errorEl) {
+        errorEl.textContent = 'El código debe tener exactamente 6 dígitos.';
+        errorEl.classList.remove('hidden');
+      }
+      return;
+    }
+
+    btnSubmit.disabled = true;
+    const oldLabel = btnSubmit.textContent;
+    btnSubmit.textContent = 'VERIFICANDO...';
+
+    try {
+      const email = state.userEmail || (document.getElementById('login-email')?.value.trim()) || '';
+      const data = await verifyOtpToken(email, code, 'email');
+      if (data?.access_token) {
+        state.sessionToken = data.access_token;
+        const sessionData = { access_token: data.access_token, refresh_token: data.refresh_token || '' };
+        try { localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(sessionData)); } catch {}
+        state.userRole = await fetchUserRole(state.sessionToken).catch(() => 'user');
+        document.dispatchEvent(new CustomEvent('radar:user-session-ready'));
+      }
+      close();
+      showNeoToast(t('auth_otp_success', null, 'Código verificado correctamente.'));
+    } catch (err) {
+      if (errorEl) {
+        errorEl.textContent = err.message || 'Código no válido o caducado.';
+        errorEl.classList.remove('hidden');
+      }
+    } finally {
+      btnSubmit.disabled = false;
+      btnSubmit.textContent = oldLabel;
+    }
+  });
 }
 
 function initReportModal() {

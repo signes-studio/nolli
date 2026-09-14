@@ -16,6 +16,7 @@ import {
   fetchAllBuildingsForAdmin,
   fetchUserRole,
   updateUserRole,
+  inviteUserByEmail,
   getBuildingsCatalog
 } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
@@ -221,6 +222,67 @@ export function initAdminUI() {
   }
   if (reportFilter) reportFilter.addEventListener('change', renderReports);
   if (userSearch) userSearch.addEventListener('input', renderUsers);
+
+  const btnInviteUser = document.getElementById('btn-admin-invite-user');
+  const inviteUserForm = document.getElementById('admin-invite-user-form');
+  const btnCancelInvite = document.getElementById('btn-admin-cancel-invite');
+  const inviteEmailInput = document.getElementById('admin-invite-email');
+  const btnSendInvite = document.getElementById('btn-admin-send-invite');
+  const inviteStatus = document.getElementById('admin-invite-status');
+
+  if (btnInviteUser && inviteUserForm) {
+    btnInviteUser.addEventListener('click', () => {
+      inviteUserForm.classList.toggle('hidden');
+      if (!inviteUserForm.classList.contains('hidden') && inviteEmailInput) {
+        inviteEmailInput.focus();
+      }
+    });
+  }
+  if (btnCancelInvite && inviteUserForm) {
+    btnCancelInvite.addEventListener('click', () => {
+      inviteUserForm.classList.add('hidden');
+      if (inviteStatus) inviteStatus.classList.add('hidden');
+    });
+  }
+  if (btnSendInvite && inviteEmailInput) {
+    btnSendInvite.addEventListener('click', async () => {
+      const email = inviteEmailInput.value.trim();
+      if (!email || !email.includes('@')) {
+        if (inviteStatus) {
+          inviteStatus.textContent = 'Introduce un correo electrónico válido.';
+          inviteStatus.style.color = 'var(--accent)';
+          inviteStatus.classList.remove('hidden');
+        }
+        return;
+      }
+      btnSendInvite.disabled = true;
+      const oldLabel = btnSendInvite.textContent;
+      btnSendInvite.textContent = 'ENVIANDO...';
+      try {
+        await inviteUserByEmail(state.sessionToken, email);
+        if (inviteStatus) {
+          inviteStatus.textContent = `Invitación enviada con éxito a ${email}.`;
+          inviteStatus.style.color = 'var(--fg)';
+          inviteStatus.classList.remove('hidden');
+        }
+        mostrarAlertaSeguridad('INVITACIÓN ENVIADA', `Se ha enviado el correo de invitación a ${email}.`);
+        inviteEmailInput.value = '';
+        setTimeout(() => {
+          if (inviteUserForm) inviteUserForm.classList.add('hidden');
+          if (inviteStatus) inviteStatus.classList.add('hidden');
+        }, 2000);
+      } catch (err) {
+        if (inviteStatus) {
+          inviteStatus.textContent = err.message || 'Error al enviar invitación.';
+          inviteStatus.style.color = 'var(--accent)';
+          inviteStatus.classList.remove('hidden');
+        }
+      } finally {
+        btnSendInvite.disabled = false;
+        btnSendInvite.textContent = oldLabel;
+      }
+    });
+  }
 
   document.getElementById('btn-admin-expand-all-arqs')?.addEventListener('click', () => {
     document.querySelectorAll('.admin-floating-arq-item').forEach((el) => {

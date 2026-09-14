@@ -638,6 +638,116 @@ export async function requestPasswordReset(email) {
   return data;
 }
 
+/** Actualiza la contraseña del usuario con sesión activa (usado en recuperación o invitación). */
+export async function updateUserPassword(sessionToken, newPassword) {
+  if (!sessionToken) throw new Error('No hay sesión activa para actualizar la contraseña.');
+  if (!newPassword || newPassword.length < 6) throw new Error('La contraseña debe tener al menos 6 caracteres.');
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+    method: 'PUT',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ password: newPassword }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error_description || data.msg || data.message || 'No se pudo actualizar la contraseña.');
+  return data;
+}
+
+/** Envía un enlace mágico (Magic Link / OTP) para inicio de sesión sin contraseña. */
+export async function sendMagicLink(email) {
+  const cleanEmail = String(email || '').trim().toLowerCase();
+  if (!cleanEmail || !cleanEmail.includes('@')) throw new Error('Debes indicar un correo electrónico válido.');
+  const redirectUrl = `${window.location.origin}${window.location.pathname}`;
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/otp`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      email: cleanEmail,
+      create_user: false,
+      email_redirect_to: redirectUrl,
+    }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error_description || data.msg || data.message || 'No se pudo enviar el enlace de acceso mágico.');
+  return data;
+}
+
+/** Solicita la actualización del correo electrónico del usuario activo en Supabase. */
+export async function updateUserEmail(sessionToken, newEmail) {
+  if (!sessionToken) throw new Error('No hay sesión activa para actualizar el correo.');
+  const cleanEmail = String(newEmail || '').trim().toLowerCase();
+  if (!cleanEmail || !cleanEmail.includes('@')) throw new Error('Introduce un correo electrónico válido.');
+  const redirectUrl = `${window.location.origin}${window.location.pathname}`;
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+    method: 'PUT',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      email: cleanEmail,
+      email_redirect_to: redirectUrl,
+    }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error_description || data.msg || data.message || 'No se pudo solicitar el cambio de correo electrónico.');
+  return data;
+}
+
+/** Invita a un nuevo usuario enviándole un correo de activación vía Supabase Auth. */
+export async function inviteUserByEmail(sessionToken, email) {
+  if (!sessionToken) throw new Error('No hay sesión activa de administrador.');
+  const cleanEmail = String(email || '').trim().toLowerCase();
+  if (!cleanEmail || !cleanEmail.includes('@')) throw new Error('Introduce un correo electrónico válido.');
+  const redirectUrl = `${window.location.origin}${window.location.pathname}`;
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/invite`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${sessionToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      email: cleanEmail,
+      data: {},
+      redirect_to: redirectUrl,
+    }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error_description || data.msg || data.message || 'No se pudo enviar la invitación al usuario.');
+  return data;
+}
+
+/** Verifica un código temporal OTP de 6 dígitos o token de reautenticación en Supabase Auth. */
+export async function verifyOtpToken(email, token, type = 'email') {
+  const cleanEmail = String(email || '').trim().toLowerCase();
+  const cleanToken = String(token || '').trim();
+  if (!cleanToken) throw new Error('Introduce el código de verificación.');
+  const payload = {
+    token: cleanToken,
+    type: type,
+  };
+  if (cleanEmail) payload.email = cleanEmail;
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/verify`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error_description || data.msg || data.message || 'Código de verificación no válido o caducado.');
+  return data;
+}
+
 /** Registra un usuario público con metadatos de perfil y auditoría de consentimiento legal (GDPR). */
 export async function registerUser(email, password, profile = {}) {
   const timestamp = new Date().toISOString();

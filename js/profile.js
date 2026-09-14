@@ -26,6 +26,10 @@ import {
   requestPasswordReset,
   refreshUserSession,
   updateUserPresence,
+  updateUserEmail,
+  updateUserPassword,
+  sendMagicLink,
+  verifyOtpToken,
   getBuildingsCatalog,
   fetchUserSocialCounts,
   fetchIncomingFriendRequests,
@@ -42,7 +46,7 @@ import {
   escapeHtml,
 } from './state.js';
 
-import { renderInChunks, initTabsScrollIndicator } from './renderUtils.js';
+import { renderInChunks, initTabsScrollIndicator, showNeoToast } from './renderUtils.js';
 import { getOptimizedPhotoUrl } from './imageProxy.js';
 import { renderObraCard } from './workCard.js';
 import { t, initI18n, getUrlPrefix, applyI18nToDOM, setupLanguageSwitchers, getLanguage, switchLanguage } from './i18n.js';
@@ -294,9 +298,13 @@ async function init() {
   setupNoteModal();
   setupFeedActionHandlers();
   setupLoginModal();
+  setupNewPasswordModal();
+  setupVerifyOtpModal();
   syncBottomNavLinks();
   bindSettingsListActions();
   if (window.lucide) window.lucide.createIcons();
+
+  await checkIncomingAuthRedirectProfile();
 
   const token = getSessionToken();
 
@@ -1807,6 +1815,8 @@ function setupEditProfileModal() {
       const inputCountry = document.getElementById('edit-profile-country');
       const inputWeb = document.getElementById('edit-profile-website');
       const inputSchool = document.getElementById('edit-profile-school');
+      const inputEmail = document.getElementById('edit-profile-email');
+      const emailStatus = document.getElementById('profile-email-status');
 
       if (inputFirst) inputFirst.value = db.first_name || metadata.first_name || '';
       if (inputLast) inputLast.value = db.last_name || metadata.last_name || '';
@@ -1815,11 +1825,62 @@ function setupEditProfileModal() {
       if (inputCountry) inputCountry.value = db.country || metadata.country || '';
       if (inputWeb) inputWeb.value = db.website || metadata.website || '';
       if (inputSchool) inputSchool.value = db.school || metadata.school || '';
+      if (inputEmail) inputEmail.value = user.email || '';
 
       if (editStatus) editStatus.classList.add('hidden');
+      if (emailStatus) emailStatus.classList.add('hidden');
       setupLanguageSwitchers(modalEditProfile);
       modalEditProfile.classList.add('open');
       if (window.lucide) window.lucide.createIcons();
+    });
+  }
+
+  const btnChangeEmail = document.getElementById('btn-change-email');
+  const inputEmail = document.getElementById('edit-profile-email');
+  const emailStatus = document.getElementById('profile-email-status');
+
+  if (btnChangeEmail && inputEmail) {
+    btnChangeEmail.addEventListener('click', async () => {
+      const token = getSessionToken();
+      if (!token) return;
+      const newEmail = inputEmail.value.trim().toLowerCase();
+      if (!newEmail || !newEmail.includes('@')) {
+        if (emailStatus) {
+          emailStatus.textContent = t('auth_err_enter_email', null, 'Introduce un correo electrónico válido.');
+          emailStatus.className = 'profile-edit-status error';
+          emailStatus.classList.remove('hidden');
+        }
+        return;
+      }
+      if (profileState.user?.email && newEmail === profileState.user.email.toLowerCase()) {
+        if (emailStatus) {
+          emailStatus.textContent = 'El correo indicado es el mismo que el actual.';
+          emailStatus.className = 'profile-edit-status error';
+          emailStatus.classList.remove('hidden');
+        }
+        return;
+      }
+      btnChangeEmail.disabled = true;
+      const oldText = btnChangeEmail.textContent;
+      btnChangeEmail.textContent = 'ENVIANDO...';
+      try {
+        await updateUserEmail(token, newEmail);
+        if (emailStatus) {
+          emailStatus.textContent = t('profile_email_sent_notice', null, 'Solicitud enviada. Revisa tu nueva dirección de correo para confirmar el cambio.');
+          emailStatus.className = 'profile-edit-status success';
+          emailStatus.classList.remove('hidden');
+        }
+        showNeoToast(t('profile_email_sent_notice', null, 'Revisa tu nuevo correo para confirmar el cambio.'));
+      } catch (err) {
+        if (emailStatus) {
+          emailStatus.textContent = err.message || 'Error al actualizar el correo.';
+          emailStatus.className = 'profile-edit-status error';
+          emailStatus.classList.remove('hidden');
+        }
+      } finally {
+        btnChangeEmail.disabled = false;
+        btnChangeEmail.textContent = oldText;
+      }
     });
   }
 
@@ -1963,6 +2024,7 @@ function setupLoginModal() {
     if (registerButton) registerButton.textContent = t('auth_btn_register_mode', null, 'CREAR CUENTA');
     registerOnlyFields.forEach((field) => field.classList.add('hidden'));
     forgotPasswordButton?.classList.remove('hidden');
+    document.getElementById('btn-request-magic-link')?.classList.remove('hidden');
     document.querySelector('.keep-session')?.classList.remove('hidden');
     if (guestBlock) guestBlock.classList.remove('hidden');
     if (passwordInput) {
@@ -2023,6 +2085,8 @@ function setupLoginModal() {
     });
   }
 
+  const btnMagicLink = document.getElementById('btn-request-magic-link');
+
   if (registerButton) {
     registerButton.addEventListener('click', () => {
       registerMode = !registerMode;
@@ -2031,9 +2095,49 @@ function setupLoginModal() {
       registerButton.textContent = registerMode ? t('auth_btn_back_to_login', null, 'VOLVER A INICIO DE SESIÓN') : t('auth_btn_register_mode', null, 'CREAR CUENTA');
       if (termsCheckbox) termsCheckbox.required = registerMode;
       if (termsCheckbox && !registerMode) termsCheckbox.checked = false;
+      forgotPasswordButton?.classList.toggle('hidden', registerMode);
+      btnMagicLink?.classList.toggle('hidden', registerMode);
       if (guestBlock) guestBlock.classList.toggle('hidden', registerMode);
       if (err) err.classList.add('hidden');
       if (window.lucide) window.lucide.createIcons();
+    });
+  }
+
+  if (btnMagicLink) {
+    btnMagicLink.addEventListener('click', async () => {
+      const email = document.getElementById('login-email')?.value.trim();
+      if (!email || !email.includes('@')) {
+        if (err) {
+          err.textContent = t('auth_err_enter_email', null, 'Escribe tu email para enviarte el enlace.');
+          err.classList.remove('hidden');
+        }
+        return;
+      }
+      btnMagicLink.disabled = true;
+      const oldText = btnMagicLink.textContent;
+      btnMagicLink.textContent = t('auth_sending_link', null, 'ENVIANDO ENLACE...');
+      try {
+        await sendMagicLink(email);
+        if (err) err.classList.add('hidden');
+        if (loginForm) loginForm.classList.add('hidden');
+        if (registerSuccessView) {
+          registerSuccessView.classList.remove('hidden');
+          if (registerSuccessEmail) registerSuccessEmail.textContent = email;
+          const successTitle = registerSuccessView.querySelector('.register-success-title');
+          if (successTitle) successTitle.textContent = 'ENLACE MÁGICO ENVIADO';
+          const successMsg = registerSuccessView.querySelector('.register-success-msg');
+          if (successMsg) successMsg.textContent = 'Te hemos enviado un enlace de acceso directo a tu correo. Haz clic en él para entrar automáticamente a Nolli sin contraseña.';
+        }
+        showNeoToast(t('auth_magic_link_sent', null, '¡Enlace mágico enviado! Revisa tu bandeja de entrada.'));
+      } catch (error) {
+        if (err) {
+          err.textContent = error.message;
+          err.classList.remove('hidden');
+        }
+      } finally {
+        btnMagicLink.disabled = false;
+        btnMagicLink.textContent = oldText;
+      }
     });
   }
 
@@ -2160,6 +2264,201 @@ function setupLoginModal() {
       logout();
     });
   }
+}
+
+async function checkIncomingAuthRedirectProfile() {
+  let hash = window.location.hash;
+  let search = window.location.search;
+  if (!hash && !search) return;
+
+  let hashParams = new URLSearchParams(hash.startsWith('#') ? hash.substring(1) : hash);
+  let searchParams = new URLSearchParams(search.startsWith('?') ? search.substring(1) : search);
+
+  const accessToken = hashParams.get('access_token') || searchParams.get('access_token');
+  const refreshToken = hashParams.get('refresh_token') || searchParams.get('refresh_token');
+  const authType = hashParams.get('type') || searchParams.get('type');
+  const errorCode = hashParams.get('error') || searchParams.get('error');
+  const errorDesc = hashParams.get('error_description') || searchParams.get('error_description');
+
+  if (errorCode || errorDesc) {
+    try { history.replaceState(null, '', window.location.pathname); } catch {}
+    const cleanMsg = decodeURIComponent((errorDesc || errorCode).replace(/\+/g, ' '));
+    showNeoToast(cleanMsg, { type: 'alert', duration: 6000 });
+    return;
+  }
+
+  if (!accessToken) return;
+
+  try { history.replaceState(null, '', window.location.pathname); } catch {}
+
+  const sessionData = { access_token: accessToken, refresh_token: refreshToken || '' };
+  try {
+    localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
+  } catch {}
+
+  if (authType === 'recovery') {
+    const mNewPass = document.getElementById('modal-new-password');
+    if (mNewPass) mNewPass.classList.add('open');
+    showNeoToast(t('auth_new_password_desc', null, 'Introduce tu nueva contraseña de acceso.'));
+  } else if (authType === 'invite') {
+    const mNewPass = document.getElementById('modal-new-password');
+    if (mNewPass) mNewPass.classList.add('open');
+    showNeoToast(t('auth_invite_accepted', null, '¡Invitación aceptada! Define tu contraseña para comenzar.'));
+  } else if (authType === 'signup') {
+    showNeoToast(t('auth_signup_confirmed', null, '¡Cuenta confirmada con éxito! Bienvenido a Nolli.'));
+  } else if (authType === 'magiclink') {
+    showNeoToast(t('auth_magic_link_success', null, 'Sesión iniciada con éxito mediante Enlace Mágico.'));
+  } else if (authType === 'email_change') {
+    showNeoToast(t('profile_email_updated_success', null, 'Correo electrónico actualizado con éxito.'));
+  } else {
+    showNeoToast(t('auth_login_success', null, 'Sesión iniciada con éxito.'));
+  }
+}
+
+function setupNewPasswordModal() {
+  const modal = document.getElementById('modal-new-password');
+  const btnClose = document.getElementById('btn-new-password-close');
+  const form = document.getElementById('new-password-form');
+  const passInput = document.getElementById('new-password-input');
+  const confirmInput = document.getElementById('confirm-password-input');
+  const errorEl = document.getElementById('new-password-error');
+  const btnSubmit = document.getElementById('btn-submit-new-password');
+  const toggleBtn = document.getElementById('toggle-new-password');
+
+  if (!modal) return;
+
+  const close = () => {
+    modal.classList.remove('open');
+    if (passInput) passInput.value = '';
+    if (confirmInput) confirmInput.value = '';
+    if (errorEl) errorEl.classList.add('hidden');
+  };
+
+  btnClose?.addEventListener('click', close);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) close();
+  });
+
+  if (toggleBtn && passInput) {
+    toggleBtn.addEventListener('click', () => {
+      const showing = passInput.type === 'text';
+      passInput.type = showing ? 'password' : 'text';
+      toggleBtn.setAttribute('aria-label', showing ? t('auth_show_password_aria', null, 'Mostrar contraseña') : t('auth_hide_password_aria', null, 'Ocultar contraseña'));
+      toggleBtn.setAttribute('aria-pressed', String(!showing));
+      toggleBtn.innerHTML = showing
+        ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>'
+        : '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>';
+    });
+  }
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (errorEl) errorEl.classList.add('hidden');
+    const p1 = passInput?.value || '';
+    const p2 = confirmInput?.value || '';
+
+    if (p1.length < 6) {
+      if (errorEl) {
+        errorEl.textContent = t('auth_password_len_err', null, 'La contraseña debe tener al menos 6 caracteres.');
+        errorEl.classList.remove('hidden');
+      }
+      return;
+    }
+    if (p1 !== p2) {
+      if (errorEl) {
+        errorEl.textContent = t('auth_password_match_err', null, 'Las contraseñas no coinciden.');
+        errorEl.classList.remove('hidden');
+      }
+      return;
+    }
+
+    const token = getSessionToken();
+    if (!token) {
+      if (errorEl) {
+        errorEl.textContent = 'Enlace caducado o sin sesión activa. Solicita un nuevo enlace.';
+        errorEl.classList.remove('hidden');
+      }
+      return;
+    }
+
+    btnSubmit.disabled = true;
+    const oldLabel = btnSubmit.textContent;
+    btnSubmit.textContent = 'ACTUALIZANDO...';
+
+    try {
+      await updateUserPassword(token, p1);
+      close();
+      showNeoToast(t('auth_password_success', null, 'Contraseña actualizada con éxito.'));
+    } catch (err) {
+      if (errorEl) {
+        errorEl.textContent = err.message || 'Error al actualizar contraseña.';
+        errorEl.classList.remove('hidden');
+      }
+    } finally {
+      btnSubmit.disabled = false;
+      btnSubmit.textContent = oldLabel;
+    }
+  });
+}
+
+function setupVerifyOtpModal() {
+  const modal = document.getElementById('modal-verify-otp');
+  const btnClose = document.getElementById('btn-verify-otp-close');
+  const form = document.getElementById('verify-otp-form');
+  const otpInput = document.getElementById('otp-code-input');
+  const errorEl = document.getElementById('otp-error');
+  const btnSubmit = document.getElementById('btn-submit-otp');
+
+  if (!modal) return;
+
+  const close = () => {
+    modal.classList.remove('open');
+    if (otpInput) otpInput.value = '';
+    if (errorEl) errorEl.classList.add('hidden');
+  };
+
+  btnClose?.addEventListener('click', close);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) close();
+  });
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (errorEl) errorEl.classList.add('hidden');
+    const code = otpInput?.value.trim() || '';
+
+    if (code.length !== 6) {
+      if (errorEl) {
+        errorEl.textContent = 'El código debe tener exactamente 6 dígitos.';
+        errorEl.classList.remove('hidden');
+      }
+      return;
+    }
+
+    btnSubmit.disabled = true;
+    const oldLabel = btnSubmit.textContent;
+    btnSubmit.textContent = 'VERIFICANDO...';
+
+    try {
+      const email = profileState.user?.email || (document.getElementById('login-email')?.value.trim()) || '';
+      const data = await verifyOtpToken(email, code, 'email');
+      if (data?.access_token) {
+        const sessionData = { access_token: data.access_token, refresh_token: data.refresh_token || '' };
+        localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
+        await init();
+      }
+      close();
+      showNeoToast(t('auth_otp_success', null, 'Código verificado correctamente.'));
+    } catch (err) {
+      if (errorEl) {
+        errorEl.textContent = err.message || 'Código no válido o caducado.';
+        errorEl.classList.remove('hidden');
+      }
+    } finally {
+      btnSubmit.disabled = false;
+      btnSubmit.textContent = oldLabel;
+    }
+  });
 }
 
 // Iniciar al cargar el DOM

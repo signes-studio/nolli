@@ -331,6 +331,16 @@
           <input type="text" id="edit-profile-school" class="tech-input" placeholder="p.ej. ETSAM, ETSAB, Architectural Association..." autocomplete="organization">
         </div>
 
+        <div class="profile-form-group profile-email-group" style="border-top: 1px solid rgba(0, 0, 0, 0.08); padding-top: 16px; margin-top: 8px;">
+          <label class="profile-form-label" for="edit-profile-email" data-i18n="profile_edit_email_label">CORREO ELECTRÓNICO ASOCIADO</label>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <input type="email" id="edit-profile-email" class="tech-input" placeholder="usuario@correo.com" autocomplete="email" style="flex:1;">
+            <button type="button" id="btn-change-email" class="btn btn-auth-primary" style="padding:8px 14px; font-size:11px; white-space:nowrap; cursor:pointer;" data-i18n="profile_btn_change_email">ACTUALIZAR EMAIL</button>
+          </div>
+          <p class="filter-lang-note" style="margin-top:4px;" data-i18n="profile_email_hint">Recibirás un correo de confirmación en la nueva dirección para validar el cambio.</p>
+          <div id="profile-email-status" class="profile-edit-status hidden" style="margin-top:8px;"></div>
+        </div>
+
         <div class="profile-form-group">
           <label class="profile-form-label" data-i18n="profile_language_label">IDIOMA // PREFERENCIA DE INTERFAZ</label>
           <p class="filter-lang-note" data-i18n="lang_device_hint">Por defecto se adapta al idioma del dispositivo. Puedes fijar una preferencia:</p>
@@ -525,6 +535,7 @@
           <div id="login-error" class="text-[10px] text-red-500 hidden mt-1" role="alert"></div>
           <label class="keep-session login-entry-field"><input id="keep-session" type="checkbox" checked> <span data-i18n="auth_keep_session">MANTENER SESIÓN INICIADA</span></label>
           <button id="btn-forgot-password" type="button" class="forgot-password login-entry-field" data-i18n="auth_forgot_password">¿OLVIDASTE LA CONTRASEÑA?</button>
+          <button id="btn-request-magic-link" type="button" class="forgot-password login-entry-field" style="margin-top: 4px;" data-i18n="auth_btn_magic_link">ACCEDER CON ENLACE MÁGICO (SIN CONTRASEÑA)</button>
           <button id="btn-do-login" type="submit" class="btn btn-auth-primary mt-2 w-full login-entry-field" data-i18n="auth_btn_login">AUTORIZAR ACCESO</button>
           <button id="btn-register-mode" type="button" class="btn btn-auth-secondary mt-1 w-full login-entry-field" data-i18n="auth_btn_register_mode">CREAR CUENTA</button>
           <div class="guest-login-block login-entry-field">
@@ -548,6 +559,77 @@
           <div class="register-success-meta" id="register-success-email"></div>
           <button type="button" id="btn-success-to-login" class="btn btn-auth-primary w-full mt-2" data-i18n="auth_btn_back_login">VOLVER AL INICIO DE SESIÓN</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Definir Nueva Contraseña (Recuperación / Invitación) -->
+  <div id="modal-new-password" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-new-password-title">
+    <div class="modal-box">
+      <div class="modal-head">
+        <div class="flex items-center gap-2">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          <span id="modal-new-password-title" style="letter-spacing:.06em; font-size:11px;" data-i18n="auth_new_password_title">NUEVA CONTRASEÑA</span>
+        </div>
+        <button type="button" id="btn-new-password-close" class="sheet-close-button" aria-label="Cerrar modal" data-i18n-aria="common_close">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="login-brand-header">
+          <div class="login-brand-eyebrow" data-i18n="auth_brand_eyebrow">GUÍA COLECTIVA DE ARQUITECTURA</div>
+          <div class="login-brand-logo">nolli<span class="text-accent" style="color:var(--accent)">.</span></div>
+          <p class="login-brand-desc" data-i18n="auth_new_password_desc">Introduce y confirma tu nueva clave de acceso para asegurar tu cuenta.</p>
+        </div>
+        <form id="new-password-form" class="flex flex-col gap-3" autocomplete="on">
+          <div class="login-entry-field password-field">
+            <label for="new-password-input" class="tech-label" data-i18n="auth_label_new_password">NUEVA CONTRASEÑA_</label>
+            <div class="password-input-wrap">
+              <input type="password" id="new-password-input" name="new-password" placeholder="••••••••" class="tech-input" autocomplete="new-password" minlength="6" required>
+              <button type="button" id="toggle-new-password" class="password-toggle" aria-label="Mostrar contraseña" aria-pressed="false" data-i18n-aria="auth_show_password_aria">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              </button>
+            </div>
+          </div>
+          <div class="login-entry-field password-field">
+            <label for="confirm-password-input" class="tech-label" data-i18n="auth_label_confirm_password">REPETIR CONTRASEÑA_</label>
+            <div class="password-input-wrap">
+              <input type="password" id="confirm-password-input" name="confirm-password" placeholder="••••••••" class="tech-input" autocomplete="new-password" minlength="6" required>
+            </div>
+          </div>
+          <div id="new-password-error" class="text-[10px] text-red-500 hidden mt-1" role="alert"></div>
+          <button id="btn-submit-new-password" type="submit" class="btn btn-auth-primary mt-2 w-full" data-i18n="auth_btn_save_new_password">GUARDAR NUEVA CONTRASEÑA</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Verificación de Seguridad OTP / Reautenticación -->
+  <div id="modal-verify-otp" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-verify-otp-title">
+    <div class="modal-box">
+      <div class="modal-head">
+        <div class="flex items-center gap-2">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span id="modal-verify-otp-title" style="letter-spacing:.06em; font-size:11px;" data-i18n="auth_otp_title">VERIFICACIÓN DE SEGURIDAD</span>
+        </div>
+        <button type="button" id="btn-verify-otp-close" class="sheet-close-button" aria-label="Cerrar modal" data-i18n-aria="common_close">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="login-brand-header">
+          <div class="login-brand-eyebrow" data-i18n="auth_brand_eyebrow">GUÍA COLECTIVA DE ARQUITECTURA</div>
+          <div class="login-brand-logo">nolli<span class="text-accent" style="color:var(--accent)">.</span></div>
+          <p class="login-brand-desc" id="otp-modal-description" data-i18n="auth_otp_desc">Introduce el código de 6 dígitos que hemos enviado a tu correo.</p>
+        </div>
+        <form id="verify-otp-form" class="flex flex-col gap-3" autocomplete="off">
+          <div class="login-entry-field">
+            <label for="otp-code-input" class="tech-label" data-i18n="auth_label_otp">CÓDIGO DE VERIFICACIÓN (6 DÍGITOS)_</label>
+            <input type="text" id="otp-code-input" name="otp-code" placeholder="••••••" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" class="tech-input text-center" style="letter-spacing: 6px; font-family: 'League Spartan', monospace, sans-serif; font-size: 22px; padding: 10px; font-weight: 800;" required>
+          </div>
+          <div id="otp-error" class="text-[10px] text-red-500 hidden mt-1" role="alert"></div>
+          <button id="btn-submit-otp" type="submit" class="btn btn-auth-primary mt-2 w-full" data-i18n="auth_btn_verify_otp">VERIFICAR CÓDIGO</button>
+        </form>
       </div>
     </div>
   </div>
