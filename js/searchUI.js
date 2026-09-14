@@ -597,3 +597,9 @@ export function abrirBusquedaConQuery(query) {
     setTimeout(() => input.focus(), 100);
   }
 }
+
+export function abrirBuscadorConModo(modo = 'places', options = {}) {
+  if (typeof window !== 'undefined' && typeof window.__nolliAbrirBuscador === 'function') {
+    window.__nolliAbrirBuscador(modo, options);
+  }
+}

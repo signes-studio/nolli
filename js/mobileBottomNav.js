@@ -8,10 +8,11 @@
    ========================================================================= */
 
 import { state, esRolAdmin, separarArquitectos, normalizarCategoria, normalizarImportancia, formatCategoria, CATEGORY_COLORS, CATEGORY_META, escapeHtml } from './state.js';
-import { getBuildingsCatalog } from './api.js';
+import { getBuildingsCatalog, searchPlaces } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { activarFiltroBusquedaEnMapa } from './searchUI.js';
-import { localizarDispositivo } from './mapController.js';
+import { localizarDispositivo, actualizarMarcadorUbicacion } from './mapController.js';
+import { showNeoToast } from './renderUtils.js';
 import { t } from './i18n.js';
 import { renderObraCard } from './workCard.js';
 
@@ -714,14 +715,156 @@ function initMobileSearchWidget() {
     return score;
   }
 
-  let searchDebounce = null;
-  let currentMobileMatches = [];
+  const tabsContainer = document.getElementById('mobile-search-tabs');
+  const tabCatalog = document.getElementById('tab-search-catalog');
+  const tabPlaces = document.getElementById('tab-search-places');
 
-  input.addEventListener('input', () => {
-    openSearch();
+  let currentSearchMode = 'catalog'; // 'catalog' | 'places'
+  let currentMobileMatches = [];
+  let currentPlaceResults = [];
+  let searchDebounce = null;
+  let placesDebounceTimer = null;
+  let placesRequestId = 0;
+  let isSearchingFromRadar = false;
+
+  function setBusquedaMode(mode) {
+    currentSearchMode = mode;
+    if (tabCatalog) {
+      const isCat = mode === 'catalog';
+      tabCatalog.classList.toggle('active', isCat);
+      tabCatalog.setAttribute('aria-selected', String(isCat));
+    }
+    if (tabPlaces) {
+      const isPlace = mode === 'places';
+      tabPlaces.classList.toggle('active', isPlace);
+      tabPlaces.setAttribute('aria-selected', String(isPlace));
+    }
+    if (input) {
+      input.placeholder = mode === 'places'
+        ? t('search_placeholder_places', null, 'buscar cualquier ciudad o dirección en el mundo...')
+        : t('search_placeholder_catalog', null, 'buscar obra, arquitecto o ciudad...');
+    }
+    if (input && input.value.trim().length >= 1) {
+      ejecutarBusqueda();
+    }
+  }
+
+  tabCatalog?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    setBusquedaMode('catalog');
+    input.focus();
+  });
+
+  tabPlaces?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    setBusquedaMode('places');
+    input.focus();
+  });
+
+  function calcularZoomPorTipoLugar(place) {
+    const type = Array.isArray(place?.place_type) ? place.place_type[0] : '';
+    switch (type) {
+      case 'country':
+        return 5.0;
+      case 'region':
+        return 8.0;
+      case 'place':
+      case 'district':
+        return 12.5;
+      case 'locality':
+      case 'neighborhood':
+        return 14.5;
+      case 'address':
+        return 16.5;
+      default:
+        return 13.0;
+    }
+  }
+
+  function getPlaceTypeLabel(place) {
+    const type = Array.isArray(place?.place_type) ? place.place_type[0] : '';
+    switch (type) {
+      case 'country': return 'PAÍS';
+      case 'region': return 'REGIÓN';
+      case 'place': return 'CIUDAD';
+      case 'locality': return 'LOCALIDAD';
+      case 'neighborhood': return 'BARRIO';
+      case 'address': return 'DIRECCIÓN';
+      default: return 'LUGAR';
+    }
+  }
+
+  function ejecutarBusquedaLugares(rawVal) {
+    clearTimeout(placesDebounceTimer);
+    const reqId = ++placesRequestId;
+    resultsContainer.innerHTML = `
+      <div style="padding: 16px 12px; font-family: 'Inter', sans-serif; font-size: 11px; color: var(--fg-dim); text-align: center;">${t('search_searching_locations', null, 'BUSCANDO UBICACIONES...')}</div>
+    `;
+    showDropdown();
+
+    placesDebounceTimer = setTimeout(async () => {
+      try {
+        const lang = state.lang || 'es';
+        const data = await searchPlaces(rawVal, lang);
+        if (reqId !== placesRequestId) return;
+        const places = data.features || [];
+        currentPlaceResults = places;
+
+        if (!places.length) {
+          resultsContainer.innerHTML = `
+            <div style="padding: 18px 12px; font-family: 'Inter', sans-serif; font-size: 11px; color: var(--fg-dim); text-align: center;">
+              <div style="font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">${t('search_no_places_found', null, 'No se encontró ese lugar')}</div>
+              <div style="font-size: 10px; opacity: 0.8;">Prueba con otra ciudad, código postal o país.</div>
+            </div>
+          `;
+          showDropdown();
+          return;
+        }
+
+        const helperBanner = `
+          <div class="places-helper-banner">
+            <span>${t('search_places_desc', null, 'Búsqueda global Mapbox · Cualquier lugar del mundo')}</span>
+            <span style="font-weight: 700; letter-spacing: 0.04em;">${places.length} SUGERENCIAS</span>
+          </div>
+        `;
+
+        const itemsHtml = places.slice(0, 5).map((place, idx) => {
+          const typeLabel = getPlaceTypeLabel(place);
+          const mainName = escapeHtml(place.text || place.place_name.split(',')[0]);
+          const subContext = escapeHtml(place.place_name || '');
+          return `
+            <button type="button" class="place-suggestion-item" data-place-index="${idx}" role="option" aria-label="${mainName}">
+              <div class="place-suggestion-icon" aria-hidden="true">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/><circle cx="12" cy="10" r="3"/></svg>
+              </div>
+              <div class="place-suggestion-content">
+                <span class="place-suggestion-main">${mainName}</span>
+                <span class="place-suggestion-sub">${subContext}</span>
+              </div>
+              <span class="place-type-badge">${typeLabel}</span>
+            </button>
+          `;
+        }).join('');
+
+        resultsContainer.innerHTML = helperBanner + itemsHtml;
+        showDropdown();
+      } catch (error) {
+        if (reqId !== placesRequestId) return;
+        console.warn('Degradación elegante: error buscando lugares con Mapbox:', error);
+        resultsContainer.innerHTML = `
+          <div style="padding: 16px 12px; font-family: 'Inter', sans-serif; font-size: 11px; color: var(--fg-dim); text-align: center;">
+            <div style="font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">${t('search_places_error', null, 'Búsqueda de lugares no disponible momentáneamente')}</div>
+            <div style="font-size: 10px; opacity: 0.8;">Continúa navegando en el mapa o catálogo de obras.</div>
+          </div>
+        `;
+        showDropdown();
+      }
+    }, 350);
+  }
+
+  function ejecutarBusquedaCatalogo(rawVal) {
     clearTimeout(searchDebounce);
     searchDebounce = setTimeout(async () => {
-      const rawVal = input.value.trim();
       const q = normalize(rawVal);
       if (!q || q.length < 1) {
         hideDropdown();
@@ -737,10 +880,7 @@ function initMobileSearchWidget() {
         showDropdown();
       }
 
-      // Obtener todas las obras (base de datos completa + estado local + obras privadas/recién añadidas)
       const todasLasObras = await cargarTodasObrasMobile();
-
-      // Descartar si el usuario modificó el texto mientras resolvía la promesa
       if (normalize(input.value.trim()) !== q) return;
 
       const mapaObras = new Map();
@@ -765,7 +905,6 @@ function initMobileSearchWidget() {
         return obra._searchHaystack.includes(q) || tokens.every((token) => obra._searchHaystack.includes(token));
       });
 
-      // Ordenar por relevancia semántica
       matches.sort((a, b) => {
         const scoreB = calcularPuntuacionObra(b, q, tokens);
         const scoreA = calcularPuntuacionObra(a, q, tokens);
@@ -777,8 +916,18 @@ function initMobileSearchWidget() {
 
       if (!matches.length) {
         resultsContainer.innerHTML = `
-          <div style="padding: 16px 12px; font-family: 'Inter', sans-serif; font-size: 11px; color: var(--fg-dim); text-align: center; text-transform: uppercase;">${t('search_no_results_db', null, 'SIN RESULTADOS EN LA BASE DE DATOS')}</div>
+          <div style="padding: 16px 12px; font-family: 'Inter', sans-serif; font-size: 11px; color: var(--fg-dim); text-align: center;">
+            <div style="text-transform: uppercase; font-weight: 700; margin-bottom: 6px;">${t('search_no_results_db', null, 'SIN RESULTADOS EN EL CATÁLOGO')}</div>
+            <button type="button" id="btn-switch-to-places" style="display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; background: var(--bg-raised); color: var(--fg); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; padding: 6px 12px; font-size: 10px; font-weight: 600; cursor: pointer;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span>¿BUSCAR EN CIUDADES DEL MUNDO? →</span>
+            </button>
+          </div>
         `;
+        resultsContainer.querySelector('#btn-switch-to-places')?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          setBusquedaMode('places');
+        });
         showDropdown();
         return;
       }
@@ -801,20 +950,50 @@ function initMobileSearchWidget() {
       if (window.lucide) window.lucide.createIcons({ context: resultsContainer });
       showDropdown();
     }, 90);
+  }
+
+  function ejecutarBusqueda() {
+    const rawVal = input.value.trim();
+    if (!rawVal || rawVal.length < 1) {
+      hideDropdown();
+      if (resultsContainer) resultsContainer.innerHTML = '';
+      currentMobileMatches = [];
+      currentPlaceResults = [];
+      return;
+    }
+
+    if (currentSearchMode === 'places') {
+      ejecutarBusquedaLugares(rawVal);
+    } else {
+      ejecutarBusquedaCatalogo(rawVal);
+    }
+  }
+
+  input.addEventListener('input', () => {
+    openSearch();
+    ejecutarBusqueda();
   });
 
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      const q = input.value.trim();
-      if (q) {
+      const rawVal = input.value.trim();
+      if (!rawVal) return;
+
+      if (currentSearchMode === 'places') {
+        if (currentPlaceResults && currentPlaceResults.length > 0) {
+          seleccionarLugarDesdeBuscador(currentPlaceResults[0]);
+        } else {
+          ejecutarBusquedaLugares(rawVal);
+        }
+      } else {
         const matchesToApply = currentMobileMatches && currentMobileMatches.length ? currentMobileMatches : null;
         hideDropdown();
         if (window.innerWidth > 768) {
           widget.classList.remove('expanded');
           widget.classList.add('collapsed');
         }
-        activarFiltroBusquedaEnMapa(q, matchesToApply);
+        activarFiltroBusquedaEnMapa(rawVal, matchesToApply);
       }
     }
   });
@@ -832,7 +1011,6 @@ function initMobileSearchWidget() {
         widget.classList.add('collapsed');
       }
 
-      // Si la obra no estaba cargada en el mapa actual, la incorporamos
       if (!state.OBRAS.some((o) => String(o.id) === String(obra.id))) {
         state.OBRAS.push(obra);
         actualizarFuenteMapa();
@@ -856,7 +1034,62 @@ function initMobileSearchWidget() {
     }
   }
 
+  async function seleccionarLugarDesdeBuscador(place) {
+    if (!place || !place.center) return;
+    const center = place.center; // [lng, lat]
+    const zoom = calcularZoomPorTipoLugar(place);
+
+    if (state.map) {
+      state.map.flyTo({
+        center,
+        zoom,
+        essential: true,
+        duration: 1400,
+      });
+    }
+
+    const placeName = place.text || (place.place_name ? place.place_name.split(',')[0] : 'Lugar');
+
+    if (state.activeItinerary && (state.activeItinerary.isSearch || String(state.activeItinerary.id || '').startsWith('search-'))) {
+      state.activeItinerary = null;
+      document.getElementById('itinerary-filter-badge')?.classList.add('hidden');
+      actualizarFuenteMapa();
+    }
+
+    const radarPanel = document.getElementById('radar-panel');
+    const wasFromRadar = isSearchingFromRadar || (radarPanel && radarPanel.classList.contains('open'));
+
+    closeSearch();
+
+    if (wasFromRadar) {
+      isSearchingFromRadar = false;
+      state.isManualLocation = true;
+      state.manualLocationName = placeName;
+      actualizarMarcadorUbicacion(center);
+
+      import('./radarUI.js').then(({ actualizarEstadoGPSUI, renderRadarUI, renderCuratedCarousel }) => {
+        actualizarEstadoGPSUI();
+        renderRadarUI();
+        renderCuratedCarousel();
+        if (radarPanel) radarPanel.classList.add('open');
+        showNeoToast(t('radar_manual_location_toast', { name: placeName }, `Ubicación manual fijada en ${placeName}`));
+      }).catch((err) => {
+        console.warn('Error refrescando radar:', err);
+      });
+    }
+  }
+
   resultsContainer?.addEventListener('click', async (e) => {
+    const placeItem = e.target.closest('.place-suggestion-item');
+    if (placeItem) {
+      e.stopPropagation();
+      const idx = Number(placeItem.dataset.placeIndex);
+      if (currentPlaceResults && currentPlaceResults[idx]) {
+        seleccionarLugarDesdeBuscador(currentPlaceResults[idx]);
+      }
+      return;
+    }
+
     const filterBtn = e.target.closest('[data-action="filter-all-matches"]');
     if (filterBtn) {
       e.stopPropagation();
@@ -880,6 +1113,16 @@ function initMobileSearchWidget() {
 
   resultsContainer?.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
+      const placeItem = e.target.closest('.place-suggestion-item');
+      if (placeItem) {
+        e.preventDefault();
+        const idx = Number(placeItem.dataset.placeIndex);
+        if (currentPlaceResults && currentPlaceResults[idx]) {
+          seleccionarLugarDesdeBuscador(currentPlaceResults[idx]);
+        }
+        return;
+      }
+
       const item = e.target.closest('.mobile-search-item');
       if (item) {
         e.preventDefault();
@@ -888,6 +1131,18 @@ function initMobileSearchWidget() {
       }
     }
   });
+
+  // Exportar helper para apertura programática desde otros módulos (ej. Radar)
+  window.__nolliAbrirBuscador = function(modo = 'places', options = {}) {
+    isSearchingFromRadar = Boolean(options.fromRadar);
+    openSearch();
+    setBusquedaMode(modo);
+    if (options.query) {
+      input.value = options.query;
+      ejecutarBusqueda();
+    }
+    setTimeout(() => input.focus(), 120);
+  };
 
   document.addEventListener('click', (e) => {
     if (widget.classList.contains('expanded') && !widget.contains(e.target)) {
@@ -1086,3 +1341,10 @@ function initSheetTouchGestures() {
     });
   });
 }
+
+export function abrirBuscadorConModo(modo = 'places', options = {}) {
+  if (typeof window !== 'undefined' && typeof window.__nolliAbrirBuscador === 'function') {
+    window.__nolliAbrirBuscador(modo, options);
+  }
+}
+

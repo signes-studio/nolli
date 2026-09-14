@@ -8,6 +8,7 @@ import { getOptimizedPhotoUrl } from './imageProxy.js';
 import { CURATED_ROUTES, matchWorksForRoute } from './itinerariesConfig.js';
 import { t } from './i18n.js';
 import { renderObraCard } from './workCard.js';
+import { abrirBuscadorConModo } from './mobileBottomNav.js';
 
 export { CURATED_ROUTES, matchWorksForRoute };
 
@@ -219,6 +220,8 @@ function getRadarCenter() {
 }
 
 export function solicitarUbicacionGPS() {
+  state.isManualLocation = false;
+  state.manualLocationName = null;
   if (!navigator.geolocation) {
     showNeoToast(t('radar_gps_unavailable'));
     return;
@@ -245,19 +248,26 @@ export function solicitarUbicacionGPS() {
 
 export function actualizarEstadoGPSUI() {
   const badge = document.getElementById('radar-status-badge');
-  const isGpsActive = hasActiveGpsFix();
+  const isManual = Boolean(state.isManualLocation);
+  const isGpsActive = !isManual && hasActiveGpsFix();
 
   if (badge) {
     if (isGpsActive) {
-      badge.textContent = 'GPS ACTIVO';
-      badge.style.color = '#FFFFFF';
-      badge.style.background = 'var(--accent, #E95C0C)';
-      badge.style.borderColor = 'var(--accent, #E95C0C)';
+      badge.textContent = t('radar_gps_active_badge', null, 'GPS ACTIVO');
+      badge.style.color = 'var(--bg, rgb(248, 241, 223))';
+      badge.style.background = 'var(--accent, rgb(233, 92, 12))';
+      badge.style.borderColor = 'var(--accent, rgb(233, 92, 12))';
+    } else if (isManual) {
+      const cityName = (state.manualLocationName || '').trim();
+      badge.textContent = `${t('radar_manual_location_badge', null, 'UBICACIÓN MANUAL')}${cityName ? `: ${cityName.toUpperCase()}` : ''}`;
+      badge.style.color = 'var(--bg, rgb(248, 241, 223))';
+      badge.style.background = 'var(--accent, rgb(233, 92, 12))';
+      badge.style.borderColor = 'var(--accent, rgb(233, 92, 12))';
     } else {
       badge.textContent = 'UBICACIÓN: VALENCIA';
-      badge.style.color = 'var(--fg-dim, #6B6B6B)';
-      badge.style.background = 'var(--bg-raised, #F0E9D2)';
-      badge.style.borderColor = 'var(--border-strong, #141411)';
+      badge.style.color = 'var(--fg-dim, rgb(107, 107, 107))';
+      badge.style.background = 'var(--bg-raised, rgb(240, 233, 210))';
+      badge.style.borderColor = 'var(--border-strong, rgb(20, 20, 17))';
     }
   }
 
@@ -269,6 +279,23 @@ export function actualizarEstadoGPSUI() {
         notice = document.createElement('div');
         notice.id = 'radar-gps-notice';
         notice.style.cssText = 'padding: 12px 14px; background: var(--bg-raised, rgb(240, 233, 210)); border: 1px solid rgba(0, 0, 0, 0.08); font-size: 11px; display: flex; flex-direction: column; gap: 8px; border-radius: 8px !important; margin-bottom: 12px;';
+        container.prepend(notice);
+      }
+
+      if (isManual) {
+        const placeTitle = escapeHtml(state.manualLocationName || 'ciudad');
+        notice.innerHTML = `
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+            <span style="font-weight: 600; font-family: 'Inter', sans-serif; font-size: 12px; color: var(--fg); text-transform: lowercase;">${t('radar_manual_location_notice_title', null, 'modo ubicación manual')}</span>
+            <span style="font-size: 10px; font-weight: 700; color: var(--accent, rgb(233, 92, 12)); text-transform: uppercase;">${placeTitle}</span>
+          </div>
+          <p style="margin: 0; font-size: 11px; color: var(--fg-dim); line-height: 1.4;">${t('radar_manual_location_notice_desc', null, 'Obras calculadas según este punto. Para volver a tu posición física real, activa el GPS.')}</p>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" id="btn-radar-request-gps" style="background: var(--fg, rgb(20, 20, 17)); color: var(--bg, rgb(248, 241, 223)); border: 1px solid rgba(0, 0, 0, 0.1); border-radius: 6px; padding: 6px 12px; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 500; text-transform: lowercase; cursor: pointer;">${t('radar_activate_gps', null, 'activar gps')}</button>
+            <button type="button" id="btn-radar-go-search" style="background: transparent; color: var(--fg, rgb(20, 20, 17)); border: 1px solid rgba(0, 0, 0, 0.1); border-radius: 6px; padding: 6px 12px; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 500; text-transform: lowercase; cursor: pointer;">${t('radar_btn_change_city', null, 'cambiar ciudad')}</button>
+          </div>
+        `;
+      } else {
         notice.innerHTML = `
           <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
             <span style="font-weight: 600; font-family: 'Inter', sans-serif; font-size: 12px; color: var(--fg); text-transform: lowercase;">sin acceso a gps</span>
@@ -280,17 +307,16 @@ export function actualizarEstadoGPSUI() {
             <button type="button" id="btn-radar-go-search" style="background: transparent; color: var(--fg, rgb(20, 20, 17)); border: 1px solid rgba(0, 0, 0, 0.1); border-radius: 6px; padding: 6px 12px; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 500; text-transform: lowercase; cursor: pointer;">buscar ciudad</button>
           </div>
         `;
-        container.prepend(notice);
-
-        document.getElementById('btn-radar-request-gps')?.addEventListener('click', () => {
-          solicitarUbicacionGPS();
-        });
-
-        document.getElementById('btn-radar-go-search')?.addEventListener('click', () => {
-          document.getElementById('radar-panel')?.classList.remove('open');
-          document.getElementById('btn-search')?.click();
-        });
       }
+
+      document.getElementById('btn-radar-request-gps')?.addEventListener('click', () => {
+        solicitarUbicacionGPS();
+      });
+
+      document.getElementById('btn-radar-go-search')?.addEventListener('click', () => {
+        document.getElementById('radar-panel')?.classList.remove('open');
+        abrirBuscadorConModo('places', { fromRadar: true });
+      });
     } else if (notice) {
       notice.remove();
     }

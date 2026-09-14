@@ -12,16 +12,36 @@ let catalogPromise = null;
 const CATALOG_CACHE_KEY = 'nolli:buildings-catalog:v2';
 const CATALOG_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
-export async function searchPlaces(query) {
+// Cache en memoria para geocodificación de lugares (últimas 20 búsquedas por sesión)
+const placesMemoryCache = new Map();
+const MAX_PLACES_CACHE_SIZE = 20;
+
+export async function searchPlaces(query, language = 'es') {
+  const cleanQuery = String(query || '').trim();
+  if (!cleanQuery) return { type: 'FeatureCollection', features: [] };
+
+  const cacheKey = `${cleanQuery.toLowerCase()}_${language}`;
+  if (placesMemoryCache.has(cacheKey)) {
+    return placesMemoryCache.get(cacheKey);
+  }
+
   const params = new URLSearchParams({
     access_token: MAPBOX_TOKEN,
-    language: 'es',
+    language: language || 'es',
     limit: '5',
-    types: 'place,locality,neighborhood,address,poi',
+    types: 'place,locality,address,region,country',
   });
-  const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?${params.toString()}`);
+  const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(cleanQuery)}.json?${params.toString()}`);
   if (!response.ok) throw new Error(`Error ${response.status}`);
-  return response.json();
+  const data = await response.json();
+
+  if (placesMemoryCache.size >= MAX_PLACES_CACHE_SIZE) {
+    const oldestKey = placesMemoryCache.keys().next().value;
+    placesMemoryCache.delete(oldestKey);
+  }
+  placesMemoryCache.set(cacheKey, data);
+
+  return data;
 }
 
 /** Descarga obras específicas por su ID buscando primero en catálogo local (0 egress). */
