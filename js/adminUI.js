@@ -3,7 +3,8 @@
    Arquitectura Serverless Blindada + Frontend Vanilla Neo-Bauhaus
    ========================================================================= */
 
-import { state, separarArquitectos, esRolAdmin, escapeHtml, formatearImportancia, transformarEdificio, dedupeBuildings } from './state.js';
+import { state, separarArquitectos, esRolAdmin, escapeHtml, formatearImportancia, transformarEdificio, dedupeBuildings, CATEGORY_META } from './state.js';
+import { getOptimizedPhotoUrl } from './imageProxy.js';
 import { 
   deleteBuilding, 
   fetchRatingAverages, 
@@ -42,6 +43,15 @@ const userList = document.getElementById('admin-user-list');
 const userSearch = document.getElementById('admin-user-search');
 const userCount = document.getElementById('admin-user-count');
 const toolbar = document.querySelector('.admin-toolbar');
+const importanceFilter = document.getElementById('admin-importance-filter');
+const categoryFilter = document.getElementById('admin-category-filter');
+const auditFilter = document.getElementById('admin-audit-filter');
+const cityFilter = document.getElementById('admin-city-filter');
+const clearSearchBtn = document.getElementById('btn-admin-clear-search');
+const resetFiltersBtn = document.getElementById('btn-admin-reset-filters');
+const viewDensityBtn = document.getElementById('btn-admin-view-density');
+const densityLabel = document.getElementById('admin-density-label');
+const kpiBar = document.getElementById('admin-kpi-bar');
 
 const cityCache = new Map();
 let ratingAverages = new Map();
@@ -54,6 +64,12 @@ const expandedFloatingArqs = new Set();
 let isTogglingAdmin = false;
 let searchDebounceTimer = null;
 let archSearchDebounceTimer = null;
+let dynamicOptionsInitialized = false;
+let activeAdminObraId = null;
+
+const adminFiltersState = {
+  kpi: 'all',
+};
 
 function cleanDiacritics(str) {
   return String(str || '')
@@ -63,9 +79,31 @@ function cleanDiacritics(str) {
     .trim();
 }
 
+function buildObraCorpus(obra) {
+  const parts = [
+    obra.nombre_obra,
+    obra.arquitecto,
+    obra.ciudad,
+    obra.municipio,
+    obra.place,
+    obra.pais,
+    obra.categoria,
+    obra.estilo,
+    obra.año_construccion,
+    obra.year,
+    obra.id,
+    obra.featureId,
+    obra.descripcion
+  ];
+  return cleanDiacritics(parts.filter(Boolean).join(' '));
+}
+
 function getAdminButtons() {
   return [
     document.getElementById('btn-admin-panel'),
+    document.getElementById('btn-float-admin'),
+    document.getElementById('btn-mobile-admin'),
+    document.getElementById('btn-admin-float'),
   ].filter(Boolean);
 }
 
@@ -78,11 +116,21 @@ export function initAdminUI() {
 
   if (search) {
     search.addEventListener('input', () => {
+      if (clearSearchBtn) clearSearchBtn.classList.toggle('hidden', !search.value.trim());
       clearTimeout(searchDebounceTimer);
       searchDebounceTimer = setTimeout(() => {
         visibleProjectsCount = 50;
         renderList();
       }, 150);
+    });
+  }
+  if (clearSearchBtn) {
+    clearSearchBtn.addEventListener('click', () => {
+      if (search) search.value = '';
+      clearSearchBtn.classList.add('hidden');
+      visibleProjectsCount = 50;
+      renderList();
+      search?.focus();
     });
   }
   if (reviewFilter) {
@@ -92,10 +140,60 @@ export function initAdminUI() {
       actualizarFuenteMapa();
     });
   }
+  [importanceFilter, categoryFilter, auditFilter, cityFilter].forEach((selectEl) => {
+    selectEl?.addEventListener('change', () => {
+      visibleProjectsCount = 50;
+      renderList();
+    });
+  });
   if (sortFilter) {
     sortFilter.addEventListener('change', () => {
       visibleProjectsCount = 50;
       renderList();
+    });
+  }
+  if (kpiBar) {
+    kpiBar.addEventListener('click', (event) => {
+      const pill = event.target.closest('.admin-kpi-pill');
+      if (!pill) return;
+      const targetKpi = pill.dataset.kpiFilter || 'all';
+      if (adminFiltersState.kpi === targetKpi && targetKpi !== 'all') {
+        adminFiltersState.kpi = 'all';
+      } else {
+        adminFiltersState.kpi = targetKpi;
+      }
+      kpiBar.querySelectorAll('.admin-kpi-pill').forEach((p) => {
+        p.classList.toggle('active', (p.dataset.kpiFilter || 'all') === adminFiltersState.kpi);
+      });
+      visibleProjectsCount = 50;
+      renderList();
+    });
+  }
+  if (resetFiltersBtn) {
+    resetFiltersBtn.addEventListener('click', () => {
+      if (search) search.value = '';
+      if (clearSearchBtn) clearSearchBtn.classList.add('hidden');
+      if (reviewFilter) reviewFilter.value = '';
+      if (importanceFilter) importanceFilter.value = '';
+      if (categoryFilter) categoryFilter.value = '';
+      if (auditFilter) auditFilter.value = '';
+      if (cityFilter) cityFilter.value = '';
+      if (sortFilter) sortFilter.value = 'recent';
+      adminFiltersState.kpi = 'all';
+      if (kpiBar) {
+        kpiBar.querySelectorAll('.admin-kpi-pill').forEach((p) => {
+          p.classList.toggle('active', (p.dataset.kpiFilter || 'all') === 'all');
+        });
+      }
+      visibleProjectsCount = 50;
+      renderList();
+    });
+  }
+  if (viewDensityBtn) {
+    viewDensityBtn.addEventListener('click', () => {
+      if (!panel) return;
+      const isCompact = panel.classList.toggle('density-compact');
+      if (densityLabel) densityLabel.textContent = isCompact ? 'DETALLADA' : 'COMPACTA';
     });
   }
   if (architectSearch) {
@@ -155,18 +253,27 @@ export function initAdminUI() {
     }
 
     const mapBtn = event.target.closest('[data-admin-map]');
-    if (mapBtn) {
-      const obraId = mapBtn.dataset.adminMap;
+    const cardBody = event.target.closest('.admin-project-body');
+    const isActionClick = Boolean(event.target.closest('.admin-project-actions'));
+
+    if ((mapBtn || cardBody) && !isActionClick) {
+      const target = mapBtn || cardBody;
+      const obraId = target.dataset.adminMap || target.closest('.admin-project')?.dataset.adminCardId;
       const obra = state.OBRAS.find((item) => String(item.id) === String(obraId) || String(item.featureId) === String(obraId));
       if (obra) {
+        marcarProyectoActivo(obra.id);
         const coords = (Array.isArray(obra.coordenadas) && obra.coordenadas.length === 2 && !isNaN(obra.coordenadas[0]) && obra.coordenadas[0] !== 0)
           ? obra.coordenadas
           : (obra.longitud && obra.latitud ? [Number(obra.longitud), Number(obra.latitud)] : null);
         if (state.map && coords) {
-          state.map.flyTo({ center: coords, zoom: Math.max(state.map.getZoom(), 17) });
+          const isDesktop = window.innerWidth >= 1024;
+          state.map.flyTo({
+            center: coords,
+            zoom: Math.max(state.map.getZoom(), 17),
+            padding: isDesktop ? { left: 450, right: 0, top: 0, bottom: 0 } : { left: 0, right: 0, top: 0, bottom: 0 }
+          });
         }
         document.dispatchEvent(new CustomEvent('radar:open-building', { detail: { obra } }));
-        if (panel) panel.classList.remove('open');
       }
       return;
     }
@@ -561,37 +668,214 @@ function renderCurrentTab() {
   else if (isUsers) renderUsers();
 }
 
+function marcarProyectoActivo(obraId) {
+  activeAdminObraId = obraId ? String(obraId) : null;
+  if (!list) return;
+  list.querySelectorAll('.admin-project').forEach((card) => {
+    card.classList.toggle('admin-project-active', card.dataset.adminCardId === activeAdminObraId);
+  });
+}
+
+function updateAdminKpis(allProjects) {
+  if (!allProjects) return;
+  let pendingCount = 0;
+  let publishedCount = 0;
+  let rejectedCount = 0;
+  let noPhotoCount = 0;
+  let noArqCount = 0;
+
+  for (let i = 0; i < allProjects.length; i++) {
+    const o = allProjects[i];
+    const st = o.estado_revision || 'publicada';
+    if (st === 'pendiente') pendingCount++;
+    else if (st === 'rechazada') rejectedCount++;
+    else publishedCount++;
+
+    const hasPhoto = Boolean(o.foto || o.foto_url || o.imagen || (Array.isArray(o.fotos) && o.fotos.length > 0));
+    if (!hasPhoto) noPhotoCount++;
+
+    const arq = String(o.arquitecto || '').trim().toLowerCase();
+    if (!arq || arq === 'sin arquitecto' || arq === 'desconocido' || arq === 'anónimo' || arq === 'anonimo') {
+      noArqCount++;
+    }
+  }
+
+  const elAll = document.getElementById('kpi-count-all');
+  const elPending = document.getElementById('kpi-count-pending');
+  const elPublished = document.getElementById('kpi-count-published');
+  const elRejected = document.getElementById('kpi-count-rejected');
+  const elNoPhoto = document.getElementById('kpi-count-no-photo');
+  const elNoArq = document.getElementById('kpi-count-no-arq');
+
+  if (elAll) elAll.textContent = allProjects.length;
+  if (elPending) elPending.textContent = pendingCount;
+  if (elPublished) elPublished.textContent = publishedCount;
+  if (elRejected) elRejected.textContent = rejectedCount;
+  if (elNoPhoto) elNoPhoto.textContent = noPhotoCount;
+  if (elNoArq) elNoArq.textContent = noArqCount;
+}
+
+function initAdminDynamicOptions() {
+  if (!state.OBRAS || state.OBRAS.length === 0) return;
+
+  // 1. Opciones dinámicas de Categoría desde CATEGORY_META
+  if (categoryFilter && categoryFilter.options.length <= 1) {
+    const currentVal = categoryFilter.value;
+    const catEntries = Object.entries(CATEGORY_META);
+    categoryFilter.innerHTML = '<option value="">CATEGORÍA: TODAS</option>' +
+      catEntries.map(([key, meta]) => `<option value="${escapeHtml(key)}">${escapeHtml((meta.label || key).toUpperCase())}</option>`).join('');
+    if (currentVal) categoryFilter.value = currentVal;
+  }
+
+  // 2. Opciones dinámicas de Ciudades con recuento de obras
+  if (cityFilter && (cityFilter.options.length <= 1 || !dynamicOptionsInitialized)) {
+    const currentVal = cityFilter.value;
+    const cityCounts = new Map();
+    for (let i = 0; i < state.OBRAS.length; i++) {
+      const o = state.OBRAS[i];
+      const c = (o.ciudad || o.place || o.municipio || '').trim();
+      if (c && c !== 'Ubicación no disponible' && c !== 'LOCALIZACIÓN...') {
+        cityCounts.set(c, (cityCounts.get(c) || 0) + 1);
+      }
+    }
+    const topCities = Array.from(cityCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 45);
+
+    cityFilter.innerHTML = '<option value="">CIUDAD: TODAS</option>' +
+      topCities.map(([c, cnt]) => `<option value="${escapeHtml(c)}">${escapeHtml(c.toUpperCase())} (${cnt})</option>`).join('');
+    if (currentVal) cityFilter.value = currentVal;
+  }
+
+  dynamicOptionsInitialized = true;
+}
+
 async function renderList() {
   if (!state.sessionToken || !esRolAdmin(state.userRole)) {
     renderAuthRequired();
     return;
   }
 
-  const text = (search?.value || '').trim().toLowerCase();
-  const filterVal = reviewFilter?.value || '';
+  initAdminDynamicOptions();
+
+  const allProjects = state.OBRAS || [];
+  updateAdminKpis(allProjects);
+
+  const queryClean = cleanDiacritics(search?.value || '');
+  const queryTokens = queryClean.split(/\s+/).filter(Boolean);
+  const revFilterVal = reviewFilter?.value || '';
+  const impFilterVal = importanceFilter?.value ?? '';
+  const catFilterVal = categoryFilter?.value || '';
+  const auditFilterVal = auditFilter?.value || '';
+  const cityFilterVal = (cityFilter?.value || '').toLowerCase().trim();
   const sortMode = sortFilter?.value || 'recent';
 
-  const allProjects = [...state.OBRAS].sort((a, b) => {
-    // 1. Obras pendientes siempre prioritarias al inicio
+  let filtered = allProjects.filter((obra) => {
+    // A. Filtro KPI
+    if (adminFiltersState.kpi === 'pending') {
+      if (obra.estado_revision !== 'pendiente') return false;
+    } else if (adminFiltersState.kpi === 'published') {
+      if ((obra.estado_revision || 'publicada') !== 'publicada') return false;
+    } else if (adminFiltersState.kpi === 'rejected') {
+      if (obra.estado_revision !== 'rechazada') return false;
+    } else if (adminFiltersState.kpi === 'no-photo') {
+      const hasPhoto = Boolean(obra.foto || obra.foto_url || obra.imagen || (Array.isArray(obra.fotos) && obra.fotos.length > 0));
+      if (hasPhoto) return false;
+    } else if (adminFiltersState.kpi === 'no-arq') {
+      const arq = String(obra.arquitecto || '').trim().toLowerCase();
+      const isUnknown = !arq || arq === 'sin arquitecto' || arq === 'desconocido' || arq === 'anónimo' || arq === 'anonimo';
+      if (!isUnknown) return false;
+    }
+
+    // B. Búsqueda multi-término insensible a diacríticos y orden
+    if (queryTokens.length > 0) {
+      const corpus = buildObraCorpus(obra);
+      const matchesAll = queryTokens.every((token) => corpus.includes(token));
+      if (!matchesAll) return false;
+    }
+
+    // C. Filtro de Estado de Revisión
+    if (revFilterVal) {
+      if (revFilterVal === 'privada') {
+        const isPriv = Boolean(obra.is_personal || obra.is_private || obra.source === 'personal' || obra.origin_source === 'user');
+        if (!isPriv) return false;
+      } else {
+        const st = obra.estado_revision || 'publicada';
+        if (st !== revFilterVal) return false;
+      }
+    }
+
+    // D. Filtro de Jerarquía / Importancia
+    if (impFilterVal !== '') {
+      if (String(obra.importancia ?? '') !== String(impFilterVal)) return false;
+    }
+
+    // E. Filtro de Categoría
+    if (catFilterVal) {
+      if (String(obra.categoria || '').toLowerCase().trim() !== catFilterVal.toLowerCase().trim()) return false;
+    }
+
+    // F. Filtro de Auditoría
+    if (auditFilterVal) {
+      const hasPhoto = Boolean(obra.foto || obra.foto_url || obra.imagen || (Array.isArray(obra.fotos) && obra.fotos.length > 0));
+      const arq = String(obra.arquitecto || '').trim().toLowerCase();
+      const hasArq = Boolean(arq && arq !== 'sin arquitecto' && arq !== 'desconocido' && arq !== 'anónimo' && arq !== 'anonimo');
+      const year = obra.año_construccion || obra.year;
+      const hasYear = Boolean(year && !isNaN(parseInt(year, 10)) && parseInt(year, 10) > 0);
+      const coords = obra.coordenadas;
+      const hasCoords = Array.isArray(coords) && coords.length === 2 && !isNaN(coords[0]) && !isNaN(coords[1]) && coords[0] !== 0 && coords[1] !== 0;
+
+      if (auditFilterVal === 'sin-foto' && hasPhoto) return false;
+      if (auditFilterVal === 'con-foto' && !hasPhoto) return false;
+      if (auditFilterVal === 'sin-arquitecto' && hasArq) return false;
+      if (auditFilterVal === 'sin-ano' && hasYear) return false;
+      if (auditFilterVal === 'sin-coords' && hasCoords) return false;
+    }
+
+    // G. Filtro de Ciudad
+    if (cityFilterVal) {
+      const c = (obra.ciudad || obra.place || obra.municipio || '').toLowerCase().trim();
+      if (c !== cityFilterVal) return false;
+    }
+
+    return true;
+  });
+
+  // Ordenación de resultados
+  filtered.sort((a, b) => {
+    // Pendientes prioritarias al inicio a menos que se use ordenación específica
     if (a.estado_revision === 'pendiente' && b.estado_revision !== 'pendiente') return -1;
     if (b.estado_revision === 'pendiente' && a.estado_revision !== 'pendiente') return 1;
 
-    // 2. Ordenación según el filtro seleccionado
     if (sortMode === 'alpha') {
       return (a.nombre_obra || '').localeCompare(b.nombre_obra || '', 'es', { sensitivity: 'base' });
+    }
+    if (sortMode === 'alpha-desc') {
+      return (b.nombre_obra || '').localeCompare(a.nombre_obra || '', 'es', { sensitivity: 'base' });
+    }
+    if (sortMode === 'imp-desc') {
+      const impA = a.importancia !== undefined && a.importancia !== null ? Number(a.importancia) : 3;
+      const impB = b.importancia !== undefined && b.importancia !== null ? Number(b.importancia) : 3;
+      if (impA !== impB) return impA - impB;
+      return (a.nombre_obra || '').localeCompare(b.nombre_obra || '', 'es', { sensitivity: 'base' });
+    }
+    if (sortMode === 'year-desc') {
+      const yA = parseInt(a.año_construccion || a.year, 10) || 0;
+      const yB = parseInt(b.año_construccion || b.year, 10) || 0;
+      return yB - yA;
+    }
+    if (sortMode === 'year-asc') {
+      const yA = parseInt(a.año_construccion || a.year, 10) || 9999;
+      const yB = parseInt(b.año_construccion || b.year, 10) || 9999;
+      return yA - yB;
     }
     const timeA = a.created_at ? new Date(a.created_at).getTime() : (a.updated_at ? new Date(a.updated_at).getTime() : 0);
     const timeB = b.created_at ? new Date(b.created_at).getTime() : (b.updated_at ? new Date(b.updated_at).getTime() : 0);
     if (sortMode === 'oldest') {
       return timeA - timeB;
     }
-    // Por defecto: 'recent' (más recientes primero)
     return timeB - timeA;
   });
-
-  const filtered = allProjects
-    .filter((obra) => `${obra.nombre_obra || ''} ${obra.arquitecto || ''}`.toLowerCase().includes(text))
-    .filter((obra) => !filterVal || obra.estado_revision === filterVal);
 
   const pendingTotal = allProjects.filter((o) => o.estado_revision === 'pendiente').length;
   const visibleProjects = filtered.slice(0, visibleProjectsCount);
@@ -609,7 +893,7 @@ async function renderList() {
   }
 
   if (!filtered.length) {
-    if (list) list.innerHTML = '<div class="nearby-empty" style="padding: 24px; text-align: center; color: var(--fg-dim);">No hay proyectos que coincidan con la búsqueda o filtro.</div>';
+    if (list) list.innerHTML = '<div class="nearby-empty" style="padding: 24px; text-align: center; color: var(--fg-dim);">No hay proyectos que coincidan con la búsqueda o filtros activos.</div>';
     return;
   }
 
@@ -622,24 +906,40 @@ async function renderList() {
       const safeRating = escapeHtml(formatearMedia(obra.id));
       const safeStatus = escapeHtml(formatearEstadoRevision(obra.estado_revision));
       const isPending = obra.estado_revision === 'pendiente';
+      const isActive = String(obra.id) === String(activeAdminObraId);
       const rawDate = obra.created_at || obra.updated_at;
       const formattedDate = rawDate ? new Date(rawDate).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : null;
       const impInfo = formatearImportancia(obra.importancia);
       const knownCity = obra.ciudad || obra.place || obra.municipio || '';
 
+      const rawPhoto = obra.foto || obra.foto_url || obra.imagen || (Array.isArray(obra.fotos) && obra.fotos[0]) || '';
+      const thumbUrl = rawPhoto ? getOptimizedPhotoUrl(rawPhoto, { width: 120, quality: 70 }) : '';
+
+      const alerts = [];
+      if (!rawPhoto) alerts.push('<span class="admin-tag-alert">SIN FOTO</span>');
+      const arqNorm = String(obra.arquitecto || '').trim().toLowerCase();
+      if (!arqNorm || arqNorm === 'sin arquitecto' || arqNorm === 'desconocido') alerts.push('<span class="admin-tag-alert">SIN ARQ</span>');
+      if (!obra.año_construccion && !obra.year) alerts.push('<span class="admin-tag-alert">SIN AÑO</span>');
+
       return `
-        <div class="admin-project ${isPending ? 'admin-project-pending' : ''}">
-          <div class="admin-project-info">
-            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-              <strong>${safeNombre}</strong>
-              <span class="admin-importance-tag imp-${impInfo.level}" title="${escapeHtml(impInfo.title)}">${escapeHtml(impInfo.label)}</span>
-              ${isPending ? '<span style="font-size:9px; font-weight:800; background:var(--accent-2, #EFBC02); color:#141411; padding:1px 4px;">PENDIENTE</span>' : ''}
+        <div class="admin-project ${isPending ? 'admin-project-pending' : ''} ${isActive ? 'admin-project-active' : ''}" data-admin-card-id="${safeId}">
+          <div class="admin-project-body" data-admin-map="${safeId}">
+            ${thumbUrl 
+              ? `<img src="${escapeHtml(thumbUrl)}" alt="${safeNombre}" class="admin-project-thumb" loading="lazy" onerror="this.outerHTML='<div class=\\'admin-project-thumb-placeholder\\'>SIN FOTO</div>'">` 
+              : '<div class="admin-project-thumb-placeholder">NO FOTO</div>'}
+            <div class="admin-project-info">
+              <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                <strong>${safeNombre}</strong>
+                <span class="admin-importance-tag imp-${impInfo.level}" title="${escapeHtml(impInfo.title)}">${escapeHtml(impInfo.label)}</span>
+                ${isPending ? '<span style="font-size:9px; font-weight:800; background:var(--accent-2); color:rgb(20, 20, 17); padding:1px 4px;">PENDIENTE</span>' : ''}
+                ${alerts.join(' ')}
+              </div>
+              <span>${safeArquitecto}</span>
+              <span class="admin-project-city" data-city-for="${safeFeatureId}">${escapeHtml(knownCity || 'LOCALIZACIÓN...')}</span>
+              ${formattedDate ? `<span style="font-size:9px; color:var(--fg-dim); font-family:monospace;">ALTA: ${escapeHtml(formattedDate)}</span>` : ''}
+              <span class="admin-project-rating" style="font-size:9.5px;">${safeRating}</span>
+              <span class="admin-project-status ${isPending ? 'pending' : ''}">${safeStatus}</span>
             </div>
-            <span>${safeArquitecto}</span>
-            <span class="admin-project-city" data-city-for="${safeFeatureId}">${escapeHtml(knownCity || 'LOCALIZACIÓN...')}</span>
-            ${formattedDate ? `<span style="font-size:9px; color:var(--fg-dim); font-family:monospace;">ALTA: ${escapeHtml(formattedDate)}</span>` : ''}
-            <span class="admin-project-rating" style="font-size:9.5px;">${safeRating}</span>
-            <span class="admin-project-status ${isPending ? 'pending' : ''}">${safeStatus}</span>
           </div>
           <div class="admin-project-actions">
             <button type="button" class="btn admin-action-map" data-admin-map="${safeId}" title="Ir a la obra en el mapa">IR AL MAPA</button>
@@ -759,13 +1059,16 @@ async function renderArchitects() {
 
   let arqList = Array.from(architectMap.values());
 
-  // 2. Filtrado por búsqueda insensible a tildes y diacríticos
-  if (searchClean) {
+  // 2. Filtrado por búsqueda multi-término insensible a tildes, diacríticos y orden
+  const searchTokens = searchClean.split(/\s+/).filter(Boolean);
+  if (searchTokens.length > 0) {
     arqList = arqList.filter((item) => {
-      const nameMatch = item.cleanName.includes(searchClean);
-      const cityMatch = Array.from(item.cities).some((c) => cleanDiacritics(c).includes(searchClean));
-      const workMatch = item.works.some((w) => cleanDiacritics(w.nombre_obra).includes(searchClean));
-      return nameMatch || cityMatch || workMatch;
+      const corpus = cleanDiacritics([
+        item.name,
+        Array.from(item.cities).join(' '),
+        item.works.map((w) => w.nombre_obra).join(' ')
+      ].join(' '));
+      return searchTokens.every((tok) => corpus.includes(tok));
     });
   }
 
@@ -1129,9 +1432,19 @@ async function eliminarReporte(id) {
 function abrirProyectoDesdeReporte(buildingId) {
   const obra = state.OBRAS.find((item) => String(item.id) === String(buildingId));
   if (!obra || !state.map) return;
-  state.map.flyTo({ center: obra.coordenadas, zoom: Math.max(state.map.getZoom(), 15) });
+  marcarProyectoActivo(obra.id);
+  const coords = (Array.isArray(obra.coordenadas) && obra.coordenadas.length === 2 && !isNaN(obra.coordenadas[0]) && obra.coordenadas[0] !== 0)
+    ? obra.coordenadas
+    : (obra.longitud && obra.latitud ? [Number(obra.longitud), Number(obra.latitud)] : null);
+  if (coords) {
+    const isDesktop = window.innerWidth >= 1024;
+    state.map.flyTo({
+      center: coords,
+      zoom: Math.max(state.map.getZoom(), 15),
+      padding: isDesktop ? { left: 450, right: 0, top: 0, bottom: 0 } : { left: 0, right: 0, top: 0, bottom: 0 }
+    });
+  }
   document.dispatchEvent(new CustomEvent('radar:open-building', { detail: { obra } }));
-  if (panel) panel.classList.remove('open');
 }
 
 function formatearEstadoRevision(status) {

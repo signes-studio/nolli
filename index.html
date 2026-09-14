@@ -455,20 +455,70 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg>
       </button>
     </div>
+    <div class="admin-kpi-bar" id="admin-kpi-bar">
+      <button type="button" class="admin-kpi-pill active" data-kpi-filter="all">TODAS <strong id="kpi-count-all">0</strong></button>
+      <button type="button" class="admin-kpi-pill kpi-pending" data-kpi-filter="pending">PENDIENTES <strong id="kpi-count-pending">0</strong></button>
+      <button type="button" class="admin-kpi-pill" data-kpi-filter="published">PUBLICADAS <strong id="kpi-count-published">0</strong></button>
+      <button type="button" class="admin-kpi-pill" data-kpi-filter="rejected">RECHAZADAS <strong id="kpi-count-rejected">0</strong></button>
+      <button type="button" class="admin-kpi-pill kpi-alert" data-kpi-filter="no-photo" title="Obras sin fotografía">SIN FOTO <strong id="kpi-count-no-photo">0</strong></button>
+      <button type="button" class="admin-kpi-pill kpi-alert" data-kpi-filter="no-arq" title="Obras sin arquitecto">SIN ARQ <strong id="kpi-count-no-arq">0</strong></button>
+    </div>
     <div class="admin-toolbar">
-      <input id="admin-search" class="tech-input" type="search" placeholder="BUSCAR PROYECTO..." aria-label="Buscar proyecto" data-i18n-placeholder="admin_search_placeholder" data-i18n-aria="admin_search_aria">
-      <select id="admin-review-filter" class="tech-input" aria-label="Filtrar por estado de revisión" data-i18n-aria="admin_filter_aria">
-        <option value="" data-i18n="admin_status_all">TODOS</option>
-        <option value="pendiente" data-i18n="admin_status_pending">PENDIENTES</option>
-        <option value="publicada" data-i18n="admin_status_published">PUBLICADAS</option>
-        <option value="rechazada" data-i18n="admin_status_rejected">RECHAZADAS</option>
-      </select>
-      <select id="admin-sort-filter" class="tech-input" aria-label="Ordenar proyectos">
-        <option value="recent">MÁS RECIENTES</option>
-        <option value="oldest">MÁS ANTIGUAS</option>
-        <option value="alpha">ALFABÉTICO (A-Z)</option>
-      </select>
-      <span id="admin-count" class="admin-count"></span>
+      <div class="admin-search-wrapper">
+        <svg class="admin-search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input id="admin-search" class="tech-input admin-search-input" type="search" placeholder="BUSCAR POR NOMBRE, ARQUITECTO, CIUDAD, AÑO, ID..." aria-label="Buscar proyecto" autocomplete="off" spellcheck="false">
+        <button type="button" id="btn-admin-clear-search" class="admin-clear-search-btn hidden" title="Limpiar búsqueda" aria-label="Limpiar búsqueda">✕</button>
+      </div>
+      <div class="admin-filters-grid">
+        <select id="admin-review-filter" class="tech-input" aria-label="Filtrar por estado de revisión">
+          <option value="">ESTADO: TODOS</option>
+          <option value="pendiente">PENDIENTES</option>
+          <option value="publicada">PUBLICADAS</option>
+          <option value="rechazada">RECHAZADAS</option>
+          <option value="privada">PRIVADAS (USUARIO)</option>
+        </select>
+        <select id="admin-importance-filter" class="tech-input" aria-label="Filtrar por jerarquía">
+          <option value="">JERARQUÍA: TODAS</option>
+          <option value="0">NIVEL 0: OBRAS CUMBRE</option>
+          <option value="1">NIVEL 1: IMPRESCINDIBLES</option>
+          <option value="2">NIVEL 2: RECOMENDADAS</option>
+          <option value="3">NIVEL 3: DOCUMENTADAS</option>
+        </select>
+        <select id="admin-category-filter" class="tech-input" aria-label="Filtrar por categoría">
+          <option value="">CATEGORÍA: TODAS</option>
+        </select>
+        <select id="admin-audit-filter" class="tech-input" aria-label="Auditoría de integridad">
+          <option value="">AUDITORÍA: COMPLETA</option>
+          <option value="sin-foto">⚠️ SIN FOTOGRAFÍA</option>
+          <option value="con-foto">✓ CON FOTOGRAFÍA</option>
+          <option value="sin-arquitecto">⚠️ SIN ARQUITECTO</option>
+          <option value="sin-ano">⚠️ SIN AÑO</option>
+          <option value="sin-coords">⚠️ SIN COORDENADAS</option>
+        </select>
+        <select id="admin-city-filter" class="tech-input" aria-label="Filtrar por ciudad">
+          <option value="">CIUDAD: TODAS</option>
+        </select>
+        <select id="admin-sort-filter" class="tech-input" aria-label="Ordenar proyectos">
+          <option value="recent">MÁS RECIENTES</option>
+          <option value="oldest">MÁS ANTIGUAS</option>
+          <option value="alpha">ALFABÉTICO (A-Z)</option>
+          <option value="alpha-desc">ALFABÉTICO (Z-A)</option>
+          <option value="imp-desc">JERARQUÍA (CUMBRE PRIMERO)</option>
+          <option value="year-desc">AÑO (MÁS RECIENTE)</option>
+          <option value="year-asc">AÑO (MÁS ANTIGUO)</option>
+        </select>
+      </div>
+      <div class="admin-toolbar-footer">
+        <span id="admin-count" class="admin-count"></span>
+        <div class="admin-toolbar-actions">
+          <button type="button" id="btn-admin-view-density" class="btn btn-density" title="Alternar vista compacta / detallada" aria-label="Alternar densidad de vista">
+            <span id="admin-density-label">COMPACTA</span>
+          </button>
+          <button type="button" id="btn-admin-reset-filters" class="btn btn-reset-filters" title="Restablecer todos los filtros" aria-label="Restablecer filtros">
+            RESETEAR
+          </button>
+        </div>
+      </div>
     </div>
     <div class="admin-tabs">
       <button type="button" class="admin-tab active" data-admin-tab="projects" data-i18n="admin_tab_projects">PROYECTOS</button>
