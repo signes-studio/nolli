@@ -75,7 +75,8 @@ body.dark-mode .profile-header {
 .profile-logo {
   font-family: 'League Spartan', sans-serif;
   font-weight: 800;
-  font-size: 26px;
+  font-size: var(--brand-logo-size, 24px);
+  letter-spacing: -0.03em;
   color: var(--accent, #E84E1B);
   text-decoration: none;
   line-height: 1;

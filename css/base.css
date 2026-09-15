@@ -26,6 +26,8 @@
   --on-map:        #F0F1F3;
   --on-map-dim:    #9A9A9A;
 
+  /* Identidad de marca unificada (tamaño canónico de logotipo 'nolli.') */
+  --brand-logo-size: 24px;
 }
 
 /* Reset base moderno y accesible */

@@ -64,11 +64,11 @@
 
           .brand-logo {
             font-family: 'League Spartan', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-weight: 900;
-            font-size: 32px;
+            font-weight: 800;
+            font-size: 24px;
             line-height: 1;
             letter-spacing: -0.03em;
-            text-transform: uppercase;
+            text-transform: lowercase;
             color: #141411;
             text-decoration: none;
             display: inline-flex;
@@ -395,7 +395,7 @@
             }
 
             .brand-logo {
-              font-size: 26px;
+              font-size: 24px;
             }
 
             .toolbar {

@@ -985,7 +985,7 @@ body.dark-mode .login-brand-header {
 
 .login-brand-logo {
   font-family: 'League Spartan', sans-serif !important;
-  font-size: 32px !important;
+  font-size: var(--brand-logo-size, 24px) !important;
   font-weight: 800 !important;
   letter-spacing: -0.03em !important;
   line-height: 1 !important;

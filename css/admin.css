@@ -103,13 +103,15 @@ h1, h2, h3, h4, h5, h6, .font-display {
 }
 
 .admin-logo {
-  font-size: 26px;
-  font-weight: 900;
+  font-family: 'League Spartan', sans-serif;
+  font-size: var(--brand-logo-size, 24px);
+  font-weight: 800;
   text-decoration: none;
   color: var(--admin-accent);
-  letter-spacing: -0.04em;
+  letter-spacing: -0.03em;
   display: inline-flex;
   align-items: baseline;
+  line-height: 1;
 }
 
 .admin-logo span {
