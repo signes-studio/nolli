@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Environment and Secret files
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+*.env
+
+# Supabase local generated / temporary
+supabase/.temp/
+supabase/.branches/
+
+# Certificates and keys
+*.pem
+*.key
+*.cert
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# OS metadata
+.DS_Store
+Thumbs.db
