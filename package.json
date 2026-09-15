@@ -1,0 +1,17 @@
+{
+  "name": "nolli",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc",
+    "watch": "tsc --watch"
+  },
+  "devDependencies": {
+    "@types/geojson": "^7946.0.16",
+    "@types/mapbox-gl": "^3.4.1",
+    "typescript": "^5.7.3"
+  }
+}
+

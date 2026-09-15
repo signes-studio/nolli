@@ -1,0 +1,534 @@
+/* =========================================================================
+   STATE.TS — Estado compartido de la aplicación Nolli
+   ========================================================================= */
+
+import type {
+  Building,
+  BuildingCategory,
+  BuildingAccessState,
+  BuildingImportance,
+  AppState,
+  PublicProfileRow,
+  UserCollectionRow,
+  UserCollectionItemRow,
+  UserBuildingStatusRow,
+} from './types/index.js';
+
+declare global {
+  interface Window {
+    __nolli_t?: (key: string) => string;
+  }
+}
+
+export const state: AppState = {
+  OBRAS: [],
+  BUILDING_CATALOG: [],
+  ARQUITECTOS: [],
+  sessionToken: null,
+  userRole: null,
+  adminMode: false,
+  userId: null,
+  userEmail: null,
+  userProfile: null,
+  buildingStatuses: new Map<string, UserBuildingStatusRow>(),
+  pendingLngLat: null,
+  editingBuildingId: null,
+  selectedFeatureId: null,
+  activeItinerary: null,
+  activeFilterChips: [],
+  locationMarker: null,
+  userLocation: null,
+  activeDecada: '',
+  activeVisitable: '',
+  activeCategorias: new Set<BuildingCategory>([
+    'residencial',
+    'dotacional_equipamiento',
+    'industrial_logistico',
+    'religioso_funerario',
+    'comercial_terciario',
+    'espacio_publico_paisaje',
+    'infraestructura_urbanismo',
+    'otro',
+  ]),
+  activeAccesos: new Set<BuildingAccessState>([
+    'publico',
+    'exterior_visible',
+    'con_reserva',
+    'privado',
+    'cerrado_temporalmente',
+    'no_construido',
+    'desaparecido',
+  ]),
+  activeArquitectos: new Set<string>(),
+  map: null,
+  mapStyle: 'abstract',
+  addingBuilding: false,
+  privateBuildings: [],
+  userCollections: [],
+  userCollectionItems: [],
+  userFollowedCollections: [],
+  userPrivateLabels: [],
+};
+
+export const AUTH_STORAGE_KEYS: readonly string[] = [
+  'nolli_admin_session_token',
+  'nolli_cached_user',
+  'nolli_cached_db_profile',
+  'nolli_cached_statuses',
+  'nolli_cached_collections',
+  'nolli_cached_labels',
+];
+
+export function clearAuthState(): boolean {
+  AUTH_STORAGE_KEYS.forEach((key) => {
+    localStorage.removeItem(key);
+    sessionStorage.removeItem(key);
+  });
+
+  state.sessionToken = null;
+  state.userRole = null;
+  state.adminMode = false;
+  state.userId = null;
+  state.userEmail = null;
+  state.userProfile = null;
+  state.buildingStatuses = new Map();
+  state.userCollections = [];
+  state.userCollectionItems = [];
+  state.userFollowedCollections = [];
+  state.userPrivateLabels = [];
+  state.privateBuildings = [];
+  return true;
+}
+
+export function normalizeBuildingIdentity(building: Partial<Building> | null | undefined): string {
+  if (!building) return '';
+  return String(building.id ?? building.featureId ?? building.building_id ?? building.obra_id ?? '').trim();
+}
+
+export function upsertBuilding(list: Building[] = [], building: Building | null = null): Building[] {
+  if (!building) return list;
+  const nextList = Array.isArray(list) ? [...list] : [];
+  const identity = normalizeBuildingIdentity(building);
+  if (!identity) {
+    nextList.push(building);
+    return nextList;
+  }
+
+  const idx = nextList.findIndex((item) => normalizeBuildingIdentity(item) === identity);
+  if (idx >= 0 && nextList[idx] !== undefined) {
+    nextList[idx] = { ...nextList[idx], ...building };
+    return nextList;
+  }
+
+  nextList.push(building);
+  return nextList;
+}
+
+export function dedupeBuildings(list: Building[] = []): Building[] {
+  const byId = new Map<string, Building>();
+  for (const building of list || []) {
+    if (!building) continue;
+    const identity = normalizeBuildingIdentity(building);
+    if (!identity) continue;
+    const existing = byId.get(identity);
+    if (existing) {
+      byId.set(identity, { ...existing, ...building });
+    } else {
+      byId.set(identity, building);
+    }
+  }
+  return [...byId.values()];
+}
+
+export function esRolAdmin(role: string | null = state.userRole): boolean {
+  if (role === 'admin' || role === 'superadmin') return true;
+  if (state.userRole === 'admin' || state.userRole === 'superadmin') return true;
+  const email = String(state.userEmail || '').toLowerCase().trim();
+  if (email === 'studio.signes@gmail.com' || email.includes('signes.studio') || email.includes('studio.signes')) return true;
+  try {
+    const cached = localStorage.getItem('nolli_cached_user');
+    if (cached) {
+      const u = JSON.parse(cached) as {
+        email?: string;
+        role?: string;
+        app_metadata?: { role?: string };
+        user_metadata?: { role?: string };
+      };
+      const uEmail = String(u.email || '').toLowerCase().trim();
+      if (uEmail === 'studio.signes@gmail.com' || uEmail.includes('signes.studio') || uEmail.includes('studio.signes')) return true;
+      if (u.role === 'admin' || u.role === 'superadmin') return true;
+      if (u.app_metadata?.role === 'admin' || u.app_metadata?.role === 'superadmin') return true;
+      if (u.user_metadata?.role === 'admin' || u.user_metadata?.role === 'superadmin') return true;
+    }
+    const cachedDb = localStorage.getItem('nolli_cached_db_profile');
+    if (cachedDb) {
+      const db = JSON.parse(cachedDb) as { role?: string; email?: string };
+      if (db.role === 'admin' || db.role === 'superadmin') return true;
+      const dbEmail = String(db.email || '').toLowerCase().trim();
+      if (dbEmail === 'studio.signes@gmail.com' || dbEmail.includes('signes')) return true;
+    }
+  } catch {}
+  return false;
+}
+
+export function esRolEditor(role: string | null = state.userRole): boolean {
+  if (role === 'editor' || role === 'admin' || role === 'superadmin') return true;
+  if (state.userRole === 'editor' || state.userRole === 'admin' || state.userRole === 'superadmin') return true;
+  if (esRolAdmin(role)) return true;
+  try {
+    const cached = localStorage.getItem('nolli_cached_user');
+    if (cached) {
+      const u = JSON.parse(cached) as {
+        role?: string;
+        app_metadata?: { role?: string };
+        user_metadata?: { role?: string };
+      };
+      if (u.role === 'editor' || u.role === 'admin' || u.role === 'superadmin') return true;
+      if (u.app_metadata?.role === 'editor' || u.app_metadata?.role === 'admin' || u.app_metadata?.role === 'superadmin') return true;
+      if (u.user_metadata?.role === 'editor' || u.user_metadata?.role === 'admin' || u.user_metadata?.role === 'superadmin') return true;
+    }
+    const cachedDb = localStorage.getItem('nolli_cached_db_profile');
+    if (cachedDb) {
+      const db = JSON.parse(cachedDb) as { role?: string };
+      if (db.role === 'editor' || db.role === 'admin' || db.role === 'superadmin') return true;
+    }
+  } catch {}
+  return false;
+}
+
+export function esRolTester(_role: string | null = state.userRole): boolean {
+  return false;
+}
+
+export function esRolSuperadmin(role: string | null = state.userRole): boolean {
+  return role === 'superadmin';
+}
+
+export function separarArquitectos(valor: string | null | undefined): string[] {
+  return String(valor || '')
+    .split(/[,;]/)
+    .map((nombre) => nombre.trim())
+    .filter(Boolean);
+}
+
+export function normalizarCategoria(valor: unknown): BuildingCategory {
+  const categoria = String(valor || '').trim().toLowerCase();
+  if (!categoria) return 'otro';
+  if (categoria.includes('residencial') || categoria.includes('vivienda') || categoria.includes('casa')) return 'residencial';
+  if (categoria.includes('religios') || categoria.includes('funer') || categoria.includes('tanatorio') || categoria.includes('cementerio')) return 'religioso_funerario';
+  if (categoria.includes('industrial') || categoria.includes('logíst') || categoria.includes('logist')) return 'industrial_logistico';
+  if (categoria.includes('comercial') || categoria.includes('comercio') || categoria.includes('mercado') || categoria.includes('hotel') || categoria.includes('oficina')) return 'comercial_terciario';
+  if (categoria.includes('parque') || categoria.includes('plaza') || categoria.includes('paisaje') || categoria.includes('jard')) return 'espacio_publico_paisaje';
+  if (categoria.includes('infraestruct') || categoria.includes('puente') || categoria.includes('estación') || categoria.includes('estacion') || categoria.includes('urban')) return 'infraestructura_urbanismo';
+  if (categoria.includes('equipamiento') || categoria.includes('educativ') || categoria.includes('escuela') || categoria.includes('colegio') || categoria.includes('univers') || categoria.includes('biblioteca') || categoria.includes('museo') || categoria.includes('cultural') || categoria.includes('deport') || categoria.includes('salud') || categoria.includes('hospital') || categoria.includes('ayuntamiento')) return 'dotacional_equipamiento';
+  return 'otro';
+}
+
+export function extraerAnioDefensivo(valor: unknown): string | null {
+  if (valor === null || valor === undefined) return null;
+  const str = String(valor).trim();
+  if (!str) return null;
+  const match = str.match(/-?\d{4}/) || str.match(/-?\d+/);
+  return match ? match[0] : null;
+}
+
+export const CATEGORY_COLORS: Record<BuildingCategory, string> = {
+  residencial: '#E95C0C',
+  dotacional_equipamiento: '#EFBC02',
+  industrial_logistico: '#064773',
+  religioso_funerario: '#F2ACCD',
+  comercial_terciario: '#4388C6',
+  espacio_publico_paisaje: '#0D682F',
+  infraestructura_urbanismo: '#E41F23',
+  otro: '#691B14'
+};
+
+export const CATEGORY_NAMES: Record<BuildingCategory, string> = {
+  residencial: 'RESIDENCIAL',
+  dotacional_equipamiento: 'DOTACIONAL / EQUIPAMIENTO',
+  industrial_logistico: 'INDUSTRIAL / LOGÍSTICO',
+  religioso_funerario: 'RELIGIOSO / FUNERARIO',
+  comercial_terciario: 'COMERCIAL / TERCIARIO',
+  espacio_publico_paisaje: 'ESPACIO PÚBLICO / PAISAJE',
+  infraestructura_urbanismo: 'INFRAESTRUCTURA / URBANISMO',
+  otro: 'OTRO'
+};
+
+export interface CategoryMetaItem {
+  key: BuildingCategory;
+  label: string;
+  labelShort: string;
+  color: string;
+  icon: string;
+}
+
+export const CATEGORY_META: Record<BuildingCategory, CategoryMetaItem> = {
+  residencial: {
+    key: 'residencial',
+    label: 'Residencial',
+    labelShort: 'RESIDENCIAL',
+    color: '#E95C0C',
+    icon: 'home'
+  },
+  dotacional_equipamiento: {
+    key: 'dotacional_equipamiento',
+    label: 'Dotacional / Equipamiento',
+    labelShort: 'DOTACIONAL / EQUIPAMIENTO',
+    color: '#EFBC02',
+    icon: 'building-2'
+  },
+  industrial_logistico: {
+    key: 'industrial_logistico',
+    label: 'Industrial / Logístico',
+    labelShort: 'INDUSTRIAL / LOGÍSTICO',
+    color: '#064773',
+    icon: 'factory'
+  },
+  religioso_funerario: {
+    key: 'religioso_funerario',
+    label: 'Religioso / Funerario',
+    labelShort: 'RELIGIOSO / FUNERARIO',
+    color: '#F2ACCD',
+    icon: 'cross'
+  },
+  comercial_terciario: {
+    key: 'comercial_terciario',
+    label: 'Comercial / Terciario',
+    labelShort: 'COMERCIAL / TERCIARIO',
+    color: '#4388C6',
+    icon: 'shopping-bag'
+  },
+  espacio_publico_paisaje: {
+    key: 'espacio_publico_paisaje',
+    label: 'Espacio Público / Paisaje',
+    labelShort: 'ESPACIO PÚBLICO / PAISAJE',
+    color: '#0D682F',
+    icon: 'trees'
+  },
+  infraestructura_urbanismo: {
+    key: 'infraestructura_urbanismo',
+    label: 'Infraestructura / Urbanismo',
+    labelShort: 'INFRAESTRUCTURA / URBANISMO',
+    color: '#E41F23',
+    icon: 'bridge'
+  },
+  otro: {
+    key: 'otro',
+    label: 'Otro',
+    labelShort: 'OTRO',
+    color: '#691B14',
+    icon: 'map-pin'
+  }
+};
+
+export function formatCategoria(valor: unknown, options: { uppercase?: boolean } = {}): string {
+  const norm = normalizarCategoria(valor);
+  const meta = CATEGORY_META[norm] || CATEGORY_META.otro;
+  const mapKeys: Record<BuildingCategory, string> = {
+    residencial: 'cat_residential',
+    dotacional_equipamiento: 'cat_civic',
+    industrial_logistico: 'cat_industrial',
+    religioso_funerario: 'cat_religious',
+    comercial_terciario: 'cat_commercial',
+    espacio_publico_paisaje: 'cat_public_space',
+    infraestructura_urbanismo: 'cat_infrastructure',
+    otro: 'cat_other',
+  };
+  const key = mapKeys[norm];
+  let text = meta ? meta.label : 'Otro';
+  if (key && typeof window !== 'undefined' && window.__nolli_t) {
+    const translated = window.__nolli_t(key);
+    if (translated && translated !== key) {
+      text = translated;
+    }
+  }
+  if (options && options.uppercase) {
+    return (meta?.labelShort || text).toUpperCase();
+  }
+  return text;
+}
+
+export const nombreCategoria = formatCategoria;
+
+export function escapeHtml(str: unknown): string {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+export function normalizarImportancia(valor: unknown): BuildingImportance {
+  const importancia = Number(valor);
+  if (Number.isFinite(importancia) && importancia >= 0 && importancia <= 3) {
+    return importancia as BuildingImportance;
+  }
+  return 1;
+}
+
+export interface FormattedImportance {
+  level: BuildingImportance;
+  name: string;
+  desc: string;
+  label: string;
+  title: string;
+}
+
+export function formatearImportancia(valor: unknown): FormattedImportance {
+  const imp = normalizarImportancia(valor);
+  const definitions: Record<BuildingImportance, { name: string; desc: string }> = {
+    0: { name: 'OBRA CUMBRE', desc: 'El viaje se justifica solo para ver este edificio.' },
+    1: { name: 'IMPRESCINDIBLE', desc: 'Parada obligatoria en cualquier ruta arquitectónica.' },
+    2: { name: 'RECOMENDADA', desc: 'Vale la pena desviarse unas calles para verla.' },
+    3: { name: 'DOCUMENTADA', desc: 'Está en el mapa, ideal si pasas por delante.' },
+  };
+
+  const current = definitions[imp] || definitions[1];
+  let name = current.name;
+  let desc = current.desc;
+
+  if (typeof window !== 'undefined' && window.__nolli_t) {
+    const key = `add_importance_${imp}`;
+    const translated = window.__nolli_t(key);
+    if (translated && translated !== key && translated.includes('—')) {
+      const parts = translated.split('—');
+      const afterDash = parts[1]?.trim() || '';
+      if (afterDash.includes(':')) {
+        const colonParts = afterDash.split(':');
+        name = colonParts[0]?.trim().toUpperCase() || name;
+        desc = colonParts.slice(1).join(':').trim();
+      } else {
+        name = afterDash.toUpperCase();
+      }
+    }
+  }
+
+  return {
+    level: imp,
+    name,
+    desc,
+    label: `IMP. ${imp} · ${name}`,
+    title: `Nivel ${imp} — ${name}: ${desc}`,
+  };
+}
+
+export function transformarEdificio(fila: Partial<Building> | null, index: number = 0): Building | null {
+  if (!fila) return null;
+  const idStr = String(fila.id ?? `obra-${index}`);
+  const lon = Number(fila.longitud ?? (Array.isArray(fila.coordenadas) ? fila.coordenadas[0] : 0));
+  const lat = Number(fila.latitud ?? (Array.isArray(fila.coordenadas) ? fila.coordenadas[1] : 0));
+  return {
+    id: fila.id ?? idStr,
+    featureId: idStr,
+    nombre_obra: fila.nombre_obra || 'Obra de arquitectura',
+    foto_url: fila.foto_url || null,
+    enlace_url: fila.enlace_url || null,
+    arquitecto: fila.arquitecto || '',
+    arquitectos: Array.isArray(fila.arquitectos) ? fila.arquitectos : separarArquitectos(fila.arquitecto),
+    año_construccion: extraerAnioDefensivo(fila.año_construccion),
+    importancia: normalizarImportancia(fila.importancia),
+    categoria: normalizarCategoria(fila.categoria),
+    place: fila.place || (fila as unknown as { ciudad?: string }).ciudad || null,
+    estado_acceso: fila.estado_acceso || (fila.visitable ? 'publico' : 'privado'),
+    añadido_por: fila.añadido_por || null,
+    estado_revision: fila.estado_revision || 'publicada',
+    longitud: lon,
+    latitud: lat,
+    coordenadas: [lon, lat],
+  };
+}
+
+export function getPersonalFallbackKey(userId: string | null | undefined): string {
+  return `nolli:personal-zone:${String(userId || 'guest')}`;
+}
+
+export function getCollectionMapPrefsKey(userId: string | null | undefined): string {
+  return `nolli:collection-map-prefs:${String(userId || 'guest')}`;
+}
+
+export function cargarPreferenciasMapaColecciones(userId: string | null | undefined): Record<string, boolean> {
+  try {
+    const raw = localStorage.getItem(getCollectionMapPrefsKey(userId));
+    return raw ? (JSON.parse(raw) as Record<string, boolean>) : {};
+  } catch {
+    return {};
+  }
+}
+
+export function guardarPreferenciasMapaColecciones(userId: string | null | undefined, prefs: Record<string, boolean>): void {
+  try {
+    localStorage.setItem(getCollectionMapPrefsKey(userId), JSON.stringify(prefs));
+  } catch {}
+}
+
+export function aplicarPreferenciasMapaColecciones(
+  collections: UserCollectionRow[],
+  userId: string | null | undefined
+): (UserCollectionRow & { show_on_map: boolean })[] {
+  if (!Array.isArray(collections)) return [];
+  const prefs = cargarPreferenciasMapaColecciones(userId);
+  return collections.map((col) => {
+    const colId = String(col.id);
+    const show_on_map = prefs[colId] !== undefined
+      ? prefs[colId]
+      : ((col as unknown as { show_on_map?: boolean }).show_on_map !== undefined ? (col as unknown as { show_on_map: boolean }).show_on_map : true);
+    return {
+      ...col,
+      show_on_map: Boolean(show_on_map),
+    };
+  });
+}
+
+export function cargarZonaPersonalLocal(userId: string | null | undefined): void {
+  if (!userId) {
+    state.userCollections = [];
+    state.userCollectionItems = [];
+    state.userPrivateLabels = [];
+    return;
+  }
+  try {
+    const raw = localStorage.getItem(getPersonalFallbackKey(userId));
+    const payload = raw ? (JSON.parse(raw) as { collections?: UserCollectionRow[]; items?: UserCollectionItemRow[]; labels?: Array<Record<string, unknown>> }) : {};
+    const rawCollections = Array.isArray(payload.collections) ? payload.collections : [];
+    state.userCollections = aplicarPreferenciasMapaColecciones(rawCollections, userId);
+    state.userCollectionItems = Array.isArray(payload.items) ? payload.items : [];
+    state.userPrivateLabels = Array.isArray(payload.labels) ? payload.labels : [];
+
+    if (state.buildingStatuses.size === 0) {
+      const cachedStatuses = localStorage.getItem(`nolli:building-status:${userId}`);
+      if (cachedStatuses) {
+        try {
+          const parsed = JSON.parse(cachedStatuses) as Array<[string, UserBuildingStatusRow]>;
+          state.buildingStatuses = new Map(Array.isArray(parsed) ? parsed : []);
+        } catch {}
+      }
+    }
+  } catch {
+    state.userCollections = [];
+    state.userCollectionItems = [];
+    state.userPrivateLabels = [];
+  }
+}
+
+export function guardarZonaPersonalLocal(userId: string | null | undefined): void {
+  if (!userId) return;
+
+  const prefs: Record<string, boolean> = {};
+  (state.userCollections || []).forEach((col) => {
+    if (col && col.id) {
+      prefs[String(col.id)] = (col as unknown as { show_on_map?: boolean }).show_on_map !== false;
+    }
+  });
+  guardarPreferenciasMapaColecciones(userId, prefs);
+
+  const payload = {
+    collections: state.userCollections,
+    items: state.userCollectionItems,
+    labels: state.userPrivateLabels,
+  };
+  try {
+    localStorage.setItem(getPersonalFallbackKey(userId), JSON.stringify(payload));
+  } catch {}
+}
