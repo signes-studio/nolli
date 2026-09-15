@@ -20,8 +20,8 @@ for (const page of ['index.html', 'perfil.html']) {
   const html = fs.readFileSync(path.join(ROOT, page), 'utf8');
   assert.ok(html.includes('id="btn-google-login"'), `Missing #btn-google-login in ${page}`);
   assert.ok(html.includes('class="btn btn-auth-google w-full"'), `Missing .btn-auth-google class in ${page}`);
-  assert.ok(html.includes('fill="currentColor"'), `Google SVG must use fill="currentColor" in ${page}`);
-  console.log(`[PASS] ${page} contains correctly styled #btn-google-login`);
+  assert.ok(html.includes('fill="#4285F4"') && html.includes('fill="#EA4335"') && html.includes('fill="#34A853"') && html.includes('fill="#FBBC05"'), `Google SVG must include official 4-color Google branding in ${page}`);
+  console.log(`[PASS] ${page} contains correctly styled #btn-google-login with authentic Google aesthetic`);
 }
 
 // 3. Check CSS
