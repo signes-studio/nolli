@@ -35,11 +35,19 @@ body.dark-mode {
   --shadow-hard-lg: 6px 6px 0px #000000;
 }
 
-html, body {
+html, body, body.portal-body {
+  position: static !important;
+  inset: auto !important;
+  width: 100% !important;
   height: auto !important;
   min-height: 100% !important;
+  min-height: 100dvh !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
+  overscroll-behavior-y: auto !important;
+  touch-action: auto !important;
+  touch-action: pan-y !important;
+  -webkit-overflow-scrolling: touch !important;
   scroll-behavior: smooth;
   background-color: var(--bg);
   color: var(--fg);
@@ -50,11 +58,18 @@ html, body {
 }
 
 /* Contenedor principal de ancho máximo */
-.portal-shell {
+.portal-shell,
+main.portal-shell {
+  position: static !important;
+  inset: auto !important;
   max-width: 1360px;
   margin: 0 auto;
   padding: 0 24px 80px;
   box-sizing: border-box;
+  overflow: visible !important;
+  height: auto !important;
+  touch-action: auto !important;
+  touch-action: pan-y !important;
 }
 
 @media (max-width: 640px) {

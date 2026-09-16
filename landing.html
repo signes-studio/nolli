@@ -171,11 +171,19 @@
       --blue: #064773;
     }
 
-    html, body {
+    html, body, body.landing-page {
+      position: static !important;
+      inset: auto !important;
+      width: 100% !important;
       height: auto !important;
       min-height: 100% !important;
+      min-height: 100dvh !important;
       overflow-y: auto !important;
       overflow-x: hidden !important;
+      overscroll-behavior-y: auto !important;
+      touch-action: auto !important;
+      touch-action: pan-y !important;
+      -webkit-overflow-scrolling: touch !important;
       scroll-behavior: smooth;
       background-color: var(--bg);
       color: var(--fg);
@@ -189,6 +197,8 @@
       max-width: 1360px;
       margin: 0 auto;
       padding: 0 20px 80px;
+      touch-action: auto !important;
+      touch-action: pan-y !important;
     }
 
     /* Regla milimétrica Neo-Bauhaus */
