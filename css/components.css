@@ -1308,7 +1308,9 @@ body.dark-mode .register-success-meta {
     contain: layout paint;
   }
 
-  .mobile-nav-btn {
+  .mobile-nav-btn,
+  a.mobile-nav-btn,
+  button.mobile-nav-btn {
     flex: 1 1 0% !important;
     width: 20% !important;
     max-width: 20% !important;
@@ -1335,6 +1337,19 @@ body.dark-mode .register-success-meta {
     text-decoration: none !important;
     -webkit-tap-highlight-color: transparent !important;
     transition: transform 0.08s ease, color 0.12s ease !important;
+    color: var(--fg, #141411) !important;
+  }
+
+  .mobile-nav-btn:link,
+  .mobile-nav-btn:visited,
+  .mobile-nav-btn:hover,
+  .mobile-nav-btn:focus,
+  a.mobile-nav-btn:link,
+  a.mobile-nav-btn:visited,
+  a.mobile-nav-btn:hover,
+  a.mobile-nav-btn:focus {
+    color: var(--fg, #141411) !important;
+    text-decoration: none !important;
   }
 
   .mobile-nav-btn:last-child {
@@ -1345,13 +1360,22 @@ body.dark-mode .register-success-meta {
     transform: scale(0.92);
   }
 
-  .mobile-nav-btn.active {
+  .mobile-nav-btn.active,
+  .mobile-nav-btn.active:link,
+  .mobile-nav-btn.active:visited,
+  .mobile-nav-btn.active:hover,
+  .mobile-nav-btn.active:focus,
+  a.mobile-nav-btn.active,
+  a.mobile-nav-btn.active:link,
+  a.mobile-nav-btn.active:visited {
     background: transparent !important;
-    color: var(--accent) !important;
+    color: var(--accent, #E84E1B) !important;
   }
 
   .mobile-nav-btn i,
-  .mobile-nav-btn svg {
+  .mobile-nav-btn svg,
+  a.mobile-nav-btn svg,
+  button.mobile-nav-btn svg {
     display: block !important;
     width: 23px !important;
     height: 23px !important;
@@ -1362,14 +1386,21 @@ body.dark-mode .register-success-meta {
     stroke-width: 1.5px !important;
     margin: 0 0 2px 0 !important;
     flex-shrink: 0 !important;
-    stroke: currentColor;
+    color: var(--fg, #141411) !important;
+    stroke: currentColor !important;
     fill: none;
   }
 
+  .mobile-nav-btn svg circle[r="1.5"] {
+    fill: currentColor !important;
+  }
+
   .mobile-nav-btn.active i,
-  .mobile-nav-btn.active svg {
-    color: var(--accent) !important;
-    stroke: var(--accent) !important;
+  .mobile-nav-btn.active svg,
+  a.mobile-nav-btn.active svg,
+  button.mobile-nav-btn.active svg {
+    color: var(--accent, #E84E1B) !important;
+    stroke: var(--accent, #E84E1B) !important;
   }
 
   .mobile-nav-btn span {
@@ -1390,7 +1421,7 @@ body.dark-mode .register-success-meta {
   }
 
   .mobile-nav-btn.active span {
-    color: var(--accent) !important;
+    color: var(--accent, #E84E1B) !important;
     font-weight: 600 !important;
   }
 
@@ -1400,8 +1431,37 @@ body.dark-mode .register-success-meta {
     box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.08), 0 -4px 24px rgba(0, 0, 0, 0.45) !important;
   }
 
-  body.dark-mode .mobile-nav-btn {
+  body.dark-mode .mobile-nav-btn,
+  body.dark-mode a.mobile-nav-btn,
+  body.dark-mode button.mobile-nav-btn,
+  body.dark-mode .mobile-nav-btn:link,
+  body.dark-mode .mobile-nav-btn:visited,
+  body.dark-mode a.mobile-nav-btn:link,
+  body.dark-mode a.mobile-nav-btn:visited {
     border-right: none !important;
+    color: var(--fg, #F5F5F0) !important;
+  }
+
+  body.dark-mode .mobile-nav-btn i,
+  body.dark-mode .mobile-nav-btn svg,
+  body.dark-mode a.mobile-nav-btn svg,
+  body.dark-mode button.mobile-nav-btn svg {
+    color: var(--fg, #F5F5F0) !important;
+    stroke: currentColor !important;
+  }
+
+  body.dark-mode .mobile-nav-btn.active,
+  body.dark-mode a.mobile-nav-btn.active,
+  body.dark-mode .mobile-nav-btn.active:link,
+  body.dark-mode .mobile-nav-btn.active:visited {
+    color: var(--accent, #E84E1B) !important;
+  }
+
+  body.dark-mode .mobile-nav-btn.active i,
+  body.dark-mode .mobile-nav-btn.active svg,
+  body.dark-mode a.mobile-nav-btn.active svg {
+    color: var(--accent, #E84E1B) !important;
+    stroke: var(--accent, #E84E1B) !important;
   }
 
   body.dark-mode .mobile-nav-btn span {
@@ -1409,7 +1469,7 @@ body.dark-mode .register-success-meta {
   }
 
   body.dark-mode .mobile-nav-btn.active span {
-    color: var(--accent) !important;
+    color: var(--accent, #E84E1B) !important;
   }
 }
 

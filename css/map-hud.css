@@ -1315,17 +1315,53 @@ body.dark-mode .mobile-fab-toggle {
   border-top: none !important;
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06), 0 -1px 3px rgba(0, 0, 0, 0.03) !important;
 }
-.mobile-nav-btn {
+.mobile-nav-btn,
+a.mobile-nav-btn,
+button.mobile-nav-btn {
   border-right: none !important;
+  color: var(--fg, #141411) !important;
+  text-decoration: none !important;
+}
+.mobile-nav-btn:link,
+.mobile-nav-btn:visited,
+.mobile-nav-btn:hover,
+.mobile-nav-btn:focus,
+a.mobile-nav-btn:link,
+a.mobile-nav-btn:visited,
+a.mobile-nav-btn:hover,
+a.mobile-nav-btn:focus {
+  color: var(--fg, #141411) !important;
+  text-decoration: none !important;
 }
 .mobile-nav-btn:last-child {
   border-right: none !important;
 }
-.mobile-nav-btn svg {
+.mobile-nav-btn svg,
+a.mobile-nav-btn svg,
+button.mobile-nav-btn svg {
   width: 23px !important;
   height: 23px !important;
   stroke-width: 1.5px !important;
   margin-bottom: 2px !important;
+  color: var(--fg, #141411) !important;
+  stroke: currentColor !important;
+}
+.mobile-nav-btn svg circle[r="1.5"] {
+  fill: currentColor !important;
+}
+.mobile-nav-btn.active,
+.mobile-nav-btn.active:link,
+.mobile-nav-btn.active:visited,
+a.mobile-nav-btn.active,
+a.mobile-nav-btn.active:link,
+a.mobile-nav-btn.active:visited {
+  color: var(--accent, #E84E1B) !important;
+}
+.mobile-nav-btn.active svg,
+a.mobile-nav-btn.active svg,
+button.mobile-nav-btn.active svg {
+  color: var(--accent, #E84E1B) !important;
+  stroke: var(--accent, #E84E1B) !important;
 }
 .mobile-nav-btn span {
   font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
@@ -1339,20 +1375,44 @@ body.dark-mode .mobile-fab-toggle {
 }
 .mobile-nav-btn.active span {
   font-weight: 600 !important;
-  color: var(--accent) !important;
+  color: var(--accent, #E84E1B) !important;
 }
 body.dark-mode .mobile-bottom-bar {
   border-top: none !important;
   box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.08), 0 -4px 24px rgba(0, 0, 0, 0.45) !important;
 }
-body.dark-mode .mobile-nav-btn {
+body.dark-mode .mobile-nav-btn,
+body.dark-mode a.mobile-nav-btn,
+body.dark-mode button.mobile-nav-btn,
+body.dark-mode .mobile-nav-btn:link,
+body.dark-mode .mobile-nav-btn:visited,
+body.dark-mode a.mobile-nav-btn:link,
+body.dark-mode a.mobile-nav-btn:visited {
   border-right: none !important;
+  color: var(--fg, #F5F5F0) !important;
+}
+body.dark-mode .mobile-nav-btn svg,
+body.dark-mode a.mobile-nav-btn svg,
+body.dark-mode button.mobile-nav-btn svg {
+  color: var(--fg, #F5F5F0) !important;
+  stroke: currentColor !important;
+}
+body.dark-mode .mobile-nav-btn.active,
+body.dark-mode a.mobile-nav-btn.active,
+body.dark-mode .mobile-nav-btn.active:link,
+body.dark-mode .mobile-nav-btn.active:visited {
+  color: var(--accent, #E84E1B) !important;
+}
+body.dark-mode .mobile-nav-btn.active svg,
+body.dark-mode a.mobile-nav-btn.active svg {
+  color: var(--accent, #E84E1B) !important;
+  stroke: var(--accent, #E84E1B) !important;
 }
 body.dark-mode .mobile-nav-btn span {
   color: var(--fg-dim) !important;
 }
 body.dark-mode .mobile-nav-btn.active span {
-  color: var(--accent) !important;
+  color: var(--accent, #E84E1B) !important;
 }
 
 /* 7. Barra Superior de Escritorio (Estilo Ligero y Fino) */
