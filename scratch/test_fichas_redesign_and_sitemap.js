@@ -256,6 +256,7 @@ async function testAll() {
   assert(footerEs.includes('brand-signes-thin">.STUDIO</span>'), 'Footer must render .STUDIO in thin (weight 200)');
   assert(footerEs.includes('https://signes.studio'), 'Footer must link to https://signes.studio');
   assert(footerEs.includes('nolli. es un proyecto de'), 'Footer must say "nolli. es un proyecto de" in Spanish');
+  assert(!footerEs.includes('guía colectiva de arquitectura'), 'Footer must NOT contain redundant "guía colectiva de arquitectura" claim');
 
   // Verify Montserrat is included in all SSR templates
   [
@@ -270,15 +271,17 @@ async function testAll() {
     assert(code.includes('brand-signes-thin'), `${name} must style brand-signes-thin`);
     assert(code.includes('renderSiteFooter'), `${name} must call renderSiteFooter`);
   });
-  console.log('✓ All SSR templates include Montserrat and SIGNES.STUDIO branding');
+  console.log('✓ All SSR templates include Montserrat and SIGNES.STUDIO branding without redundant header text');
 
   console.log('\n--- 12. Testing sitemap.xsl branding ---');
-  assert(xslContent.includes('Montserrat'), 'sitemap.xsl must load Montserrat font');
-  assert(xslContent.includes('brand-signes-bold'), 'sitemap.xsl must style brand-signes-bold');
-  assert(xslContent.includes('brand-signes-thin'), 'sitemap.xsl must style brand-signes-thin');
-  assert(xslContent.includes('SIGNES'), 'sitemap.xsl must include SIGNES');
-  assert(xslContent.includes('.STUDIO'), 'sitemap.xsl must include .STUDIO');
-  console.log('✓ sitemap.xsl includes Montserrat and SIGNES.STUDIO branding');
+  const xslContentUpdated = fs.readFileSync(path.join(__dirname, '../sitemap.xsl'), 'utf8');
+  assert(xslContentUpdated.includes('Montserrat'), 'sitemap.xsl must load Montserrat font');
+  assert(xslContentUpdated.includes('brand-signes-bold'), 'sitemap.xsl must style brand-signes-bold');
+  assert(xslContentUpdated.includes('brand-signes-thin'), 'sitemap.xsl must style brand-signes-thin');
+  assert(xslContentUpdated.includes('SIGNES'), 'sitemap.xsl must include SIGNES');
+  assert(xslContentUpdated.includes('.STUDIO'), 'sitemap.xsl must include .STUDIO');
+  assert(!xslContentUpdated.includes('Guía Colectiva de Arquitectura'), 'sitemap.xsl must NOT contain redundant "Guía Colectiva de Arquitectura" in footer');
+  console.log('✓ sitemap.xsl includes Montserrat and SIGNES.STUDIO branding without redundant header text');
 
   console.log('\n--- 13. Testing itinerarios.html noindex and modern design ---');
   const itinHtml = fs.readFileSync(path.join(__dirname, '../itinerarios.html'), 'utf8');

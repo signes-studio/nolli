@@ -72,7 +72,6 @@ const SSR_TEXTS = {
     city_desc: 'Guía de arquitectura en {city}: explora {count} obras y proyectos singulares catalogados en nolli. Mapa interactivo y guía colectiva de arquitectura.',
     city_page_name: 'Obras y proyectos de arquitectura en {city} | nolli.',
     project_by_signes_lead: 'nolli. es un proyecto de',
-    collective_guide_footer: 'nolli. · guía colectiva de arquitectura',
     breadcrumb_architects: 'Arquitectos',
     breadcrumb_cities: 'Ciudades',
     breadcrumb_categories: 'Categorías',
@@ -123,7 +122,6 @@ const SSR_TEXTS = {
     city_desc: 'Architecture guide to {city}: explore {count} unique cataloged works and projects on nolli. Interactive map and collective architecture guide.',
     city_page_name: 'Architectural works and projects in {city} | nolli.',
     project_by_signes_lead: 'nolli. is a project by',
-    collective_guide_footer: 'nolli. · collective architecture guide',
     breadcrumb_architects: 'Architects',
     breadcrumb_cities: 'Cities',
     breadcrumb_categories: 'Categories',
@@ -174,7 +172,6 @@ const SSR_TEXTS = {
     city_desc: "Guia d'arquitectura a {city}: explora {count} obres i projectes singulars catalogats a nolli. Mapa interactiu i guia col·lectiva d'arquitectura.",
     city_page_name: "Obres i projectes d'arquitectura a {city} | nolli.",
     project_by_signes_lead: 'nolli. és un projecte de',
-    collective_guide_footer: "nolli. · guia col·lectiva d'arquitectura",
     breadcrumb_architects: 'Arquitectes',
     breadcrumb_cities: 'Ciutats',
     breadcrumb_categories: 'Categories',
@@ -270,13 +267,11 @@ function escapeHtml(value) {
  */
 function renderSiteFooter(lang = 'es', siteUrl = 'https://nollimap.app') {
   const prefix = getLangPrefix(lang);
-  const claim = getSSRText('collective_guide_footer', lang);
   const lead = getSSRText('project_by_signes_lead', lang);
   const mapText = getSSRText('go_to_map', lang);
 
   return `<footer class="site-footer">
     <div class="footer-brand">
-      <div class="footer-claim">${escapeHtml(claim)}</div>
       <div class="footer-by">${escapeHtml(lead)} <a href="https://signes.studio" target="_blank" rel="noopener noreferrer" class="brand-signes"><strong class="brand-signes-bold">SIGNES</strong><span class="brand-signes-thin">.STUDIO</span></a></div>
     </div>
     <div class="footer-links">

@@ -409,16 +409,8 @@
             color: var(--fg-dim);
           }
 
-          .footer-brand {
-            font-family: 'League Spartan', sans-serif;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--fg);
-          }
-
           .footer-project-by {
-            font-size: 11.5px;
+            font-size: 12px;
             color: var(--fg-dim);
             display: inline-flex;
             align-items: baseline;
@@ -636,10 +628,7 @@
 
           <!-- PIE DE PÁGINA -->
           <footer class="footer">
-            <div style="display:flex; flex-direction:column; gap:4px;">
-              <span class="footer-brand">nolli. · Guía Colectiva de Arquitectura</span>
-              <span class="footer-project-by">nolli. es un proyecto de <a href="https://signes.studio" target="_blank" rel="noopener noreferrer" class="brand-signes"><strong class="brand-signes-bold">SIGNES</strong><span class="brand-signes-thin">.STUDIO</span></a></span>
-            </div>
+            <span class="footer-project-by">nolli. es un proyecto de <a href="https://signes.studio" target="_blank" rel="noopener noreferrer" class="brand-signes"><strong class="brand-signes-bold">SIGNES</strong><span class="brand-signes-thin">.STUDIO</span></a></span>
             <span class="footer-note">Protocolo Sitemaps XML 0.9 · Transformación XSLT</span>
           </footer>
         </div>

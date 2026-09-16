@@ -552,15 +552,10 @@ function renderBuildingPage(building, lang = 'es') {
     }
     .footer-brand {
       display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .footer-claim {
-      font-weight: 500;
-      color: var(--ink-dim);
+      align-items: center;
     }
     .footer-by {
-      font-size: 11.5px;
+      font-size: 12.5px;
       color: var(--ink-dim);
       display: inline-flex;
       align-items: baseline;
