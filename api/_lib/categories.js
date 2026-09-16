@@ -3,9 +3,9 @@ const CATEGORIES = {
     label: { es: 'Residencial', en: 'Residential', ca: 'Residencial' },
     class: 'residential',
     description: {
-      es: 'Vivienda unifamiliar, vivienda colectiva, rascacielos residenciales y tipologías habitacionales contemporáneas e históricas catalogadas en Nolli.',
-      en: 'Single-family houses, collective housing, residential towers, and historical and contemporary living typologies cataloged on Nolli.',
-      ca: 'Habitatge unifamiliar, habitatge col·lectiu, gratacels residencials i tipologies residencials contemporànies i històriques catalogades a Nolli.',
+      es: 'Vivienda unifamiliar, vivienda colectiva, rascacielos residenciales y tipologías habitacionales contemporáneas e históricas catalogadas en nolli.',
+      en: 'Single-family houses, collective housing, residential towers, and historical and contemporary living typologies cataloged on nolli.',
+      ca: 'Habitatge unifamiliar, habitatge col·lectiu, gratacels residencials i tipologies residencials contemporànies i històriques catalogades a nolli.',
     },
   },
   dotacional_equipamiento: {

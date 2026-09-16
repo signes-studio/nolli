@@ -152,6 +152,19 @@ async function testAll() {
   assert(ciudadCode.includes('@media (prefers-color-scheme: dark)'), 'api/ciudad.js should support dark mode');
   console.log('✓ All category/architect/city hubs have rounded cards and dark mode');
 
+  console.log('\n--- 6. Testing architect title and brand name across i18n ---');
+  const i18n = require('../api/_lib/i18n.js');
+  ['es', 'en', 'ca'].forEach((lang) => {
+    const archTitle = i18n.getSSRText('architect_title', lang, { nombre: 'Antoni Gaudí' });
+    assert(archTitle.includes('nolli.'), `Architect title in ${lang} must include 'nolli.': ${archTitle}`);
+    assert(!archTitle.includes('Nolli'), `Architect title in ${lang} must NOT include uppercase 'Nolli': ${archTitle}`);
+
+    const archDesc = i18n.getSSRText('architect_desc', lang, { nombre: 'Antoni Gaudí', count: 15 });
+    assert(archDesc.includes('nolli.'), `Architect description in ${lang} must include 'nolli.': ${archDesc}`);
+    assert(!archDesc.includes('Nolli'), `Architect description in ${lang} must NOT include uppercase 'Nolli': ${archDesc}`);
+  });
+  console.log('✓ All architect titles and descriptions use nolli. with no uppercase Nolli');
+
   console.log('\n========================================');
   console.log('ALL VERIFICATIONS PASSED SUCCESSFULLY!');
   console.log('========================================');

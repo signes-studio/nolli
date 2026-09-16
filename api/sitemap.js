@@ -1,5 +1,5 @@
 /* =========================================================================
-   API/SITEMAP.JS — Enrutador Unificado de Sitemaps XML para Nolli
+   API/SITEMAP.JS — Enrutador Unificado de Sitemaps XML para nolli.
    Soporta índice general y sitemaps específicos por query param (?type=)
    Cumple con el límite de 12 funciones Serverless del plan Hobby de Vercel.
    ========================================================================= */
