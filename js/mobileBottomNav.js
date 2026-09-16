@@ -410,7 +410,7 @@ function initMobileSplashScreen() {
       sessionStorage.setItem('nolli_splash_shown', 'true');
     } catch (e) {}
 
-    if (status) status.textContent = 'DATOS SINCRONIZADOS';
+    if (status) status.textContent = t('splash_status_ready', {}, 'DATOS SINCRONIZADOS');
 
     setTimeout(() => {
       splash.classList.add('splash-hidden');
