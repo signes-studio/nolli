@@ -57,3 +57,4 @@ for (const [file, requiredClass] of Object.entries(pageBodyClasses)) {
 console.log('\n========================================');
 console.log('ALL MOBILE SCROLL TESTS PASSED!');
 console.log('========================================');
+
