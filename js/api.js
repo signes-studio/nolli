@@ -279,12 +279,6 @@ export async function getBuildingsCatalog() {
     return catalogPromise;
   }
 
-  catalogPromise = fetchBuildingFacets().then((result) => {
-    if (Array.isArray(result) && result.length > 0) {
-      catalogCache = result;
-      try {
-        localStorage.setItem('nolli:catalog-synced-at', String(Date.now()));
-      } catch {}
   catalogPromise = (async () => {
     // 1. Intentar cargar instantáneamente desde IndexedDB (0ms de latencia de red)
     try {
@@ -317,12 +311,6 @@ export async function getBuildingsCatalog() {
     } catch (idbErr) {
       console.warn('[Catalog] Lectura de IndexedDB omitida/fallida, usando red:', idbErr);
     }
-    catalogPromise = null;
-    return catalogCache || result;
-  }).catch((err) => {
-    catalogPromise = null;
-    throw err;
-  });
 
     // 2. Si no existe en IndexedDB o falló, descargar de la red y persistir en IndexedDB
     try {
@@ -355,9 +343,6 @@ export function invalidateCatalogCache() {
     localStorage.removeItem('nolli:catalog-synced-at');
   } catch {}
   if (typeof caches !== 'undefined') {
-    caches.open('nolli-shell-v70').then((cache) => {
-      cache.delete('/api/catalog');
-      cache.delete('/api/catalog-timestamp');
     caches.keys().then((keys) => {
       return Promise.all(
         keys.filter((k) => k.startsWith('nolli-shell-')).map(async (key) => {

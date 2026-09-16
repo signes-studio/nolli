@@ -43,7 +43,6 @@ export function renderObraCard(obra, {
   const importanceLabel = hasImportance ? importanceLabels[importanceLevel] : '';
 
   const rawPhoto = obra?.foto_miniatura || obra?.foto_url || '';
-  const photoUrl = showPhoto && rawPhoto ? getOptimizedPhotoUrl(rawPhoto, { width: 320 }) : '';
   const photoPreset = (variant === 'compact' || variant === 'profile') ? 'thumb' : 'card';
   const photoUrl = showPhoto && rawPhoto ? getOptimizedPhotoUrl(rawPhoto, photoPreset) : '';
 

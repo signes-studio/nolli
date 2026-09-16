@@ -26,7 +26,6 @@ export const IMAGE_PRESETS: Record<ImagePreset, Required<OptimizedPhotoOptions>>
  */
 export function getOptimizedPhotoUrl(
   fotoUrl: string | null | undefined,
-  { width = 800, quality = 75 }: OptimizedPhotoOptions = {}
   optionsOrPreset?: ImagePreset | OptimizedPhotoOptions
 ): string | null | undefined {
   if (!fotoUrl) return fotoUrl;
