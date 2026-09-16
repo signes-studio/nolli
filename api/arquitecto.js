@@ -722,8 +722,12 @@ function renderArchitectPage(data, page, lang = 'es') {
     .brand-nolli {
       font-family: var(--font-display);
       font-weight: 800;
+      font-size: 1.22em;
+      line-height: 1;
       letter-spacing: -0.02em;
       text-transform: lowercase;
+      display: inline-block;
+      vertical-align: baseline;
     }
     .footer-links {
       display: flex;

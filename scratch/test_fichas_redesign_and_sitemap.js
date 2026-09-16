@@ -271,9 +271,10 @@ async function testAll() {
     assert(code.includes('brand-signes-bold'), `${name} must style brand-signes-bold`);
     assert(code.includes('brand-signes-thin'), `${name} must style brand-signes-thin`);
     assert(code.includes('brand-nolli'), `${name} must style brand-nolli`);
+    assert(code.includes('font-size: 1.22em') || code.includes('font-size: 1.2em'), `${name} must scale up brand-nolli optically`);
     assert(code.includes('renderSiteFooter'), `${name} must call renderSiteFooter`);
   });
-  console.log('✓ All SSR templates include Montserrat, brand-nolli and SIGNES.STUDIO branding');
+  console.log('✓ All SSR templates include Montserrat, scaled brand-nolli and SIGNES.STUDIO branding');
 
   console.log('\n--- 12. Testing sitemap.xsl branding ---');
   const xslContentUpdated = fs.readFileSync(path.join(__dirname, '../sitemap.xsl'), 'utf8');
@@ -281,11 +282,12 @@ async function testAll() {
   assert(xslContentUpdated.includes('brand-signes-bold'), 'sitemap.xsl must style brand-signes-bold');
   assert(xslContentUpdated.includes('brand-signes-thin'), 'sitemap.xsl must style brand-signes-thin');
   assert(xslContentUpdated.includes('brand-nolli'), 'sitemap.xsl must style brand-nolli');
+  assert(xslContentUpdated.includes('font-size: 1.22em') || xslContentUpdated.includes('font-size: 1.2em'), 'sitemap.xsl must scale up brand-nolli optically');
   assert(xslContentUpdated.includes('<span class="brand-nolli">nolli.</span>'), 'sitemap.xsl must render nolli. in brand-nolli');
   assert(xslContentUpdated.includes('SIGNES'), 'sitemap.xsl must include SIGNES');
   assert(xslContentUpdated.includes('.STUDIO'), 'sitemap.xsl must include .STUDIO');
   assert(!xslContentUpdated.includes('Guía Colectiva de Arquitectura'), 'sitemap.xsl must NOT contain redundant "Guía Colectiva de Arquitectura" in footer');
-  console.log('✓ sitemap.xsl includes Montserrat, brand-nolli and SIGNES.STUDIO branding');
+  console.log('✓ sitemap.xsl includes Montserrat, scaled brand-nolli and SIGNES.STUDIO branding');
 
   console.log('\n--- 13. Testing itinerarios.html noindex and modern design ---');
   const itinHtml = fs.readFileSync(path.join(__dirname, '../itinerarios.html'), 'utf8');

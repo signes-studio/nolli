@@ -420,8 +420,12 @@
           .brand-nolli {
             font-family: 'League Spartan', sans-serif;
             font-weight: 800;
+            font-size: 1.22em;
+            line-height: 1;
             letter-spacing: -0.02em;
             text-transform: lowercase;
+            display: inline-block;
+            vertical-align: baseline;
           }
 
           .brand-signes {
