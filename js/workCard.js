@@ -1,81 +1,19 @@
-import { CATEGORY_META, escapeHtml, formatCategoria, normalizarCategoria } from './state.js';
-import { getOptimizedPhotoUrl } from './imageProxy.js';
-
-/**
- * Tarjeta canónica de obra: componente visual centralizado para radar, búsqueda,
- * explorar, mis lugares, perfil y fichas de arquitecto.
- */
-export function renderObraCard(obra, {
-  variant = 'list',
-  className = '',
-  distance = '',
-  action = '',
-  actionClass = '',
-  featureId = obra?.featureId || obra?.id || '',
-  showPhoto = true,
-  tag = 'article'
-} = {}) {
-  const safeFeatureId = String(featureId || obra?.id || '');
-  const safeId = String(obra?.id || safeFeatureId);
-  const category = normalizarCategoria(obra?.categoria);
-  const metaCat = CATEGORY_META[category] || CATEGORY_META.otro;
-  const color = metaCat.color || '#E84E1B';
-
-  const title = String(obra?.nombre_obra || obra?.title || 'Obra de arquitectura').trim();
-  const rawArchitects = Array.isArray(obra?.arquitectos)
-    ? obra.arquitectos.join(', ')
-    : (obra?.arquitectos || obra?.arquitecto || '');
-  const architects = String(rawArchitects).trim() || 'Arquitecto no especificado';
-
-  const year = obra?.año_construccion || obra?.ano_construccion || obra?.year ? String(obra?.año_construccion || obra?.ano_construccion || obra?.year).trim() : '';
-  const city = String(obra?.place || obra?.ciudad || obra?.city || '').trim();
-
-  const rawImportance = obra?.importancia != null ? Number(obra.importancia) : NaN;
-  const hasImportance = Number.isFinite(rawImportance) && rawImportance >= 0 && rawImportance <= 3;
-  const importanceLevel = hasImportance ? Math.min(3, Math.max(0, Math.round(rawImportance))) : 3;
-  const filledCount = 4 - importanceLevel;
-  const importanceLabels = [
-    'Hito / Obra Cumbre (Nivel 0 — 4/4)',
-    'Importancia Alta (Nivel 1 — 3/4)',
-    'Importancia Media (Nivel 2 — 2/4)',
-    'Importancia Menor (Nivel 3 — 1/4)'
-  ];
-  const importanceLabel = hasImportance ? importanceLabels[importanceLevel] : '';
-
-  const rawPhoto = obra?.foto_miniatura || obra?.foto_url || '';
-  const photoPreset = (variant === 'compact' || variant === 'profile') ? 'thumb' : 'card';
-  const photoUrl = showPhoto && rawPhoto ? getOptimizedPhotoUrl(rawPhoto, photoPreset) : '';
-
-  const metaList = [architects, year, city].filter(Boolean);
-  const metaString = metaList.map(escapeHtml).join(' · ');
-
-  const coords = obra?.coordenadas || (obra?.longitud != null && obra?.latitud != null ? [obra.longitud, obra.latitud] : null);
-  const lng = coords?.[0] != null ? coords[0] : '';
-  const lat = coords?.[1] != null ? coords[1] : '';
-
-  const isButton = tag === 'button';
-  const tagAttrs = isButton ? 'type="button"' : 'role="button" tabindex="0"';
-
-  const formattedCat = formatCategoria(obra?.categoria);
-
-  return `<${tag} class="obra-card obra-card--${escapeHtml(variant)} ${escapeHtml(className)}" data-feature-id="${escapeHtml(safeFeatureId)}" data-id="${escapeHtml(safeId)}" data-obra-id="${escapeHtml(safeId)}" data-radar-feature-id="${escapeHtml(safeFeatureId)}" data-search-feature-id="${escapeHtml(safeFeatureId)}" data-architect-work-id="${escapeHtml(safeFeatureId)}" data-lng="${escapeHtml(String(lng))}" data-lat="${escapeHtml(String(lat))}" ${tagAttrs} aria-label="Ver ${escapeHtml(title)}">
-    ${photoUrl ? `<div class="obra-card__thumb"><img src="${escapeHtml(photoUrl)}" alt="${escapeHtml(title)}" loading="lazy" decoding="async" onerror="this.parentElement.style.display='none'"></div>` : ''}
+import{CATEGORY_META as g,escapeHtml as r,formatCategoria as z,normalizarCategoria as B}from"./state.js";import{getOptimizedPhotoUrl as F}from"./imageProxy.js";function H(a,{variant:n="list",className:f="",distance:l="",action:u="",actionClass:h="",featureId:v=a?.featureId||a?.id||"",showPhoto:y=!0,tag:e="article"}={}){const i=String(v||a?.id||""),p=String(a?.id||i),N=B(a?.categoria),m=(g[N]||g.otro).color||"#E84E1B",s=String(a?.nombre_obra||a?.title||"Obra de arquitectura").trim(),S=Array.isArray(a?.arquitectos)?a.arquitectos.join(", "):a?.arquitectos||a?.arquitecto||"",q=String(S).trim()||"Arquitecto no especificado",A=a?.a\u00F1o_construccion||a?.ano_construccion||a?.year?String(a?.a\u00F1o_construccion||a?.ano_construccion||a?.year).trim():"",C=String(a?.place||a?.ciudad||a?.city||"").trim(),o=a?.importancia!=null?Number(a.importancia):NaN,t=Number.isFinite(o)&&o>=0&&o<=3,d=t?Math.min(3,Math.max(0,Math.round(o))):3,I=4-d,b=t?["Hito / Obra Cumbre (Nivel 0 \u2014 4/4)","Importancia Alta (Nivel 1 \u2014 3/4)","Importancia Media (Nivel 2 \u2014 2/4)","Importancia Menor (Nivel 3 \u2014 1/4)"][d]:"",_=a?.foto_miniatura||a?.foto_url||"",$=y&&_?F(_,n==="compact"||n==="profile"?"thumb":"card"):"",M=[q,A,C].filter(Boolean).map(r).join(" \xB7 "),c=a?.coordenadas||(a?.longitud!=null&&a?.latitud!=null?[a.longitud,a.latitud]:null),O=c?.[0]!=null?c[0]:"",E=c?.[1]!=null?c[1]:"",x=e==="button"?'type="button"':'role="button" tabindex="0"',j=z(a?.categoria);return`<${e} class="obra-card obra-card--${r(n)} ${r(f)}" data-feature-id="${r(i)}" data-id="${r(p)}" data-obra-id="${r(p)}" data-radar-feature-id="${r(i)}" data-search-feature-id="${r(i)}" data-architect-work-id="${r(i)}" data-lng="${r(String(O))}" data-lat="${r(String(E))}" ${x} aria-label="Ver ${r(s)}">
+    ${$?`<div class="obra-card__thumb"><img src="${r($)}" alt="${r(s)}" loading="lazy" decoding="async" onerror="this.parentElement.style.display='none'"></div>`:""}
     <div class="obra-card__body">
       <div class="obra-card__topline">
         <div class="obra-card__tags">
-          <span class="obra-card__category" style="--obra-category:${color};">
-            <span class="obra-card__cat-pip" style="background:${color};"></span>
-            <span>${escapeHtml(formattedCat)}</span>
+          <span class="obra-card__category" style="--obra-category:${m};">
+            <span class="obra-card__cat-pip" style="background:${m};"></span>
+            <span>${r(j)}</span>
           </span>
-          ${hasImportance ? `<span class="obra-card__importance-meter" title="${escapeHtml(importanceLabel)}" aria-label="${escapeHtml(importanceLabel)}" role="img">${[1, 2, 3, 4].map((n) => `<span class="obra-card__importance-sq ${n <= filledCount ? 'is-filled' : ''}"></span>`).join('')}</span>` : ''}
-          ${hasImportance && importanceLevel === 0 ? `<span class="obra-card__badge-hito">HITO</span>` : ''}
+          ${t?`<span class="obra-card__importance-meter" title="${r(b)}" aria-label="${r(b)}" role="img">${[1,2,3,4].map(w=>`<span class="obra-card__importance-sq ${w<=I?"is-filled":""}"></span>`).join("")}</span>`:""}
+          ${t&&d===0?'<span class="obra-card__badge-hito">HITO</span>':""}
         </div>
-        ${distance ? `<span class="obra-card__distance">${escapeHtml(distance)}</span>` : ''}
+        ${l?`<span class="obra-card__distance">${r(l)}</span>`:""}
       </div>
-      <h3 class="obra-card__title">${escapeHtml(title)}</h3>
-      <p class="obra-card__meta">${metaString}</p>
+      <h3 class="obra-card__title">${r(s)}</h3>
+      <p class="obra-card__meta">${M}</p>
     </div>
-    ${action ? `<div class="obra-card__action ${escapeHtml(actionClass)}">${action}</div>` : ''}
-  </${tag}>`;
-}
-
+    ${u?`<div class="obra-card__action ${r(h)}">${u}</div>`:""}
+  </${e}>`}export{H as renderObraCard};

@@ -5,12 +5,11 @@
   "type": "module",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "build": "tsc",
     "build": "node scripts/build.js",
     "build:prod": "node scripts/build.js --prod",
     "watch": "tsc --watch"
   },
-  "devDependencies": {
+  "dependencies": {
     "@types/geojson": "^7946.0.16",
     "@types/mapbox-gl": "^3.4.1",
     "esbuild": "^0.28.2",

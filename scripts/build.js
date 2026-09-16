@@ -35,10 +35,14 @@ const startTime = Date.now();
 console.log('📦 [1/4] Compilando TypeScript (tsc)...');
 try {
   const tscBin = path.join(ROOT_DIR, 'node_modules', 'typescript', 'bin', 'tsc');
-  execSync(`node "${tscBin}"`, { cwd: ROOT_DIR, stdio: 'inherit' });
+  if (fs.existsSync(tscBin)) {
+    execSync(`node "${tscBin}"`, { cwd: ROOT_DIR, stdio: 'inherit' });
+  } else {
+    execSync('npx tsc', { cwd: ROOT_DIR, stdio: 'inherit' });
+  }
   console.log('✅ [1/4] TypeScript compilado sin errores.');
 } catch (err) {
-  console.error('❌ [1/4] Error en compilación de TypeScript.');
+  console.error('❌ [1/4] Error en compilación de TypeScript:', err);
   process.exit(1);
 }
 
@@ -115,9 +119,9 @@ console.log(`🔑 [3/4] Identificador de versión generado: ${newCacheName}`);
 console.log('🔄 [4/4] Actualizando Service Worker cache name...');
 try {
   let swContent = fs.readFileSync(SW_PATH, 'utf8');
-  const cacheRegex = /const CACHE_NAME = ['"][^'"]+['"];/;
+  const cacheRegex = /(?:const CACHE_NAME = ['"][^'"]+['"];\r?\n?)+/;
   if (cacheRegex.test(swContent)) {
-    swContent = swContent.replace(cacheRegex, `const CACHE_NAME = '${newCacheName}';`);
+    swContent = swContent.replace(cacheRegex, `const CACHE_NAME = '${newCacheName}';\n`);
     fs.writeFileSync(SW_PATH, swContent, 'utf8');
     console.log(`✅ [4/4] sw.js actualizado con CACHE_NAME = '${newCacheName}'`);
   } else {

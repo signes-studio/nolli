@@ -79,7 +79,7 @@ const swJs = fs.readFileSync(path.join(ROOT_DIR, 'sw.js'), 'utf8');
 const packageJson = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'package.json'), 'utf8'));
 
 assert.ok(packageJson.scripts.build.includes('scripts/build.js'), 'package.json build script debe apuntar a scripts/build.js');
-assert.ok(packageJson.devDependencies.esbuild, 'esbuild debe estar en devDependencies');
+assert.ok(packageJson.dependencies?.esbuild || packageJson.devDependencies?.esbuild, 'esbuild debe estar en package.json');
 assert.ok(/const CACHE_NAME = 'nolli-shell-[a-f0-9]{8}';/.test(swJs), 'sw.js debe contener un hash MD5 dinámico para el cache');
 assert.ok(swJs.includes('./js/storage.js'), 'sw.js debe incluir ./js/storage.js en APP_SHELL');
 console.log('✅ [5/5] Build pipeline (esbuild + hash MD5 dinámico de Service Worker) validado.');
