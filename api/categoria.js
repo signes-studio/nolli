@@ -129,7 +129,7 @@ function renderCategoryPage(slug, data, page, lang = 'es') {
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
   const pageParam = page > 1 ? `?page=${page}` : '';
   const canonicalUrl = `${SITE_URL}/categoria/${encodeURIComponent(slug)}${pageParam}`;
-  const isIndexable = lang === 'es';
+  const isIndexable = lang === 'es' && totalCount > 0;
 
   const title = getSSRText('category_title', lang, { categoria: categoriaText });
   const description = editorialDesc || getSSRText('category_desc', lang, {
@@ -783,6 +783,142 @@ function renderCategoryPage(slug, data, page, lang = 'es') {
 </html>`;
 }
 
+function renderCategoryNotFoundPage(slug, lang = 'es') {
+  const prefix = getLangPrefix(lang);
+  const title = getSSRText('not_found_category_title', lang);
+  const heading = getSSRText('not_found_title', lang);
+  const tag = getSSRText('not_found_tag', lang);
+  const text = getSSRText('not_found_category_text', lang);
+  const mapBtnText = getSSRText('go_to_map', lang);
+
+  return `<!DOCTYPE html>
+<html lang="${lang}">
+<head>
+  <base href="/">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${escapeHtml(title)}</title>
+  <meta name="robots" content="noindex, follow">
+  <link rel="icon" type="image/png" sizes="48x48" href="${SITE_URL}/icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="${SITE_URL}/icons/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=League+Spartan:wght@700;800;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=League+Spartan:wght@700;800;900&display=swap">
+  </noscript>
+  <style>
+    :root {
+      --bg: #F8F1DF;
+      --bg-card: #FFFFFF;
+      --bg-elevated: #F0E9D2;
+      --ink: #141411;
+      --ink-dim: #6B6B6B;
+      --border: #D8D6CE;
+      --brand: #E84E1B;
+      --font-display: 'League Spartan', sans-serif;
+      --font-body: 'Inter', sans-serif;
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.06);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #141411;
+        --bg-card: #1B1B18;
+        --bg-elevated: #242420;
+        --ink: #F4F1EA;
+        --ink-dim: #9E9E94;
+        --border: rgba(255, 255, 255, 0.12);
+        --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.4);
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      -webkit-font-smoothing: antialiased;
+    }
+    .nf-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 40px 32px;
+      max-width: 520px;
+      width: 100%;
+      text-align: center;
+      box-shadow: var(--shadow-md);
+    }
+    .nf-badge {
+      display: inline-block;
+      font-family: var(--font-display);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      color: var(--brand);
+      margin-bottom: 12px;
+    }
+    .nf-title {
+      font-family: var(--font-display);
+      font-size: 28px;
+      font-weight: 900;
+      margin: 0 0 14px;
+      color: var(--ink);
+      line-height: 1.1;
+    }
+    .nf-text {
+      font-size: 14.5px;
+      line-height: 1.6;
+      color: var(--ink-dim);
+      margin: 0 0 28px;
+    }
+    .nf-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 13px 26px;
+      background: var(--brand);
+      color: #fff;
+      text-decoration: none;
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .04em;
+      border-radius: var(--radius-sm);
+      box-shadow: 0 3px 12px rgba(232, 78, 27, 0.28);
+      transition: all 0.15s ease;
+    }
+    .nf-btn:hover {
+      background: #9E3700;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 16px rgba(232, 78, 27, 0.4);
+    }
+  </style>
+</head>
+<body>
+  <div class="nf-card not-found-card">
+    <span class="nf-badge">${escapeHtml(tag)}</span>
+    <h1 class="nf-title">${escapeHtml(heading)}</h1>
+    <p class="nf-text">${escapeHtml(text)}</p>
+    <a href="${SITE_URL}${prefix}/" class="nf-btn">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+      ${escapeHtml(mapBtnText)}
+    </a>
+  </div>
+</body>
+</html>`;
+}
+
 module.exports = async (request, response) => {
   // 1. Rate limiting defensivo por IP en caso de cache MISS
   const rate = checkRateLimit(request, response);
@@ -801,12 +937,33 @@ module.exports = async (request, response) => {
     }
 
     const slug = rawSlug.toLowerCase();
+
+    // 2. Si la categoría no es válida en el catálogo: HTTP 404 + noindex, follow
+    if (!isValidCategory(slug)) {
+      response.setHeader('Content-Type', 'text/html; charset=utf-8');
+      response.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=3600');
+      response.setHeader('Vercel-Cache-Tag', 'category-404,catalog');
+      response.setHeader('Cache-Tag', 'category-404,catalog');
+      response.setHeader('X-Robots-Tag', 'noindex, follow');
+      return response.status(404).send(renderCategoryNotFoundPage(slug, lang));
+    }
+
     const page = Math.max(1, parseInt(String(request.query?.page || '1'), 10) || 1);
 
     const categoryData = await fetchCategoryData(slug, page);
 
+    // 3. Si la categoría no contiene obras: HTTP 404 + noindex, follow
+    if (!categoryData || categoryData.totalCount === 0) {
+      response.setHeader('Content-Type', 'text/html; charset=utf-8');
+      response.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=3600');
+      response.setHeader('Vercel-Cache-Tag', 'category-404,catalog');
+      response.setHeader('Cache-Tag', 'category-404,catalog');
+      response.setHeader('X-Robots-Tag', 'noindex, follow');
+      return response.status(404).send(renderCategoryNotFoundPage(slug, lang));
+    }
+
+    // 4. Renderizado exitoso (200 OK)
     response.setHeader('Content-Type', 'text/html; charset=utf-8');
-    // Cache Edge CDN: 48 horas fresca (172800s), hasta 7 días sirviendo stale mientras revalida en background
     response.setHeader('Cache-Control', 'public, s-maxage=172800, stale-while-revalidate=604800');
     const cacheTag = `category-${slug},category,catalog`;
     response.setHeader('Vercel-Cache-Tag', cacheTag);

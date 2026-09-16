@@ -1,5 +1,6 @@
 const { categoryClass, categoryLabel } = require('./_lib/categories.js');
 const { detectServerLanguage, getLangPrefix, getSSRText, getHreflangTags, getOgLocaleTags } = require('./_lib/i18n.js');
+const { slugify, isIgnoredArchitect } = require('./_lib/slugs.js');
 const { createRateLimiter } = require('./_lib/rateLimiter.js');
 const { getSupabaseConfig } = require('./_lib/supabaseEnv.js');
 
@@ -64,9 +65,23 @@ function renderBuildingPage(building, lang = 'es') {
   const categoriaText = categoryLabel(building.categoria, lang);
   const isIndexable = lang === 'es';
 
-  const architectHtml = building.arquitecto
-    ? `<a class="architect-link" href="${SITE_URL}${prefix}/arquitecto/${encodeURIComponent(building.arquitecto)}">${escapeHtml(building.arquitecto)}</a>`
-    : '';
+  let architectHtml = '';
+  const validArchitects = [];
+  if (building.arquitecto) {
+    const rawNames = building.arquitecto.split(/[;,]/).map((p) => p.trim()).filter(Boolean);
+    const renderedParts = rawNames.map((name) => {
+      if (isIgnoredArchitect(name)) {
+        return escapeHtml(name);
+      }
+      validArchitects.push(name);
+      const slug = slugify(name);
+      if (!slug) {
+        return escapeHtml(name);
+      }
+      return `<a class="architect-link" href="${SITE_URL}${prefix}/arquitecto/${encodeURIComponent(slug)}">${escapeHtml(name)}</a>`;
+    });
+    architectHtml = renderedParts.join(', ');
+  }
 
   const detailsList = [
     building.arquitecto && { label: getSSRText('label_architecture', lang), value: architectHtml, isHtml: true },
@@ -113,12 +128,16 @@ function renderBuildingPage(building, lang = 'es') {
     ...(building.arquitecto || building.año_construccion ? {
       subjectOf: {
         '@type': 'CreativeWork',
-        ...(building.arquitecto ? {
+        ...(validArchitects.length > 0 ? {
+          creator: validArchitects.length === 1
+            ? { '@type': 'Person', name: validArchitects[0] }
+            : validArchitects.map((name) => ({ '@type': 'Person', name })),
+        } : (building.arquitecto && !isIgnoredArchitect(building.arquitecto) ? {
           creator: {
             '@type': 'Person',
             name: building.arquitecto,
           },
-        } : {}),
+        } : {})),
         ...(building.año_construccion ? {
           dateCreated: String(building.año_construccion),
         } : {}),

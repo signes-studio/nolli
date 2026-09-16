@@ -4,7 +4,7 @@
 
 const { categoryLabel } = require('./_lib/categories.js');
 const { detectServerLanguage, getLangPrefix, getSSRText, getHreflangTags, getOgLocaleTags } = require('./_lib/i18n.js');
-const { slugify, slugToRegex, extractCityName, escapeHtml, getOptimizedUrl } = require('./_lib/slugs.js');
+const { slugify, slugToRegex, extractCityName, escapeHtml, getOptimizedUrl, isIgnoredArchitect, ARCHITECT_ALIASES } = require('./_lib/slugs.js');
 const { createRateLimiter } = require('./_lib/rateLimiter.js');
 const { getSupabaseConfig } = require('./_lib/supabaseEnv.js');
 
@@ -153,7 +153,7 @@ function renderArchitectPage(data, page, lang = 'es') {
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
   const pageParam = page > 1 ? `?page=${page}` : '';
   const canonicalUrl = `${SITE_URL}/arquitecto/${encodeURIComponent(canonicalSlug)}${pageParam}`;
-  const isIndexable = lang === 'es';
+  const isIndexable = lang === 'es' && totalCount > 0;
 
   const title = getSSRText('architect_title', lang, { nombre: canonicalName });
   const description = getSSRText('architect_desc', lang, {
@@ -794,6 +794,142 @@ function renderArchitectPage(data, page, lang = 'es') {
 </html>`;
 }
 
+function renderArchitectNotFoundPage(rawInput, lang = 'es') {
+  const prefix = getLangPrefix(lang);
+  const title = getSSRText('not_found_architect_title', lang);
+  const heading = getSSRText('not_found_title', lang);
+  const tag = getSSRText('not_found_tag', lang);
+  const text = getSSRText('not_found_architect_text', lang);
+  const mapBtnText = getSSRText('go_to_map', lang);
+
+  return `<!DOCTYPE html>
+<html lang="${lang}">
+<head>
+  <base href="/">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${escapeHtml(title)}</title>
+  <meta name="robots" content="noindex, follow">
+  <link rel="icon" type="image/png" sizes="48x48" href="${SITE_URL}/icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="${SITE_URL}/icons/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=League+Spartan:wght@700;800;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=League+Spartan:wght@700;800;900&display=swap">
+  </noscript>
+  <style>
+    :root {
+      --bg: #F8F1DF;
+      --bg-card: #FFFFFF;
+      --bg-elevated: #F0E9D2;
+      --ink: #141411;
+      --ink-dim: #6B6B6B;
+      --border: #D8D6CE;
+      --brand: #E84E1B;
+      --font-display: 'League Spartan', sans-serif;
+      --font-body: 'Inter', sans-serif;
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.06);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #141411;
+        --bg-card: #1B1B18;
+        --bg-elevated: #242420;
+        --ink: #F4F1EA;
+        --ink-dim: #9E9E94;
+        --border: rgba(255, 255, 255, 0.12);
+        --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.4);
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      -webkit-font-smoothing: antialiased;
+    }
+    .nf-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 40px 32px;
+      max-width: 520px;
+      width: 100%;
+      text-align: center;
+      box-shadow: var(--shadow-md);
+    }
+    .nf-badge {
+      display: inline-block;
+      font-family: var(--font-display);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      color: var(--brand);
+      margin-bottom: 12px;
+    }
+    .nf-title {
+      font-family: var(--font-display);
+      font-size: 28px;
+      font-weight: 900;
+      margin: 0 0 14px;
+      color: var(--ink);
+      line-height: 1.1;
+    }
+    .nf-text {
+      font-size: 14.5px;
+      line-height: 1.6;
+      color: var(--ink-dim);
+      margin: 0 0 28px;
+    }
+    .nf-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 13px 26px;
+      background: var(--brand);
+      color: #fff;
+      text-decoration: none;
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .04em;
+      border-radius: var(--radius-sm);
+      box-shadow: 0 3px 12px rgba(232, 78, 27, 0.28);
+      transition: all 0.15s ease;
+    }
+    .nf-btn:hover {
+      background: #9E3700;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 16px rgba(232, 78, 27, 0.4);
+    }
+  </style>
+</head>
+<body>
+  <div class="nf-card not-found-card">
+    <span class="nf-badge">${escapeHtml(tag)}</span>
+    <h1 class="nf-title">${escapeHtml(heading)}</h1>
+    <p class="nf-text">${escapeHtml(text)}</p>
+    <a href="${SITE_URL}${prefix}/" class="nf-btn">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+      ${escapeHtml(mapBtnText)}
+    </a>
+  </div>
+</body>
+</html>`;
+}
+
 module.exports = async (request, response) => {
   // 1. Rate limiting defensivo por IP en caso de cache MISS
   const rate = checkRateLimit(request, response);
@@ -811,14 +947,73 @@ module.exports = async (request, response) => {
       return response.status(400).send('Falta el nombre o slug del arquitecto.');
     }
 
+    const cleanSlug = slugify(rawInput);
     const page = Math.max(1, parseInt(String(request.query?.page || '1'), 10) || 1);
+    const prefix = getLangPrefix(lang);
 
-    const architectData = await fetchArchitectData(rawInput, page);
+    // 2. Si es un arquitecto genérico o ignorado (p.ej. 'autor-desconocido', 'sin-arquitecto')
+    if (isIgnoredArchitect(rawInput) || isIgnoredArchitect(cleanSlug)) {
+      response.setHeader('Content-Type', 'text/html; charset=utf-8');
+      response.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
+      response.setHeader('Vercel-Cache-Tag', 'architect-404,catalog');
+      response.setHeader('Cache-Tag', 'architect-404,catalog');
+      response.setHeader('X-Robots-Tag', 'noindex, follow');
+      return response.status(404).send(renderArchitectNotFoundPage(rawInput, lang));
+    }
 
+    // 3. Comprobación de alias directo (p.ej. javier-goerlich-lleo -> francisco-javier-goerlich)
+    if (ARCHITECT_ALIASES[cleanSlug]) {
+      const aliasTarget = ARCHITECT_ALIASES[cleanSlug];
+      const pageParam = page > 1 ? `?page=${page}` : '';
+      const redirectUrl = `${SITE_URL}${prefix}/arquitecto/${encodeURIComponent(aliasTarget)}${pageParam}`;
+      response.setHeader('Location', redirectUrl);
+      response.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
+      response.setHeader('Vercel-Cache-Tag', `architect-redirect,architect-${aliasTarget},catalog`);
+      return response.status(301).send(`Redirecting to ${redirectUrl}`);
+    }
+
+    // 4. Consulta de datos del arquitecto
+    let architectData = await fetchArchitectData(rawInput, page);
+
+    // 5. Si no hay obras con el slug exacto: intentar búsqueda relajada si tiene 3 o más palabras (p.ej. nombre-apellido1-apellido2)
+    if (!architectData || architectData.totalCount === 0) {
+      const parts = cleanSlug.split('-').filter(Boolean);
+      if (parts.length >= 3) {
+        const relaxedSlug = parts.slice(0, -1).join('-');
+        const relaxedData = await fetchArchitectData(relaxedSlug, page).catch(() => null);
+        if (relaxedData && relaxedData.totalCount > 0 && relaxedData.canonicalSlug) {
+          const pageParam = page > 1 ? `?page=${page}` : '';
+          const redirectUrl = `${SITE_URL}${prefix}/arquitecto/${encodeURIComponent(relaxedData.canonicalSlug)}${pageParam}`;
+          response.setHeader('Location', redirectUrl);
+          response.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
+          response.setHeader('Vercel-Cache-Tag', `architect-redirect,architect-${relaxedData.canonicalSlug},catalog`);
+          return response.status(301).send(`Redirecting to ${redirectUrl}`);
+        }
+      }
+
+      // Si tras la búsqueda relajada no existen obras: 404 estricto + noindex, follow
+      response.setHeader('Content-Type', 'text/html; charset=utf-8');
+      response.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=3600');
+      response.setHeader('Vercel-Cache-Tag', 'architect-404,catalog');
+      response.setHeader('Cache-Tag', 'architect-404,catalog');
+      response.setHeader('X-Robots-Tag', 'noindex, follow');
+      return response.status(404).send(renderArchitectNotFoundPage(rawInput, lang));
+    }
+
+    // 6. Redirección canónica si el slug consultado difiere del slug canónico del arquitecto
+    const canonicalSlug = architectData.canonicalSlug;
+    if (canonicalSlug && canonicalSlug !== cleanSlug) {
+      const pageParam = page > 1 ? `?page=${page}` : '';
+      const redirectUrl = `${SITE_URL}${prefix}/arquitecto/${encodeURIComponent(canonicalSlug)}${pageParam}`;
+      response.setHeader('Location', redirectUrl);
+      response.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
+      response.setHeader('Vercel-Cache-Tag', `architect-redirect,architect-${canonicalSlug},catalog`);
+      return response.status(301).send(`Redirecting to ${redirectUrl}`);
+    }
+
+    // 7. Renderizado exitoso (200 OK)
     response.setHeader('Content-Type', 'text/html; charset=utf-8');
-    // Cache Edge CDN: 48 horas fresca (172800s), hasta 7 días sirviendo stale mientras revalida en background
     response.setHeader('Cache-Control', 'public, s-maxage=172800, stale-while-revalidate=604800');
-    const canonicalSlug = architectData?.canonicalSlug || slugify(rawInput);
     const cacheTag = `architect-${canonicalSlug},architect,catalog`;
     response.setHeader('Vercel-Cache-Tag', cacheTag);
     response.setHeader('Cache-Tag', cacheTag);

@@ -165,6 +165,90 @@ async function testAll() {
   });
   console.log('✓ All architect titles and descriptions use nolli. with no uppercase Nolli');
 
+  console.log('\n--- 7. Testing multi-architect linking in api/obra.js ---');
+  const multiObraFetch = global.fetch;
+  global.fetch = async () => ({
+    ok: true,
+    status: 200,
+    json: async () => [{
+      id: 'multi-01',
+      nombre_obra: 'Edificio España',
+      arquitecto: 'Joaquín Otamendi, Julián Otamendi, Desconocido',
+      año_construccion: 1953,
+      categoria: 'residencial',
+      place: 'Madrid, España',
+      foto_url: '',
+      estado_revision: 'publicada',
+    }],
+  });
+  const multiObraRes = createMockRes();
+  await obraHandler({ query: { id: 'multi-01' }, headers: {} }, multiObraRes);
+  global.fetch = multiObraFetch;
+  assert.strictEqual(multiObraRes.statusCode, 200);
+  assert(multiObraRes.body.includes('/arquitecto/joaquin-otamendi'), 'Should link joaquin-otamendi with slug');
+  assert(multiObraRes.body.includes('/arquitecto/julian-otamendi'), 'Should link julian-otamendi with slug');
+  assert(!multiObraRes.body.includes('/arquitecto/desconocido'), 'Should NOT link desconocido');
+  console.log('✓ Multi-architect linking and ignored architect filtering verified');
+
+  console.log('\n--- 8. Testing api/arquitecto.js 301 redirects and 404 noindex ---');
+  const arquitectoHandler = require('../api/arquitecto.js');
+  
+  // Test 8a: Alias redirect (javier-goerlich-lleo -> francisco-javier-goerlich)
+  const aliasRes = createMockRes();
+  await arquitectoHandler({ query: { slug: 'javier-goerlich-lleo' }, headers: {} }, aliasRes);
+  assert.strictEqual(aliasRes.statusCode, 301, 'javier-goerlich-lleo must return 301 redirect');
+  assert(aliasRes.getHeader('location').includes('/arquitecto/francisco-javier-goerlich'), `Target must be canonical slug, got: ${aliasRes.getHeader('location')}`);
+  console.log('✓ javier-goerlich-lleo -> francisco-javier-goerlich 301 redirect verified');
+
+  // Test 8b: Ignored architect (desconocido) -> 404 + noindex
+  const ignoredRes = createMockRes();
+  await arquitectoHandler({ query: { slug: 'desconocido' }, headers: {} }, ignoredRes);
+  assert.strictEqual(ignoredRes.statusCode, 404, 'desconocido must return 404');
+  assert(ignoredRes.getHeader('x-robots-tag').includes('noindex'), '404 must have noindex');
+  console.log('✓ desconocido architect -> 404 noindex verified');
+
+  // Test 8c: Non-existent architect (0 works in DB) -> 404 + noindex
+  const originalFetchArch = global.fetch;
+  global.fetch = async (url) => {
+    return {
+      ok: true,
+      status: 200,
+      headers: new Headers({ 'content-range': '0-0/0' }),
+      json: async () => [],
+    };
+  };
+  const nonexistentArchRes = createMockRes();
+  await arquitectoHandler({ query: { slug: 'arquitecto-inventado-inexistente' }, headers: {} }, nonexistentArchRes);
+  global.fetch = originalFetchArch;
+  assert.strictEqual(nonexistentArchRes.statusCode, 404, 'Architect with 0 works must return 404');
+  assert(nonexistentArchRes.getHeader('x-robots-tag').includes('noindex'), '404 must have noindex');
+  assert(nonexistentArchRes.body.includes('not-found-card'), 'Must render soft 404 UI');
+  console.log('✓ Non-existent architect -> 404 noindex verified');
+
+  console.log('\n--- 9. Testing api/ciudad.js 404 noindex on 0 works ---');
+  const ciudadHandler = require('../api/ciudad.js');
+  const originalFetchCity = global.fetch;
+  global.fetch = async () => ({
+    ok: true,
+    status: 200,
+    headers: new Headers({ 'content-range': '0-0/0' }),
+    json: async () => [],
+  });
+  const nonexistentCityRes = createMockRes();
+  await ciudadHandler({ query: { slug: 'ciudad-inventada-999' }, headers: {} }, nonexistentCityRes);
+  global.fetch = originalFetchCity;
+  assert.strictEqual(nonexistentCityRes.statusCode, 404, 'City with 0 works must return 404');
+  assert(nonexistentCityRes.getHeader('x-robots-tag').includes('noindex'), '404 must have noindex');
+  console.log('✓ Non-existent city -> 404 noindex verified');
+
+  console.log('\n--- 10. Testing api/categoria.js 404 noindex on invalid / 0 works ---');
+  const categoriaHandler = require('../api/categoria.js');
+  const invalidCatRes = createMockRes();
+  await categoriaHandler({ query: { slug: 'categoria-inexistente' }, headers: {} }, invalidCatRes);
+  assert.strictEqual(invalidCatRes.statusCode, 404, 'Invalid category must return 404');
+  assert(invalidCatRes.getHeader('x-robots-tag').includes('noindex'), '404 must have noindex');
+  console.log('✓ Invalid category -> 404 noindex verified');
+
   console.log('\n========================================');
   console.log('ALL VERIFICATIONS PASSED SUCCESSFULLY!');
   console.log('========================================');

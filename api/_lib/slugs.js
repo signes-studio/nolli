@@ -80,9 +80,84 @@ function isIgnoredArchitect(name) {
     'unknown',
     's/d',
     'sin datos',
+    'sin arquitecto',
+    'no consta',
+    'no disponible',
+    'n/a',
+    'nd',
   ];
   return ignored.includes(lower) || lower.length < 2;
 }
+
+/**
+ * Mapeo de alias y variaciones de nombres de arquitectos hacia su slug canónico en Nolli.
+ * Permite redirigir (301) búsquedas con segundos apellidos o nombres coloquiales
+ * hacia la ficha oficial que contiene las obras catalogadas.
+ */
+const ARCHITECT_ALIASES = {
+  // Javier Goerlich Lleó -> Francisco Javier Goerlich
+  'javier-goerlich-lleo': 'francisco-javier-goerlich',
+  'javier-goerlich': 'francisco-javier-goerlich',
+  'goerlich': 'francisco-javier-goerlich',
+  'francisco-javier-goerlich-lleo': 'francisco-javier-goerlich',
+
+  // Ludwig Mies van der Rohe
+  'mies-van-der-rohe': 'ludwig-mies-van-der-rohe',
+  'mies': 'ludwig-mies-van-der-rohe',
+
+  // Álvaro Siza
+  'alvaro-siza-vieira': 'alvaro-siza',
+  'siza': 'alvaro-siza',
+  'siza-vieira': 'alvaro-siza',
+
+  // Le Corbusier
+  'charles-edouard-jeanneret': 'le-corbusier',
+  'jeanneret': 'le-corbusier',
+
+  // Frank Gehry
+  'gehry': 'frank-gehry',
+
+  // Norman Foster / Foster + Partners
+  'norman-foster': 'foster-partners',
+  'foster': 'foster-partners',
+
+  // Zaha Hadid
+  'zaha-hadid': 'zha-zaha-hadid-architects',
+  'zaha': 'zha-zaha-hadid-architects',
+
+  // Rem Koolhaas / OMA
+  'rem-koolhaas': 'oma-office-for-metropolitan-architecture',
+  'koolhaas': 'oma-office-for-metropolitan-architecture',
+
+  // Bjarke Ingels / BIG
+  'bjarke-ingels': 'big-bjarke-ingels-group',
+
+  // David Chipperfield
+  'david-chipperfield': 'david-chipperfield-architects',
+  'chipperfield': 'david-chipperfield-architects',
+
+  // Renzo Piano
+  'renzo-piano': 'renzo-piano-building-workshop',
+
+  // Miguel Fisac Serna
+  'miguel-fisac': 'miguel-fisac-serna',
+  'fisac': 'miguel-fisac-serna',
+
+  // Alejandro de la Sota Martínez
+  'alejandro-de-la-sota': 'alejandro-de-la-sota-martinez',
+
+  // Antonio Bonet Castellana
+  'antonio-bonet': 'antonio-bonet-castellana',
+
+  // José Antonio Corrales Gutiérrez
+  'jose-antonio-corrales': 'jose-antonio-corrales-gutierrez',
+
+  // Vicente Traver Tomás
+  'vicente-traver': 'vicente-traver-tomas',
+
+  // Francisco Maristany Casajuana
+  'francisco-maristany': 'francisco-maristany-casajuana',
+};
 
 /**
  * Escapa caracteres HTML para inyección segura en SSR.
@@ -116,6 +191,7 @@ module.exports = {
   extractCityName,
   extractCountry,
   isIgnoredArchitect,
+  ARCHITECT_ALIASES,
   escapeHtml,
   getOptimizedUrl,
 };
