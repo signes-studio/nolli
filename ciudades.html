@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <base href="/">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self'; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
+
+  <!-- SEO Primario: Título y Meta Descripción -->
+  <title>Guías de Arquitectura por Ciudad | nolli. — guía colectiva de arquitectura</title>
+  <meta name="description" content="Explora guías de arquitectura geolocalizadas por ciudad: Barcelona, Madrid, Valencia, Londres, París, Berlín, Roma y más de 80 destinos con coordenadas precisas y fichas técnicas.">
+  <meta name="keywords" content="guía de arquitectura barcelona, arquitectura en madrid, mapa de arquitectura valencia, edificios londres, arquitectura berlin, rutas de arquitectura paris, guia colectiva de arquitectura, nolli">
+  <meta name="author" content="SIGNES.STUDIO">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+
+  <!-- Canónica y Alternativas -->
+  <link rel="canonical" href="https://nollimap.app/ciudades">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="nolli.">
+  <meta property="og:title" content="Guías de Arquitectura por Ciudad | nolli. — guía colectiva de arquitectura">
+  <meta property="og:description" content="Descubre las obras maestras y el paisaje urbano de las grandes capitales de la arquitectura con coordenadas exactas y radar GPS.">
+  <meta property="og:url" content="https://nollimap.app/ciudades">
+  <meta property="og:image" content="https://nollimap.app/icons/logo.png">
+  <meta property="og:locale" content="es_ES">
+
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@nollimap">
+  <meta name="twitter:title" content="Guías de Arquitectura por Ciudad | nolli.">
+  <meta name="twitter:description" content="Explora guías de arquitectura geolocalizadas por ciudad en el atlas colectivo nolli.">
+  <meta name="twitter:image" content="https://nollimap.app/icons/logo.png">
+
+  <!-- Favicon e Identidad PWA -->
+  <link rel="icon" type="image/png" sizes="48x48" href="./icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <link rel="shortcut icon" href="./favicon.ico">
+  <meta name="theme-color" content="#F8F1DF">
+
+  <!-- Google Fonts: Inter, League Spartan & Montserrat -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=League+Spartan:wght@700;800;900&family=Montserrat:wght@200;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=League+Spartan:wght@700;800;900&family=Montserrat:wght@200;800&display=swap">
+  </noscript>
+
+  <!-- Hojas de Estilo del Sistema Nolli -->
+  <link rel="stylesheet" href="css/utilities.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/portal.css">
+
+  <!-- Datos Estructurados Schema.org -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "CollectionPage",
+        "@id": "https://nollimap.app/ciudades#webpage",
+        "url": "https://nollimap.app/ciudades",
+        "name": "Guías de Arquitectura por Ciudad | nolli. — guía colectiva de arquitectura",
+        "description": "Explora guías de arquitectura geolocalizadas por ciudad: Barcelona, Madrid, Valencia, Londres, París, Berlín, Roma y más.",
+        "isPartOf": {
+          "@type": "WebSite",
+          "@id": "https://nollimap.app/#website",
+          "name": "nolli.",
+          "url": "https://nollimap.app/"
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": "https://nollimap.app/ciudades#breadcrumb",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "nolli.",
+            "item": "https://nollimap.app/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Ciudades",
+            "item": "https://nollimap.app/ciudades"
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+
+  <!-- Regla constructivista superior -->
+  <div class="axis-ruler" aria-hidden="true">
+    <span>01</span><span>02</span><span>03</span><span>04</span>
+    <span>05</span><span>06</span><span>07</span><span>08</span>
+    <span>09</span><span>10</span><span>11</span><span>12</span>
+  </div>
+
+  <!-- Cabecera y Navegación Principal -->
+  <header class="portal-header">
+    <div class="portal-shell" style="padding-bottom:0; display:flex; justify-content:space-between; align-items:center; width:100%;">
+      <div class="portal-brand-wrap">
+        <a href="./" class="brand-logo" title="Volver al mapa interactivo de nolli.">nolli<span class="brand-dot">.</span></a>
+        <span class="brand-tagline">guía colectiva de arquitectura</span>
+      </div>
+
+      <nav class="portal-nav" aria-label="Navegación principal">
+        <a href="/ciudades" class="portal-nav-link active">Ciudades</a>
+        <a href="/arquitectos" class="portal-nav-link">Arquitectos</a>
+        <a href="/categorias" class="portal-nav-link">Categorías</a>
+        <a href="/guia" class="portal-nav-link">Guía de uso</a>
+        <a href="/manifiesto" class="portal-nav-link">Manifiesto</a>
+        <a href="/colabora" class="portal-nav-link">Colabora</a>
+        <a href="./" class="portal-nav-cta">Abrir el mapa →</a>
+        <button type="button" class="portal-menu-btn" aria-label="Abrir menú de navegación" aria-expanded="false" aria-controls="mobile-nav-drawer">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Drawer Móvil Accesible -->
+  <div class="portal-drawer-backdrop" aria-hidden="true"></div>
+  <aside id="mobile-nav-drawer" class="portal-drawer" aria-label="Menú móvil">
+    <div class="portal-drawer-head">
+      <span class="brand-logo">nolli<span class="brand-dot">.</span></span>
+      <button type="button" class="portal-drawer-close" aria-label="Cerrar menú">✕</button>
+    </div>
+    <div class="portal-drawer-links">
+      <a href="/ciudades" class="active">Ciudades <span>→</span></a>
+      <a href="/arquitectos">Arquitectos <span>→</span></a>
+      <a href="/categorias">Categorías <span>→</span></a>
+      <a href="/guia">Guía de uso <span>→</span></a>
+      <a href="/manifiesto">Manifiesto <span>→</span></a>
+      <a href="/colabora">Colabora <span>→</span></a>
+      <a href="./" style="margin-top:16px; background:var(--accent); color:#fff; border-color:var(--border-strong);">Abrir mapa interactivo <span>→</span></a>
+    </div>
+    <div class="portal-drawer-footer">
+      <span class="brand-nolli">nolli.</span> es un proyecto de <a href="https://signes.studio" class="brand-signes"><strong class="brand-signes-bold">SIGNES</strong><span class="brand-signes-thin">.STUDIO</span></a>
+    </div>
+  </aside>
+
+  <main class="portal-shell">
+
+    <!-- Breadcrumbs -->
+    <nav class="portal-breadcrumbs" aria-label="Migas de pan">
+      <a href="./"><span class="brand-nolli">nolli.</span></a>
+      <span class="sep">/</span>
+      <span class="current">Ciudades</span>
+    </nav>
+
+    <!-- Encabezado de Página -->
+    <header class="portal-page-header">
+      <div class="portal-kicker">Destinos &amp; Rutas Urbanas</div>
+      <h1 class="portal-title">Guías de arquitectura por <span>ciudad</span>.</h1>
+      <p class="portal-lead">
+        Explora las grandes capitales de la arquitectura a través de sus obras construidas, movimientos vanguardistas y planos patrimoniales. Consulta el catálogo monográfico de cada urbe o ábrela directamente con coordenadas exactas sobre el mapa.
+      </p>
+    </header>
+
+    <!-- Barra de Búsqueda y Filtros en Vivo -->
+    <section class="portal-filter-bar" aria-label="Búsqueda y filtros de ciudades">
+      <div class="portal-search-wrap">
+        <svg class="portal-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="search" class="portal-search-input" placeholder="Buscar por ciudad, país o hito arquitectónico..." aria-label="Filtrar ciudades">
+      </div>
+      <div class="portal-filter-chips">
+        <button type="button" class="portal-chip active" data-filter="all">Todas</button>
+        <button type="button" class="portal-chip" data-filter="es">España</button>
+        <button type="button" class="portal-chip" data-filter="eu">Europa</button>
+        <button type="button" class="portal-chip" data-filter="am">América</button>
+        <button type="button" class="portal-chip" data-filter="as">Asia</button>
+      </div>
+    </section>
+
+    <!-- Grid de Ciudades -->
+    <section class="portal-grid-3" aria-label="Listado de ciudades arquitectónicas">
+
+      <!-- Barcelona -->
+      <article class="portal-card" data-search="barcelona espana cataluna modernismo cerda gatcpac sert miralles bofill gaudi" data-category="es">
+        <div class="portal-card-header">
+          <span class="portal-card-badge">España · Cataluña</span>
+          <span style="font-size:11px; font-weight:700; color:var(--accent);">41.3879° N, 2.1699° E</span>
+        </div>
+        <h2 class="portal-card-title"><a href="/ciudad/barcelona">Barcelona</a></h2>
+        <p class="portal-card-desc">
+          Laboratorio mundial de urbanismo: del Plan Cerdà y la efervescencia modernista de Gaudí y Jujol al Racionalismo del GATCPAC, Josep Lluís Sert, Enric Miralles y Ricardo Bofill.
+        </p>
+        <div class="portal-card-meta">
+          <span>Obras maestras: Sagrada Família, Pabellón Mies, Casa Milà</span>
+          <div class="portal-card-actions">
+            <a href="/ciudad/barcelona" class="portal-btn-sm">Ficha ciudad →</a>
+            <a href="/?lat=41.3879&lng=2.1699&z=13" class="portal-btn-sm" title="Ver en mapa">Mapa ↗</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Madrid -->
+      <article class="portal-card" data-search="madrid espana fisac oiza torres blancas sota zarzuela prado moneo miralles" data-category="es">
+        <div class="portal-card-header">
+          <span class="portal-card-badge">España · Madrid</span>
+          <span style="font-size:11px; font-weight:700; color:var(--accent);">40.4168° N, -3.7038° E</span>
+        </div>
+        <h2 class="portal-card-title"><a href="/ciudad/madrid">Madrid</a></h2>
+        <p class="portal-card-desc">
+          De la innovación estructural de Miguel Fisac y Sáenz de Oíza (Torres Blancas) al Racionalismo de Alejandro de la Sota (Gimnasio Maravillas), Moneo y la gran escala contemporánea.
+        </p>
+        <div class="portal-card-meta">
+          <span>Obras maestras: Torres Blancas, Hipódromo Zarzuela, CaixaForum</span>
+          <div class="portal-card-actions">
+            <a href="/ciudad/madrid" class="portal-btn-sm">Ficha ciudad →</a>
+            <a href="/?lat=40.4168&lng=-3.7038&z=13" class="portal-btn-sm" title="Ver en mapa">Mapa ↗</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Valencia -->
+      <article class="portal-card" data-search="valencia espana goerlich calatrava modernismo valenciano ribera cabanyal vetges tu" data-category="es">
+        <div class="portal-card-header">
+          <span class="portal-card-badge">España · Comunidad Valenciana</span>
+          <span style="font-size:11px; font-weight:700; color:var(--accent);">39.4699° N, -0.3763° E</span>
+        </div>
+        <h2 class="portal-card-title"><a href="/ciudad/valencia">Valencia</a></h2>
+        <p class="portal-card-desc">
+          Confluencia de Gótico civil de La Lonja, el ensanche racionalista de Javier Goerlich, el Modernismo del Mercado Central y la monumentalidad del cauce del Túria.
+        </p>
+        <div class="portal-card-meta">
+          <span>Obras maestras: Mercado Central, Edificio Banco de Valencia, La Lonja</span>
+          <div class="portal-card-actions">
+            <a href="/ciudad/valencia" class="portal-btn-sm">Ficha ciudad →</a>
+            <a href="/?lat=39.4699&lng=-0.3763&z=13" class="portal-btn-sm" title="Ver en mapa">Mapa ↗</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Berlín -->
+      <article class="portal-card" data-search="berlin alemania bauhaus mies nationalgalerie schinkel hansaviertel brutalismo" data-category="eu">
+        <div class="portal-card-header">
+          <span class="portal-card-badge">Alemania · Berlín</span>
+          <span style="font-size:11px; font-weight:700; color:var(--accent);">52.5200° N, 13.4050° E</span>
+        </div>
+        <h2 class="portal-card-title"><a href="/ciudad/berlin">Berlín</a></h2>
+        <p class="portal-card-desc">
+          Epicentro de la historia moderna: del clasicismo de Schinkel a las vanguardias de la Bauhaus, la Neue Nationalgalerie de Mies van der Rohe y el Hansaviertel de 1957.
+        </p>
+        <div class="portal-card-meta">
+          <span>Obras maestras: Neue Nationalgalerie, Philharmonie, Edificios Bauhaus</span>
+          <div class="portal-card-actions">
+            <a href="/ciudad/berlin" class="portal-btn-sm">Ficha ciudad →</a>
+            <a href="/?lat=52.5200&lng=13.4050&z=13" class="portal-btn-sm" title="Ver en mapa">Mapa ↗</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- París -->
+      <article class="portal-card" data-search="paris francia le corbusier haussmann pompidou piano rogers villa savoye nouvel" data-category="eu">
+        <div class="portal-card-header">
+          <span class="portal-card-badge">Francia · Île-de-France</span>
+          <span style="font-size:11px; font-weight:700; color:var(--accent);">48.8566° N, 2.3522° E</span>
+        </div>
+        <h2 class="portal-card-title"><a href="/ciudad/paris">París</a></h2>
+        <p class="portal-card-desc">
+          Del urbanismo decimonónico de Haussmann a los manifiestos de Le Corbusier (Villa Savoye, Maison La Roche), el Centre Pompidou y los grandes proyectos contemporáneos.
+        </p>
+        <div class="portal-card-meta">
+          <span>Obras maestras: Villa Savoye, Centre Pompidou, Instituto del Mundo Árabe</span>
+          <div class="portal-card-actions">
+            <a href="/ciudad/paris" class="portal-btn-sm">Ficha ciudad →</a>
+            <a href="/?lat=48.8566&lng=2.3522&z=13" class="portal-btn-sm" title="Ver en mapa">Mapa ↗</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Londres -->
+      <article class="portal-card" data-search="londres reino unido foster rogers barbican brutalismo zaha hadid tate modern" data-category="eu">
+        <div class="portal-card-header">
+          <span class="portal-card-badge">Reino Unido · Gran Londres</span>
+          <span style="font-size:11px; font-weight:700; color:var(--accent);">51.5074° N, -0.1278° E</span>
+        </div>
+        <h2 class="portal-card-title"><a href="/ciudad/londres">Londres</a></h2>
+        <p class="portal-card-desc">
+          Hogar del Brutalismo integral en el complejo Barbican, el High-Tech de Norman Foster y Richard Rogers, y las intervenciones transformadoras de Herzog &amp; de Meuron.
+        </p>
+        <div class="portal-card-meta">
+          <span>Obras maestras: Barbican Estate, Lloyd's Building, Tate Modern</span>
+          <div class="portal-card-actions">
+            <a href="/ciudad/londres" class="portal-btn-sm">Ficha ciudad →</a>
+            <a href="/?lat=51.5074&lng=-0.1278&z=13" class="portal-btn-sm" title="Ver en mapa">Mapa ↗</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Roma -->
+      <article class="portal-card" data-search="roma italia nolli giambattista borromini bernini eur racionalismo maxxi zaha" data-category="eu">
+        <div class="portal-card-header">
+          <span class="portal-card-badge">Italia · Lacio</span>
+          <span style="font-size:11px; font-weight:700; color:var(--accent);">41.9028° N, 12.4964° E</span>
+        </div>
+        <h2 class="portal-card-title"><a href="/ciudad/roma">Roma</a></h2>
+        <p class="portal-card-desc">
+          La ciudad que inspiró este atlas a través del mapa de Giambattista Nolli de 1748. Desde el Barroco espacial de Borromini hasta el Racionalismo del EUR y el MAXXI de Zaha Hadid.
+        </p>
+        <div class="portal-card-meta">
+          <span>Obras maestras: San Carlo alle Quattro Fontane, Palazzo della Civiltà, MAXXI</span>
+          <div class="portal-card-actions">
+            <a href="/ciudad/roma" class="portal-btn-sm">Ficha ciudad →</a>
+            <a href="/?lat=41.9028&lng=12.4964&z=13" class="portal-btn-sm" title="Ver en mapa">Mapa ↗</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Lisboa -->
+      <article class="portal-card" data-search="lisboa portugal siza souto de moura baixa pombalina expo 98 mendes da rocha" data-category="eu">
+        <div class="portal-card-header">
+          <span class="portal-card-badge">Portugal · Lisboa</span>
+          <span style="font-size:11px; font-weight:700; color:var(--accent);">38.7223° N, -9.1393° E</span>
+        </div>
+        <h2 class="portal-card-title"><a href="/ciudad/lisboa">Lisboa</a></h2>
+        <p class="portal-card-desc">
+          La retícula pionera de la Baixa tras el terremoto de 1755, el Pabellón de Portugal de Álvaro Siza Vieira y la arquitectura contemporánea junto al estuario del Tajo.
+        </p>
+        <div class="portal-card-meta">
+          <span>Obras maestras: Pavilhão de Portugal, Museu dos Coches, MAAT</span>
+          <div class="portal-card-actions">
+            <a href="/ciudad/lisboa" class="portal-btn-sm">Ficha ciudad →</a>
+            <a href="/?lat=38.7223&lng=-9.1393&z=13" class="portal-btn-sm" title="Ver en mapa">Mapa ↗</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Oporto -->
+      <article class="portal-card" data-search="oporto porto portugal siza souto de moura escola de porto serralves koolhaas" data-category="eu">
+        <div class="portal-card-header">
+          <span class="portal-card-badge">Portugal · Región Norte</span>
+          <span style="font-size:11px; font-weight:700; color:var(--accent);">41.1579° N, -8.6291° E</span>
+        </div>
+        <h2 class="portal-card-title"><a href="/ciudad/oporto">Oporto</a></h2>
+        <p class="portal-card-desc">
+          Cuna de la Escuela de Oporto: las Piscinas de Marés y Casa de Chá de Álvaro Siza, el Estadio de Braga de Souto de Moura y la icónica Casa da Música de OMA / Rem Koolhaas.
+        </p>
+        <div class="portal-card-meta">
+          <span>Obras maestras: Casa da Música, Piscinas das Marés, Museo Serralves</span>
+          <div class="portal-card-actions">
+            <a href="/ciudad/oporto" class="portal-btn-sm">Ficha ciudad →</a>
+            <a href="/?lat=41.1579&lng=-8.6291&z=13" class="portal-btn-sm" title="Ver en mapa">Mapa ↗</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Nueva York -->
+      <article class="portal-card" data-search="nueva york new york estados unidos mies seagram wright guggenheim high line" data-category="am">
+        <div class="portal-card-header">
+          <span class="portal-card-badge">Estados Unidos · NY</span>
+          <span style="font-size:11px; font-weight:700; color:var(--accent);">40.7128° N, -74.0060° E</span>
+        </div>
+        <h2 class="portal-card-title"><a href="/ciudad/nueva-york">Nueva York</a></h2>
+        <p class="portal-card-desc">
+          La metrópolis vertical por excelencia: el canon corporativo del Seagram Building de Mies van der Rohe, la espiral del Guggenheim de Frank Lloyd Wright y el High Line de Diller Scofidio.
+        </p>
+        <div class="portal-card-meta">
+          <span>Obras maestras: Seagram Building, Solomon R. Guggenheim, The Shed</span>
+          <div class="portal-card-actions">
+            <a href="/ciudad/nueva-york" class="portal-btn-sm">Ficha ciudad →</a>
+            <a href="/?lat=40.7128&lng=-74.0060&z=13" class="portal-btn-sm" title="Ver en mapa">Mapa ↗</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Tokio -->
+      <article class="portal-card" data-search="tokio tokyo japon metabolismo tange kurokawa tadao ando sanaa kuma ito" data-category="as">
+        <div class="portal-card-header">
+          <span class="portal-card-badge">Japón · Kanto</span>
+          <span style="font-size:11px; font-weight:700; color:var(--accent);">35.6762° N, 139.6503° E</span>
+        </div>
+        <h2 class="portal-card-title"><a href="/ciudad/tokio">Tokio</a></h2>
+        <p class="portal-card-desc">
+          Fascinante diálogo entre la tradición constructiva en madera, el movimiento Metabolista de Kenzo Tange y Kisho Kurokawa, y el minimalismo contemporáneo de SANAA y Tadao Ando.
+        </p>
+        <div class="portal-card-meta">
+          <span>Obras maestras: Gimnasio Yoyogi, Centro Nacional de Arte, Torre Nakagin</span>
+          <div class="portal-card-actions">
+            <a href="/ciudad/tokio" class="portal-btn-sm">Ficha ciudad →</a>
+            <a href="/?lat=35.6762&lng=139.6503&z=13" class="portal-btn-sm" title="Ver en mapa">Mapa ↗</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Bilbao -->
+      <article class="portal-card" data-search="bilbao espana pais vasco gehry foster calatrava moneo siza euskalduna" data-category="es">
+        <div class="portal-card-header">
+          <span class="portal-card-badge">España · País Vasco</span>
+          <span style="font-size:11px; font-weight:700; color:var(--accent);">43.2630° N, -2.9350° E</span>
+        </div>
+        <h2 class="portal-card-title"><a href="/ciudad/bilbao">Bilbao</a></h2>
+        <p class="portal-card-desc">
+          El paradigma de regeneración urbana postindustrial a través de la arquitectura: el Museo Guggenheim de Frank Gehry, el Metro de Norman Foster y la Biblioteca de Deusto de Rafael Moneo.
+        </p>
+        <div class="portal-card-meta">
+          <span>Obras maestras: Museo Guggenheim Bilbao, Fosteritos del Metro, Zubizuri</span>
+          <div class="portal-card-actions">
+            <a href="/ciudad/bilbao" class="portal-btn-sm">Ficha ciudad →</a>
+            <a href="/?lat=43.2630&lng=-2.9350&z=13" class="portal-btn-sm" title="Ver en mapa">Mapa ↗</a>
+          </div>
+        </div>
+      </article>
+
+    </section>
+
+    <!-- Banner CTA a Mapa Interactivo -->
+    <section class="portal-callout" style="text-align:center; padding:48px 24px; background:var(--bg-panel); border:2px solid var(--border-strong); box-shadow:var(--shadow-hard);">
+      <h2 style="font-family:'League Spartan', sans-serif; font-size:32px; font-weight:800; margin:0 0 12px; color:var(--fg);">¿Viajas a otra ciudad o territorio?</h2>
+      <p style="font-size:15px; color:var(--fg-dim); max-width:640px; margin:0 auto 24px; line-height:1.6;">
+        El catálogo de <span class="brand-nolli">nolli.</span> reúne más de 10.000 obras geolocalizadas en más de 80 países. Abre el mapa interactivo y activa el radar GPS para descubrir edificios notables a tu alrededor en cualquier coordenada.
+      </p>
+      <a href="./" class="portal-btn-primary">Explorar el mapa global ahora →</a>
+    </section>
+
+    <!-- Footer Semántico Unificado -->
+    <footer class="portal-footer">
+      <div class="footer-columns">
+        <div>
+          <div class="footer-brand">nolli<span class="brand-dot">.</span></div>
+          <p class="footer-motto">
+            Atlas colaborativo y mapa interactivo de arquitectura. Documentando el paisaje construido del mundo de forma libre, rigurosa y abierta.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="footer-col-title">Exploración</h3>
+          <ul class="footer-links">
+            <li><a href="./">Mapa Interactivo</a></li>
+            <li><a href="/ciudades">Guías por Ciudad</a></li>
+            <li><a href="/arquitectos">Directorio de Arquitectos</a></li>
+            <li><a href="/categorias">Tipologías y Categorías</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="footer-col-title">Plataforma</h3>
+          <ul class="footer-links">
+            <li><a href="/guia">Guía de Uso y Radar GPS</a></li>
+            <li><a href="/manifiesto">Manifiesto Fundacional</a></li>
+            <li><a href="/colabora">Colabora y Documenta</a></li>
+            <li><a href="/legal">Aviso Legal y Privacidad</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="footer-col-title">Contacto</h3>
+          <ul class="footer-links">
+            <li><a href="mailto:studio.signes@gmail.com">Soporte e Incidencias</a></li>
+            <li><a href="https://signes.studio" target="_blank" rel="noopener noreferrer">SIGNES.STUDIO</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <span>&copy; 2026 <span class="brand-nolli">nolli.</span> es un proyecto de <a href="https://signes.studio" target="_blank" rel="noopener noreferrer" class="brand-signes"><strong class="brand-signes-bold">SIGNES</strong><span class="brand-signes-thin">.STUDIO</span></a>. Todos los derechos reservados.</span>
+        <span>guía colectiva de arquitectura</span>
+      </div>
+    </footer>
+
+  </main>
+
+  <script src="js/portalNav.js" defer></script>
+</body>
+</html>

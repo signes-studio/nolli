@@ -365,6 +365,54 @@
       "destination": "/landing"
     },
     {
+      "source": "/en/ciudades",
+      "destination": "/ciudades"
+    },
+    {
+      "source": "/ca/ciudades",
+      "destination": "/ciudades"
+    },
+    {
+      "source": "/en/arquitectos",
+      "destination": "/arquitectos"
+    },
+    {
+      "source": "/ca/arquitectos",
+      "destination": "/arquitectos"
+    },
+    {
+      "source": "/en/categorias",
+      "destination": "/categorias"
+    },
+    {
+      "source": "/ca/categorias",
+      "destination": "/categorias"
+    },
+    {
+      "source": "/en/guia",
+      "destination": "/guia"
+    },
+    {
+      "source": "/ca/guia",
+      "destination": "/guia"
+    },
+    {
+      "source": "/en/manifiesto",
+      "destination": "/manifiesto"
+    },
+    {
+      "source": "/ca/manifiesto",
+      "destination": "/manifiesto"
+    },
+    {
+      "source": "/en/colabora",
+      "destination": "/colabora"
+    },
+    {
+      "source": "/ca/colabora",
+      "destination": "/colabora"
+    },
+    {
       "source": "/en/admin",
       "destination": "/admin"
     },

@@ -215,7 +215,13 @@ module.exports = async (request, response) => {
     if (type === 'static') {
       const staticEntries = [
         getMultilingualSitemapEntries('/', today, 'daily', '1.0', SITE_URL),
-        getMultilingualSitemapEntries('/landing', today, 'monthly', '0.9', SITE_URL),
+        getMultilingualSitemapEntries('/landing', today, 'weekly', '0.9', SITE_URL),
+        getMultilingualSitemapEntries('/ciudades', today, 'weekly', '0.9', SITE_URL),
+        getMultilingualSitemapEntries('/arquitectos', today, 'weekly', '0.9', SITE_URL),
+        getMultilingualSitemapEntries('/categorias', today, 'weekly', '0.9', SITE_URL),
+        getMultilingualSitemapEntries('/guia', today, 'monthly', '0.8', SITE_URL),
+        getMultilingualSitemapEntries('/manifiesto', today, 'monthly', '0.8', SITE_URL),
+        getMultilingualSitemapEntries('/colabora', today, 'monthly', '0.8', SITE_URL),
         getMultilingualSitemapEntries('/perfil', today, 'weekly', '0.8', SITE_URL),
         getMultilingualSitemapEntries('/legal', today, 'monthly', '0.3', SITE_URL),
       ];

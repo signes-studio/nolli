@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <base href="/">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self'; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self';">
+
+  <!-- SEO Primario -->
+  <title>Guía de Uso: Radar GPS y Herramientas de Viaje | nolli. — guía colectiva de arquitectura</title>
+  <meta name="description" content="Manual de uso de nolli.: cómo activar el radar GPS a 1, 3 y 5 km, el sistema de 4 niveles de relevancia, listas de viaje, modo offline en PWA y fichas técnicas.">
+  <meta name="keywords" content="mapa arquitectura gps, radar arquitectura, app de arquitectura para viajar, guia de campo arquitectura, como usar nolli, guia colectiva de arquitectura, nolli">
+  <meta name="author" content="SIGNES.STUDIO">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+
+  <!-- Canónica -->
+  <link rel="canonical" href="https://nollimap.app/guia">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="nolli.">
+  <meta property="og:title" content="Guía de Uso: Radar GPS y Herramientas de Viaje | nolli. — guía colectiva de arquitectura">
+  <meta property="og:description" content="Descubre cómo sacar el máximo partido a las herramientas de campo de nolli: radar GPS, jerarquías disciplinares, listas offline y fichas técnicas.">
+  <meta property="og:url" content="https://nollimap.app/guia">
+  <meta property="og:image" content="https://nollimap.app/icons/logo.png">
+  <meta property="og:locale" content="es_ES">
+
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@nollimap">
+  <meta name="twitter:title" content="Guía de Uso y Radar GPS | nolli.">
+  <meta name="twitter:description" content="Manual de herramientas cartográficas y de viaje arquitectónico en nolli.">
+  <meta name="twitter:image" content="https://nollimap.app/icons/logo.png">
+
+  <!-- Favicon e Identidad PWA -->
+  <link rel="icon" type="image/png" sizes="48x48" href="./icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <link rel="shortcut icon" href="./favicon.ico">
+  <meta name="theme-color" content="#F8F1DF">
+
+  <!-- Google Fonts: Inter, League Spartan & Montserrat -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=League+Spartan:wght@700;800;900&family=Montserrat:wght@200;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=League+Spartan:wght@700;800;900&family=Montserrat:wght@200;800&display=swap">
+  </noscript>
+
+  <!-- Hojas de Estilo del Sistema Nolli -->
+  <link rel="stylesheet" href="css/utilities.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/portal.css">
+
+  <!-- Schema.org JSON-LD (HowTo + FAQPage) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "HowTo",
+        "@id": "https://nollimap.app/guia#howto",
+        "name": "Cómo explorar arquitectura con el Radar GPS de nolli.",
+        "description": "Aprende a activar el radar de proximidad y descubrir obras arquitectónicas notables mientras caminas por cualquier ciudad del mundo.",
+        "step": [
+          {
+            "@type": "HowToStep",
+            "position": 1,
+            "name": "Abrir el mapa interactivo",
+            "text": "Accede a nolli. desde tu navegador móvil o de escritorio."
+          },
+          {
+            "@type": "HowToStep",
+            "position": 2,
+            "name": "Permitir geolocalización GPS",
+            "text": "Pulsa el botón de radar o de ubicación actual y concede permisos de geolocalización."
+          },
+          {
+            "@type": "HowToStep",
+            "position": 3,
+            "name": "Seleccionar radio de exploración",
+            "text": "Escoge entre 1 km, 3 km o 5 km para descubrir obras a tu alrededor ordenadas por distancia."
+          }
+        ]
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": "https://nollimap.app/guia#breadcrumb",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "nolli.",
+            "item": "https://nollimap.app/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Guía de uso",
+            "item": "https://nollimap.app/guia"
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+
+  <!-- Regla constructivista -->
+  <div class="axis-ruler" aria-hidden="true">
+    <span>01</span><span>02</span><span>03</span><span>04</span>
+    <span>05</span><span>06</span><span>07</span><span>08</span>
+    <span>09</span><span>10</span><span>11</span><span>12</span>
+  </div>
+
+  <!-- Cabecera Principal -->
+  <header class="portal-header">
+    <div class="portal-shell" style="padding-bottom:0; display:flex; justify-content:space-between; align-items:center; width:100%;">
+      <div class="portal-brand-wrap">
+        <a href="./" class="brand-logo" title="Volver al mapa interactivo de nolli.">nolli<span class="brand-dot">.</span></a>
+        <span class="brand-tagline">guía colectiva de arquitectura</span>
+      </div>
+
+      <nav class="portal-nav" aria-label="Navegación principal">
+        <a href="/ciudades" class="portal-nav-link">Ciudades</a>
+        <a href="/arquitectos" class="portal-nav-link">Arquitectos</a>
+        <a href="/categorias" class="portal-nav-link">Categorías</a>
+        <a href="/guia" class="portal-nav-link active">Guía de uso</a>
+        <a href="/manifiesto" class="portal-nav-link">Manifiesto</a>
+        <a href="/colabora" class="portal-nav-link">Colabora</a>
+        <a href="./" class="portal-nav-cta">Abrir el mapa →</a>
+        <button type="button" class="portal-menu-btn" aria-label="Abrir menú de navegación" aria-expanded="false" aria-controls="mobile-nav-drawer">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Drawer Móvil Accesible -->
+  <div class="portal-drawer-backdrop" aria-hidden="true"></div>
+  <aside id="mobile-nav-drawer" class="portal-drawer" aria-label="Menú móvil">
+    <div class="portal-drawer-head">
+      <span class="brand-logo">nolli<span class="brand-dot">.</span></span>
+      <button type="button" class="portal-drawer-close" aria-label="Cerrar menú">✕</button>
+    </div>
+    <div class="portal-drawer-links">
+      <a href="/ciudades">Ciudades <span>→</span></a>
+      <a href="/arquitectos">Arquitectos <span>→</span></a>
+      <a href="/categorias">Categorías <span>→</span></a>
+      <a href="/guia" class="active">Guía de uso <span>→</span></a>
+      <a href="/manifiesto">Manifiesto <span>→</span></a>
+      <a href="/colabora">Colabora <span>→</span></a>
+      <a href="./" style="margin-top:16px; background:var(--accent); color:#fff; border-color:var(--border-strong);">Abrir mapa interactivo <span>→</span></a>
+    </div>
+    <div class="portal-drawer-footer">
+      <span class="brand-nolli">nolli.</span> es un proyecto de <a href="https://signes.studio" class="brand-signes"><strong class="brand-signes-bold">SIGNES</strong><span class="brand-signes-thin">.STUDIO</span></a>
+    </div>
+  </aside>
+
+  <main class="portal-shell">
+
+    <!-- Breadcrumbs -->
+    <nav class="portal-breadcrumbs" aria-label="Migas de pan">
+      <a href="./"><span class="brand-nolli">nolli.</span></a>
+      <span class="sep">/</span>
+      <span class="current">Guía de uso</span>
+    </nav>
+
+    <!-- Encabezado de Página -->
+    <header class="portal-page-header">
+      <div class="portal-kicker">Manual de Instrucciones &amp; Campo</div>
+      <h1 class="portal-title">Cómo explorar con el <span>radar y la guía</span>.</h1>
+      <p class="portal-lead">
+        <span class="brand-nolli">nolli.</span> no es un simple mapa, sino un instrumento óptico y cartográfico de precisión diseñado para acompañarte mientras caminas por la ciudad. Conoce cómo activar sus herramientas especializadas.
+      </p>
+    </header>
+
+    <!-- Sección 1: El Radar GPS de Proximidad -->
+    <article class="portal-callout" style="background:var(--bg-panel);">
+      <div class="portal-card-badge" style="display:inline-block; margin-bottom:12px;">Herramienta 01</div>
+      <h2 style="font-family:'League Spartan', sans-serif; font-size:28px; font-weight:800; margin:0 0 14px; color:var(--fg);">
+        Radar GPS de Proximidad: 1 km, 3 km y 5 km
+      </h2>
+      <p style="font-size:15px; line-height:1.6; color:var(--fg-dim); margin-bottom:16px;">
+        Cuando caminas por una ciudad desconocida —o incluso por tu propio barrio— es habitual pasar junto a edificios notables de grandes arquitectos sin percatarse de su existencia. El <strong>Radar GPS</strong> de <span class="brand-nolli">nolli.</span> escanea en tiempo real el catálogo alrededor de tus coordenadas exactas y te avisa de las obras que tienes a tiro de paseo:
+      </p>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:16px; margin:20px 0;">
+        <div style="background:var(--bg); border:1.5px solid var(--border-strong); padding:16px; box-shadow:2px 2px 0 var(--border-strong);">
+          <strong style="color:var(--accent); font-size:16px; display:block; margin-bottom:4px;">Radio 1 KM</strong>
+          <span style="font-size:13px; color:var(--fg-dim);">Exploración inmediata a pie: obras a menos de 10-12 minutos caminando de tu posición.</span>
+        </div>
+        <div style="background:var(--bg); border:1.5px solid var(--border-strong); padding:16px; box-shadow:2px 2px 0 var(--border-strong);">
+          <strong style="color:var(--accent); font-size:16px; display:block; margin-bottom:4px;">Radio 3 KM</strong>
+          <span style="font-size:13px; color:var(--fg-dim);">Exploración de distrito: cubre los barrios adyacentes y rutas en bicicleta o transporte urbano.</span>
+        </div>
+        <div style="background:var(--bg); border:1.5px solid var(--border-strong); padding:16px; box-shadow:2px 2px 0 var(--border-strong);">
+          <strong style="color:var(--accent); font-size:16px; display:block; margin-bottom:4px;">Radio 5 KM</strong>
+          <span style="font-size:13px; color:var(--fg-dim);">Área metropolitana completa: ideal para planificar la jornada completa en la ciudad.</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- Sección 2: Los 4 Niveles de Relevancia Arquitectónica -->
+    <article class="portal-callout" style="background:var(--bg-panel);">
+      <div class="portal-card-badge" style="display:inline-block; margin-bottom:12px;">Herramienta 02</div>
+      <h2 style="font-family:'League Spartan', sans-serif; font-size:28px; font-weight:800; margin:0 0 14px; color:var(--fg);">
+        Sistema de Jerarquía en 4 Niveles
+      </h2>
+      <p style="font-size:15px; line-height:1.6; color:var(--fg-dim); margin-bottom:16px;">
+        Para evitar la saturación visual en el mapa y priorizar los hitos verdaderamente determinantes, cada edificio en <span class="brand-nolli">nolli.</span> está clasificado mediante un riguroso criterio de relevancia arquitectónica:
+      </p>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:16px; margin:20px 0;">
+        <div style="background:var(--bg); border:1.5px solid var(--border-strong); padding:16px; box-shadow:2px 2px 0 var(--border-strong);">
+          <strong style="color:var(--accent); font-size:14px; text-transform:uppercase;">Nivel I · Iconos Universales</strong>
+          <p style="font-size:12px; color:var(--fg-dim); margin:6px 0 0;">Obras maestras de trascendencia histórica mundial que forman parte del canon disciplinar imprescindible (ej. Pabellón de Barcelona, Villa Savoye).</p>
+        </div>
+        <div style="background:var(--bg); border:1.5px solid var(--border-strong); padding:16px; box-shadow:2px 2px 0 var(--border-strong);">
+          <strong style="color:var(--fg); font-size:14px; text-transform:uppercase;">Nivel II · Patrimonio Nacional</strong>
+          <p style="font-size:12px; color:var(--fg-dim); margin:6px 0 0;">Edificios catalogados de primer orden en la historia de la arquitectura de su país o región territorial (ej. Torres Blancas, Kursaal).</p>
+        </div>
+        <div style="background:var(--bg); border:1.5px solid var(--border-strong); padding:16px; box-shadow:2px 2px 0 var(--border-strong);">
+          <strong style="color:var(--fg-dim); font-size:14px; text-transform:uppercase;">Nivel III · Arquitectura Notable</strong>
+          <p style="font-size:12px; color:var(--fg-dim); margin:6px 0 0;">Obras de alto interés proyectual, tipológico, tectónico o de autoría reconocida en publicaciones especializadas.</p>
+        </div>
+        <div style="background:var(--bg); border:1.5px solid var(--border-strong); padding:16px; box-shadow:2px 2px 0 var(--border-strong);">
+          <strong style="color:var(--fg-dim); font-size:14px; text-transform:uppercase;">Nivel IV · Interés Local / Contextual</strong>
+          <p style="font-size:12px; color:var(--fg-dim); margin:6px 0 0;">Piezas que cualifican el paisaje del barrio, ejemplos de vivienda digna o pequeñas obras singulares que merecen rescate documental.</p>
+        </div>
+      </div>
+    </article>
+
+    <!-- Sección 3: Colecciones, Listas y Tracker de Visitas -->
+    <article class="portal-callout" style="background:var(--bg-panel);">
+      <div class="portal-card-badge" style="display:inline-block; margin-bottom:12px;">Herramienta 03</div>
+      <h2 style="font-family:'League Spartan', sans-serif; font-size:28px; font-weight:800; margin:0 0 14px; color:var(--fg);">
+        Listas de Viaje y Cuaderno de Obras Visitadas
+      </h2>
+      <p style="font-size:15px; line-height:1.6; color:var(--fg-dim); margin-bottom:16px;">
+        Al iniciar sesión gratuita en <span class="brand-nolli">nolli.</span> dispones de un gestor de campo completo para tus itinerarios:
+      </p>
+      <ul style="font-size:14px; line-height:1.7; color:var(--fg-dim); padding-left:20px; margin-bottom:20px;">
+        <li><strong>Crear colecciones temáticas:</strong> Agrupa edificios para tu próximo viaje (ej. "Ruta Modernista en Barcelona", "Fisac en Madrid") y ábrelos simultáneamente en el mapa.</li>
+        <li><strong>Marcar como visitada:</strong> Lleva un recuento exacto de las obras maestras que has recorrido en persona a lo largo de tu vida profesional o viajera.</li>
+        <li><strong>Notas privadas de campo:</strong> Añade impresiones sobre el estado de conservación, acceso al interior o consejos de visita directamente en la ficha.</li>
+      </ul>
+    </article>
+
+    <!-- Sección 4: PWA y Funcionamiento Offline -->
+    <article class="portal-callout" style="background:var(--bg-panel);">
+      <div class="portal-card-badge" style="display:inline-block; margin-bottom:12px;">Herramienta 04</div>
+      <h2 style="font-family:'League Spartan', sans-serif; font-size:28px; font-weight:800; margin:0 0 14px; color:var(--fg);">
+        PWA: Instalación y Consulta Sin Cobertura
+      </h2>
+      <p style="font-size:15px; line-height:1.6; color:var(--fg-dim); margin-bottom:16px;">
+        <span class="brand-nolli">nolli.</span> está construida como una <strong>Progressive Web App (PWA)</strong> de alto rendimiento:
+      </p>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin:20px 0;">
+        <div style="background:var(--bg); border:1.5px solid var(--border-strong); padding:16px;">
+          <strong style="color:var(--fg); font-size:14px; display:block; margin-bottom:6px;">En iPhone / iPad (iOS Safari)</strong>
+          <span style="font-size:13px; color:var(--fg-dim);">Pulsa el botón de compartir de Safari y selecciona <strong>"Añadir a pantalla de inicio"</strong>. Tendrás acceso directo a pantalla completa como una app nativa.</span>
+        </div>
+        <div style="background:var(--bg); border:1.5px solid var(--border-strong); padding:16px;">
+          <strong style="color:var(--fg); font-size:14px; display:block; margin-bottom:6px;">En Android (Google Chrome)</strong>
+          <span style="font-size:13px; color:var(--fg-dim);">Acepta el mensaje emergente <strong>"Instalar aplicación"</strong> o pulsa en el menú de tres puntos y escoge "Instalar nolli.".</span>
+        </div>
+      </div>
+      <p style="font-size:13px; color:var(--fg-dim); margin-top:12px;">
+        Los Service Workers activos almacenan en la memoria local de tu dispositivo las fichas y listas que consultes, permitiéndote volver a leerlas incluso en el metro o en zonas con cobertura móvil limitada.
+      </p>
+    </article>
+
+    <!-- CTA Final -->
+    <div style="text-align:center; margin:50px 0 20px;">
+      <a href="./" class="portal-btn-primary" style="font-size:16px; padding:16px 32px;">Abrir el mapa interactivo y probar el radar →</a>
+    </div>
+
+    <!-- Footer Semántico Unificado -->
+    <footer class="portal-footer">
+      <div class="footer-columns">
+        <div>
+          <div class="footer-brand">nolli<span class="brand-dot">.</span></div>
+          <p class="footer-motto">
+            Atlas colaborativo y mapa interactivo de arquitectura. Documentando el paisaje construido del mundo de forma libre, rigurosa y abierta.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="footer-col-title">Exploración</h3>
+          <ul class="footer-links">
+            <li><a href="./">Mapa Interactivo</a></li>
+            <li><a href="/ciudades">Guías por Ciudad</a></li>
+            <li><a href="/arquitectos">Directorio de Arquitectos</a></li>
+            <li><a href="/categorias">Tipologías y Categorías</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="footer-col-title">Plataforma</h3>
+          <ul class="footer-links">
+            <li><a href="/guia">Guía de Uso y Radar GPS</a></li>
+            <li><a href="/manifiesto">Manifiesto Fundacional</a></li>
+            <li><a href="/colabora">Colabora y Documenta</a></li>
+            <li><a href="/legal">Aviso Legal y Privacidad</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="footer-col-title">Contacto</h3>
+          <ul class="footer-links">
+            <li><a href="mailto:studio.signes@gmail.com">Soporte e Incidencias</a></li>
+            <li><a href="https://signes.studio" target="_blank" rel="noopener noreferrer">SIGNES.STUDIO</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <span>&copy; 2026 <span class="brand-nolli">nolli.</span> es un proyecto de <a href="https://signes.studio" target="_blank" rel="noopener noreferrer" class="brand-signes"><strong class="brand-signes-bold">SIGNES</strong><span class="brand-signes-thin">.STUDIO</span></a>. Todos los derechos reservados.</span>
+        <span>guía colectiva de arquitectura</span>
+      </div>
+    </footer>
+
+  </main>
+
+  <script src="js/portalNav.js" defer></script>
+</body>
+</html>

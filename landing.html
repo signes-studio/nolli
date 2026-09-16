@@ -58,6 +58,7 @@
   <!-- Hojas de Estilo del Sistema Nolli -->
   <link rel="stylesheet" href="css/utilities.css">
   <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/portal.css">
 
   <!-- Datos Estructurados Schema.org en JSON-LD (WebApplication + FAQPage) -->
   <script type="application/ld+json">
@@ -100,7 +101,7 @@
         "mainEntity": [
           {
             "@type": "Question",
-            "name": "¿Nolli es una aplicación gratuita?",
+            "name": "¿nolli. es una aplicación gratuita?",
             "acceptedAnswer": {
               "@type": "Answer",
               "text": "Sí, el acceso al mapa interactivo de arquitectura, el radar de proximidad GPS y la consulta de todas las fichas técnicas son 100% gratuitos y abiertos. Al registrarte con una cuenta gratuita, puedes además crear listas de viaje personalizadas y registrar tus obras visitadas sin ningún coste."
@@ -108,7 +109,7 @@
           },
           {
             "@type": "Question",
-            "name": "¿Cómo se añaden nuevas obras al catálogo de Nolli?",
+            "name": "¿Cómo se añaden nuevas obras al catálogo de nolli.?",
             "acceptedAnswer": {
               "@type": "Answer",
               "text": "Cualquier usuario con cuenta puede proponer nuevas obras haciendo clic en el botón 'Añadir obra' o manteniendo pulsada cualquier coordenada sobre el mapa. Las propuestas son revisadas por la comunidad y el equipo de curaduría para garantizar la exactitud de la autoría, año, tipología y fotografías antes de su inclusión definitiva."
@@ -116,18 +117,18 @@
           },
           {
             "@type": "Question",
-            "name": "¿Funciona Nolli sin conexión a internet durante mis viajes?",
+            "name": "¿Funciona nolli. sin conexión a internet durante mis viajes?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Nolli está desarrollada como una Progressive Web App (PWA) de alto rendimiento con Service Workers activos. Las fichas de obras consultadas y tus listas de viaje guardadas quedan almacenadas en la memoria caché de tu navegador, permitiéndote consultar datos y notas de campo incluso con cobertura limitada."
+              "text": "nolli. está desarrollada como una Progressive Web App (PWA) de alto rendimiento con Service Workers activos. Las fichas de obras consultadas y tus listas de viaje guardadas quedan almacenadas en la memoria caché de tu navegador, permitiéndote consultar datos y notas de campo incluso con cobertura limitada."
             }
           },
           {
             "@type": "Question",
-            "name": "¿En qué se diferencia Nolli de Google Maps u otras aplicaciones de mapas?",
+            "name": "¿En qué se diferencia nolli. de Google Maps u otras aplicaciones de mapas?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Google Maps está enfocado en comercios, restaurantes y tráfico vehicular, careciendo de información sobre arquitectos, años de construcción o rigor tipológico. Nolli es un instrumento concebido exclusivamente por y para la arquitectura: cada punto del mapa es una obra de autor clasificada por importancia disciplinar, libre de anuncios y con coordenadas de precisión arquitectónica."
+              "text": "Google Maps está enfocado en comercios, restaurantes y tráfico vehicular, careciendo de información sobre arquitectos, años de construcción o rigor tipológico. nolli. es un instrumento concebido exclusivamente por y para la arquitectura: cada punto del mapa es una obra de autor clasificada por importancia disciplinar, libre de anuncios y con coordenadas de precisión arquitectónica."
             }
           },
           {
@@ -1012,20 +1013,48 @@
   </div>
 
   <!-- Cabecera de Página / Navegación Principal -->
-  <header class="landing-header">
-    <div style="display:flex; align-items:baseline;">
-      <a href="./" class="brand-logo" title="Volver al mapa interactivo de Nolli">nolli<em>.</em></a>
-      <span class="brand-tagline">Atlas de Arquitectura</span>
+  <header class="portal-header">
+    <div class="portal-shell" style="padding-bottom:0; display:flex; justify-content:space-between; align-items:center; width:100%;">
+      <div class="portal-brand-wrap">
+        <a href="./" class="brand-logo" title="Volver al mapa interactivo de nolli.">nolli<span class="brand-dot">.</span></a>
+        <span class="brand-tagline">guía colectiva de arquitectura</span>
+      </div>
+
+      <nav class="portal-nav" aria-label="Navegación principal">
+        <a href="/ciudades" class="portal-nav-link">Ciudades</a>
+        <a href="/arquitectos" class="portal-nav-link">Arquitectos</a>
+        <a href="/categorias" class="portal-nav-link">Categorías</a>
+        <a href="/guia" class="portal-nav-link">Guía de uso</a>
+        <a href="/manifiesto" class="portal-nav-link">Manifiesto</a>
+        <a href="/colabora" class="portal-nav-link">Colabora</a>
+        <a href="./" class="portal-nav-cta">Abrir el mapa →</a>
+        <button type="button" class="portal-menu-btn" aria-label="Abrir menú de navegación" aria-expanded="false" aria-controls="mobile-nav-drawer">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+      </nav>
     </div>
-    <nav class="landing-nav" aria-label="Navegación principal de la landing">
-      <a href="#que-es">Qué es</a>
-      <a href="#como-funciona">Funcionalidades</a>
-      <a href="#para-quien">Público</a>
-      <a href="#categorias">Categorías</a>
-      <a href="#faq">Preguntas</a>
-      <a href="./" class="nav-cta-btn">Explorar el mapa →</a>
-    </nav>
   </header>
+
+  <!-- Drawer Móvil Accesible -->
+  <div class="portal-drawer-backdrop" aria-hidden="true"></div>
+  <aside id="mobile-nav-drawer" class="portal-drawer" aria-label="Menú móvil">
+    <div class="portal-drawer-head">
+      <span class="brand-logo">nolli<span class="brand-dot">.</span></span>
+      <button type="button" class="portal-drawer-close" aria-label="Cerrar menú">✕</button>
+    </div>
+    <div class="portal-drawer-links">
+      <a href="/ciudades">Ciudades <span>→</span></a>
+      <a href="/arquitectos">Arquitectos <span>→</span></a>
+      <a href="/categorias">Categorías <span>→</span></a>
+      <a href="/guia">Guía de uso <span>→</span></a>
+      <a href="/manifiesto">Manifiesto <span>→</span></a>
+      <a href="/colabora">Colabora <span>→</span></a>
+      <a href="./" style="margin-top:16px; background:var(--accent); color:#fff; border-color:var(--border-strong);">Abrir mapa interactivo <span>→</span></a>
+    </div>
+    <div class="portal-drawer-footer">
+      <span class="brand-nolli">nolli.</span> es un proyecto de <a href="https://signes.studio" class="brand-signes"><strong class="brand-signes-bold">SIGNES</strong><span class="brand-signes-thin">.STUDIO</span></a>
+    </div>
+  </aside>
 
   <main class="landing-main">
 
@@ -1057,7 +1086,7 @@
         <div class="hero-preview-wrapper">
           <img 
             src="img/landing/hero-map.webp" 
-            alt="Interfaz interactiva de Nolli mostrando plano arquitectónico y puntos geolocalizados" 
+            alt="Interfaz interactiva de nolli. mostrando plano arquitectónico y puntos geolocalizados" 
             class="hero-preview-img" 
             width="800" 
             height="500" 
@@ -1073,7 +1102,7 @@
     </section>
 
     <!-- 2. SECCIÓN DE ESTADÍSTICAS DESTACADAS -->
-    <section class="stats-section" aria-label="Cifras clave del catálogo Nolli">
+    <section class="stats-section" aria-label="Cifras clave del catálogo de nolli.">
       <div class="stats-grid">
         <article class="stat-card">
           <div class="stat-number">+10.000</div>
@@ -1103,19 +1132,22 @@
       <span class="section-eyebrow">Concepto &amp; Manifiesto</span>
       <h2 id="about-title" class="section-heading">Una cartografía rigurosa para aprender, caminar y documentar la arquitectura.</h2>
       <p class="section-intro">
-        Nolli nace de una frustración compartida por miles de arquitectos y aficionados: la dificultad de encontrar información arquitectónica precisa en mapas comerciales pensados para el consumo y el tráfico vehicular.
+        <span class="brand-nolli">nolli.</span> nace de una frustración compartida por miles de arquitectos y aficionados: la dificultad de encontrar información arquitectónica precisa en mapas comerciales pensados para el consumo y el tráfico vehicular.
       </p>
 
       <div class="about-layout">
         <div class="about-copy">
           <p>
-            Inspirado en el célebre plano de Roma trazado por <strong>Giambattista Nolli en 1748</strong> —donde los espacios públicos y los interiores accesibles de los edificios se dibujaron como una trama continua abierta a la ciudadanía—, <strong>Nolli</strong> traslada esa visión al entorno digital contemporáneo.
+            Inspirado en el célebre plano de Roma trazado por <strong>Giambattista Nolli en 1748</strong> —donde los espacios públicos y los interiores accesibles de los edificios se dibujaron como una trama continua abierta a la ciudadanía—, <span class="brand-nolli">nolli.</span> traslada esa visión al entorno digital contemporáneo.
           </p>
           <p>
-            No somos un directorio turístico genérico. Cada registro en Nolli es una <strong>ficha técnica rigurosa</strong> que incluye autoría verificada, año de inauguración, tipología funcional, estado de accesibilidad y coordenadas milimétricas. Toda la base de datos se despliega sobre un mapa vectorial fluido diseñado bajo los principios estéticos y funcionales de la <strong>Neo-Bauhaus</strong>.
+            No somos un directorio turístico genérico. Cada registro en <span class="brand-nolli">nolli.</span> es una <strong>ficha técnica rigurosa</strong> que incluye autoría verificada, año de inauguración, tipología funcional, estado de accesibilidad y coordenadas milimétricas. Toda la base de datos se despliega sobre un mapa vectorial fluido diseñado bajo los principios estéticos y funcionales de la <strong>Neo-Bauhaus</strong>.
           </p>
           <p>
-            Además, Nolli opera como una <strong>wiki viva</strong>: cualquier usuario registrado puede proponer obras que falten en su entorno, reportar erratas, adjuntar fotografías de campo o actualizar el estado de conservación de un edificio. Una curaduría comunitaria garantiza que la calidad documental se mantenga al más alto nivel profesional y académico.
+            Además, <span class="brand-nolli">nolli.</span> opera como una <strong>wiki viva</strong>: cualquier usuario registrado puede proponer obras que falten en su entorno, reportar erratas, adjuntar fotografías de campo o actualizar el estado de conservación de un edificio. Una curaduría comunitaria garantiza que la calidad documental se mantenga al más alto nivel profesional y académico.
+          </p>
+          <p style="margin-top: 20px;">
+            <a href="/manifiesto" class="portal-btn-sm">Leer el manifiesto fundacional completo →</a>
           </p>
         </div>
 
@@ -1148,7 +1180,7 @@
       <span class="section-eyebrow">Herramientas en Campo</span>
       <h2 id="features-title" class="section-heading">Diseñado para acompañarte frente al edificio o en la mesa de trabajo.</h2>
       <p class="section-intro">
-        Tanto si estás planificando tu próximo viaje de estudios como si te encuentras paseando por una ciudad extranjera, Nolli te ofrece las herramientas necesarias para desvelar el paisaje construido.
+        Tanto si estás planificando tu próximo viaje de estudios como si te encuentras paseando por una ciudad extranjera, <span class="brand-nolli">nolli.</span> te ofrece las herramientas necesarias para desvelar el paisaje construido.
       </p>
 
       <div class="features-grid">
@@ -1167,7 +1199,7 @@
           <div class="feature-card-visual">
             <img 
               src="img/landing/radar-gps.webp" 
-              alt="Visualización del radar de proximidad por GPS en Nolli" 
+              alt="Visualización del radar de proximidad por GPS en nolli." 
               class="feature-img" 
               width="640" 
               height="400" 
@@ -1192,7 +1224,7 @@
           <div class="feature-card-visual">
             <img 
               src="img/landing/itinerarios-viaje.webp" 
-              alt="Creación y gestión de itinerarios de viaje en Nolli" 
+              alt="Creación y gestión de itinerarios de viaje en nolli." 
               class="feature-img" 
               width="640" 
               height="400" 
@@ -1242,7 +1274,7 @@
           <div class="feature-card-visual">
             <img 
               src="img/landing/ficha-obra.webp" 
-              alt="Ficha técnica detallada de una obra arquitectónica en Nolli" 
+              alt="Ficha técnica detallada de una obra arquitectónica en nolli." 
               class="feature-img" 
               width="640" 
               height="400" 
@@ -1253,9 +1285,13 @@
         </article>
       </div>
 
+      <div style="text-align:center; margin:28px 0;">
+        <a href="/guia" class="portal-btn-secondary">Consultar la guía de uso y radar GPS al detalle →</a>
+      </div>
+
       <!-- Enlaces internos a obras maestras de ejemplo en el catálogo -->
       <div class="iconic-works-block">
-        <h3 class="iconic-works-title">Ejemplos de obras catalogadas en Nolli:</h3>
+        <h3 class="iconic-works-title">Ejemplos de obras catalogadas en nolli.:</h3>
         <div class="iconic-works-list">
           <a href="/obra/cVfMiWEW" class="iconic-work-link" title="Ver ficha técnica de la Neue Nationalgalerie">
             <p class="iconic-work-name">Neue Nationalgalerie</p>
@@ -1311,7 +1347,7 @@
       <span class="section-eyebrow">Comunidad &amp; Audiencia</span>
       <h2 id="audience-title" class="section-heading">Una herramienta concebida para perfiles con mirada espacial.</h2>
       <p class="section-intro">
-        Nolli responde a las necesidades reales de quienes se relacionan profesional o vocacionalmente con la disciplina arquitectónica.
+        <span class="brand-nolli">nolli.</span> responde a las necesidades reales de quienes se relacionan profesional o vocacionalmente con la disciplina arquitectónica.
       </p>
 
       <div class="audience-grid">
@@ -1387,12 +1423,16 @@
           <span class="category-chip-arrow">→</span>
         </a>
       </div>
+
+      <div style="text-align:center; margin-top:24px;">
+        <a href="/categorias" class="portal-btn-sm">Conoce a fondo las 7 tipologías y sus criterios →</a>
+      </div>
     </section>
 
     <!-- 7. PREGUNTAS FRECUENTES (FAQ) -->
     <section id="faq" class="content-section" aria-labelledby="faq-title">
       <span class="section-eyebrow">Dudas y Respuestas</span>
-      <h2 id="faq-title" class="section-heading">Preguntas Frecuentes sobre Nolli</h2>
+      <h2 id="faq-title" class="section-heading">Preguntas Frecuentes sobre nolli.</h2>
       <p class="section-intro">
         Todo lo que necesitas saber acerca del funcionamiento técnico, los datos del catálogo y la filosofía colaborativa de la plataforma.
       </p>
@@ -1400,7 +1440,7 @@
       <div class="faq-list">
         <!-- Pregunta 1 -->
         <details class="faq-item" open>
-          <summary class="faq-summary">¿Nolli es una aplicación gratuita?</summary>
+          <summary class="faq-summary">¿nolli. es una aplicación gratuita?</summary>
           <div class="faq-content">
             Sí, el acceso al mapa interactivo de arquitectura, el radar de proximidad GPS y la consulta de todas las fichas técnicas son 100% gratuitos y abiertos. Al registrarte con una cuenta gratuita, puedes además crear listas de viaje personalizadas y registrar tus obras visitadas sin ningún coste.
           </div>
@@ -1416,25 +1456,25 @@
 
         <!-- Pregunta 3 -->
         <details class="faq-item">
-          <summary class="faq-summary">¿Funciona Nolli sin conexión a internet durante mis viajes?</summary>
+          <summary class="faq-summary">¿Funciona nolli. sin conexión a internet durante mis viajes?</summary>
           <div class="faq-content">
-            Nolli está desarrollada como una Progressive Web App (PWA) de alto rendimiento con Service Workers activos. Las fichas de obras consultadas y tus listas de viaje guardadas quedan almacenadas en la memoria caché de tu navegador, permitiéndote consultar datos y notas de campo incluso con cobertura limitada.
+            <span class="brand-nolli">nolli.</span> está desarrollada como una Progressive Web App (PWA) de alto rendimiento con Service Workers activos. Las fichas de obras consultadas y tus listas de viaje guardadas quedan almacenadas en la memoria caché de tu navegador, permitiéndote consultar datos y notas de campo incluso con cobertura limitada.
           </div>
         </details>
 
         <!-- Pregunta 4 -->
         <details class="faq-item">
-          <summary class="faq-summary">¿En qué se diferencia Nolli de Google Maps u otras apps de mapas?</summary>
+          <summary class="faq-summary">¿En qué se diferencia nolli. de Google Maps u otras apps de mapas?</summary>
           <div class="faq-content">
-            Google Maps está enfocado en comercios, restaurantes y tráfico vehicular, careciendo de información sobre arquitectos, años de construcción o rigor tipológico. Nolli es un instrumento concebido exclusivamente por y para la arquitectura: cada punto del mapa es una obra de autor clasificada por importancia disciplinar, libre de anuncios y con coordenadas de precisión arquitectónica.
+            Google Maps está enfocado en comercios, restaurantes y tráfico vehicular, careciendo de información sobre arquitectos, años de construcción o rigor tipológico. <span class="brand-nolli">nolli.</span> es un instrumento concebido exclusivamente por y para la arquitectura: cada punto del mapa es una obra de autor clasificada por importancia disciplinar, libre de anuncios y con coordenadas de precisión arquitectónica.
           </div>
         </details>
 
         <!-- Pregunta 5 -->
         <details class="faq-item">
-          <summary class="faq-summary">¿Cómo puedo colaborar y ayudar a hacer crecer Nolli?</summary>
+          <summary class="faq-summary">¿Cómo puedo colaborar y ayudar a hacer crecer nolli.?</summary>
           <div class="faq-content">
-            Puedes colaborar documentando obras que conozcas en tu ciudad, compartiendo tus itinerarios arquitectónicos favoritos con otros usuarios, o señalando correcciones a través del buzón de incidencias disponible en cada ficha técnica. También puedes postularte para roles de edición si deseas curar activamente el catálogo.
+            Puedes colaborar documentando obras que conozcas en tu ciudad, compartiendo tus itinerarios arquitectónicos favoritos con otros usuarios, o señalando correcciones a través del buzón de incidencias disponible en cada ficha técnica. Consulta nuestra <a href="/colabora" style="color:var(--accent); font-weight:700;">guía de colaboración</a> para más detalles.
           </div>
         </details>
 
@@ -1458,8 +1498,8 @@
         <a href="./" class="btn-banner-primary">
           Abrir el mapa interactivo →
         </a>
-        <a href="/itinerarios" class="btn-banner-secondary">
-          Descubrir itinerarios de viaje
+        <a href="/ciudades" class="btn-banner-secondary">
+          Explorar guías por ciudad
         </a>
       </div>
     </section>
@@ -1468,7 +1508,7 @@
     <footer class="landing-footer">
       <div class="footer-columns">
         <div>
-          <div class="footer-brand">nolli<em>.</em></div>
+          <div class="footer-brand">nolli<span class="brand-dot">.</span></div>
           <p class="footer-motto">
             Atlas colaborativo y mapa interactivo de arquitectura. Documentando el paisaje construido del mundo de forma libre, rigurosa y abierta.
           </p>
@@ -1478,41 +1518,40 @@
           <h3 class="footer-col-title">Exploración</h3>
           <ul class="footer-links">
             <li><a href="./">Mapa Interactivo</a></li>
-            <li><a href="/itinerarios">Itinerarios y Rutas</a></li>
-            <li><a href="#como-funciona">Radar GPS de Proximidad</a></li>
-            <li><a href="./perfil">Perfil y Colecciones</a></li>
-          </ul>
-        </div>
-
-        <div>
-          <h3 class="footer-col-title">Obras Maestras</h3>
-          <ul class="footer-links">
-            <li><a href="/obra/cVfMiWEW">Neue Nationalgalerie</a></li>
-            <li><a href="/obra/vSvU7SpW">Notre-Dame-du-Haut</a></li>
-            <li><a href="/obra/ewk7jkej">Unité d'Habitation</a></li>
-            <li><a href="/categoria/residencial">Arquitectura Residencial</a></li>
+            <li><a href="/ciudades">Guías por Ciudad</a></li>
+            <li><a href="/arquitectos">Directorio de Arquitectos</a></li>
+            <li><a href="/categorias">Tipologías y Categorías</a></li>
           </ul>
         </div>
 
         <div>
           <h3 class="footer-col-title">Plataforma</h3>
           <ul class="footer-links">
-            <li><a href="#que-es">Manifiesto</a></li>
-            <li><a href="#faq">Preguntas Frecuentes</a></li>
+            <li><a href="/guia">Guía de Uso y Radar GPS</a></li>
+            <li><a href="/manifiesto">Manifiesto Fundacional</a></li>
+            <li><a href="/colabora">Colabora y Documenta</a></li>
             <li><a href="/legal">Aviso Legal y Privacidad</a></li>
-            <li><a href="mailto:studio.signes@gmail.com">Contacto y Sugerencias</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="footer-col-title">Contacto</h3>
+          <ul class="footer-links">
+            <li><a href="mailto:studio.signes@gmail.com">Soporte e Incidencias</a></li>
+            <li><a href="https://signes.studio" target="_blank" rel="noopener noreferrer">SIGNES.STUDIO</a></li>
           </ul>
         </div>
       </div>
 
       <div class="footer-bottom">
         <span>&copy; 2026 <span class="brand-nolli">nolli.</span> es un proyecto de <a href="https://signes.studio" target="_blank" rel="noopener noreferrer" class="brand-signes"><strong class="brand-signes-bold">SIGNES</strong><span class="brand-signes-thin">.STUDIO</span></a>. Todos los derechos reservados.</span>
-        <span>Coordenadas exactas para obras construidas.</span>
+        <span>guía colectiva de arquitectura</span>
       </div>
     </footer>
 
   </main>
 
+  <script src="js/portalNav.js" defer></script>
   <script>
     // Registro opcional de Service Worker para capacidades PWA y caché estática
     if ('serviceWorker' in navigator) {
