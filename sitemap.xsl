@@ -20,17 +20,44 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=League+Spartan:wght@700;800;900&amp;display=swap" rel="stylesheet"/>
         <style>
+          :root {
+            --bg: #F4F1EA;
+            --bg-surface: #FFFFFF;
+            --bg-elevated: #EDE7D8;
+            --fg: #141411;
+            --fg-dim: #666660;
+            --border: #D5CFC0;
+            --border-subtle: rgba(20, 20, 17, 0.08);
+            --accent: #E84E1B;
+            --accent-hover: #9E3700;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06);
+          }
+
+          @media (prefers-color-scheme: dark) {
+            :root {
+              --bg: #141411;
+              --bg-surface: #1B1B18;
+              --bg-elevated: #242420;
+              --fg: #F4F1EA;
+              --fg-dim: #9E9E94;
+              --border: rgba(255, 255, 255, 0.12);
+              --border-subtle: rgba(255, 255, 255, 0.08);
+              --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.3);
+              --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.4);
+            }
+          }
+
           *, *::before, *::after {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            border-radius: 0 !important;
           }
 
           body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #F4F1EA;
-            color: #141411;
+            background-color: var(--bg);
+            color: var(--fg);
             line-height: 1.5;
             padding: 24px 16px 48px;
             -webkit-font-smoothing: antialiased;
@@ -42,13 +69,14 @@
             margin: 0 auto;
           }
 
-          /* CABECERA EDITORIAL NEO-BAUHAUS */
+          /* CABECERA EDITORIAL */
           .header {
-            background-color: #FFFFFF;
-            border: 2px solid #141411;
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
             padding: 24px 28px;
             margin-bottom: 24px;
-            box-shadow: 4px 4px 0 #141411;
+            box-shadow: var(--shadow-md);
           }
 
           .header-top {
@@ -58,31 +86,31 @@
             flex-wrap: wrap;
             gap: 16px;
             padding-bottom: 16px;
-            border-bottom: 1px solid #141411;
+            border-bottom: 1px solid var(--border-subtle);
             margin-bottom: 16px;
           }
 
           .brand-logo {
             font-family: 'League Spartan', -apple-system, BlinkMacSystemFont, sans-serif;
             font-weight: 800;
-            font-size: 24px;
+            font-size: 26px;
             line-height: 1;
             letter-spacing: -0.03em;
             text-transform: lowercase;
-            color: #141411;
+            color: var(--fg);
             text-decoration: none;
             display: inline-flex;
             align-items: baseline;
           }
 
           .brand-logo .dot {
-            color: #E95C0C;
+            color: var(--accent);
           }
 
           .header-nav {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             flex-wrap: wrap;
           }
 
@@ -90,33 +118,39 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background-color: #F4F1EA;
-            color: #141411;
-            font-family: 'League Spartan', sans-serif;
-            font-weight: 800;
-            font-size: 13px;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
+            background-color: var(--bg);
+            color: var(--fg);
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 12.5px;
             text-decoration: none;
             padding: 8px 14px;
-            border: 2px solid #141411;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            box-shadow: var(--shadow-sm);
             transition: all 0.15s ease;
           }
 
           .nav-btn:hover {
-            background-color: #141411;
-            color: #F4F1EA;
+            border-color: var(--accent);
+            color: var(--accent);
+            transform: translateY(-1px);
           }
 
           .nav-btn--accent {
-            background-color: #E95C0C;
+            background-color: var(--accent);
             color: #FFFFFF;
-            border-color: #141411;
+            border-color: var(--accent);
+            font-family: 'League Spartan', sans-serif;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
           }
 
           .nav-btn--accent:hover {
-            background-color: #141411;
+            background-color: var(--accent-hover);
             color: #FFFFFF;
+            border-color: var(--accent-hover);
           }
 
           .header-meta {
@@ -131,19 +165,20 @@
             font-size: 22px;
             letter-spacing: -0.01em;
             text-transform: uppercase;
-            color: #141411;
+            color: var(--fg);
           }
 
           .header-desc {
             font-size: 14px;
-            color: #555550;
+            color: var(--fg-dim);
             max-width: 820px;
           }
 
           /* PANEL DE CONTROL / RESUMEN Y FILTRO */
           .toolbar {
-            background-color: #FFFFFF;
-            border: 2px solid #141411;
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
             padding: 16px 20px;
             margin-bottom: 24px;
             display: flex;
@@ -151,7 +186,7 @@
             justify-content: space-between;
             flex-wrap: wrap;
             gap: 16px;
-            box-shadow: 3px 3px 0 #141411;
+            box-shadow: var(--shadow-sm);
           }
 
           .toolbar-stats {
@@ -164,23 +199,24 @@
           .stat-tag {
             font-family: 'League Spartan', sans-serif;
             font-weight: 800;
-            font-size: 12px;
+            font-size: 11px;
             letter-spacing: 0.06em;
             text-transform: uppercase;
-            padding: 4px 8px;
-            background-color: #141411;
-            color: #F4F1EA;
-            border: 1px solid #141411;
+            padding: 4px 10px;
+            background-color: var(--bg-elevated);
+            color: var(--fg);
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
           }
 
           .stat-counter {
-            font-size: 14px;
-            font-weight: 600;
-            color: #141411;
+            font-size: 13.5px;
+            font-weight: 500;
+            color: var(--fg);
           }
 
           .stat-counter strong {
-            color: #E95C0C;
+            color: var(--accent);
             font-weight: 700;
           }
 
@@ -193,32 +229,35 @@
 
           .search-input {
             width: 100%;
-            padding: 10px 14px;
+            padding: 9px 14px;
             font-family: 'Inter', sans-serif;
             font-size: 13px;
-            color: #141411;
-            background-color: #F4F1EA;
-            border: 2px solid #141411;
+            color: var(--fg);
+            background-color: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
             outline: none;
-            transition: border-color 0.15s ease, background-color 0.15s ease;
+            transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
           }
 
           .search-input:focus {
-            border-color: #E95C0C;
-            background-color: #FFFFFF;
+            border-color: var(--accent);
+            background-color: var(--bg-surface);
+            box-shadow: 0 0 0 2px rgba(232, 78, 27, 0.15);
           }
 
           .search-input::placeholder {
-            color: #7A6B58;
+            color: var(--fg-dim);
             font-size: 12px;
           }
 
           /* TABLAS DE SITEMAP */
           .table-wrapper {
-            background-color: #FFFFFF;
-            border: 2px solid #141411;
-            overflow-x: auto;
-            box-shadow: 4px 4px 0 #141411;
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
           }
 
           table {
@@ -229,40 +268,41 @@
           }
 
           thead {
-            background-color: #141411;
-            color: #F4F1EA;
+            background-color: var(--bg-elevated);
+            color: var(--fg);
           }
 
           th {
             font-family: 'League Spartan', sans-serif;
             font-weight: 800;
-            font-size: 12px;
+            font-size: 11.5px;
             letter-spacing: 0.05em;
             text-transform: uppercase;
             padding: 12px 14px;
-            border-bottom: 2px solid #141411;
+            border-bottom: 1px solid var(--border);
             white-space: nowrap;
           }
 
           td {
             padding: 10px 14px;
-            border-bottom: 1px solid #DDD7CD;
+            border-bottom: 1px solid var(--border-subtle);
             vertical-align: middle;
+            color: var(--fg);
           }
 
           tbody tr:nth-child(even) {
-            background-color: #FAF8F3;
+            background-color: rgba(20, 20, 17, 0.015);
           }
 
           tbody tr:hover {
-            background-color: #F2EFE8;
+            background-color: rgba(232, 78, 27, 0.04);
           }
 
           .col-num {
             font-family: 'League Spartan', sans-serif;
             font-weight: 800;
             font-size: 12px;
-            color: #7A6B58;
+            color: var(--fg-dim);
             text-align: center;
             width: 44px;
           }
@@ -274,16 +314,16 @@
           }
 
           .col-loc a {
-            color: #141411;
+            color: var(--fg);
             text-decoration: none;
-            font-weight: 600;
-            border-bottom: 1px dotted #7A6B58;
+            font-weight: 500;
+            border-bottom: 1px dotted var(--fg-dim);
             transition: color 0.15s ease, border-color 0.15s ease;
           }
 
           .col-loc a:hover {
-            color: #E95C0C;
-            border-bottom: 1px solid #E95C0C;
+            color: var(--accent);
+            border-bottom: 1px solid var(--accent);
           }
 
           .col-lang {
@@ -299,32 +339,27 @@
             font-weight: 800;
             font-size: 10px;
             letter-spacing: 0.04em;
-            padding: 2px 5px;
-            border: 1px solid #141411;
-            background-color: #FFFFFF;
-            color: #141411;
+            padding: 2px 6px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background-color: var(--bg-elevated);
+            color: var(--fg);
           }
 
           .badge-lang--es {
-            background-color: #F4F1EA;
+            background-color: var(--bg-elevated);
           }
 
           .badge-lang--en {
-            background-color: #E8F0FE;
+            background-color: rgba(75, 107, 148, 0.12);
             border-color: #4B6B94;
             color: #4B6B94;
           }
 
           .badge-lang--ca {
-            background-color: #FFF3E0;
+            background-color: rgba(217, 119, 54, 0.12);
             border-color: #D97736;
             color: #D97736;
-          }
-
-          .badge-lang--alt {
-            background-color: #141411;
-            color: #F4F1EA;
-            border-color: #141411;
           }
 
           .col-priority {
@@ -337,9 +372,10 @@
             font-weight: 800;
             font-size: 11px;
             padding: 2px 6px;
-            border: 1px solid #141411;
-            background-color: #FFFFFF;
-            color: #141411;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background-color: var(--bg-surface);
+            color: var(--fg);
           }
 
           .col-freq {
@@ -348,14 +384,14 @@
             font-size: 11px;
             letter-spacing: 0.04em;
             text-transform: uppercase;
-            color: #555550;
+            color: var(--fg-dim);
             white-space: nowrap;
           }
 
           .col-date {
             font-family: 'Inter', monospace;
             font-size: 12px;
-            color: #555550;
+            color: var(--fg-dim);
             white-space: nowrap;
           }
 
@@ -363,14 +399,14 @@
           .footer {
             margin-top: 32px;
             padding-top: 16px;
-            border-top: 2px solid #141411;
+            border-top: 1px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: space-between;
             flex-wrap: wrap;
             gap: 12px;
             font-size: 12px;
-            color: #555550;
+            color: var(--fg-dim);
           }
 
           .footer-brand {
@@ -378,7 +414,7 @@
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            color: #141411;
+            color: var(--fg);
           }
 
           .footer-note {

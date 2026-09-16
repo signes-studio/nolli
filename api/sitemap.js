@@ -13,6 +13,41 @@ const { getSupabaseConfig } = require('./_lib/supabaseEnv.js');
 const checkRateLimit = createRateLimiter({ windowMs: 5 * 60 * 1000, maxRequests: 30 });
 
 const SITE_URL = 'https://nollimap.app';
+const CHUNK_SIZE = 1000;
+
+async function fetchTotalPublicBuildingsCount() {
+  const { supabaseUrl, serviceRoleKey: supabaseKey } = getSupabaseConfig();
+  if (!supabaseUrl || !supabaseKey) return 0;
+
+  try {
+    const params = new URLSearchParams({
+      select: 'id',
+      or: '(estado_revision.eq.publicada,estado_revision.is.null)',
+      limit: '1',
+    });
+
+    const response = await fetch(`${supabaseUrl}/rest/v1/Buildings?${params.toString()}`, {
+      headers: {
+        apikey: supabaseKey,
+        Authorization: `Bearer ${supabaseKey}`,
+        Prefer: 'count=exact',
+      },
+    });
+
+    if (!response.ok) return 0;
+
+    const contentRange = response.headers.get('content-range');
+    if (contentRange && contentRange.includes('/')) {
+      const totalPart = contentRange.split('/')[1];
+      if (totalPart && totalPart !== '*') {
+        return parseInt(totalPart, 10) || 0;
+      }
+    }
+    return 0;
+  } catch {
+    return 0;
+  }
+}
 
 async function fetchAllArchitectSlugs() {
   const { supabaseUrl, serviceRoleKey: supabaseKey } = getSupabaseConfig();
@@ -126,6 +161,9 @@ module.exports = async (request, response) => {
   try {
     // 1. Sitemap Index (por defecto en /sitemap.xml)
     if (type === 'index') {
+      const totalCount = await fetchTotalPublicBuildingsCount();
+      const totalPages = Math.max(1, Math.ceil(totalCount / CHUNK_SIZE));
+
       const sitemaps = [
         '  <sitemap>',
         `    <loc>${escapeXml(`${SITE_URL}/sitemap-static.xml`)}</loc>`,
@@ -144,6 +182,15 @@ module.exports = async (request, response) => {
         `    <lastmod>${today}</lastmod>`,
         '  </sitemap>',
       ];
+
+      for (let page = 0; page < totalPages; page++) {
+        sitemaps.push([
+          '  <sitemap>',
+          `    <loc>${escapeXml(`${SITE_URL}/sitemap-buildings-${page}.xml`)}</loc>`,
+          `    <lastmod>${today}</lastmod>`,
+          '  </sitemap>',
+        ].join('\n'));
+      }
 
       const xml = [
         '<?xml version="1.0" encoding="UTF-8"?>',
@@ -252,12 +299,55 @@ module.exports = async (request, response) => {
       return response.status(200).send(xml);
     }
 
-    // 6. Sitemaps de edificios obsoletos
+    // 6. Sitemaps de edificios paginados (/sitemap-buildings-:page.xml)
     if (type === 'buildings') {
-      response.setHeader('Content-Type', 'text/plain; charset=utf-8');
+      const page = Math.max(0, parseInt(request.query?.page || '0', 10) || 0);
+      const start = page * CHUNK_SIZE;
+      const end = start + CHUNK_SIZE - 1;
+
+      const { supabaseUrl, serviceRoleKey: supabaseKey } = getSupabaseConfig();
+      if (!supabaseUrl || !supabaseKey) {
+        throw new Error('Configuración de Supabase no disponible.');
+      }
+
+      const params = new URLSearchParams({
+        select: 'id,updated_at',
+        or: '(estado_revision.eq.publicada,estado_revision.is.null)',
+        order: 'id.asc',
+      });
+
+      const res = await fetch(`${supabaseUrl}/rest/v1/Buildings?${params.toString()}`, {
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+          Range: `${start}-${end}`,
+        },
+      });
+
+      if (!res.ok && res.status !== 416) {
+        throw new Error(`Supabase devolvió ${res.status} al consultar sitemap de obras.`);
+      }
+
+      const buildings = res.status === 416 ? [] : await res.json().catch(() => []);
+
+      const entries = (Array.isArray(buildings) ? buildings : []).map((b) => {
+        const lastmod = b.updated_at ? new Date(b.updated_at).toISOString().slice(0, 10) : today;
+        return getMultilingualSitemapEntries(`/obra/${encodeURIComponent(b.id)}`, lastmod, 'monthly', '0.6', SITE_URL);
+      });
+
+      const xml = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<?xml-stylesheet type="text/xsl" href="/sitemap.xsl"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
+        ...entries,
+        '</urlset>',
+      ].join('\n');
+
+      response.setHeader('Content-Type', 'application/xml; charset=utf-8');
       response.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
-      response.setHeader('X-Robots-Tag', 'noindex, nofollow');
-      return response.status(404).send('Sitemap obsoleto: Las fichas individuales de obra (/obra/:id) están configuradas como noindex y han sido retiradas de los sitemaps.');
+      response.setHeader('Vercel-Cache-Tag', `sitemap-buildings-${page},sitemap,catalog`);
+      response.setHeader('Cache-Tag', `sitemap-buildings-${page},sitemap,catalog`);
+      return response.status(200).send(xml);
     }
 
     response.setHeader('Content-Type', 'text/plain; charset=utf-8');

@@ -233,7 +233,7 @@
     },
     {
       "source": "/sitemap-buildings-:n.xml",
-      "destination": "/api/sitemap?type=buildings"
+      "destination": "/api/sitemap?type=buildings&page=:n"
     },
     {
       "source": "/en/css/:path*",
