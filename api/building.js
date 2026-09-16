@@ -1,6 +1,9 @@
 const { purgeBuildingCdnCache } = require('./_lib/cdnPurge.js');
 const { slugify, extractCityName } = require('./_lib/slugs.js');
+const { createRateLimiter } = require('./_lib/rateLimiter.js');
 const { getSupabaseConfig } = require('./_lib/supabaseEnv.js');
+
+const checkRateLimit = createRateLimiter({ windowMs: 60 * 1000, maxRequests: 60 });
 
 const ADMIN_EMAILS = [
   'office@signes.studio',
@@ -169,6 +172,15 @@ module.exports = async function handler(req, res) {
 
   // 1. Consulta pública de obras por ID o lotes de IDs (ej: ?ids=id1,id2 o ?id=id1)
   if (req.method === 'GET') {
+    // Rate limiting defensivo por IP en caso de cache MISS
+    const rate = checkRateLimit(req, res);
+    if (rate.limited) {
+      return res.status(429).json({
+        error: 'Too Many Requests',
+        message: 'Límite de solicitudes excedido. Por favor, espera un momento.',
+      });
+    }
+
     const idsParam = req.query?.ids || req.query?.id || '';
     const ids = String(idsParam)
       .split(',')
@@ -200,10 +212,22 @@ module.exports = async function handler(req, res) {
       }
 
       const data = await response.json();
-      res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+      if (!Array.isArray(data) || data.length === 0) {
+        res.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=3600');
+        res.setHeader('Vercel-Cache-Tag', 'building-404,catalog');
+        res.setHeader('Cache-Tag', 'building-404,catalog');
+        return res.status(200).json([]);
+      }
+
+      // Cache Edge CDN: 24 horas fresca (86400s), hasta 7 días sirviendo stale mientras revalida en background
+      res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
+      const cacheTags = ids.map((id) => `building-${id}`).concat(['catalog', 'building']);
+      res.setHeader('Vercel-Cache-Tag', cacheTags.join(','));
+      res.setHeader('Cache-Tag', cacheTags.join(','));
       return res.status(200).json(data);
     } catch (err) {
       console.error('Error al obtener obras por ID en edge:', err);
+      res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=1800');
       return res.status(500).json({ error: 'Error de servidor al obtener las obras solicitadas.' });
     }
   }

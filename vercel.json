@@ -70,6 +70,123 @@
       ]
     },
     {
+      "source": "/obra/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=86400, stale-while-revalidate=604800"
+        }
+      ]
+    },
+    {
+      "source": "/(en|ca)/obra/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=86400, stale-while-revalidate=604800"
+        }
+      ]
+    },
+    {
+      "source": "/categoria/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=172800, stale-while-revalidate=604800"
+        }
+      ]
+    },
+    {
+      "source": "/(en|ca)/categoria/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=172800, stale-while-revalidate=604800"
+        }
+      ]
+    },
+    {
+      "source": "/arquitecto/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=172800, stale-while-revalidate=604800"
+        }
+      ]
+    },
+    {
+      "source": "/(en|ca)/arquitecto/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=172800, stale-while-revalidate=604800"
+        }
+      ]
+    },
+    {
+      "source": "/ciudad/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=172800, stale-while-revalidate=604800"
+        }
+      ]
+    },
+    {
+      "source": "/(en|ca)/ciudad/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=172800, stale-while-revalidate=604800"
+        }
+      ]
+    },
+    {
+      "source": "/lugar/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=172800, stale-while-revalidate=604800"
+        }
+      ]
+    },
+    {
+      "source": "/(en|ca)/lugar/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=172800, stale-while-revalidate=604800"
+        }
+      ]
+    },
+    {
+      "source": "/api/(obra|building)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=86400, stale-while-revalidate=604800"
+        }
+      ]
+    },
+    {
+      "source": "/api/(categoria|arquitecto|ciudad)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=172800, stale-while-revalidate=604800"
+        }
+      ]
+    },
+    {
+      "source": "/(sitemap.*\\.xml|api/sitemap)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=86400, stale-while-revalidate=604800"
+        }
+      ]
+    },
+    {
       "source": "/sw\\.js",
       "headers": [
         {

@@ -9,6 +9,8 @@
  * - api/sitemap.js
  * - api/_lib/cdnPurge.js (invalidación selectiva de tags y URLs por ID)
  */
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
 
 function createMockRes() {
   const headers = {};
@@ -179,14 +181,21 @@ async function runCdnAudit() {
   console.log('\n--- TEST 7: Invalidación Granular de Caché CDN ---');
   const { purgeBuildingCdnCache } = require('../api/_lib/cdnPurge.js');
 
-  // Simulamos llamadas con VERCEL_TOKEN activo
+  // Simulamos llamadas con VERCEL_TOKEN y CLOUDFLARE_API_TOKEN activos
   process.env.VERCEL_TOKEN = 'mock_vercel_token';
   process.env.VERCEL_PROJECT_ID = 'mock_project';
+  process.env.CLOUDFLARE_ZONE_ID = 'mock_cf_zone';
+  process.env.CLOUDFLARE_API_TOKEN = 'mock_cf_token';
 
   let capturedPurgePayload = null;
+  let capturedCfPayload = null;
   global.fetch = async (url, options) => {
     if (url.includes('api.vercel.com/v1/edge-cache/invalidate-by-tags')) {
       capturedPurgePayload = JSON.parse(options.body);
+      return { ok: true, status: 200, json: async () => ({}) };
+    }
+    if (url.includes('api.cloudflare.com/client/v4/zones')) {
+      capturedCfPayload = JSON.parse(options.body);
       return { ok: true, status: 200, json: async () => ({}) };
     }
     return originalFetch(url, options);
@@ -198,12 +207,73 @@ async function runCdnAudit() {
     citySlug: 'madrid',
   });
 
-  assert(Array.isArray(capturedPurgePayload?.tags), `Purga envía array de tags`);
+  assert(Array.isArray(capturedPurgePayload?.tags), `Purga Vercel envía array de tags`);
   assert(capturedPurgePayload.tags.includes('catalog'), `Incluye tag general 'catalog'`);
   assert(capturedPurgePayload.tags.includes('building-mad-01'), `Incluye tag específico 'building-mad-01'`);
   assert(capturedPurgePayload.tags.includes('architect-otamendi-machimbarrena'), `Incluye tag de arquitecto`);
   assert(capturedPurgePayload.tags.includes('category-racionalismo'), `Incluye tag de categoría`);
   assert(capturedPurgePayload.tags.includes('city-madrid'), `Incluye tag de ciudad`);
+
+  assert(Array.isArray(capturedCfPayload?.files), `Purga Cloudflare envía array de URLs`);
+  assert(capturedCfPayload.files.includes('https://nollimap.app/api/building?id=mad-01'), `Cloudflare purga URL api/building?id=mad-01`);
+  assert(capturedCfPayload.files.includes('https://nollimap.app/api/building?ids=mad-01'), `Cloudflare purga URL api/building?ids=mad-01`);
+
+  // -------------------------------------------------------------
+  // TEST 8: api/building.js (Consulta Pública por ID y Rate Limiting)
+  // -------------------------------------------------------------
+  console.log('\n--- TEST 8: api/building.js (Consulta Pública por ID) ---');
+  const buildingHandler = require('../api/building.js');
+
+  // 8.1 Consulta con ID existente
+  global.fetch = async (url) => {
+    if (url.includes('/rest/v1/Buildings')) {
+      return {
+        ok: true,
+        json: async () => [mockBuilding],
+        headers: new Map([['content-range', '0-0/1']]),
+      };
+    }
+    return originalFetch(url);
+  };
+
+  const resBuilding = createMockRes();
+  await buildingHandler({ method: 'GET', query: { id: 'mad-01' }, headers: { 'x-forwarded-for': '8.8.8.8' } }, resBuilding);
+  assert(resBuilding.statusCode === 200, `Respuesta 200 para api/building (HTTP ${resBuilding.statusCode})`);
+  assert(resBuilding.getHeader('cache-control') === 'public, s-maxage=86400, stale-while-revalidate=604800', `Cache-Control de 24h para api/building: ${resBuilding.getHeader('cache-control')}`);
+  assert(resBuilding.getHeader('vercel-cache-tag')?.includes('building-mad-01'), `Vercel-Cache-Tag específico por ID: ${resBuilding.getHeader('vercel-cache-tag')}`);
+  assert(resBuilding.getHeader('cache-tag')?.includes('building-mad-01'), `Cache-Tag presente para CDN: ${resBuilding.getHeader('cache-tag')}`);
+
+  // 8.2 Consulta con ID inexistente (debe devolver 200 con [] y caché corto de 600s para evitar saturación de Supabase)
+  global.fetch = async (url) => {
+    if (url.includes('/rest/v1/Buildings')) {
+      return {
+        ok: true,
+        json: async () => [],
+        headers: new Map(),
+      };
+    }
+    return originalFetch(url);
+  };
+
+  const resBuilding404 = createMockRes();
+  await buildingHandler({ method: 'GET', query: { id: 'inexistente-12345' }, headers: { 'x-forwarded-for': '8.8.8.9' } }, resBuilding404);
+  assert(resBuilding404.statusCode === 200, `Respuesta 200 con array vacío para ID inexistente`);
+  assert(resBuilding404.getHeader('cache-control') === 'public, s-maxage=600, stale-while-revalidate=3600', `Caché protector de 10 min en resultado vacío: ${resBuilding404.getHeader('cache-control')}`);
+  assert(resBuilding404.getHeader('vercel-cache-tag')?.includes('building-404'), `Tag building-404 presente: ${resBuilding404.getHeader('vercel-cache-tag')}`);
+
+  // 8.3 Rate limiting en api/building.js
+  const spamBuildingIp = '77.77.77.77';
+  let buildingRateLimitHit = false;
+  for (let i = 0; i < 65; i++) {
+    const resSpam = createMockRes();
+    await buildingHandler({ method: 'GET', query: { id: 'mad-01' }, headers: { 'x-forwarded-for': spamBuildingIp } }, resSpam);
+    if (resSpam.statusCode === 429) {
+      buildingRateLimitHit = true;
+      assert(resSpam.getHeader('retry-after') !== undefined, `Cabecera Retry-After presente en 429 de api/building`);
+      break;
+    }
+  }
+  assert(buildingRateLimitHit, `Rate limiter activo bloquea tráfico abusivo en api/building con HTTP 429.`);
 
   // Restaurar fetch original
   global.fetch = originalFetch;

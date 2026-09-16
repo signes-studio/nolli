@@ -99,6 +99,8 @@ async function purgeBuildingCdnCache(buildingId = null, { architectSlug = null, 
     tags.push(`building-${idStr}`);
     tags.push(`obra-${idStr}`);
     urls.push(`https://nollimap.app/api/obra?id=${encodeURIComponent(idStr)}`);
+    urls.push(`https://nollimap.app/api/building?id=${encodeURIComponent(idStr)}`);
+    urls.push(`https://nollimap.app/api/building?ids=${encodeURIComponent(idStr)}`);
     urls.push(`https://nollimap.app/obra/${encodeURIComponent(idStr)}`);
     urls.push(`https://nollimap.app/en/obra/${encodeURIComponent(idStr)}`);
     urls.push(`https://nollimap.app/ca/obra/${encodeURIComponent(idStr)}`);
