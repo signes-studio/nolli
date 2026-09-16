@@ -2130,6 +2130,8 @@ body.dark-mode .places-helper-banner {
   font-family: 'Inter', -apple-system, sans-serif;
   transition: background 0.1s ease;
   box-sizing: border-box;
+  content-visibility: auto;
+  contain-intrinsic-size: auto none auto 52px;
 }
 
 body.dark-mode .place-suggestion-item {

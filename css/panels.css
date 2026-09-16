@@ -3660,6 +3660,8 @@ body.dark-mode .radar-curated-section {
   justify-content: space-between;
   cursor: pointer;
   touch-action: manipulation;
+  content-visibility: auto;
+  contain-intrinsic-size: auto none auto 120px;
 }
 
 body.dark-mode .radar-route-card {

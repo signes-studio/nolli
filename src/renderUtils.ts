@@ -286,6 +286,32 @@ export function calcularDistanciaMetros(
   return R * c;
 }
 
+/**
+ * Comprueba de forma ultrarrápida si dos coordenadas están dentro de un radio en metros.
+ * Aplica primero un descarte por Bounding Box rectangular en grados (O(1) aritmético),
+ * evitando el cálculo trigonométrico Haversine en el ~95% de los puntos fuera de rango.
+ */
+export function estaDentroDeRadio(
+  lon1: number | null | undefined,
+  lat1: number | null | undefined,
+  lon2: number | null | undefined,
+  lat2: number | null | undefined,
+  radioMetros: number
+): boolean {
+  if (lon1 == null || lat1 == null || lon2 == null || lat2 == null || radioMetros <= 0) return false;
+
+  // 1 grado de latitud ~ 111.320 metros
+  const deltaLatMax = radioMetros / 111320;
+  if (Math.abs(lat2 - lat1) > deltaLatMax) return false;
+
+  // 1 grado de longitud ~ 111.320 * cos(lat) metros
+  const cosLat = Math.cos((lat1 * Math.PI) / 180);
+  const deltaLonMax = radioMetros / (111320 * Math.max(0.01, cosLat));
+  if (Math.abs(lon2 - lon1) > deltaLonMax) return false;
+
+  return calcularDistanciaMetros(lon1, lat1, lon2, lat2) <= radioMetros;
+}
+
 export function formatearDistancia(metros: number | null | undefined): string {
   if (metros == null || !Number.isFinite(metros)) return '';
   if (metros < 1000) {

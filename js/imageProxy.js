@@ -1,18 +1,1 @@
-/**
- * IMAGEPROXY.TS
- * Optimización y reescalado de imágenes vía CDN con formato WebP.
- */
-export function getOptimizedPhotoUrl(fotoUrl, { width = 800, quality = 75 } = {}) {
-    if (!fotoUrl)
-        return fotoUrl;
-    try {
-        const url = new URL(fotoUrl);
-        if (!['http:', 'https:'].includes(url.protocol))
-            return fotoUrl;
-        return `https://wsrv.nl/?url=${encodeURIComponent(url.href)}&w=${width}&q=${quality}&output=webp`;
-    }
-    catch {
-        return fotoUrl;
-    }
-}
-//# sourceMappingURL=imageProxy.js.map
+const h={thumb:{width:160,quality:70},card:{width:320,quality:75},sheet:{width:800,quality:80},fullscreen:{width:1400,quality:85}};function n(u,t){if(!u)return u;let e=800,l=75;if(typeof t=="string"&&t in h){const i=h[t];e=i.width,l=i.quality}else typeof t=="object"&&t!==null&&(e=t.width??800,l=t.quality??75);try{const i=new URL(u);return["http:","https:"].includes(i.protocol)?`https://wsrv.nl/?url=${encodeURIComponent(i.href)}&w=${e}&q=${l}&output=webp`:u}catch{return u}}export{h as IMAGE_PRESETS,n as getOptimizedPhotoUrl};

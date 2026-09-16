@@ -1000,6 +1000,14 @@ document.addEventListener('click', (event) => {
     return;
   }
   if (target.closest('[data-photo-url]')) { const viewer = document.getElementById('modal-photo'); document.getElementById('photo-viewer-image').src = target.closest('[data-photo-url]').dataset.photoUrl; viewer.classList.add('open'); return; }
+  if (target.closest('[data-photo-url]')) {
+    const rawUrl = target.closest('[data-photo-url]').dataset.photoUrl;
+    const viewer = document.getElementById('modal-photo');
+    const img = document.getElementById('photo-viewer-image');
+    if (img) img.src = getOptimizedPhotoUrl(rawUrl, 'fullscreen') || rawUrl;
+    if (viewer) viewer.classList.add('open');
+    return;
+  }
   if (target.closest('#btn-share-close') || target === document.getElementById('modal-share')) document.getElementById('modal-share').classList.remove('open');
   if (target.closest('#btn-photo-close') || target === document.getElementById('modal-photo')) document.getElementById('modal-photo').classList.remove('open');
 });

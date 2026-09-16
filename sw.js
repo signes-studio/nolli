@@ -1,4 +1,5 @@
 const CACHE_NAME = 'nolli-shell-v111';
+const CACHE_NAME = 'nolli-shell-31843e4f';
 const CATALOG_FRESHNESS_MINUTES = 60;
 const CATALOG_CACHE_TTL_MS = CATALOG_FRESHNESS_MINUTES * 60 * 1000;
 const APP_SHELL = [
@@ -44,6 +45,7 @@ const APP_SHELL = [
   './js/cookieConsent.js',
   './js/siteFooter.js',
   './js/imageProxy.js',
+  './js/storage.js',
   './js/state.js',
   './js/workCard.js',
   './js/i18n.js',

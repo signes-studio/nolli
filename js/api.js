@@ -5,6 +5,7 @@
 
 import { SUPABASE_URL, SUPABASE_KEY, MAPBOX_TOKEN } from './config.js';
 import { calcularDistanciaMetros } from './renderUtils.js';
+import { getCatalogFromIDB, saveCatalogToIDB, clearCatalogIDB, getCatalogMetaFromIDB } from './storage.js';
 
 // Cache compartida para catálogo de obras (deduplication)
 let catalogCache = null;
@@ -104,10 +105,16 @@ export async function fetchBuildingsInRadius({ lon, lat, radiusMeters = 10000, s
   try {
     const catalog = await getBuildingsCatalog();
     if (Array.isArray(catalog) && catalog.length > 0) {
+      const maxLatDiff = radiusMeters / 111320;
+      const cosLat = Math.cos((lat * Math.PI) / 180);
+      const maxLonDiff = radiusMeters / (111320 * Math.max(0.01, cosLat));
+
       return catalog.filter((b) => {
         const bLat = Number(b.latitud);
         const bLon = Number(b.longitud);
         if (!Number.isFinite(bLat) || !Number.isFinite(bLon)) return false;
+        if (Math.abs(bLat - lat) > maxLatDiff) return false;
+        if (Math.abs(bLon - lon) > maxLonDiff) return false;
         const dist = calcularDistanciaMetros(lon, lat, bLon, bLat);
         return dist <= radiusMeters;
       });
@@ -278,6 +285,37 @@ export async function getBuildingsCatalog() {
       try {
         localStorage.setItem('nolli:catalog-synced-at', String(Date.now()));
       } catch {}
+  catalogPromise = (async () => {
+    // 1. Intentar cargar instantáneamente desde IndexedDB (0ms de latencia de red)
+    try {
+      const cached = await getCatalogFromIDB();
+      if (Array.isArray(cached) && cached.length > 0) {
+        catalogCache = cached;
+
+        // Revalidación en segundo plano (stale-while-revalidate) si expiró el TTL de 24h
+        getCatalogMetaFromIDB().then(async (meta) => {
+          const age = meta?.syncedAt ? Date.now() - meta.syncedAt : Infinity;
+          if (age > CATALOG_CACHE_TTL_MS) {
+            try {
+              const fresh = await fetchBuildingFacets();
+              if (Array.isArray(fresh) && fresh.length > 0) {
+                catalogCache = fresh;
+                await saveCatalogToIDB(fresh);
+                if (typeof window !== 'undefined') {
+                  window.dispatchEvent(new CustomEvent('nolli:catalog-updated', { detail: { count: fresh.length } }));
+                }
+              }
+            } catch (err) {
+              console.warn('[Catalog] Revalidación en segundo plano falló:', err);
+            }
+          }
+        }).catch(() => {});
+
+        catalogPromise = null;
+        return catalogCache;
+      }
+    } catch (idbErr) {
+      console.warn('[Catalog] Lectura de IndexedDB omitida/fallida, usando red:', idbErr);
     }
     catalogPromise = null;
     return catalogCache || result;
@@ -285,6 +323,21 @@ export async function getBuildingsCatalog() {
     catalogPromise = null;
     throw err;
   });
+
+    // 2. Si no existe en IndexedDB o falló, descargar de la red y persistir en IndexedDB
+    try {
+      const result = await fetchBuildingFacets();
+      if (Array.isArray(result) && result.length > 0) {
+        catalogCache = result;
+        saveCatalogToIDB(result).catch(() => {});
+      }
+      catalogPromise = null;
+      return catalogCache || result;
+    } catch (err) {
+      catalogPromise = null;
+      throw err;
+    }
+  })();
 
   return catalogPromise;
 }
@@ -296,6 +349,7 @@ export function invalidateCatalogCache() {
   catalogCache = null;
   catalogPromise = null;
   bypassNextCatalogCache = true;
+  clearCatalogIDB().catch(() => {});
   try {
     localStorage.removeItem(CATALOG_CACHE_KEY);
     localStorage.removeItem('nolli:catalog-synced-at');
@@ -304,9 +358,20 @@ export function invalidateCatalogCache() {
     caches.open('nolli-shell-v70').then((cache) => {
       cache.delete('/api/catalog');
       cache.delete('/api/catalog-timestamp');
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.filter((k) => k.startsWith('nolli-shell-')).map(async (key) => {
+          try {
+            const cache = await caches.open(key);
+            await cache.delete('/api/catalog');
+            await cache.delete('/api/catalog-timestamp');
+          } catch {}
+        })
+      );
     }).catch(() => {});
   }
 }
+
 
 export async function fetchUserPendingBuildings(userId, sessionToken) {
   const response = await fetch(`${SUPABASE_URL}/rest/v1/Buildings?propuesto_por=eq.${encodeURIComponent(userId)}&estado_revision=eq.pendiente&select=*`, {

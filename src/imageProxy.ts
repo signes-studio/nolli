@@ -1,18 +1,47 @@
 /**
  * IMAGEPROXY.TS
  * Optimización y reescalado de imágenes vía CDN con formato WebP.
+ * Optimización y reescalado de imágenes vía CDN con formato WebP y presets contextuales.
  */
+
+export type ImagePreset = 'thumb' | 'card' | 'sheet' | 'fullscreen';
 
 export interface OptimizedPhotoOptions {
   width?: number;
   quality?: number;
 }
 
+export const IMAGE_PRESETS: Record<ImagePreset, Required<OptimizedPhotoOptions>> = {
+  thumb: { width: 160, quality: 70 },
+  card: { width: 320, quality: 75 },
+  sheet: { width: 800, quality: 80 },
+  fullscreen: { width: 1400, quality: 85 },
+};
+
+/**
+ * Retorna la URL optimizada vía proxy wsrv.nl en formato WebP con dimensiones contextuales.
+ * 
+ * @param fotoUrl - URL original de la fotografía
+ * @param optionsOrPreset - Preset semántico ('thumb' | 'card' | 'sheet' | 'fullscreen') u opciones personalizadas
+ */
 export function getOptimizedPhotoUrl(
   fotoUrl: string | null | undefined,
   { width = 800, quality = 75 }: OptimizedPhotoOptions = {}
+  optionsOrPreset?: ImagePreset | OptimizedPhotoOptions
 ): string | null | undefined {
   if (!fotoUrl) return fotoUrl;
+
+  let width = 800;
+  let quality = 75;
+
+  if (typeof optionsOrPreset === 'string' && optionsOrPreset in IMAGE_PRESETS) {
+    const preset = IMAGE_PRESETS[optionsOrPreset];
+    width = preset.width;
+    quality = preset.quality;
+  } else if (typeof optionsOrPreset === 'object' && optionsOrPreset !== null) {
+    width = optionsOrPreset.width ?? 800;
+    quality = optionsOrPreset.quality ?? 75;
+  }
 
   try {
     const url = new URL(fotoUrl);
