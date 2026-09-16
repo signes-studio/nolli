@@ -536,21 +536,6 @@ async function initLoginModal() {
     if (mLogin) mLogin.classList.remove('open');
     document.dispatchEvent(new CustomEvent('radar:logout'));
   });
-
-  // Modo Puerta de Enlace Móvil: Si se abre en versión móvil sin sesión activa ni invitado previo
-  const esMovil = window.innerWidth <= 768 || (window.matchMedia && window.matchMedia('(max-width: 768px)').matches);
-  const sesionIniciada = Boolean(state.sessionToken);
-  const invitadoSesion = sessionStorage.getItem('nolli:guest_session') === 'true';
-
-  if (esMovil && !sesionIniciada && !invitadoSesion && mLogin) {
-    const splash = document.getElementById('mobile-splash-screen');
-    if (splash) {
-      splash.style.display = 'none';
-      splash.classList.add('splash-hidden');
-      try { sessionStorage.setItem('nolli_splash_shown', 'true'); } catch (e) {}
-    }
-    mLogin.classList.add('open');
-  }
 }
 
 /* -------------------------------------------------------------------------

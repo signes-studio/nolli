@@ -202,7 +202,7 @@ window.addEventListener('popstate', (e) => {
 async function esperarMapbox() {
   if (window.mapboxgl) return window.mapboxgl;
 
-  // 1. Inyectar hoja de estilos de Mapbox sin bloquear renderizado
+  // 1. Inyectar hoja de estilos de Mapbox si no está presente
   if (!document.getElementById('mapbox-gl-css')) {
     const link = document.createElement('link');
     link.id = 'mapbox-gl-css';
@@ -211,9 +211,9 @@ async function esperarMapbox() {
     document.head.appendChild(link);
   }
 
-  // 2. Inyectar script de Mapbox GL JS de forma asíncrona
+  // 2. Enlazar o inyectar script con polling activo para evitar pérdidas del evento load
   return new Promise((resolve, reject) => {
-    let script = document.getElementById('mapbox-gl-js');
+    let script = document.getElementById('mapbox-gl-js') || document.querySelector('script[src*="mapbox-gl.js"]');
     if (!script) {
       script = document.createElement('script');
       script.id = 'mapbox-gl-js';
@@ -221,9 +221,40 @@ async function esperarMapbox() {
       script.async = true;
       document.head.appendChild(script);
     }
+
     if (window.mapboxgl) return resolve(window.mapboxgl);
-    script.addEventListener('load', () => resolve(window.mapboxgl), { once: true });
-    script.addEventListener('error', () => reject(new Error('No se pudo cargar Mapbox.')), { once: true });
+
+    const checkInterval = setInterval(() => {
+      if (window.mapboxgl) {
+        clearInterval(checkInterval);
+        clearTimeout(timeoutId);
+        resolve(window.mapboxgl);
+      }
+    }, 40);
+
+    const timeoutId = setTimeout(() => {
+      clearInterval(checkInterval);
+      if (window.mapboxgl) {
+        resolve(window.mapboxgl);
+      } else {
+        console.warn('Mapbox GL tardó en responder, verificando disponibilidad...');
+        resolve(window.mapboxgl || null);
+      }
+    }, 8000);
+
+    script.addEventListener('load', () => {
+      if (window.mapboxgl) {
+        clearInterval(checkInterval);
+        clearTimeout(timeoutId);
+        resolve(window.mapboxgl);
+      }
+    }, { once: true });
+
+    script.addEventListener('error', (e) => {
+      clearInterval(checkInterval);
+      clearTimeout(timeoutId);
+      reject(new Error('No se pudo cargar Mapbox: ' + (e?.message || 'Error de red')));
+    }, { once: true });
   });
 }
 

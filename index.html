@@ -40,9 +40,9 @@
 </noscript>
 
 <!-- Mapbox GL JS & CSS -->
-<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css">
+<link id="mapbox-gl-css" rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css">
 <link rel="preload" href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js" as="script">
-<script src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js" defer></script>
+<script id="mapbox-gl-js" src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js" defer></script>
 
 <!-- Scripts auxiliares diferidos -->
 <script src="/js/cookieConsent.js" defer></script>
@@ -165,6 +165,13 @@
       document.documentElement.classList.add('splash-already-shown');
     }
   } catch(e) {}
+  setTimeout(function() {
+    var s = document.getElementById('mobile-splash-screen');
+    if (s && !s.classList.contains('splash-hidden')) {
+      s.classList.add('splash-hidden');
+      setTimeout(function() { s.style.display = 'none'; }, 450);
+    }
+  }, 3000);
 </script>
 <script type="application/ld+json">
 {

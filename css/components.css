@@ -716,7 +716,8 @@ body.dark-mode .share-channel-btn {
   justify-content: center;
   opacity: 0;
   pointer-events: none;
-  transition: opacity .15s linear;
+  visibility: hidden;
+  transition: opacity .15s linear, visibility .15s linear;
   padding: 16px;
   will-change: opacity;
 }
@@ -724,6 +725,7 @@ body.dark-mode .share-channel-btn {
 .modal-overlay.open {
   opacity: 1;
   pointer-events: all;
+  visibility: visible;
 }
 
 .modal-box {
@@ -1147,9 +1149,16 @@ body.dark-mode .btn-auth-guest {
   border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
-/* Puerta de Enlace Móvil a Pantalla Completa */
+/* Puerta de Enlace Móvil a Pantalla Completa (solo cuando está activada explícitamente con clase .open) */
 @media (max-width: 768px) {
-  #modal-login.modal-overlay {
+  #modal-login.modal-overlay:not(.open) {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
+  #modal-login.modal-overlay.open {
     padding: 0 !important;
     align-items: stretch !important;
     justify-content: stretch !important;
