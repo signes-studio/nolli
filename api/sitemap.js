@@ -6,7 +6,7 @@
 
 const { getCategorySlugs } = require('./_lib/categories.js');
 const { getMultilingualSitemapEntries, escapeXml } = require('./_lib/i18n.js');
-const { slugify, extractCityName, isIgnoredArchitect } = require('./_lib/slugs.js');
+const { slugify, extractCityName, isIgnoredArchitect, ARCHITECT_ALIASES } = require('./_lib/slugs.js');
 const { createRateLimiter } = require('./_lib/rateLimiter.js');
 const { getSupabaseConfig } = require('./_lib/supabaseEnv.js');
 
@@ -83,9 +83,10 @@ async function fetchAllArchitectSlugs() {
         const names = b.arquitecto.split(/[;,]/).map((p) => p.trim()).filter(Boolean);
         for (const name of names) {
           if (!isIgnoredArchitect(name)) {
-            const slug = slugify(name);
-            if (slug && slug.length > 1 && !archMap.has(slug)) {
-              archMap.set(slug, name);
+            const rawSlug = slugify(name);
+            const slug = (ARCHITECT_ALIASES && ARCHITECT_ALIASES[rawSlug]) || rawSlug;
+            if (slug && slug.length > 1 && !isIgnoredArchitect(slug)) {
+              archMap.set(slug, (archMap.get(slug) || 0) + 1);
             }
           }
         }
@@ -96,7 +97,10 @@ async function fetchAllArchitectSlugs() {
     start += pageSize;
   }
 
-  return [...archMap.keys()].sort();
+  return [...archMap.entries()]
+    .filter(([_, count]) => count > 0)
+    .map(([slug]) => slug)
+    .sort();
 }
 
 async function fetchAllCitySlugs() {

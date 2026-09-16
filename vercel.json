@@ -26,6 +26,15 @@
       ]
     },
     {
+      "source": "/(admin|itinerarios)(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
       "source": "/(css|js)/(.*)",
       "headers": [
         {

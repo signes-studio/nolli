@@ -18,7 +18,7 @@
         </title>
         <link rel="preconnect" href="https://fonts.googleapis.com"/>
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=League+Spartan:wght@700;800;900&amp;display=swap" rel="stylesheet"/>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=League+Spartan:wght@700;800;900&amp;family=Montserrat:wght@200;300;700;800&amp;display=swap" rel="stylesheet"/>
         <style>
           :root {
             --bg: #F4F1EA;
@@ -417,6 +417,31 @@
             color: var(--fg);
           }
 
+          .footer-project-by {
+            font-size: 11.5px;
+            color: var(--fg-dim);
+            display: inline-flex;
+            align-items: baseline;
+            gap: 5px;
+          }
+
+          .brand-signes {
+            font-family: 'Montserrat', sans-serif;
+            text-decoration: none;
+            color: var(--fg);
+            display: inline-flex;
+            align-items: baseline;
+            letter-spacing: 0.04em;
+          }
+
+          .brand-signes-bold {
+            font-weight: 800;
+          }
+
+          .brand-signes-thin {
+            font-weight: 200;
+          }
+
           .footer-note {
             font-family: 'Inter', sans-serif;
           }
@@ -611,7 +636,10 @@
 
           <!-- PIE DE PÁGINA -->
           <footer class="footer">
-            <span class="footer-brand">nolli. · Guía Colectiva de Arquitectura</span>
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <span class="footer-brand">nolli. · Guía Colectiva de Arquitectura</span>
+              <span class="footer-project-by">nolli. es un proyecto de <a href="https://signes.studio" target="_blank" rel="noopener noreferrer" class="brand-signes"><strong class="brand-signes-bold">SIGNES</strong><span class="brand-signes-thin">.STUDIO</span></a></span>
+            </div>
             <span class="footer-note">Protocolo Sitemaps XML 0.9 · Transformación XSLT</span>
           </footer>
         </div>

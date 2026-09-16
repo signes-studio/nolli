@@ -13,6 +13,8 @@ Allow: /legal
 # Bloquear panel de administración y directorios internos
 Disallow: /admin
 Disallow: /admin.html
+Disallow: /itinerarios
+Disallow: /itinerarios.html
 Disallow: /supabase/
 
 # Archivo de mapa del sitio

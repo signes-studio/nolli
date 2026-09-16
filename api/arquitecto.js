@@ -3,7 +3,7 @@
    ========================================================================= */
 
 const { categoryLabel } = require('./_lib/categories.js');
-const { detectServerLanguage, getLangPrefix, getSSRText, getHreflangTags, getOgLocaleTags } = require('./_lib/i18n.js');
+const { detectServerLanguage, getLangPrefix, getSSRText, getHreflangTags, getOgLocaleTags, renderSiteFooter } = require('./_lib/i18n.js');
 const { slugify, slugToRegex, extractCityName, escapeHtml, getOptimizedUrl, isIgnoredArchitect, ARCHITECT_ALIASES } = require('./_lib/slugs.js');
 const { createRateLimiter } = require('./_lib/rateLimiter.js');
 const { getSupabaseConfig } = require('./_lib/supabaseEnv.js');
@@ -300,9 +300,9 @@ function renderArchitectPage(data, page, lang = 'es') {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://wsrv.nl" crossorigin>
   <link rel="dns-prefetch" href="https://wsrv.nl">
-  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=League+Spartan:wght@700;800;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=League+Spartan:wght@700;800;900&family=Montserrat:wght@200;300;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <noscript>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=League+Spartan:wght@700;800;900&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=League+Spartan:wght@700;800;900&family=Montserrat:wght@200;300;700;800&display=swap">
   </noscript>
   <script type="application/ld+json">${schemaJson}</script>
   <script type="application/ld+json">${breadcrumbJson}</script>
@@ -679,15 +679,50 @@ function renderArchitectPage(data, page, lang = 'es') {
     }
     .site-footer {
       margin-top: var(--space-8);
-      padding-top: var(--space-4);
+      padding: var(--space-4) 0;
       border-top: 1px solid var(--border);
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
       gap: 16px;
-      font-size: 12px;
+      font-size: 13px;
       color: var(--ink-dim);
+    }
+    .footer-brand {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .footer-claim {
+      font-weight: 500;
+      color: var(--ink-dim);
+    }
+    .footer-by {
+      font-size: 11.5px;
+      color: var(--ink-dim);
+      display: inline-flex;
+      align-items: baseline;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+    .brand-signes {
+      font-family: 'Montserrat', sans-serif;
+      text-decoration: none;
+      color: var(--ink);
+      display: inline-flex;
+      align-items: baseline;
+      letter-spacing: 0.04em;
+      transition: color 0.15s ease;
+    }
+    .brand-signes:hover {
+      color: var(--brand);
+    }
+    .brand-signes-bold {
+      font-weight: 800;
+    }
+    .brand-signes-thin {
+      font-weight: 200;
     }
     .footer-links {
       display: flex;
@@ -778,17 +813,7 @@ function renderArchitectPage(data, page, lang = 'es') {
     </div>
   ` : ''}
 
-  <footer class="site-footer">
-    <div>nolli. · catálogo colaborativo de arquitectura</div>
-    <div class="footer-links">
-      <a href="${SITE_URL}${prefix}/">${escapeHtml(getSSRText('go_to_map', lang))}</a>
-      <a href="${SITE_URL}/sitemap-categories.xml">Categorías</a>
-      <a href="${SITE_URL}/sitemap-architects.xml">Arquitectos</a>
-      <a href="${SITE_URL}/sitemap-cities.xml">Ciudades</a>
-      <a href="${SITE_URL}/sitemap.xml">Sitemap</a>
-      <a href="${SITE_URL}/legal">Legal</a>
-    </div>
-  </footer>
+  ${renderSiteFooter(lang, SITE_URL)}
 </main>
 </body>
 </html>`;
@@ -1011,7 +1036,17 @@ module.exports = async (request, response) => {
       return response.status(301).send(`Redirecting to ${redirectUrl}`);
     }
 
-    // 7. Renderizado exitoso (200 OK)
+    // 7. Verificación estricta de seguridad: si no hay obras catalogadas, NUNCA generar ficha ni indexar
+    if (!architectData || !architectData.totalCount || architectData.totalCount <= 0 || !Array.isArray(architectData.buildings) || (architectData.buildings.length === 0 && page === 1)) {
+      response.setHeader('Content-Type', 'text/html; charset=utf-8');
+      response.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=3600');
+      response.setHeader('Vercel-Cache-Tag', 'architect-404,catalog');
+      response.setHeader('Cache-Tag', 'architect-404,catalog');
+      response.setHeader('X-Robots-Tag', 'noindex, follow');
+      return response.status(404).send(renderArchitectNotFoundPage(rawInput, lang));
+    }
+
+    // 8. Renderizado exitoso (200 OK)
     response.setHeader('Content-Type', 'text/html; charset=utf-8');
     response.setHeader('Cache-Control', 'public, s-maxage=172800, stale-while-revalidate=604800');
     const cacheTag = `architect-${canonicalSlug},architect,catalog`;

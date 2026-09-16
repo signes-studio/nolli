@@ -62,15 +62,17 @@ const SSR_TEXTS = {
     not_found_category_title: 'Categoría no encontrada | nolli.',
     not_found_category_text: 'La categoría solicitada no existe o no contiene obras catalogadas en nolli.',
     go_to_map: 'IR AL MAPA PRINCIPAL',
-    category_title: 'Arquitectura {categoria} | Obras y Catálogo | nolli.',
+    category_title: 'Arquitectura {categoria} | Guía Colectiva de Arquitectura | nolli.',
     category_desc: 'Explora {count} obras de arquitectura en la categoría {categoria}. Guía colectiva de arquitectura y mapa interactivo en nolli.',
     category_page_name: 'Obras de arquitectura en la categoría {categoria} | nolli.',
-    architect_title: 'Obras de {nombre} | Catálogo de Arquitectura | nolli.',
+    architect_title: 'Obras de {nombre} | Guía Colectiva de Arquitectura | nolli.',
     architect_desc: 'Descubre las obras y proyectos de {nombre} ({count} edificios catalogados) en nolli. Explora su arquitectura y mapa interactivo.',
     architect_page_name: 'Obras y proyectos de {nombre} | nolli.',
     city_title: 'Arquitectura en {city} | Obras y Guía | nolli.',
     city_desc: 'Guía de arquitectura en {city}: explora {count} obras y proyectos singulares catalogados en nolli. Mapa interactivo y guía colectiva de arquitectura.',
     city_page_name: 'Obras y proyectos de arquitectura en {city} | nolli.',
+    project_by_signes_lead: 'nolli. es un proyecto de',
+    collective_guide_footer: 'nolli. · guía colectiva de arquitectura',
     breadcrumb_architects: 'Arquitectos',
     breadcrumb_cities: 'Ciudades',
     breadcrumb_categories: 'Categorías',
@@ -111,15 +113,17 @@ const SSR_TEXTS = {
     not_found_category_title: 'Category not found | nolli.',
     not_found_category_text: 'The requested category does not exist or contains no cataloged works on nolli.',
     go_to_map: 'GO TO MAIN MAP',
-    category_title: '{categoria} Architecture | Works & Catalog | nolli.',
+    category_title: '{categoria} Architecture | Collective Architecture Guide | nolli.',
     category_desc: 'Explore {count} architectural works in the {categoria} category. Collective architecture guide and interactive map on nolli.',
     category_page_name: 'Architectural works in the {categoria} category | nolli.',
-    architect_title: 'Works by {nombre} | Architecture Catalog | nolli.',
+    architect_title: 'Works by {nombre} | Collective Architecture Guide | nolli.',
     architect_desc: 'Discover works and projects by {nombre} ({count} cataloged buildings) on nolli. Explore architecture and interactive map.',
     architect_page_name: 'Works and projects by {nombre} | nolli.',
     city_title: 'Architecture in {city} | Works & Guide | nolli.',
     city_desc: 'Architecture guide to {city}: explore {count} unique cataloged works and projects on nolli. Interactive map and collective architecture guide.',
     city_page_name: 'Architectural works and projects in {city} | nolli.',
+    project_by_signes_lead: 'nolli. is a project by',
+    collective_guide_footer: 'nolli. · collective architecture guide',
     breadcrumb_architects: 'Architects',
     breadcrumb_cities: 'Cities',
     breadcrumb_categories: 'Categories',
@@ -160,15 +164,17 @@ const SSR_TEXTS = {
     not_found_category_title: 'Categoria no trobada | nolli.',
     not_found_category_text: "La categoria sol·licitada no existeix o no conté obres catalogades a nolli.",
     go_to_map: 'ANAR AL MAPA PRINCIPAL',
-    category_title: 'Arquitectura {categoria} | Obres i Catàleg | nolli.',
+    category_title: 'Arquitectura {categoria} | Guia Col·lectiva d\'Arquitectura | nolli.',
     category_desc: "Explora {count} obres d'arquitectura en la categoria {categoria}. Guia col·lectiva d'arquitectura i mapa interactiu a nolli.",
     category_page_name: "Obres d'arquitectura en la categoria {categoria} | nolli.",
-    architect_title: 'Obres de {nombre} | Catàleg d\'Arquitectura | nolli.',
+    architect_title: 'Obres de {nombre} | Guia Col·lectiva d\'Arquitectura | nolli.',
     architect_desc: 'Descobreix les obres i projectes de {nombre} ({count} edificis catalogats) a nolli. Explora arquitectura i mapa interactiu.',
     architect_page_name: 'Obres i projectes de {nombre} | nolli.',
     city_title: 'Arquitectura a {city} | Obres i Guia | nolli.',
     city_desc: "Guia d'arquitectura a {city}: explora {count} obres i projectes singulars catalogats a nolli. Mapa interactiu i guia col·lectiva d'arquitectura.",
     city_page_name: "Obres i projectes d'arquitectura a {city} | nolli.",
+    project_by_signes_lead: 'nolli. és un projecte de',
+    collective_guide_footer: "nolli. · guia col·lectiva d'arquitectura",
     breadcrumb_architects: 'Arquitectes',
     breadcrumb_cities: 'Ciutats',
     breadcrumb_categories: 'Categories',
@@ -248,6 +254,42 @@ function getMultilingualSitemapEntries(cleanPath, lastmod, changefreq, priority,
   ].join('\n');
 }
 
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/**
+ * Renderiza el pie de página unificado para todas las fichas del sitemap.
+ * Incluye la mención "nolli. es un proyecto de SIGNES.STUDIO" con SIGNES en negrita
+ * y .STUDIO en peso fino, bajo la tipografía Montserrat.
+ */
+function renderSiteFooter(lang = 'es', siteUrl = 'https://nollimap.app') {
+  const prefix = getLangPrefix(lang);
+  const claim = getSSRText('collective_guide_footer', lang);
+  const lead = getSSRText('project_by_signes_lead', lang);
+  const mapText = getSSRText('go_to_map', lang);
+
+  return `<footer class="site-footer">
+    <div class="footer-brand">
+      <div class="footer-claim">${escapeHtml(claim)}</div>
+      <div class="footer-by">${escapeHtml(lead)} <a href="https://signes.studio" target="_blank" rel="noopener noreferrer" class="brand-signes"><strong class="brand-signes-bold">SIGNES</strong><span class="brand-signes-thin">.STUDIO</span></a></div>
+    </div>
+    <div class="footer-links">
+      <a href="${siteUrl}${prefix}/">${escapeHtml(mapText)}</a>
+      <a href="${siteUrl}/sitemap-categories.xml">Categorías</a>
+      <a href="${siteUrl}/sitemap-architects.xml">Arquitectos</a>
+      <a href="${siteUrl}/sitemap-cities.xml">Ciudades</a>
+      <a href="${siteUrl}/sitemap.xml">Sitemap</a>
+      <a href="${siteUrl}/legal">Legal</a>
+    </div>
+  </footer>`;
+}
+
 module.exports = {
   SUPPORTED_LANGS,
   DEFAULT_LANG,
@@ -258,4 +300,5 @@ module.exports = {
   getOgLocaleTags,
   escapeXml,
   getMultilingualSitemapEntries,
+  renderSiteFooter,
 };
