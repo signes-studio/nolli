@@ -255,10 +255,11 @@ async function testAll() {
   assert(footerEs.includes('brand-signes-bold">SIGNES</strong>'), 'Footer must render SIGNES in bold (weight 800)');
   assert(footerEs.includes('brand-signes-thin">.STUDIO</span>'), 'Footer must render .STUDIO in thin (weight 200)');
   assert(footerEs.includes('https://signes.studio'), 'Footer must link to https://signes.studio');
-  assert(footerEs.includes('nolli. es un proyecto de'), 'Footer must say "nolli. es un proyecto de" in Spanish');
+  assert(footerEs.includes('es un proyecto de'), 'Footer must say "es un proyecto de" in Spanish');
+  assert(footerEs.includes('<span class="brand-nolli">nolli.</span>'), 'Footer must render nolli. wrapped in brand-nolli');
   assert(!footerEs.includes('guía colectiva de arquitectura'), 'Footer must NOT contain redundant "guía colectiva de arquitectura" claim');
 
-  // Verify Montserrat is included in all SSR templates
+  // Verify Montserrat and League Spartan brand-nolli are included in all SSR templates
   [
     { name: 'obra.js', file: '../api/obra.js' },
     { name: 'arquitecto.js', file: '../api/arquitecto.js' },
@@ -269,19 +270,22 @@ async function testAll() {
     assert(code.includes('Montserrat'), `${name} must include Montserrat font`);
     assert(code.includes('brand-signes-bold'), `${name} must style brand-signes-bold`);
     assert(code.includes('brand-signes-thin'), `${name} must style brand-signes-thin`);
+    assert(code.includes('brand-nolli'), `${name} must style brand-nolli`);
     assert(code.includes('renderSiteFooter'), `${name} must call renderSiteFooter`);
   });
-  console.log('✓ All SSR templates include Montserrat and SIGNES.STUDIO branding without redundant header text');
+  console.log('✓ All SSR templates include Montserrat, brand-nolli and SIGNES.STUDIO branding');
 
   console.log('\n--- 12. Testing sitemap.xsl branding ---');
   const xslContentUpdated = fs.readFileSync(path.join(__dirname, '../sitemap.xsl'), 'utf8');
   assert(xslContentUpdated.includes('Montserrat'), 'sitemap.xsl must load Montserrat font');
   assert(xslContentUpdated.includes('brand-signes-bold'), 'sitemap.xsl must style brand-signes-bold');
   assert(xslContentUpdated.includes('brand-signes-thin'), 'sitemap.xsl must style brand-signes-thin');
+  assert(xslContentUpdated.includes('brand-nolli'), 'sitemap.xsl must style brand-nolli');
+  assert(xslContentUpdated.includes('<span class="brand-nolli">nolli.</span>'), 'sitemap.xsl must render nolli. in brand-nolli');
   assert(xslContentUpdated.includes('SIGNES'), 'sitemap.xsl must include SIGNES');
   assert(xslContentUpdated.includes('.STUDIO'), 'sitemap.xsl must include .STUDIO');
   assert(!xslContentUpdated.includes('Guía Colectiva de Arquitectura'), 'sitemap.xsl must NOT contain redundant "Guía Colectiva de Arquitectura" in footer');
-  console.log('✓ sitemap.xsl includes Montserrat and SIGNES.STUDIO branding without redundant header text');
+  console.log('✓ sitemap.xsl includes Montserrat, brand-nolli and SIGNES.STUDIO branding');
 
   console.log('\n--- 13. Testing itinerarios.html noindex and modern design ---');
   const itinHtml = fs.readFileSync(path.join(__dirname, '../itinerarios.html'), 'utf8');
@@ -300,17 +304,19 @@ async function testAll() {
   assert(vercelHeader.headers.some(hdr => hdr.key === 'X-Robots-Tag' && hdr.value.includes('noindex, nofollow')), 'vercel.json header must enforce noindex, nofollow');
   console.log('✓ itinerarios.html is completely excluded from indexing and has modern design');
 
-  console.log('\n--- 14. Testing "Guía colectiva de arquitectura" terminology ---');
+  console.log('\n--- 14. Testing "guía colectiva de arquitectura" lowercase across all languages ---');
   const esArchTitle = i18n.getSSRText('architect_title', 'es', { nombre: 'Gaudí' });
-  assert(esArchTitle.includes('Guía Colectiva de Arquitectura') || esArchTitle.includes('guía colectiva de arquitectura'), `Spanish title should say Guía Colectiva de Arquitectura: ${esArchTitle}`);
-  assert(!esArchTitle.toLowerCase().includes('catálogo de arquitectura'), `Spanish title must not say catálogo: ${esArchTitle}`);
+  assert(esArchTitle.includes('guía colectiva de arquitectura'), `Spanish title should say 'guía colectiva de arquitectura' in lowercase: ${esArchTitle}`);
+  assert(!esArchTitle.includes('Guía Colectiva de Arquitectura'), `Spanish title must not be Title Case: ${esArchTitle}`);
 
   const enArchTitle = i18n.getSSRText('architect_title', 'en', { nombre: 'Gaudí' });
-  assert(enArchTitle.includes('Collective Architecture Guide'), `English title should say Collective Architecture Guide: ${enArchTitle}`);
+  assert(enArchTitle.includes('collective architecture guide'), `English title should say 'collective architecture guide' in lowercase: ${enArchTitle}`);
+  assert(!enArchTitle.includes('Collective Architecture Guide'), `English title must not be Title Case: ${enArchTitle}`);
 
   const caArchTitle = i18n.getSSRText('architect_title', 'ca', { nombre: 'Gaudí' });
-  assert(caArchTitle.includes("Guia Col·lectiva d'Arquitectura"), `Catalan title should say Guia Col·lectiva d'Arquitectura: ${caArchTitle}`);
-  console.log('✓ "Guía colectiva de arquitectura" terminology validated across all languages');
+  assert(caArchTitle.includes("guia col·lectiva d'arquitectura"), `Catalan title should say 'guia col·lectiva d\'arquitectura' in lowercase: ${caArchTitle}`);
+  assert(!caArchTitle.includes("Guia Col·lectiva d'Arquitectura"), `Catalan title must not be Title Case: ${caArchTitle}`);
+  console.log('✓ "guía colectiva de arquitectura" strictly in lowercase validated across all languages');
 
   console.log('\n========================================');
   console.log('ALL VERIFICATIONS PASSED SUCCESSFULLY!');

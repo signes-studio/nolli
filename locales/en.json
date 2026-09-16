@@ -76,10 +76,10 @@
   "admin_users_title": "DIRECTORY // USERS",
   "app_architecture_guide": "ARCHITECTURE GUIDE",
   "app_by_signes": "A PROJECT BY SIGNES.STUDIO",
-  "app_desc": "Interactive collective architecture guide: explore and discover architecture works on a live map.",
+  "app_desc": "interactive collective architecture guide: explore and discover architecture works on a live map.",
   "app_loading": "LOADING MAP AND DATA",
   "app_subtitle": "collective architecture guide",
-  "app_tagline": "Collective architecture guide: interactive map of architecture works",
+  "app_tagline": "collective architecture guide: interactive map of architecture works",
   "app_title": "nolli. | collective architecture guide",
   "architect_close_aria": "Close architect file",
   "architect_could_not_load": "COULD NOT LOAD WORKS",
@@ -99,7 +99,7 @@
   "auth_authorize": "AUTHORIZE ACCESS",
   "auth_back_to_login": "BACK TO LOGIN",
   "auth_brand_desc": "Explore the interactive map, catalog buildings and discover architecture around you.",
-  "auth_brand_eyebrow": "COLLECTIVE ARCHITECTURE GUIDE",
+  "auth_brand_eyebrow": "collective architecture guide",
   "auth_btn_back_login": "BACK TO SIGN IN",
   "auth_btn_back_to_login": "BACK TO LOGIN",
   "auth_btn_complete_register": "COMPLETE REGISTRATION",
@@ -790,5 +790,5 @@
   "topbar_brand_tagline": "/ collective architecture guide",
   "topbar_profile": "PERSONAL PROFILE",
   "topbar_profile_aria": "Open personal profile",
-  "topbar_sr_title": "Collective architecture guide: interactive architecture map"
+  "topbar_sr_title": "collective architecture guide: interactive architecture map"
 }

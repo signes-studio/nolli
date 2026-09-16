@@ -30,6 +30,33 @@
   --brand-logo-size: 24px;
 }
 
+/* Tipografía de marca 'nolli.' en cuerpo de texto y elementos de interfaz */
+.brand-nolli {
+  font-family: 'League Spartan', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-transform: lowercase;
+}
+.brand-nolli .brand-dot {
+  color: var(--accent, #E84E1B);
+}
+
+/* Identidad corporativa SIGNES.STUDIO */
+.brand-signes {
+  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+  text-decoration: none;
+  color: inherit;
+  display: inline-flex;
+  align-items: baseline;
+  letter-spacing: 0.04em;
+}
+.brand-signes-bold {
+  font-weight: 800;
+}
+.brand-signes-thin {
+  font-weight: 200;
+}
+
 /* Reset base moderno y accesible */
 *,
 *::before,

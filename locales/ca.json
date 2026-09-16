@@ -76,10 +76,10 @@
   "admin_users_title": "DIRECTORI // USUARIS",
   "app_architecture_guide": "GUIA D'ARQUITECTURA",
   "app_by_signes": "UN PROJECTE DE SIGNES.STUDIO",
-  "app_desc": "Guia col·lectiva d'arquitectura: explora i registra obres d'arquitectura sobre un mapa en directe.",
+  "app_desc": "guia col·lectiva d'arquitectura: explora i registra obres d'arquitectura sobre un mapa en directe.",
   "app_loading": "CARREGANT MAPA I DADES",
   "app_subtitle": "guia col·lectiva d'arquitectura",
-  "app_tagline": "Guia col·lectiva d'arquitectura: mapa interactiu d'obres d'arquitectura",
+  "app_tagline": "guia col·lectiva d'arquitectura: mapa interactiu d'obres d'arquitectura",
   "app_title": "nolli. | guia col·lectiva d'arquitectura",
   "architect_close_aria": "Tancar fitxa d'arquitecte",
   "architect_could_not_load": "NO S'HAN POGUT CARREGAR LES OBRES",
@@ -99,7 +99,7 @@
   "auth_authorize": "AUTORITZAR ACCÉS",
   "auth_back_to_login": "TORNAR AL LOGIN",
   "auth_brand_desc": "Explora el mapa interactiu, cataloga obres i descobreix l'arquitectura del teu entorn.",
-  "auth_brand_eyebrow": "GUIA COL·LECTIVA D'ARQUITECTURA",
+  "auth_brand_eyebrow": "guia col·lectiva d'arquitectura",
   "auth_btn_back_login": "TORNAR A L'INICI DE SESSIÓ",
   "auth_btn_back_to_login": "TORNAR A L'INICI DE SESSIÓ",
   "auth_btn_complete_register": "COMPLETAR REGISTRE",
@@ -790,5 +790,5 @@
   "topbar_brand_tagline": "/ guia col·lectiva d'arquitectura",
   "topbar_profile": "PERFIL PERSONAL",
   "topbar_profile_aria": "Obrir perfil personal",
-  "topbar_sr_title": "Guia col·lectiva d'arquitectura: mapa interactiu d'obres d'arquitectura"
+  "topbar_sr_title": "guia col·lectiva d'arquitectura: mapa interactiu d'obres d'arquitectura"
 }

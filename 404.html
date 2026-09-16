@@ -30,7 +30,9 @@
     * { box-sizing: border-box; border-radius: 0; }
     body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.5; min-height: 100vh; display: flex; flex-direction: column; }
     .page { width: min(100% - 32px, 720px); margin: 0 auto; padding: 32px 0 64px; flex: 1; display: flex; flex-direction: column; }
-    .site-header { display: flex; align-items: baseline; gap: 8px; padding-bottom: 16px; border-bottom: 2px solid var(--border-strong); color: var(--ink-dim); font-size: 12px; text-transform: uppercase; }
+    .site-header { display: flex; align-items: baseline; gap: 8px; padding-bottom: 16px; border-bottom: 2px solid var(--border-strong); color: var(--ink-dim); font-size: 12px; }
+    .site-header span { text-transform: lowercase; }
+    .brand-nolli { font-family: var(--font-display); font-weight: 800; letter-spacing: -0.02em; text-transform: lowercase; }
     .site-header a { color: var(--brand); font-family: var(--font-display); font-size: 24px; font-weight: 800; letter-spacing: -0.03em; text-decoration: none; text-transform: lowercase; line-height: 1; }
     .not-found-content { margin-top: 48px; border: 2px solid var(--border-strong); background: #F0E9D2; padding: 36px 28px; box-shadow: var(--shadow-hard); }
     .not-found-tag { display: inline-block; font-family: var(--font-display); font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--brand); margin-bottom: 12px; }
@@ -43,7 +45,7 @@
 <body>
   <main class="page">
     <header class="site-header">
-      <a href="./">nolli.</a>
+      <a href="./" class="brand-nolli">nolli.</a>
       <span>/ guía colectiva de arquitectura</span>
     </header>
     <div class="not-found-content">

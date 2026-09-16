@@ -76,10 +76,10 @@
   "admin_users_title": "DIRECTORIO // USUARIOS",
   "app_architecture_guide": "GUÍA DE ARQUITECTURA",
   "app_by_signes": "UN PROYECTO DE SIGNES.STUDIO",
-  "app_desc": "Guía colectiva de arquitectura: explora y registra obras de arquitectura sobre un mapa en vivo.",
+  "app_desc": "guía colectiva de arquitectura: explora y registra obras de arquitectura sobre un mapa en vivo.",
   "app_loading": "CARGANDO MAPA Y DATOS",
   "app_subtitle": "guía colectiva de arquitectura",
-  "app_tagline": "Guía colectiva de arquitectura: mapa interactivo de obras de arquitectura",
+  "app_tagline": "guía colectiva de arquitectura: mapa interactivo de obras de arquitectura",
   "app_title": "nolli. | guía colectiva de arquitectura",
   "architect_close_aria": "Cerrar ficha de arquitecto",
   "architect_could_not_load": "NO SE PUDIERON CARGAR LAS OBRAS",
@@ -99,7 +99,7 @@
   "auth_authorize": "AUTORIZAR ACCESO",
   "auth_back_to_login": "VOLVER AL LOGIN",
   "auth_brand_desc": "Explora el mapa interactivo, cataloga obras y descubre la arquitectura de tu entorno.",
-  "auth_brand_eyebrow": "GUÍA COLECTIVA DE ARQUITECTURA",
+  "auth_brand_eyebrow": "guía colectiva de arquitectura",
   "auth_btn_back_login": "VOLVER AL INICIO DE SESIÓN",
   "auth_btn_back_to_login": "VOLVER A INICIO DE SESIÓN",
   "auth_btn_complete_register": "COMPLETAR REGISTRO",
@@ -790,5 +790,5 @@
   "topbar_brand_tagline": "/ guía colectiva de arquitectura",
   "topbar_profile": "PERFIL PERSONAL",
   "topbar_profile_aria": "Abrir perfil personal",
-  "topbar_sr_title": "Guía colectiva de arquitectura: mapa interactivo de obras de arquitectura"
+  "topbar_sr_title": "guía colectiva de arquitectura: mapa interactivo de obras de arquitectura"
 }

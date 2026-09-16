@@ -47,12 +47,12 @@
   <meta name="theme-color" content="#F8F1DF">
   <meta name="color-scheme" content="light">
 
-  <!-- Tipografía Asíncrona de Alto Rendimiento: Inter & League Spartan -->
+  <!-- Tipografía Asíncrona de Alto Rendimiento: Inter, League Spartan & Montserrat -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=League+Spartan:wght@700;800;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=League+Spartan:wght@700;800;900&family=Montserrat:wght@200;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <noscript>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=League+Spartan:wght@700;800;900&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=League+Spartan:wght@700;800;900&family=Montserrat:wght@200;800&display=swap">
   </noscript>
 
   <!-- Hojas de Estilo del Sistema Nolli -->
@@ -67,8 +67,8 @@
       {
         "@type": "WebApplication",
         "@id": "https://nollimap.app/#webapp",
-        "name": "Nolli",
-        "alternateName": "Nolli Map",
+        "name": "nolli.",
+        "alternateName": "nolli. map",
         "url": "https://nollimap.app/",
         "applicationCategory": "TravelApplication, DesignApplication, EducationalApplication",
         "operatingSystem": "All (Web, iOS, Android, macOS, Windows, Linux)",
@@ -85,11 +85,11 @@
           "Listas e itinerarios de viaje públicos y privados",
           "Fichas técnicas con autoría, año, categoría y coordenadas verificadas",
           "Sistema de relevancia arquitectónica en 4 niveles",
-          "Guía colectiva de arquitectura abierta a la comunidad"
+          "guía colectiva de arquitectura abierta a la comunidad"
         ],
         "author": {
           "@type": "Organization",
-          "name": "Nolli",
+          "name": "nolli.",
           "url": "https://nollimap.app"
         },
         "screenshot": "https://nollimap.app/img/landing/hero-map.webp"
@@ -940,6 +940,12 @@
       color: var(--accent);
       font-style: normal;
     }
+    .brand-nolli {
+      font-family: 'League Spartan', sans-serif;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      text-transform: lowercase;
+    }
     .footer-motto {
       font-size: 13px;
       line-height: 1.55;
@@ -1496,7 +1502,7 @@
       </div>
 
       <div class="footer-bottom">
-        <span>&copy; 2026 Nolli. Todos los derechos reservados. Diseño Neo-Bauhaus.</span>
+        <span>&copy; 2026 <span class="brand-nolli">nolli.</span> es un proyecto de <a href="https://signes.studio" target="_blank" rel="noopener noreferrer" class="brand-signes"><strong class="brand-signes-bold">SIGNES</strong><span class="brand-signes-thin">.STUDIO</span></a>. Todos los derechos reservados.</span>
         <span>Coordenadas exactas para obras construidas.</span>
       </div>
     </footer>

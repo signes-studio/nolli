@@ -5,7 +5,7 @@
     footer.className = `nolli-site-footer${document.getElementById('map') ? ' nolli-map-footer' : ''}`;
     footer.setAttribute('aria-label', 'Información legal');
     footer.innerHTML = `
-      <span class="nolli-footer-copyright">NOLLI &copy; ${new Date().getFullYear()}</span>
+      <span class="nolli-footer-copyright"><span class="brand-nolli">nolli.</span> &copy; ${new Date().getFullYear()}</span>
       <details class="nolli-footer-details">
         <summary aria-label="Abrir enlaces legales">LEGAL</summary>
         <nav aria-label="Enlaces legales">

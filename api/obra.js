@@ -580,6 +580,12 @@ function renderBuildingPage(building, lang = 'es') {
     .brand-signes-thin {
       font-weight: 200;
     }
+    .brand-nolli {
+      font-family: var(--font-display);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      text-transform: lowercase;
+    }
     .footer-links {
       display: flex;
       flex-wrap: wrap;
@@ -619,7 +625,7 @@ function renderBuildingPage(building, lang = 'es') {
 
     <nav aria-label="breadcrumb" class="breadcrumb-nav">
       <ol class="breadcrumb-list">
-        <li class="breadcrumb-item"><a href="${SITE_URL}${prefix}/">nolli.</a></li>
+        <li class="breadcrumb-item"><a href="${SITE_URL}${prefix}/"><span class="brand-nolli">nolli.</span></a></li>
         <li class="breadcrumb-sep" aria-hidden="true">/</li>
         <li class="breadcrumb-item"><a href="${SITE_URL}${prefix}/categoria/${encodeURIComponent(categoriaSlug)}">${escapeHtml(categoriaText)}</a></li>
         <li class="breadcrumb-sep" aria-hidden="true">/</li>

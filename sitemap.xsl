@@ -12,8 +12,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
         <title>
           <xsl:choose>
-            <xsl:when test="sitemap:sitemapindex">Índice de Sitemaps XML · Nolli</xsl:when>
-            <xsl:otherwise>Sitemap XML · Nolli</xsl:otherwise>
+            <xsl:when test="sitemap:sitemapindex">Índice de Sitemaps XML · nolli.</xsl:when>
+            <xsl:otherwise>Sitemap XML · nolli.</xsl:otherwise>
           </xsl:choose>
         </title>
         <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -417,6 +417,13 @@
             gap: 5px;
           }
 
+          .brand-nolli {
+            font-family: 'League Spartan', sans-serif;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            text-transform: lowercase;
+          }
+
           .brand-signes {
             font-family: 'Montserrat', sans-serif;
             text-decoration: none;
@@ -628,7 +635,7 @@
 
           <!-- PIE DE PÁGINA -->
           <footer class="footer">
-            <span class="footer-project-by">nolli. es un proyecto de <a href="https://signes.studio" target="_blank" rel="noopener noreferrer" class="brand-signes"><strong class="brand-signes-bold">SIGNES</strong><span class="brand-signes-thin">.STUDIO</span></a></span>
+            <span class="footer-project-by"><span class="brand-nolli">nolli.</span> es un proyecto de <a href="https://signes.studio" target="_blank" rel="noopener noreferrer" class="brand-signes"><strong class="brand-signes-bold">SIGNES</strong><span class="brand-signes-thin">.STUDIO</span></a></span>
             <span class="footer-note">Protocolo Sitemaps XML 0.9 · Transformación XSLT</span>
           </footer>
         </div>

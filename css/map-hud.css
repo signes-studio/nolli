@@ -172,7 +172,7 @@ body.dark-mode .maplibregl-ctrl-attrib.maplibregl-compact .maplibregl-ctrl-attri
   font-family: 'Inter', sans-serif;
   font-size: 11px;
   font-weight: 700;
-  text-transform: uppercase;
+  text-transform: lowercase;
   letter-spacing: 0.04em;
   color: var(--fg-dim, #6B6B6B);
 }

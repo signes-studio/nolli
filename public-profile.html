@@ -9,13 +9,13 @@
   <link rel="preconnect" href="https://wsrv.nl" crossorigin>
   <link rel="dns-prefetch" href="https://ldtfvpjigzvcagtciipn.supabase.co">
   <link rel="dns-prefetch" href="https://wsrv.nl">
-  <meta name="description" content="Perfil de usuario en Nolli, guía colectiva de arquitectura.">
+  <meta name="description" content="Perfil de usuario en nolli., guía colectiva de arquitectura.">
   <meta name="robots" content="noindex, follow">
   <link rel="canonical" href="https://nollimap.app/public-profile">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="nolli.">
   <meta property="og:title" content="nolli. | perfil de usuario">
-  <meta property="og:description" content="Perfil de usuario en Nolli, guía colectiva de arquitectura.">
+  <meta property="og:description" content="Perfil de usuario en nolli., guía colectiva de arquitectura.">
   <meta property="og:url" content="https://nollimap.app/public-profile">
   <meta property="og:image" content="https://nollimap.app/icons/logo.png">
   <meta name="twitter:card" content="summary_large_image">
@@ -221,14 +221,14 @@
     }
 
     function renderUserInfo(user) {
-      const displayName = user.first_name || user.nick || 'Usuario de Nolli';
+      const displayName = user.first_name || user.nick || 'Usuario de nolli.';
       const nick = user.nick ? `@${user.nick}` : '';
       const location = [user.city, user.country].filter(Boolean).join(', ') || 'ARQUITECTURA & VIAJES';
 
       document.getElementById('user-display-name').textContent = displayName;
       document.getElementById('user-nick-handle').textContent = nick;
       document.getElementById('user-location').textContent = location.toUpperCase();
-      document.getElementById('user-bio').textContent = user.bio || 'Este perfil muestra únicamente la información pública del usuario en Nolli.';
+      document.getElementById('user-bio').textContent = user.bio || 'Este perfil muestra únicamente la información pública del usuario en nolli.';
       
       const avatar = document.getElementById('user-avatar');
       avatar.textContent = (user.first_name || user.nick || 'U')[0].toUpperCase();
@@ -284,11 +284,11 @@
       // 2. Si no está logueado
       if (!token) {
         btnFollow?.addEventListener('click', () => {
-          feedback.textContent = 'Inicia sesión en Nolli para seguir perfiles.';
+          feedback.textContent = 'Inicia sesión en nolli. para seguir perfiles.';
           setTimeout(() => { window.location.href = './perfil.html'; }, 900);
         });
         btnFriend?.addEventListener('click', () => {
-          feedback.textContent = 'Inicia sesión en Nolli para conectar como amigo.';
+          feedback.textContent = 'Inicia sesión en nolli. para conectar como amigo.';
           setTimeout(() => { window.location.href = './perfil.html'; }, 900);
         });
         return;
