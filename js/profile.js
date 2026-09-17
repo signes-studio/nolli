@@ -36,6 +36,7 @@ import {
   fetchUserFriends,
   respondFriendshipRpc,
   signInWithGoogle,
+  uploadAvatarFileWithR2,
 } from './api.js';
 
 import {
@@ -507,6 +508,28 @@ function renderHero() {
   const firstName = (db.first_name !== undefined && db.first_name !== null && db.first_name !== '') ? db.first_name : (metadata.first_name || '');
   const lastName = (db.last_name !== undefined && db.last_name !== null && db.last_name !== '') ? db.last_name : (metadata.last_name || '');
   const fullName = `${firstName} ${lastName}`.trim();
+
+  // Avatar de perfil
+  const avatarImg = document.getElementById('profile-hero-avatar-img');
+  const initialsEl = document.getElementById('profile-hero-initials');
+  const avatarUrl = db.avatar_url || metadata.avatar_url || '';
+  if (avatarUrl) {
+    if (avatarImg) {
+      avatarImg.src = avatarUrl;
+      avatarImg.classList.remove('hidden');
+    }
+    if (initialsEl) initialsEl.classList.add('hidden');
+  } else {
+    if (avatarImg) {
+      avatarImg.src = '';
+      avatarImg.classList.add('hidden');
+    }
+    if (initialsEl) {
+      const initials = ((firstName?.[0] || '') + (lastName?.[0] || '')).toUpperCase() || (user.email?.[0] || 'U').toUpperCase();
+      initialsEl.textContent = initials;
+      initialsEl.classList.remove('hidden');
+    }
+  }
 
   const nameEl = document.getElementById('profile-hero-name');
   if (nameEl) {
@@ -1863,6 +1886,21 @@ function setupEditProfileModal() {
       if (inputSchool) inputSchool.value = db.school || metadata.school || '';
       if (inputEmail) inputEmail.value = user.email || '';
 
+      const inputAvatarUrl = document.getElementById('edit-profile-avatar-url');
+      const avatarPreviewImg = document.getElementById('edit-avatar-preview-img');
+      const avatarPreviewWrap = document.getElementById('edit-avatar-preview-wrap');
+      const avatarStatus = document.getElementById('edit-avatar-status');
+      const currentAvatar = db.avatar_url || metadata.avatar_url || '';
+      if (inputAvatarUrl) inputAvatarUrl.value = currentAvatar;
+      if (avatarPreviewImg && currentAvatar) {
+        avatarPreviewImg.src = currentAvatar;
+        avatarPreviewWrap?.classList.remove('hidden');
+      } else {
+        if (avatarPreviewImg) avatarPreviewImg.src = '';
+        avatarPreviewWrap?.classList.add('hidden');
+      }
+      if (avatarStatus) avatarStatus.classList.add('hidden');
+
       if (editStatus) editStatus.classList.add('hidden');
       if (emailStatus) emailStatus.classList.add('hidden');
       setupLanguageSwitchers(modalEditProfile);
@@ -1870,6 +1908,75 @@ function setupEditProfileModal() {
       if (window.lucide) window.lucide.createIcons();
     });
   }
+
+  // Manejo de carga de foto de perfil
+  const avatarFileInput = document.getElementById('edit-profile-avatar-file');
+  const avatarUrlInput = document.getElementById('edit-profile-avatar-url');
+  const avatarPreviewImg = document.getElementById('edit-avatar-preview-img');
+  const avatarPreviewWrap = document.getElementById('edit-avatar-preview-wrap');
+  const btnRemoveAvatar = document.getElementById('btn-remove-avatar');
+  const avatarStatus = document.getElementById('edit-avatar-status');
+
+  const updateAvatarPreview = (url) => {
+    if (url && (url.startsWith('https://') || url.startsWith('http://') || url.startsWith('data:image/'))) {
+      if (avatarPreviewImg) avatarPreviewImg.src = url;
+      avatarPreviewWrap?.classList.remove('hidden');
+    } else {
+      if (avatarPreviewImg) avatarPreviewImg.src = '';
+      avatarPreviewWrap?.classList.add('hidden');
+    }
+  };
+
+  avatarUrlInput?.addEventListener('input', () => {
+    updateAvatarPreview(avatarUrlInput.value.trim());
+  });
+
+  btnRemoveAvatar?.addEventListener('click', () => {
+    if (avatarUrlInput) avatarUrlInput.value = '';
+    if (avatarFileInput) avatarFileInput.value = '';
+    updateAvatarPreview('');
+    if (avatarStatus) {
+      avatarStatus.textContent = '';
+      avatarStatus.classList.add('hidden');
+    }
+  });
+
+  avatarFileInput?.addEventListener('change', async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const token = getSessionToken();
+    if (!token) {
+      if (avatarStatus) {
+        avatarStatus.textContent = 'Debes iniciar sesión para actualizar tu foto.';
+        avatarStatus.classList.remove('hidden');
+      }
+      return;
+    }
+
+    if (avatarStatus) {
+      avatarStatus.textContent = 'Subiendo foto a almacenamiento seguro...';
+      avatarStatus.classList.remove('hidden');
+    }
+
+    try {
+      const publicUrl = await uploadAvatarFileWithR2(file, token);
+      if (publicUrl) {
+        if (avatarUrlInput) avatarUrlInput.value = publicUrl;
+        updateAvatarPreview(publicUrl);
+        if (avatarStatus) {
+          avatarStatus.textContent = 'Foto lista para guardar.';
+          avatarStatus.classList.remove('hidden');
+        }
+      }
+    } catch (err) {
+      console.error('Error subiendo foto de perfil:', err);
+      if (avatarStatus) {
+        avatarStatus.textContent = err.message || 'Error al subir la fotografía.';
+        avatarStatus.classList.remove('hidden');
+      }
+    }
+  });
 
   const btnChangeEmail = document.getElementById('btn-change-email');
   const inputEmail = document.getElementById('edit-profile-email');
@@ -1946,6 +2053,7 @@ function setupEditProfileModal() {
       const country = document.getElementById('edit-profile-country')?.value || '';
       const website = document.getElementById('edit-profile-website')?.value || '';
       const school = document.getElementById('edit-profile-school')?.value || '';
+      const avatarUrl = document.getElementById('edit-profile-avatar-url')?.value.trim() || null;
 
       const submitBtn = document.getElementById('btn-save-profile');
       if (submitBtn) {
@@ -1956,6 +2064,7 @@ function setupEditProfileModal() {
       const updatedProfile = {
         firstName,
         lastName,
+        avatar_url: avatarUrl,
         bio,
         city,
         country,
@@ -1974,6 +2083,7 @@ function setupEditProfileModal() {
           id: user.id,
           first_name: firstName,
           last_name: lastName,
+          avatar_url: avatarUrl,
           bio,
           city,
           country,
@@ -1986,6 +2096,7 @@ function setupEditProfileModal() {
           ...user.user_metadata,
           first_name: firstName,
           last_name: lastName,
+          avatar_url: avatarUrl,
           bio,
           city,
           country,

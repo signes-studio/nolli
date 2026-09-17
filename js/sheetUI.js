@@ -5,7 +5,7 @@
 import { state, separarArquitectos, normalizarCategoria, normalizarImportancia, formatCategoria, esRolAdmin, esRolEditor, guardarZonaPersonalLocal, CATEGORY_META } from './state.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { cerrarFiltros, generarFiltrosUI } from './filtersUI.js';
-import { fetchBuildings, saveBuildingStatus, reviewBuilding, deleteBuilding, updateBuilding, deletePrivateBuilding, createUserCollection, addUserCollectionItem, deleteUserCollectionItem, createUserPrivateLabel, deleteUserPrivateLabel } from './api.js';
+import { fetchBuildings, saveBuildingStatus, reviewBuilding, deleteBuilding, updateBuilding, deletePrivateBuilding, createUserCollection, addUserCollectionItem, deleteUserCollectionItem, createUserPrivateLabel, deleteUserPrivateLabel, fetchBuildingVisitPhotos, createVisitPhoto, uploadGenericPhotoWithR2, invalidateCatalogCache } from './api.js';
 import { abrirModalCrearLista } from './myPlacesUI.js';
 import { getOptimizedPhotoUrl } from './imageProxy.js';
 import { showNeoToast } from './renderUtils.js';
@@ -191,12 +191,19 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
     <!-- Fotografía Principal en Banner Panorámico (Solo usuarios registrados) -->
     ${building.foto_url && isValidHttpsUrl(building.foto_url) && state.sessionToken ? `
       <div class="sheet-gallery-wrap">
-        <button type="button" class="photo-thumb sheet-photo-banner" data-photo-url="${escapeHtml(building.foto_url)}" aria-label="${t('sheet_photo_expand_aria')}">
+        <button type="button" class="photo-thumb sheet-photo-banner" data-photo-url="${escapeHtml(building.foto_url)}" data-photo-credit="${escapeHtml(building.foto_credito || '')}" data-photo-caption="${escapeHtml(building.nombre_obra || '')}" aria-label="${t('sheet_photo_expand_aria')}">
           <img class="sheet-photo" src="${escapeHtml(getOptimizedPhotoUrl(building.foto_url, { width: 1000 }))}" alt="Fotografía de ${escapeHtml(building.nombre_obra)}" loading="lazy" decoding="async"${openedFromUrl ? ' fetchpriority="high"' : ''}>
+          <span class="sheet-photo-credit"><i data-lucide="camera" width="11" height="11"></i> Foto: ${escapeHtml(building.foto_credito || 'Autor no especificado')}</span>
           <span class="photo-zoom-badge"><i data-lucide="maximize-2" width="12" height="12"></i> ${t('sheet_photo_expand')}</span>
         </button>
       </div>
-    ` : ''}
+    ` : (state.sessionToken ? `
+      <div class="sheet-no-photo-wrap" style="padding: 10px 0 6px 0;">
+        <button type="button" class="btn btn-secondary w-full" data-open-upload-sheet-photo style="border-radius: 9999px; font-size: 11px; font-weight: 600; padding: 7px 14px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+          <i data-lucide="camera" width="13" height="13"></i> + SUBIR FOTO DE LA OBRA
+        </button>
+      </div>
+    ` : '')}
 
     <!-- Ficha Técnica Modular Limpia (Matriz Tipográfica) -->
     <div class="sheet-tech-section">
@@ -283,6 +290,23 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
       </div>
     ` : ''}
 
+    <!-- Sección de Fotos de la Comunidad y Subida -->
+    ${state.sessionToken ? `
+      <div class="sheet-photos-section mt-4 mb-3">
+        <div class="sheet-photos-header flex items-center justify-between pb-2 mb-2 border-b border-[var(--border)]">
+          <span class="text-xs font-semibold tracking-wider uppercase text-[var(--text-muted)] flex items-center gap-1.5">
+            <i data-lucide="images" width="13" height="13"></i> FOTOGRAFÍAS
+          </span>
+          <button type="button" class="btn-add-sheet-photo text-xs text-[var(--accent)] hover:underline flex items-center gap-1" data-open-upload-sheet-photo>
+            <i data-lucide="plus" width="12" height="12"></i> Añadir foto
+          </button>
+        </div>
+        <div id="sheet-community-photos-container" class="sheet-gallery-grid">
+          <div class="col-span-full text-center py-2 text-xs text-[var(--text-muted)]">Cargando fotos...</div>
+        </div>
+      </div>
+    ` : ''}
+
     <!-- Botones de Reporte de Incidencias Neo-Bauhaus -->
     <div class="sheet-reports-actions">
       <button type="button" class="sheet-report-btn" data-open-report="error_datos">
@@ -297,6 +321,10 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
   `;
 
   window.lucide?.createIcons({ context: sheet });
+
+  if (state.sessionToken) {
+    loadSheetCommunityPhotos(building);
+  }
 
   // Listeners para iniciar sesión desde elementos restringidos
   document.querySelectorAll('[data-trigger-login]').forEach((btn) => {
@@ -999,12 +1027,31 @@ document.addEventListener('click', (event) => {
     handleShareAction(shareChoiceBtn.dataset.shareChoice);
     return;
   }
-  if (target.closest('[data-photo-url]')) { const viewer = document.getElementById('modal-photo'); document.getElementById('photo-viewer-image').src = target.closest('[data-photo-url]').dataset.photoUrl; viewer.classList.add('open'); return; }
-  if (target.closest('[data-photo-url]')) {
-    const rawUrl = target.closest('[data-photo-url]').dataset.photoUrl;
+  if (target.closest('[data-open-upload-sheet-photo]')) {
+    const building = getSelectedBuilding();
+    if (building) openSheetPhotoUploadModal(building);
+    return;
+  }
+  const photoTarget = target.closest('[data-photo-url]');
+  if (photoTarget) {
+    const rawUrl = photoTarget.dataset.photoUrl;
+    const credit = photoTarget.dataset.photoCredit || '';
+    const caption = photoTarget.dataset.photoCaption || '';
     const viewer = document.getElementById('modal-photo');
     const img = document.getElementById('photo-viewer-image');
     if (img) img.src = getOptimizedPhotoUrl(rawUrl, 'fullscreen') || rawUrl;
+    const creditBar = document.getElementById('photo-viewer-credit-bar');
+    const creditText = document.getElementById('photo-viewer-credit-text');
+    const captionText = document.getElementById('photo-viewer-caption-text');
+    if (creditBar) {
+      if (credit || caption) {
+        if (creditText) creditText.textContent = credit ? `Foto: ${credit}` : '';
+        if (captionText) captionText.textContent = caption || '';
+        creditBar.classList.remove('hidden');
+      } else {
+        creditBar.classList.add('hidden');
+      }
+    }
     if (viewer) viewer.classList.add('open');
     return;
   }
@@ -1030,3 +1077,241 @@ document.addEventListener('radar:user-private-labels-changed', () => renderSheet
 document.addEventListener('radar:user-status-changed', () => renderSheetStatusUI());
 document.addEventListener('radar:open-building', (event) => { if (event.detail?.obra) abrirFicha(event.detail.obra, event.detail.obra.coordenadas, event.detail.obra.featureId); });
 function actualizarFichaAbierta() { const building = getSelectedBuilding(); if (building) abrirFicha(building, building.coordenadas, building.featureId); }
+
+async function loadSheetCommunityPhotos(building) {
+  const container = document.getElementById('sheet-community-photos-container');
+  if (!container || !building) return;
+
+  try {
+    const photos = await fetchBuildingVisitPhotos(building.id, state.sessionToken);
+    if (!photos || photos.length === 0) {
+      container.innerHTML = `
+        <div class="col-span-full text-center py-3 text-xs text-[var(--text-muted)]">
+          No hay más fotos todavía. ¡Sé el primero en compartir una!
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = photos.map((p) => {
+      const author = escapeHtml(p.metadata?.author || p.author_credit || 'Autor no especificado');
+      const caption = escapeHtml(p.caption || '');
+      const photoUrl = escapeHtml(p.photo_url || '');
+      const thumbUrl = escapeHtml(getOptimizedPhotoUrl(p.photo_url, { width: 400 }));
+
+      return `
+        <div class="sheet-photo-card" data-photo-url="${photoUrl}" data-photo-credit="${author}" data-photo-caption="${caption}" style="cursor: pointer;">
+          <img src="${thumbUrl}" alt="${caption || 'Foto de ' + escapeHtml(building.nombre_obra)}" loading="lazy">
+          <div class="sheet-photo-credit-badge">
+            <span class="truncate">Foto: ${author}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (err) {
+    console.warn('Error al cargar fotos de la comunidad:', err);
+  }
+}
+
+let currentSheetPhotoBuilding = null;
+
+export function openSheetPhotoUploadModal(building) {
+  if (!state.sessionToken) {
+    showNeoToast(t('toast_login_required_add'));
+    return;
+  }
+  currentSheetPhotoBuilding = building;
+  const modal = document.getElementById('modal-upload-sheet-photo');
+  if (!modal) return;
+
+  const targetName = document.getElementById('sheet-photo-building-target');
+  if (targetName) targetName.textContent = building.nombre_obra || '--';
+
+  const fileInput = document.getElementById('sheet-photo-file');
+  const urlInput = document.getElementById('sheet-photo-url-input');
+  const authorInput = document.getElementById('sheet-photo-author');
+  const captionInput = document.getElementById('sheet-photo-caption');
+  const setMainWrap = document.getElementById('wrap-sheet-photo-set-main');
+  const setMainCheck = document.getElementById('sheet-photo-set-main');
+  const previewWrap = document.getElementById('sheet-photo-preview-wrap');
+  const previewImg = document.getElementById('sheet-photo-preview-img');
+  const statusEl = document.getElementById('sheet-photo-upload-status');
+  const errorEl = document.getElementById('sheet-photo-error');
+
+  if (fileInput) fileInput.value = '';
+  if (urlInput) urlInput.value = '';
+  if (authorInput) authorInput.value = '';
+  if (captionInput) captionInput.value = '';
+  if (previewWrap) previewWrap.classList.add('hidden');
+  if (previewImg) previewImg.src = '';
+  if (statusEl) {
+    statusEl.textContent = '';
+    statusEl.classList.add('hidden');
+  }
+  if (errorEl) {
+    errorEl.textContent = '';
+    errorEl.classList.add('hidden');
+  }
+
+  const esEditorOrAdmin = esRolEditor(state.userRole) || esRolAdmin(state.userRole);
+  if (setMainWrap) {
+    setMainWrap.classList.toggle('hidden', !esEditorOrAdmin);
+  }
+  if (setMainCheck) {
+    setMainCheck.checked = !building.foto_url;
+  }
+
+  modal.classList.add('open');
+}
+
+export function closeSheetPhotoUploadModal() {
+  const modal = document.getElementById('modal-upload-sheet-photo');
+  if (modal) modal.classList.remove('open');
+  currentSheetPhotoBuilding = null;
+}
+
+function initSheetPhotoUploadModal() {
+  const modal = document.getElementById('modal-upload-sheet-photo');
+  if (!modal) return;
+
+  const btnClose = document.getElementById('btn-sheet-photo-modal-close');
+  const btnCancel = document.getElementById('btn-sheet-photo-cancel');
+  const fileInput = document.getElementById('sheet-photo-file');
+  const urlInput = document.getElementById('sheet-photo-url-input');
+  const authorInput = document.getElementById('sheet-photo-author');
+  const captionInput = document.getElementById('sheet-photo-caption');
+  const btnRemove = document.getElementById('btn-sheet-photo-remove');
+  const btnSubmit = document.getElementById('btn-sheet-photo-submit');
+  const previewWrap = document.getElementById('sheet-photo-preview-wrap');
+  const previewImg = document.getElementById('sheet-photo-preview-img');
+  const statusEl = document.getElementById('sheet-photo-upload-status');
+  const errorEl = document.getElementById('sheet-photo-error');
+  const setMainCheck = document.getElementById('sheet-photo-set-main');
+
+  const updatePreview = (url) => {
+    if (url && previewWrap && previewImg) {
+      previewImg.src = url;
+      previewWrap.classList.remove('hidden');
+    } else if (previewWrap && previewImg) {
+      previewImg.src = '';
+      previewWrap.classList.add('hidden');
+    }
+  };
+
+  btnClose?.addEventListener('click', closeSheetPhotoUploadModal);
+  btnCancel?.addEventListener('click', closeSheetPhotoUploadModal);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeSheetPhotoUploadModal();
+  });
+
+  urlInput?.addEventListener('input', () => {
+    updatePreview(urlInput.value.trim());
+  });
+
+  btnRemove?.addEventListener('click', () => {
+    if (fileInput) fileInput.value = '';
+    if (urlInput) urlInput.value = '';
+    updatePreview('');
+    if (statusEl) {
+      statusEl.textContent = '';
+      statusEl.classList.add('hidden');
+    }
+  });
+
+  fileInput?.addEventListener('change', async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (statusEl) {
+      statusEl.textContent = 'Subiendo imagen...';
+      statusEl.classList.remove('hidden');
+    }
+    try {
+      const res = await uploadGenericPhotoWithR2(file, currentSheetPhotoBuilding?.id || 'sheet', state.sessionToken);
+      if (res?.url) {
+        if (urlInput) urlInput.value = res.url;
+        updatePreview(res.url);
+        if (statusEl) {
+          statusEl.textContent = 'Imagen subida correctamente';
+        }
+      }
+    } catch (err) {
+      if (statusEl) {
+        statusEl.textContent = 'Error al subir la imagen: ' + (err.message || 'Error');
+      }
+    }
+  });
+
+  btnSubmit?.addEventListener('click', async () => {
+    if (errorEl) errorEl.classList.add('hidden');
+
+    const photoUrl = urlInput?.value.trim();
+    const author = authorInput?.value.trim();
+    const caption = captionInput?.value.trim() || null;
+    const setAsMain = setMainCheck?.checked;
+
+    if (!photoUrl) {
+      if (errorEl) {
+        errorEl.textContent = 'Por favor, selecciona un archivo o introduce una URL de imagen válida.';
+        errorEl.classList.remove('hidden');
+      }
+      return;
+    }
+
+    if (!author) {
+      if (errorEl) {
+        errorEl.textContent = 'Debes indicar el autor o crédito de la fotografía para poder subirla.';
+        errorEl.classList.remove('hidden');
+      }
+      return;
+    }
+
+    if (!currentSheetPhotoBuilding) return;
+
+    btnSubmit.disabled = true;
+    const origBtnText = btnSubmit.innerHTML;
+    btnSubmit.innerHTML = '<span>SUBIENDO...</span>';
+
+    try {
+      await createVisitPhoto({
+        building_id: currentSheetPhotoBuilding.id,
+        photo_url: photoUrl,
+        caption: caption,
+        metadata: { author }
+      }, state.sessionToken);
+
+      if (setAsMain) {
+        await updateBuilding(currentSheetPhotoBuilding.id, {
+          foto_url: photoUrl,
+          foto_credito: author
+        }, state.sessionToken);
+
+        currentSheetPhotoBuilding.foto_url = photoUrl;
+        currentSheetPhotoBuilding.foto_credito = author;
+
+        const obraEnState = state.OBRAS.find((o) => String(o.id) === String(currentSheetPhotoBuilding.id));
+        if (obraEnState) {
+          obraEnState.foto_url = photoUrl;
+          obraEnState.foto_credito = author;
+        }
+
+        invalidateCatalogCache();
+        document.dispatchEvent(new CustomEvent('radar:catalog-invalidated'));
+      }
+
+      showNeoToast('Fotografía añadida correctamente');
+      closeSheetPhotoUploadModal();
+
+      abrirFicha(currentSheetPhotoBuilding, currentSheetPhotoBuilding.coordenadas, currentSheetPhotoBuilding.featureId);
+    } catch (err) {
+      if (errorEl) {
+        errorEl.textContent = err.message || 'Error al guardar la fotografía';
+        errorEl.classList.remove('hidden');
+      }
+    } finally {
+      btnSubmit.disabled = false;
+      btnSubmit.innerHTML = origBtnText;
+    }
+  });
+}
+
+initSheetPhotoUploadModal();

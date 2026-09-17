@@ -3,7 +3,7 @@
    ========================================================================= */
 
 import { state, separarArquitectos, normalizarCategoria, esRolAdmin, esRolEditor } from './state.js';
-import { loginAdmin, registerUser, refreshUserSession, requestPasswordReset, updateUserPassword, sendMagicLink, updateUserEmail, verifyOtpToken, fetchUserRole, fetchCurrentUser, fetchCurrentProfile, fetchBuildingStatuses, upsertCurrentProfile, createBuildingReport, createBuilding, createPrivateBuilding, updateBuilding, updateUserPresence, invalidateCatalogCache, signInWithGoogle } from './api.js';
+import { loginAdmin, registerUser, refreshUserSession, requestPasswordReset, updateUserPassword, sendMagicLink, updateUserEmail, verifyOtpToken, fetchUserRole, fetchCurrentUser, fetchCurrentProfile, fetchBuildingStatuses, upsertCurrentProfile, createBuildingReport, createBuilding, createPrivateBuilding, updateBuilding, updateUserPresence, invalidateCatalogCache, signInWithGoogle, uploadGenericPhotoWithR2 } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
 import { showNeoToast } from './renderUtils.js';
@@ -543,12 +543,75 @@ async function initLoginModal() {
    ------------------------------------------------------------------------- */
 function initAddBuildingModal() {
   const mAdd = document.getElementById('modal-add-building');
+  const inputFotoFile = document.getElementById('add-foto-file');
+  const inputFotoUrl = document.getElementById('add-foto');
+  const inputFotoCredito = document.getElementById('add-foto-credito');
+  const wrapFotoPreview = document.getElementById('add-foto-preview-wrap');
+  const imgFotoPreview = document.getElementById('add-foto-preview-img');
+  const btnRemoveFoto = document.getElementById('btn-add-foto-remove');
+  const statusFotoUpload = document.getElementById('add-foto-upload-status');
+
+  function updateAddFotoPreview(url) {
+    if (url && wrapFotoPreview && imgFotoPreview) {
+      imgFotoPreview.src = url;
+      wrapFotoPreview.classList.remove('hidden');
+    } else if (wrapFotoPreview && imgFotoPreview) {
+      imgFotoPreview.src = '';
+      wrapFotoPreview.classList.add('hidden');
+    }
+  }
+
+  inputFotoUrl?.addEventListener('input', () => {
+    updateAddFotoPreview(inputFotoUrl.value.trim());
+  });
+
+  btnRemoveFoto?.addEventListener('click', () => {
+    if (inputFotoUrl) inputFotoUrl.value = '';
+    if (inputFotoFile) inputFotoFile.value = '';
+    updateAddFotoPreview('');
+    if (statusFotoUpload) {
+      statusFotoUpload.textContent = '';
+      statusFotoUpload.classList.add('hidden');
+    }
+  });
+
+  inputFotoFile?.addEventListener('change', async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (statusFotoUpload) {
+      statusFotoUpload.textContent = 'Subiendo imagen...';
+      statusFotoUpload.classList.remove('hidden');
+    }
+    try {
+      const res = await uploadGenericPhotoWithR2(file, state.editingBuildingId || 'new', state.sessionToken);
+      if (res?.url) {
+        if (inputFotoUrl) inputFotoUrl.value = res.url;
+        updateAddFotoPreview(res.url);
+        if (statusFotoUpload) {
+          statusFotoUpload.textContent = 'Imagen subida correctamente';
+        }
+      }
+    } catch (err) {
+      if (statusFotoUpload) {
+        statusFotoUpload.textContent = 'Error al subir la imagen: ' + (err.message || 'Error');
+      }
+    }
+  });
+
   const closeAdd = () => {
     mAdd.classList.remove('open');
     state.pendingLngLat = null;
     state.editingBuildingId = null;
     state.addingBuilding = false;
     document.getElementById('btn-add-project').classList.remove('active-state');
+    if (inputFotoFile) inputFotoFile.value = '';
+    if (inputFotoUrl) inputFotoUrl.value = '';
+    if (inputFotoCredito) inputFotoCredito.value = '';
+    updateAddFotoPreview('');
+    if (statusFotoUpload) {
+      statusFotoUpload.textContent = '';
+      statusFotoUpload.classList.add('hidden');
+    }
   };
 
   document.addEventListener('click', (e) => {
@@ -621,6 +684,8 @@ function initAddBuildingModal() {
     document.getElementById('add-coords').textContent = `${obra.coordenadas[0].toFixed(5)}, ${obra.coordenadas[1].toFixed(5)}`;
     document.getElementById('add-nombre').value = obra.nombre_obra || '';
     document.getElementById('add-foto').value = obra.foto_url || '';
+    if (inputFotoCredito) inputFotoCredito.value = obra.foto_credito || '';
+    updateAddFotoPreview(obra.foto_url || '');
     document.getElementById('add-enlace').value = obra.enlace_url || '';
     const placeEl = document.getElementById('add-place');
     if (placeEl) placeEl.value = obra.place || obra.ciudad || '';
@@ -640,6 +705,7 @@ function initAddBuildingModal() {
 
     const nombre = document.getElementById('add-nombre').value.trim();
     const fotoUrl = document.getElementById('add-foto').value.trim();
+    const fotoCredito = document.getElementById('add-foto-credito')?.value.trim() || '';
     const enlaceUrl = document.getElementById('add-enlace').value.trim();
     const place = document.getElementById('add-place')?.value.trim() || null;
     const arq = document.getElementById('add-arquitecto').value.trim();
@@ -653,6 +719,12 @@ function initAddBuildingModal() {
       err.textContent = visibility === 'private'
         ? 'Introduce el nombre de tu etiqueta/obra privada.'
         : 'Faltan datos obligatorios (Nombre y Arquitecto).';
+      err.classList.remove('hidden');
+      return;
+    }
+
+    if (fotoUrl && !fotoCredito) {
+      err.textContent = 'Indica el autor o crédito de la fotografía para que aparezca citado en la ficha.';
       err.classList.remove('hidden');
       return;
     }
@@ -672,6 +744,7 @@ function initAddBuildingModal() {
     const edificio = {
       nombre_obra: nombre,
       foto_url: fotoUrl || null,
+      foto_credito: fotoUrl ? fotoCredito : null,
       enlace_url: enlaceUrl || null,
       place: place,
       ciudad: place,
@@ -708,6 +781,7 @@ function initAddBuildingModal() {
         const obra = obraExistente;
         if (obra) Object.assign(obra, {
           ...edificioUpdate,
+          foto_credito: edificio.foto_credito,
           arquitectos: separarArquitectos(finalArq),
           id: obra.id,
           coordenadas: [updated?.longitud ?? edificio.longitud, updated?.latitud ?? edificio.latitud],
@@ -741,6 +815,7 @@ function initAddBuildingModal() {
         const inserted = Array.isArray(insertedData) ? insertedData[0] : insertedData;
         const savedItem = {
           ...(isPrivate ? privateData : nuevoEdificio),
+          foto_credito: edificio.foto_credito,
           arquitectos: separarArquitectos(finalArq),
           añadido_por: nuevoEdificio.añadido_por,
           created_at: inserted?.created_at || nowIso,
@@ -798,6 +873,17 @@ function handleMapLongPress(lngLat) {
 
   document.getElementById('add-nombre').value = '';
   document.getElementById('add-foto').value = '';
+  const credEl = document.getElementById('add-foto-credito');
+  if (credEl) credEl.value = '';
+  const fileEl = document.getElementById('add-foto-file');
+  if (fileEl) fileEl.value = '';
+  const prevEl = document.getElementById('add-foto-preview-wrap');
+  if (prevEl) prevEl.classList.add('hidden');
+  const statEl = document.getElementById('add-foto-upload-status');
+  if (statEl) {
+    statEl.textContent = '';
+    statEl.classList.add('hidden');
+  }
   document.getElementById('add-enlace').value = '';
   const pEl = document.getElementById('add-place');
   if (pEl) pEl.value = '';

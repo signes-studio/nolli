@@ -39,6 +39,9 @@ export interface Building {
   id: string | number;
   nombre_obra: string;
   foto_url: string | null;
+  foto_credito?: string | null;
+  foto_licencia?: string | null;
+  foto_fuente_url?: string | null;
   enlace_url?: string | null;
   arquitecto: string | null;
   arquitectos?: string[] | string | null;
@@ -70,6 +73,9 @@ export interface RawBuildingRow {
   id: string | number;
   nombre_obra: string;
   foto_url: string | null;
+  foto_credito?: string | null;
+  foto_licencia?: string | null;
+  foto_fuente_url?: string | null;
   enlace_url: string | null;
   arquitecto: string | null;
   arquitectos?: string[] | string | null;

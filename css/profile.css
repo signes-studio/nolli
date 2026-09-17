@@ -249,6 +249,221 @@ body.dark-mode .profile-login-cta-btn {
   gap: 8px;
 }
 
+.profile-hero-identity {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+@media (max-width: 640px) {
+  .profile-hero-identity {
+    gap: 14px;
+  }
+}
+
+.profile-hero-avatar-wrap {
+  position: relative;
+  width: 76px;
+  height: 76px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+  border: 2px solid var(--border-strong, #141411);
+  background: var(--bg-raised, #F0E9D2);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  outline: none;
+}
+
+body.dark-mode .profile-hero-avatar-wrap {
+  border-color: var(--border-strong, #4E4E48);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
+.profile-hero-avatar-wrap:hover,
+.profile-hero-avatar-wrap:focus-visible {
+  transform: scale(1.04);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+.profile-hero-avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
+.profile-hero-avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--bg-raised, #F0E9D2);
+  color: var(--accent, #E84E1B);
+  font-family: 'League Spartan', sans-serif;
+  font-weight: 800;
+  font-size: 24px;
+  letter-spacing: -0.02em;
+  user-select: none;
+}
+
+body.dark-mode .profile-hero-avatar-placeholder {
+  background: #252522;
+  color: var(--accent, #FF7528);
+}
+
+.profile-hero-avatar-badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--fg, #141411);
+  color: var(--bg, #F8F1DF);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  border: 1.5px solid var(--bg, #F8F1DF);
+  pointer-events: none;
+}
+
+body.dark-mode .profile-hero-avatar-badge {
+  background: var(--accent, #FF7528);
+  color: #141411;
+  border-color: var(--bg, #141411);
+}
+
+.profile-hero-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+/* Modal Avatar Edit Styles */
+.profile-avatar-edit-box {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.1));
+}
+
+body.dark-mode .profile-avatar-edit-box {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.profile-avatar-edit-preview-wrap {
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 2px solid var(--border-strong, #141411);
+  overflow: hidden;
+  position: relative;
+  background: var(--bg-raised, #F0E9D2);
+}
+
+body.dark-mode .profile-avatar-edit-preview-wrap {
+  border-color: var(--border-strong, #4E4E48);
+  background: #252522;
+}
+
+.profile-avatar-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
+.profile-avatar-preview-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-family: 'League Spartan', sans-serif;
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--accent, #E84E1B);
+}
+
+.profile-avatar-edit-controls {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-avatar-btn-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-avatar-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border-radius: 9999px;
+  background: var(--fg, #141411);
+  color: var(--bg, #F8F1DF);
+  border: 1px solid var(--border-strong, #141411);
+  cursor: pointer;
+  transition: all 0.12s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+body.dark-mode .profile-avatar-upload-btn {
+  background: var(--accent, #FF7528);
+  color: #141411;
+  border-color: var(--accent, #FF7528);
+}
+
+.profile-avatar-upload-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+.profile-avatar-remove-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 9999px;
+  background: transparent;
+  color: #c53030;
+  border: 1px solid rgba(197, 48, 48, 0.3);
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.profile-avatar-remove-btn:hover {
+  background: rgba(197, 48, 48, 0.08);
+  border-color: #c53030;
+}
+
+.profile-avatar-status {
+  font-size: 11px;
+  margin-top: 4px;
+  color: var(--fg-dim, #666);
+}
+
 .profile-hero-name {
   font-family: 'League Spartan', sans-serif;
   font-weight: 900;

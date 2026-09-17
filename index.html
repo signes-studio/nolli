@@ -974,6 +974,10 @@
   <div class="photo-viewer">
     <button type="button" id="btn-photo-close" class="photo-close" aria-label="Cerrar fotografía" data-i18n-aria="photo_close_aria">X</button>
     <img id="photo-viewer-image" src="" alt="">
+    <div id="photo-viewer-credit-bar" class="photo-viewer-credit-bar hidden">
+      <span id="photo-viewer-credit-text"></span>
+      <span id="photo-viewer-caption-text"></span>
+    </div>
   </div>
 </div>
 
@@ -1218,9 +1222,36 @@
         </select>
       </div>
 
-      <div id="wrap-add-foto">
-        <label for="add-foto" class="tech-label" data-i18n="add_label_photo">URL DE LA FOTOGRAFÍA_</label>
-        <input type="url" id="add-foto" class="tech-input" placeholder="https://...">
+      <div id="wrap-add-foto" class="space-y-2">
+        <label class="tech-label" data-i18n="add_label_photo">FOTOGRAFÍA PRINCIPAL DE LA OBRA_</label>
+        
+        <div class="flex items-center gap-2">
+          <label for="add-foto-file" class="btn btn-auth-primary" style="padding: 7px 12px; font-size: 11px; cursor: pointer; border-radius: 9999px; display: inline-flex; align-items: center; gap: 5px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            <span>SUBIR ARCHIVO</span>
+          </label>
+          <input type="file" id="add-foto-file" accept="image/jpeg,image/png,image/webp" class="hidden">
+          <input type="url" id="add-foto" class="tech-input flex-1" placeholder="o pega enlace URL (https://...)">
+        </div>
+
+        <!-- Previsualización de la foto seleccionada -->
+        <div id="add-foto-preview-wrap" class="hidden relative rounded-xl overflow-hidden border border-[var(--border)] max-h-40 bg-[var(--bg-raised)]">
+          <img id="add-foto-preview-img" src="" alt="Previsualización de foto de obra" class="w-full h-36 object-cover">
+          <button type="button" id="btn-add-foto-remove" class="absolute top-2 right-2 bg-black/70 hover:bg-black text-white p-1 rounded-full" title="Quitar foto" aria-label="Quitar fotografía">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+        <div id="add-foto-upload-status" class="text-[11px] text-zinc-500 hidden"></div>
+
+        <!-- Casilla explícita para el Autor / Crédito de la fotografía -->
+        <div id="wrap-add-foto-credito" class="mt-2">
+          <label for="add-foto-credito" class="tech-label" style="display: flex; justify-content: space-between;">
+            <span>AUTOR / CRÉDITO DE LA FOTOGRAFÍA_</span>
+            <span style="color: var(--accent); font-weight: 700;">* SI HAY FOTO</span>
+          </label>
+          <input type="text" id="add-foto-credito" class="tech-input" placeholder="p.ej. Julius Shulman, Iñigo Bujedo Aguirre, Fotografía propia...">
+          <span class="text-[10px] text-zinc-500 block mt-0.5">El autor o titular de la imagen aparecerá citado de forma visible en la ficha de la obra.</span>
+        </div>
       </div>
 
       <div id="wrap-add-enlace">
@@ -1288,6 +1319,87 @@
         <button class="btn btn-auth-secondary" id="btn-add-cancel" type="button" data-i18n="add_btn_cancel">CANCELAR</button>
         <button class="btn btn-auth-primary" id="btn-add-save" type="button">
           <span class="inline-flex items-center gap-1" data-i18n-html="add_btn_publish_direct_html"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> PUBLICAR DIRECTA</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para subir fotografías a una obra existente -->
+<div id="modal-upload-sheet-photo" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-sheet-photo-title">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="flex items-center gap-2">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+          <circle cx="12" cy="13" r="4"></circle>
+        </svg>
+        <span id="modal-sheet-photo-title" style="letter-spacing:.06em; font-size:11px; font-weight:800; font-family:'League Spartan',sans-serif;">AÑADIR FOTOGRAFÍA A LA OBRA</span>
+      </div>
+      <button type="button" id="btn-sheet-photo-modal-close" class="sheet-close-button" aria-label="Cerrar modal de subida">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg>
+      </button>
+    </div>
+    <div class="modal-body flex flex-col gap-3">
+      <div class="tech-label" style="display:flex; justify-content:space-between; margin-bottom:0;">
+        <span>OBRA DESTINO_</span>
+        <span id="sheet-photo-building-target" style="color:var(--accent); font-weight:800;">--</span>
+      </div>
+
+      <div>
+        <label class="tech-label">FOTOGRAFÍA_</label>
+        <div class="flex items-center gap-2">
+          <label for="sheet-photo-file" class="btn btn-auth-primary" style="padding: 7px 12px; font-size: 11px; cursor: pointer; border-radius: 9999px; display: inline-flex; align-items: center; gap: 5px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            <span>SUBIR ARCHIVO</span>
+          </label>
+          <input type="file" id="sheet-photo-file" accept="image/jpeg,image/png,image/webp" class="hidden">
+          <input type="url" id="sheet-photo-url-input" class="tech-input flex-1" placeholder="o pega enlace URL (https://...)">
+        </div>
+      </div>
+
+      <!-- Vista previa de foto -->
+      <div id="sheet-photo-preview-wrap" class="hidden relative rounded-xl overflow-hidden border border-[var(--border)] max-h-48 bg-[var(--bg-raised)]">
+        <img id="sheet-photo-preview-img" src="" alt="Vista previa de foto" class="w-full h-40 object-cover">
+        <button type="button" id="btn-sheet-photo-remove" class="absolute top-2 right-2 bg-black/70 hover:bg-black text-white p-1 rounded-full" title="Quitar foto" aria-label="Quitar fotografía">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div id="sheet-photo-upload-status" class="text-[11px] text-zinc-500 hidden"></div>
+
+      <!-- Casilla explícita y obligatoria de Autor / Crédito -->
+      <div>
+        <label for="sheet-photo-author" class="tech-label" style="display:flex; justify-content:space-between;">
+          <span>AUTOR / CRÉDITO DE LA FOTOGRAFÍA_</span>
+          <span style="color:var(--accent); font-weight:700;">* OBLIGATORIO</span>
+        </label>
+        <input type="text" id="sheet-photo-author" class="tech-input" placeholder="p.ej. Fotografía propia, Julius Shulman, Iñigo Bujedo...">
+        <span class="text-[10px] text-zinc-500 block mt-0.5">El autor de la imagen se citará de forma visible en la ficha de la obra.</span>
+      </div>
+
+      <!-- Pie de foto / Título opcional -->
+      <div>
+        <label for="sheet-photo-caption" class="tech-label">PIE DE FOTO / DESCRIPCIÓN (OPCIONAL)_</label>
+        <input type="text" id="sheet-photo-caption" class="tech-input" placeholder="p.ej. Vista de la fachada principal al atardecer">
+      </div>
+
+      <!-- Opción para moderadores/editores de poner como foto principal si se desea -->
+      <div id="wrap-sheet-photo-set-main" class="hidden">
+        <label class="flex items-center gap-2 text-xs cursor-pointer select-none">
+          <input type="checkbox" id="sheet-photo-set-main" class="rounded">
+          <span>Establecer también como foto principal de la ficha</span>
+        </label>
+      </div>
+
+      <div id="sheet-photo-error" class="text-[10px] text-red-500 hidden mt-1" role="alert"></div>
+
+      <div class="flex justify-end gap-2 mt-2">
+        <button class="btn btn-auth-secondary" id="btn-sheet-photo-cancel" type="button">CANCELAR</button>
+        <button class="btn btn-auth-primary" id="btn-sheet-photo-submit" type="button">
+          <span class="inline-flex items-center gap-1">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            <span>SUBIR FOTO</span>
+          </span>
         </button>
       </div>
     </div>

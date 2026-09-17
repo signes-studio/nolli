@@ -142,11 +142,24 @@
     <main id="profile-app" class="profile-main">
       <!-- 2. Hero Monumental (Identidad) -->
       <section class="profile-hero">
-        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-          <h1 id="profile-hero-name" class="profile-hero-name is-placeholder" data-i18n="profile_default_name" role="button" tabindex="0">+ AÑADE TU NOMBRE</h1>
-          <span id="profile-verified-badge" class="hidden" style="background: var(--accent, #E95C0C); color: #fff; font-size: 10px; font-weight: 800; padding: 3px 8px; letter-spacing: 0.06em; border: 1px solid var(--border-strong, #141411); text-transform: uppercase;">✓ PRO VERIFICADO</span>
+        <div class="profile-hero-identity">
+          <div class="profile-hero-avatar-wrap" id="profile-hero-avatar-wrap" role="button" tabindex="0" aria-label="Cambiar fotografía de perfil">
+            <img id="profile-hero-avatar-img" class="profile-hero-avatar hidden" alt="Foto de perfil" />
+            <div id="profile-hero-avatar-placeholder" class="profile-hero-avatar-placeholder">
+              <span id="profile-hero-avatar-initials">NL</span>
+            </div>
+            <div class="profile-hero-avatar-badge" title="Editar foto de perfil">
+              <i data-lucide="camera" width="12" height="12"></i>
+            </div>
+          </div>
+          <div class="profile-hero-info">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <h1 id="profile-hero-name" class="profile-hero-name is-placeholder" data-i18n="profile_default_name" role="button" tabindex="0">+ AÑADE TU NOMBRE</h1>
+              <span id="profile-verified-badge" class="hidden" style="background: var(--accent, #E95C0C); color: #fff; font-size: 10px; font-weight: 800; padding: 3px 8px; letter-spacing: 0.06em; border: 1px solid var(--border-strong, #141411); text-transform: uppercase;">✓ PRO VERIFICADO</span>
+            </div>
+            <p id="profile-hero-sub" class="profile-hero-sub is-placeholder" data-i18n="profile_default_bio" role="button" tabindex="0">+ Añade una biografía sobre ti...</p>
+          </div>
         </div>
-        <p id="profile-hero-sub" class="profile-hero-sub is-placeholder" data-i18n="profile_default_bio" role="button" tabindex="0">+ Añade una biografía sobre ti...</p>
         <div style="display: flex; gap: 12px; align-items: center; margin-top: 6px; flex-wrap: wrap; font-size: 11px;">
           <span id="profile-school-badge" class="hidden" style="background: var(--bg-raised, #F0E9D2); padding: 2px 8px; border: 1px solid var(--border-strong, #141411); font-weight: 700;"></span>
           <span id="profile-points-display" style="display:inline-flex; align-items:center; gap:4px; font-weight: 800; color: var(--accent, #E95C0C); letter-spacing: 0.03em;"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/></svg><span>0 PTS NOLLI</span></span>
@@ -294,6 +307,36 @@
       </div>
 
       <form id="form-edit-profile" class="profile-edit-form">
+        <!-- Selector y Previsualización de Foto de Perfil -->
+        <div class="profile-form-group profile-avatar-edit-group">
+          <label class="profile-form-label">FOTOGRAFÍA DE PERFIL_</label>
+          <div class="profile-avatar-edit-box">
+            <div class="profile-avatar-edit-preview-wrap">
+              <img id="edit-profile-avatar-preview" class="profile-avatar-preview-img hidden" alt="Previsualización de avatar" />
+              <div id="edit-profile-avatar-placeholder" class="profile-avatar-preview-placeholder">
+                <span id="edit-profile-avatar-initials">NL</span>
+              </div>
+            </div>
+            <div class="profile-avatar-edit-controls">
+              <div class="profile-avatar-btn-row">
+                <label for="edit-profile-avatar-file" class="profile-avatar-upload-btn" role="button" tabindex="0">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                  <span>SUBIR FOTO</span>
+                </label>
+                <input type="file" id="edit-profile-avatar-file" accept="image/jpeg,image/png,image/webp" class="hidden" />
+                <button type="button" id="btn-remove-avatar" class="profile-avatar-remove-btn hidden">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                  <span>QUITAR</span>
+                </button>
+              </div>
+              <div style="margin-top: 6px;">
+                <input type="url" id="edit-profile-avatar-url" class="tech-input text-xs" placeholder="o pega enlace web de imagen (https://...)" style="font-size:11px; padding:6px 10px;">
+              </div>
+              <div id="profile-avatar-upload-status" class="profile-avatar-status hidden"></div>
+            </div>
+          </div>
+        </div>
+
         <div class="profile-form-row">
           <div class="profile-form-group">
             <label class="profile-form-label" for="edit-profile-firstname" data-i18n="profile_edit_firstname">NOMBRE</label>

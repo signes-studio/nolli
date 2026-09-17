@@ -192,7 +192,7 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: 'Debes proporcionar al menos un ID de obra (parámetro ?id= o ?ids=).' });
     }
 
-    const fields = 'id,nombre_obra,foto_url,enlace_url,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,añadido_por,estado_revision,longitud,latitud,place,created_at,updated_at';
+    const fields = 'id,nombre_obra,foto_url,foto_credito,foto_licencia,foto_fuente_url,enlace_url,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,añadido_por,estado_revision,longitud,latitud,place,created_at,updated_at';
     const params = new URLSearchParams({
       select: fields,
       id: `in.(${ids.map(encodeURIComponent).join(',')})`,

@@ -22,9 +22,10 @@ export const PHOTO_STORAGE_CONFIG: PhotoStorageConfig = {
 export interface PhotoUploadParams {
   filename: string;
   contentType: string;
-  buildingId: string | number;
+  buildingId?: string | number | null;
   visitId?: string | number | null;
   photoType?: string;
+  uploadType?: 'avatar' | 'building' | 'visit';
 }
 
 export interface PhotoUploadTicket {
@@ -209,3 +210,119 @@ export function getPhotoThumbnailUrl(originalUrl: string | null | undefined, wid
   if (!isSafePhotoUrl(originalUrl)) return '';
   return `https://wsrv.nl/?url=${encodeURIComponent(originalUrl)}&w=${width}&output=webp&q=80`;
 }
+
+/**
+ * Sube una fotografía genérica de obra a Cloudflare R2 y retorna la URL pública del CDN
+ */
+export async function uploadGenericPhotoWithR2(
+  file: File,
+  buildingId: string | number | null = null,
+  sessionToken: string | null | undefined,
+  onProgress: ProgressCallback | null = null
+): Promise<{ publicUrl: string; key: string }> {
+  if (!file) throw new Error('Archivo de imagen requerido.');
+  if (!sessionToken) throw new Error('Debes iniciar sesión para subir fotografías.');
+
+  try {
+    const ticket = await requestPhotoUploadUrl({
+      filename: file.name,
+      contentType: file.type || 'image/jpeg',
+      buildingId: buildingId || 'new',
+      uploadType: 'building',
+    }, sessionToken);
+
+    if (ticket.uploadUrl && ticket.publicUrl) {
+      await uploadPhotoFileToR2(file, ticket.uploadUrl, onProgress);
+      return { publicUrl: ticket.publicUrl, key: ticket.key };
+    }
+  } catch (err: any) {
+    const msg = err?.message || '';
+    if (msg.includes('R2_CONFIG_PENDING') || msg.includes('no están configuradas')) {
+      console.warn('R2 no configurado para fotos de obra; usando compresión cliente WebP:', msg);
+      onProgress?.(50, 1, 2);
+      const dataUrl = await compressImageToDataUrl(file, 1200, 0.82);
+      onProgress?.(100, 2, 2);
+      return { publicUrl: dataUrl, key: `fallback-${Date.now()}` };
+    }
+    throw err;
+  }
+
+  const dataUrl = await compressImageToDataUrl(file, 1200, 0.82);
+  return { publicUrl: dataUrl, key: `fallback-${Date.now()}` };
+}
+
+/**
+ * Comprime una imagen en el cliente a WebP ligero para avatares
+ */
+export async function compressImageToDataUrl(file: File, maxDim: number = 160, quality: number = 0.82): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Error al leer el archivo de imagen.'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Error al decodificar la imagen seleccionada.'));
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let w = img.width;
+        let h = img.height;
+        if (w > h) {
+          if (w > maxDim) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          }
+        } else {
+          if (h > maxDim) {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+        }
+        canvas.width = Math.max(1, w);
+        canvas.height = Math.max(1, h);
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return reject(new Error('Contexto 2D no disponible.'));
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/webp', quality));
+      };
+      img.src = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+/**
+ * Sube un avatar de usuario a Cloudflare R2 y retorna la URL pública (con fallback WebP)
+ */
+export async function uploadAvatarFileWithR2(
+  file: File,
+  sessionToken: string | null | undefined,
+  onProgress: ProgressCallback | null = null
+): Promise<string> {
+  if (!file) throw new Error('Archivo de imagen requerido.');
+  if (!sessionToken) throw new Error('Debes iniciar sesión para actualizar tu foto de perfil.');
+
+  try {
+    const ticket = await requestPhotoUploadUrl({
+      filename: file.name,
+      contentType: file.type || 'image/jpeg',
+      uploadType: 'avatar',
+    }, sessionToken);
+
+    if (ticket.uploadUrl && ticket.publicUrl) {
+      await uploadPhotoFileToR2(file, ticket.uploadUrl, onProgress);
+      return ticket.publicUrl;
+    }
+  } catch (err: unknown) {
+    const msg = (err as Error)?.message || '';
+    if (msg.includes('R2_CONFIG_PENDING') || msg.includes('no están configuradas')) {
+      console.warn('R2 no configurado para avatar; usando compresión cliente WebP:', msg);
+      if (onProgress) onProgress(50, 1, 2);
+      const dataUrl = await compressImageToDataUrl(file, 160, 0.82);
+      if (onProgress) onProgress(100, 2, 2);
+      return dataUrl;
+    }
+    throw err;
+  }
+
+  return compressImageToDataUrl(file, 160, 0.82);
+}
+

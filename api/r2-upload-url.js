@@ -141,7 +141,7 @@ module.exports = async function handler(req, res) {
     }
 
     // 2. Validación de payload
-    const { filename, contentType, buildingId, visitId, photoType } = req.body || {};
+    const { filename, contentType, buildingId, visitId, photoType, uploadType } = req.body || {};
 
     if (!filename || typeof filename !== 'string') {
       return res.status(400).json({ error: 'Parámetro "filename" requerido.' });
@@ -179,8 +179,16 @@ module.exports = async function handler(req, res) {
     const randomSuffix = crypto.randomBytes(4).toString('hex');
     const timestamp = Date.now();
 
-    const folderPrefix = buildingId ? `visits/${buildingId}` : `visits/general`;
-    const objectKey = `${folderPrefix}/${user.id}/${timestamp}_${randomSuffix}_${safeBase}.${ext}`;
+    let folderPrefix = buildingId ? `visits/${buildingId}` : `visits/general`;
+    let objectKey = `${folderPrefix}/${user.id}/${timestamp}_${randomSuffix}_${safeBase}.${ext}`;
+
+    if (uploadType === 'avatar') {
+      folderPrefix = `avatars/${user.id}`;
+      objectKey = `${folderPrefix}/${timestamp}_${randomSuffix}_avatar.${ext}`;
+    } else if (uploadType === 'building') {
+      folderPrefix = buildingId ? `buildings/${buildingId}` : `buildings/new/${user.id}`;
+      objectKey = `${folderPrefix}/${timestamp}_${randomSuffix}_${safeBase}.${ext}`;
+    }
 
     // 5. Generación de URL prefirmada PUT
     const expiresIn = 900; // 15 minutos
