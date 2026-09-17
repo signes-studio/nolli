@@ -112,8 +112,11 @@ export function cerrarFicha() {
   }
 }
 
+let currentOpenBuilding = null;
+
 export function abrirFicha(building, coordinates, featureId = building?.id || building?.featureId, openedFromUrl = false) {
   if (!building) return;
+  currentOpenBuilding = building;
   const targetId = featureId || building.id || building.featureId;
   if (state.selectedFeatureId !== null) {
     const previous = getSelectedBuilding();
@@ -1028,8 +1031,8 @@ document.addEventListener('click', (event) => {
     return;
   }
   if (target.closest('[data-open-upload-sheet-photo]')) {
-    const building = getSelectedBuilding();
-    if (building) openSheetPhotoUploadModal(building);
+    const building = currentOpenBuilding || getSelectedBuilding();
+    openSheetPhotoUploadModal(building);
     return;
   }
   const photoTarget = target.closest('[data-photo-url]');
@@ -1116,16 +1119,21 @@ async function loadSheetCommunityPhotos(building) {
 let currentSheetPhotoBuilding = null;
 
 export function openSheetPhotoUploadModal(building) {
+  const targetBuilding = building || currentOpenBuilding || getSelectedBuilding();
+  if (!targetBuilding) return;
+
   if (!state.sessionToken) {
-    showNeoToast(t('toast_login_required_add'));
+    showNeoToast(t('toast_login_required_add', null, 'Inicia sesión para subir fotografías.'));
+    const modalLogin = document.getElementById('modal-login');
+    if (modalLogin) modalLogin.classList.add('open');
     return;
   }
-  currentSheetPhotoBuilding = building;
+  currentSheetPhotoBuilding = targetBuilding;
   const modal = document.getElementById('modal-upload-sheet-photo');
   if (!modal) return;
 
   const targetName = document.getElementById('sheet-photo-building-target');
-  if (targetName) targetName.textContent = building.nombre_obra || '--';
+  if (targetName) targetName.textContent = targetBuilding.nombre_obra || '--';
 
   const fileInput = document.getElementById('sheet-photo-file');
   const urlInput = document.getElementById('sheet-photo-url-input');
@@ -1158,7 +1166,7 @@ export function openSheetPhotoUploadModal(building) {
     setMainWrap.classList.toggle('hidden', !esEditorOrAdmin);
   }
   if (setMainCheck) {
-    setMainCheck.checked = !building.foto_url;
+    setMainCheck.checked = !targetBuilding.foto_url;
   }
 
   modal.classList.add('open');
@@ -1254,6 +1262,7 @@ function initSheetPhotoUploadModal() {
         errorEl.textContent = 'Por favor, selecciona un archivo o introduce una URL de imagen válida.';
         errorEl.classList.remove('hidden');
       }
+      showNeoToast('Por favor, selecciona primero un archivo o pega una URL de imagen.');
       return;
     }
 
@@ -1262,6 +1271,7 @@ function initSheetPhotoUploadModal() {
         errorEl.textContent = 'Debes indicar el autor o crédito de la fotografía para poder subirla.';
         errorEl.classList.remove('hidden');
       }
+      showNeoToast('Debes indicar el autor o crédito de la fotografía.');
       return;
     }
 

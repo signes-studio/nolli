@@ -1887,19 +1887,14 @@ function setupEditProfileModal() {
       if (inputEmail) inputEmail.value = user.email || '';
 
       const inputAvatarUrl = document.getElementById('edit-profile-avatar-url');
-      const avatarPreviewImg = document.getElementById('edit-avatar-preview-img');
-      const avatarPreviewWrap = document.getElementById('edit-avatar-preview-wrap');
-      const avatarStatus = document.getElementById('edit-avatar-status');
       const currentAvatar = db.avatar_url || metadata.avatar_url || '';
       if (inputAvatarUrl) inputAvatarUrl.value = currentAvatar;
-      if (avatarPreviewImg && currentAvatar) {
-        avatarPreviewImg.src = currentAvatar;
-        avatarPreviewWrap?.classList.remove('hidden');
-      } else {
-        if (avatarPreviewImg) avatarPreviewImg.src = '';
-        avatarPreviewWrap?.classList.add('hidden');
+      updateAvatarPreview(currentAvatar);
+      const avatarStatus = document.getElementById('profile-avatar-upload-status');
+      if (avatarStatus) {
+        avatarStatus.textContent = '';
+        avatarStatus.classList.add('hidden');
       }
-      if (avatarStatus) avatarStatus.classList.add('hidden');
 
       if (editStatus) editStatus.classList.add('hidden');
       if (emailStatus) emailStatus.classList.add('hidden');
@@ -1912,18 +1907,28 @@ function setupEditProfileModal() {
   // Manejo de carga de foto de perfil
   const avatarFileInput = document.getElementById('edit-profile-avatar-file');
   const avatarUrlInput = document.getElementById('edit-profile-avatar-url');
-  const avatarPreviewImg = document.getElementById('edit-avatar-preview-img');
-  const avatarPreviewWrap = document.getElementById('edit-avatar-preview-wrap');
   const btnRemoveAvatar = document.getElementById('btn-remove-avatar');
-  const avatarStatus = document.getElementById('edit-avatar-status');
+  const avatarStatus = document.getElementById('profile-avatar-upload-status');
 
   const updateAvatarPreview = (url) => {
+    const previewImg = document.getElementById('edit-profile-avatar-preview');
+    const placeholder = document.getElementById('edit-profile-avatar-placeholder');
+    const btnRemove = document.getElementById('btn-remove-avatar');
+
     if (url && (url.startsWith('https://') || url.startsWith('http://') || url.startsWith('data:image/'))) {
-      if (avatarPreviewImg) avatarPreviewImg.src = url;
-      avatarPreviewWrap?.classList.remove('hidden');
+      if (previewImg) {
+        previewImg.src = url;
+        previewImg.classList.remove('hidden');
+      }
+      if (placeholder) placeholder.classList.add('hidden');
+      if (btnRemove) btnRemove.classList.remove('hidden');
     } else {
-      if (avatarPreviewImg) avatarPreviewImg.src = '';
-      avatarPreviewWrap?.classList.add('hidden');
+      if (previewImg) {
+        previewImg.src = '';
+        previewImg.classList.add('hidden');
+      }
+      if (placeholder) placeholder.classList.remove('hidden');
+      if (btnRemove) btnRemove.classList.add('hidden');
     }
   };
 
@@ -1955,7 +1960,7 @@ function setupEditProfileModal() {
     }
 
     if (avatarStatus) {
-      avatarStatus.textContent = 'Subiendo foto a almacenamiento seguro...';
+      avatarStatus.textContent = 'Subiendo foto...';
       avatarStatus.classList.remove('hidden');
     }
 
