@@ -72,7 +72,7 @@ module.exports = async function handler(req, res) {
     const bucketName = (process.env.R2_BUCKET_NAME || 'nolli-photos').trim();
     const publicDomain = ((process.env.R2_PUBLIC_DOMAIN || 'https://photos.nollimap.app').trim()).replace(/\/$/, '');
 
-    return res.status(200).json({
+    const baseDiagnostics = {
       status: 'ok',
       hasAccountId: Boolean(accountId),
       accountIdLength: accountId ? accountId.length : 0,
@@ -85,7 +85,66 @@ module.exports = async function handler(req, res) {
       bucketName,
       publicDomain,
       allCredentialsConfigured: Boolean(accountId && accessKeyId && secretAccessKey),
-    });
+    };
+
+    if (req.query?.test === '1' || req.query?.test === 'true') {
+      try {
+        const s3 = new S3Client({
+          region: 'auto',
+          endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+          credentials: { accessKeyId, secretAccessKey },
+          forcePathStyle: true,
+          requestChecksumCalculation: 'WHEN_REQUIRED',
+          responseChecksumValidation: 'WHEN_REQUIRED',
+        });
+
+        const testKey = `_healthcheck/test_${Date.now()}.txt`;
+        const putCmd = new PutObjectCommand({
+          Bucket: bucketName,
+          Key: testKey,
+          Body: 'test',
+          ContentType: 'text/plain',
+        });
+        await s3.send(putCmd);
+
+        const presignedUrl = await generateR2PresignedPutUrl({
+          accountId,
+          accessKeyId,
+          secretAccessKey,
+          bucketName,
+          key: testKey,
+          contentType: 'text/plain',
+        });
+
+        const presignedRes = await fetch(presignedUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'text/plain' },
+          body: 'presigned-test',
+        });
+
+        return res.status(200).json({
+          ...baseDiagnostics,
+          testResults: {
+            s3DirectUpload: 'SUCCESS',
+            presignedUrlPutStatus: presignedRes.status,
+            presignedUrlPutOk: presignedRes.ok,
+            presignedUrlPutBody: await presignedRes.text().catch(() => ''),
+          },
+        });
+      } catch (testErr) {
+        return res.status(200).json({
+          ...baseDiagnostics,
+          testError: {
+            name: testErr.name,
+            message: testErr.message,
+            code: testErr.$metadata?.httpStatusCode,
+            fault: testErr.$fault,
+          },
+        });
+      }
+    }
+
+    return res.status(200).json(baseDiagnostics);
   }
 
   if (req.method !== 'POST') {
