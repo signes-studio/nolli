@@ -1242,7 +1242,11 @@ function initSheetPhotoUploadModal() {
         if (urlInput) urlInput.value = photoUrl;
         updatePreview(photoUrl);
         if (statusEl) {
-          statusEl.textContent = 'Imagen subida correctamente';
+          if (photoUrl.startsWith('data:')) {
+            statusEl.textContent = '✓ Imagen optimizada en WebP lista para guardar (modo respaldo)';
+          } else {
+            statusEl.textContent = '✓ Imagen subida a Cloudflare R2 correctamente';
+          }
         }
       } else {
         throw new Error('No se recibió la URL de la imagen.');
