@@ -155,11 +155,11 @@ module.exports = async function handler(req, res) {
     }
 
     // 3. Verificación de credenciales de Cloudflare R2
-    const accountId = process.env.R2_ACCOUNT_ID;
-    const accessKeyId = process.env.R2_ACCESS_KEY_ID;
-    const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
-    const bucketName = process.env.R2_BUCKET_NAME || 'nolli-photos';
-    const publicDomain = (process.env.R2_PUBLIC_DOMAIN || 'https://photos.nollimap.app').replace(/\/$/, '');
+    const accountId = (process.env.R2_ACCOUNT_ID || '').trim().replace(/^https?:\/\//, '').replace(/\/$/, '');
+    const accessKeyId = (process.env.R2_ACCESS_KEY_ID || '').trim();
+    const secretAccessKey = (process.env.R2_SECRET_ACCESS_KEY || '').trim();
+    const bucketName = (process.env.R2_BUCKET_NAME || 'nolli-photos').trim();
+    const publicDomain = ((process.env.R2_PUBLIC_DOMAIN || 'https://photos.nollimap.app').trim()).replace(/\/$/, '');
 
     if (!accountId || !accessKeyId || !secretAccessKey) {
       return res.status(503).json({

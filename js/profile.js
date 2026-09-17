@@ -511,19 +511,22 @@ function renderHero() {
 
   // Avatar de perfil
   const avatarImg = document.getElementById('profile-hero-avatar-img');
-  const initialsEl = document.getElementById('profile-hero-initials');
+  const placeholderEl = document.getElementById('profile-hero-avatar-placeholder');
+  const initialsEl = document.getElementById('profile-hero-avatar-initials') || document.getElementById('profile-hero-initials');
   const avatarUrl = db.avatar_url || metadata.avatar_url || '';
   if (avatarUrl) {
     if (avatarImg) {
       avatarImg.src = avatarUrl;
       avatarImg.classList.remove('hidden');
     }
+    if (placeholderEl) placeholderEl.classList.add('hidden');
     if (initialsEl) initialsEl.classList.add('hidden');
   } else {
     if (avatarImg) {
       avatarImg.src = '';
       avatarImg.classList.add('hidden');
     }
+    if (placeholderEl) placeholderEl.classList.remove('hidden');
     if (initialsEl) {
       const initials = ((firstName?.[0] || '') + (lastName?.[0] || '')).toUpperCase() || (user.email?.[0] || 'U').toUpperCase();
       initialsEl.textContent = initials;
@@ -1902,6 +1905,29 @@ function setupEditProfileModal() {
       modalEditProfile.classList.add('open');
       if (window.lucide) window.lucide.createIcons();
     });
+
+    const heroAvatar = document.getElementById('profile-hero-avatar-wrap');
+    if (heroAvatar) {
+      heroAvatar.addEventListener('click', () => {
+        settingsBtn.click();
+      });
+      heroAvatar.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          settingsBtn.click();
+        }
+      });
+    }
+
+    document.getElementById('profile-hero-name')?.addEventListener('click', () => {
+      settingsBtn.click();
+    });
+    document.getElementById('profile-hero-sub')?.addEventListener('click', () => {
+      settingsBtn.click();
+    });
+    document.getElementById('row-edit-profile')?.addEventListener('click', () => {
+      settingsBtn.click();
+    });
   }
 
   // Manejo de carga de foto de perfil
@@ -1909,6 +1935,21 @@ function setupEditProfileModal() {
   const avatarUrlInput = document.getElementById('edit-profile-avatar-url');
   const btnRemoveAvatar = document.getElementById('btn-remove-avatar');
   const avatarStatus = document.getElementById('profile-avatar-upload-status');
+  const btnTriggerAvatar = document.getElementById('btn-trigger-avatar-file') || document.querySelector('.profile-avatar-upload-btn');
+  const avatarPreviewWrap = document.querySelector('.profile-avatar-edit-preview-wrap');
+
+  if (btnTriggerAvatar) {
+    btnTriggerAvatar.addEventListener('click', (e) => {
+      e.preventDefault();
+      avatarFileInput?.click();
+    });
+  }
+
+  if (avatarPreviewWrap) {
+    avatarPreviewWrap.addEventListener('click', () => {
+      avatarFileInput?.click();
+    });
+  }
 
   const updateAvatarPreview = (url) => {
     const previewImg = document.getElementById('edit-profile-avatar-preview');

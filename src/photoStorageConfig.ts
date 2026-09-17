@@ -101,7 +101,7 @@ export function uploadPhotoFileToR2(
       }
     };
 
-    xhr.onerror = () => reject(new Error('Error de red al transferir archivo a Cloudflare R2.'));
+    xhr.onerror = () => reject(new Error('Error de red al transferir archivo a Cloudflare R2 (posible política CORS no configurada o bloqueo de origen en Cloudflare R2).'));
     xhr.ontimeout = () => reject(new Error('Tiempo de espera agotado al transferir archivo a Cloudflare R2.'));
 
     xhr.send(file);
@@ -141,34 +141,53 @@ export async function uploadVisitPhotoWithR2(
   if (!file) throw new Error('Archivo de imagen requerido.');
   if (!sessionToken) throw new Error('Usuario no autenticado.');
 
-  // 1. Obtener ticket con URL prefirmada
-  const ticket = await requestPhotoUploadUrl({
-    filename: file.name,
-    contentType: file.type || 'image/jpeg',
-    buildingId,
-    visitId,
-    photoType,
-  }, sessionToken);
+  let photoUrl = '';
+  let thumbnailUrl = '';
+  let r2Key = `visit-${Date.now()}`;
+  let usedFallback = false;
 
-  if (!ticket.uploadUrl || !ticket.publicUrl) {
-    throw new Error('La respuesta del servidor no incluyó una URL de subida válida.');
+  try {
+    // 1. Obtener ticket con URL prefirmada
+    const ticket = await requestPhotoUploadUrl({
+      filename: file.name,
+      contentType: file.type || 'image/jpeg',
+      buildingId,
+      visitId,
+      photoType,
+    }, sessionToken);
+
+    if (ticket.uploadUrl && ticket.publicUrl) {
+      // 2. Subida directa navegador -> Cloudflare R2 (Cero Egress hacia Supabase)
+      await uploadPhotoFileToR2(file, ticket.uploadUrl, onProgress);
+      photoUrl = ticket.publicUrl;
+      thumbnailUrl = getPhotoThumbnailUrl(ticket.publicUrl, 400);
+      r2Key = ticket.key;
+    }
+  } catch (err: unknown) {
+    console.warn('Subida a Cloudflare R2 no completada para foto de visita, activando respaldo WebP:', err);
+    usedFallback = true;
+    onProgress?.(50, 1, 2);
+    photoUrl = await compressImageToDataUrl(file, 1200, 0.82);
+    thumbnailUrl = photoUrl;
+    onProgress?.(100, 2, 2);
   }
 
-  // 2. Subida directa navegador -> Cloudflare R2 (Cero Egress hacia Supabase)
-  await uploadPhotoFileToR2(file, ticket.uploadUrl, onProgress);
+  if (!photoUrl) {
+    photoUrl = await compressImageToDataUrl(file, 1200, 0.82);
+    thumbnailUrl = photoUrl;
+    usedFallback = true;
+  }
 
-  // 3. Generar miniatura optimizada vía CDN
-  const thumbnailUrl = getPhotoThumbnailUrl(ticket.publicUrl, 400);
-
-  // 4. Registro en PostgreSQL (tabla visit_photos)
+  // 3. Registro en PostgreSQL (tabla visit_photos)
   // Dynamic import para desacoplar de la capa api.js
-  const { createVisitPhoto } = await import('./api.js');
+  const { createVisitPhoto, fetchCurrentUser } = await import('./api.js');
+  const user = await fetchCurrentUser(sessionToken);
   
   const record = await createVisitPhoto({
     visit_id: visitId,
-    user_id: ticket.userId,
+    user_id: user?.id,
     building_id: buildingId,
-    photo_url: ticket.publicUrl,
+    photo_url: photoUrl,
     thumbnail_url: thumbnailUrl,
     photo_type: photoType,
     caption,
@@ -176,9 +195,10 @@ export async function uploadVisitPhotoWithR2(
     is_featured_in_catalog: isFeatured,
     metadata: {
       ...metadata,
-      r2_key: ticket.key,
+      r2_key: r2Key,
       file_size: file.size,
       mime_type: file.type,
+      storage_type: usedFallback ? 'client_webp' : 'cloudflare_r2',
     },
   }, sessionToken);
 
@@ -198,8 +218,8 @@ export function isSafePhotoUrl(url: string | null | undefined): boolean {
     return false;
   }
   
-  // Aceptar URLs seguras HTTPS
-  return trimmed.startsWith('https://') || trimmed.startsWith('http://localhost');
+  // Aceptar URLs seguras HTTPS o base64 data URLs de respaldo
+  return trimmed.startsWith('https://') || trimmed.startsWith('http://localhost') || trimmed.startsWith('data:image/');
 }
 
 /**
@@ -208,6 +228,7 @@ export function isSafePhotoUrl(url: string | null | undefined): boolean {
 export function getPhotoThumbnailUrl(originalUrl: string | null | undefined, width: number = 400): string {
   if (!originalUrl) return '';
   if (!isSafePhotoUrl(originalUrl)) return '';
+  if (originalUrl.startsWith('data:image/')) return originalUrl;
   return `https://wsrv.nl/?url=${encodeURIComponent(originalUrl)}&w=${width}&output=webp&q=80`;
 }
 
@@ -235,16 +256,13 @@ export async function uploadGenericPhotoWithR2(
       await uploadPhotoFileToR2(file, ticket.uploadUrl, onProgress);
       return { publicUrl: ticket.publicUrl, key: ticket.key };
     }
-  } catch (err: any) {
-    const msg = err?.message || '';
-    if (msg.includes('R2_CONFIG_PENDING') || msg.includes('no están configuradas')) {
-      console.warn('R2 no configurado para fotos de obra; usando compresión cliente WebP:', msg);
-      onProgress?.(50, 1, 2);
-      const dataUrl = await compressImageToDataUrl(file, 1200, 0.82);
-      onProgress?.(100, 2, 2);
-      return { publicUrl: dataUrl, key: `fallback-${Date.now()}` };
-    }
-    throw err;
+  } catch (err: unknown) {
+    const msg = (err as Error)?.message || '';
+    console.warn('Subida a Cloudflare R2 no completada para obra (' + msg + '). Activando compresión cliente WebP de respaldo:', err);
+    onProgress?.(50, 1, 2);
+    const dataUrl = await compressImageToDataUrl(file, 1200, 0.82);
+    onProgress?.(100, 2, 2);
+    return { publicUrl: dataUrl, key: `fallback-${Date.now()}` };
   }
 
   const dataUrl = await compressImageToDataUrl(file, 1200, 0.82);
@@ -313,14 +331,11 @@ export async function uploadAvatarFileWithR2(
     }
   } catch (err: unknown) {
     const msg = (err as Error)?.message || '';
-    if (msg.includes('R2_CONFIG_PENDING') || msg.includes('no están configuradas')) {
-      console.warn('R2 no configurado para avatar; usando compresión cliente WebP:', msg);
-      if (onProgress) onProgress(50, 1, 2);
-      const dataUrl = await compressImageToDataUrl(file, 160, 0.82);
-      if (onProgress) onProgress(100, 2, 2);
-      return dataUrl;
-    }
-    throw err;
+    console.warn('Subida a Cloudflare R2 no completada para avatar (' + msg + '). Activando compresión cliente WebP de respaldo:', err);
+    if (onProgress) onProgress(50, 1, 2);
+    const dataUrl = await compressImageToDataUrl(file, 160, 0.82);
+    if (onProgress) onProgress(100, 2, 2);
+    return dataUrl;
   }
 
   return compressImageToDataUrl(file, 160, 0.82);

@@ -27,6 +27,7 @@ export function uploadAvatarFileWithR2(
   onProgress?: ((percent: number, loaded: number, total: number) => void) | null
 ): Promise<string>;
 
+export function fetchCurrentUser(sessionToken: string): Promise<{ id: string; email?: string } | null>;
 export function getBuildingsCatalog(): Promise<unknown[]>;
 export function fetchBuildings(options?: Record<string, unknown>): Promise<unknown[]>;
 export function searchPlaces(query: string, language?: string): Promise<unknown>;
