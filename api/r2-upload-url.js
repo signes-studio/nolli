@@ -122,6 +122,18 @@ module.exports = async function handler(req, res) {
           body: 'presigned-test',
         });
 
+        const optionsRes = await fetch(presignedUrl, {
+          method: 'OPTIONS',
+          headers: {
+            'Origin': 'https://nollimap.app',
+            'Access-Control-Request-Method': 'PUT',
+            'Access-Control-Request-Headers': 'content-type',
+          },
+        });
+
+        const corsAllowOrigin = optionsRes.headers.get('access-control-allow-origin');
+        const corsAllowMethods = optionsRes.headers.get('access-control-allow-methods');
+
         return res.status(200).json({
           ...baseDiagnostics,
           testResults: {
@@ -129,6 +141,10 @@ module.exports = async function handler(req, res) {
             presignedUrlPutStatus: presignedRes.status,
             presignedUrlPutOk: presignedRes.ok,
             presignedUrlPutBody: await presignedRes.text().catch(() => ''),
+            corsPreflightStatus: optionsRes.status,
+            corsAllowOrigin: corsAllowOrigin || 'NONE (CORS NO CONFIGURADO EN CLOUDFLARE R2)',
+            corsAllowMethods: corsAllowMethods || 'NONE',
+            corsConfiguredProperly: Boolean(corsAllowOrigin),
           },
         });
       } catch (testErr) {
