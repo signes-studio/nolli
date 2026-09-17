@@ -5,7 +5,7 @@
 import { state, separarArquitectos, normalizarCategoria, normalizarImportancia, formatCategoria, esRolAdmin, esRolEditor, guardarZonaPersonalLocal, CATEGORY_META } from './state.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { cerrarFiltros, generarFiltrosUI } from './filtersUI.js';
-import { fetchBuildings, saveBuildingStatus, reviewBuilding, deleteBuilding, updateBuilding, deletePrivateBuilding, createUserCollection, addUserCollectionItem, deleteUserCollectionItem, createUserPrivateLabel, deleteUserPrivateLabel, fetchBuildingVisitPhotos, createVisitPhoto, uploadGenericPhotoWithR2, invalidateCatalogCache } from './api.js';
+import { fetchBuildings, saveBuildingStatus, reviewBuilding, deleteBuilding, updateBuilding, deletePrivateBuilding, createUserCollection, addUserCollectionItem, deleteUserCollectionItem, createUserPrivateLabel, deleteUserPrivateLabel, fetchBuildingVisitPhotos, createVisitPhoto, uploadGenericPhotoWithR2, invalidateCatalogCache, fetchCurrentUser } from './api.js';
 import { abrirModalCrearLista } from './myPlacesUI.js';
 import { getOptimizedPhotoUrl } from './imageProxy.js';
 import { showNeoToast } from './renderUtils.js';
@@ -1287,10 +1287,24 @@ function initSheetPhotoUploadModal() {
     btnSubmit.innerHTML = '<span>SUBIENDO...</span>';
 
     try {
+      let uid = state.userId;
+      if (!uid && state.sessionToken) {
+        try {
+          const u = await fetchCurrentUser(state.sessionToken);
+          if (u?.id) {
+            state.userId = u.id;
+            uid = u.id;
+          }
+        } catch {}
+      }
+
       await createVisitPhoto({
+        user_id: uid,
         building_id: currentSheetPhotoBuilding.id,
         photo_url: photoUrl,
         caption: caption,
+        visibility: 'public',
+        is_featured_in_catalog: Boolean(setAsMain),
         metadata: { author }
       }, state.sessionToken);
 
