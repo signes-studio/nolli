@@ -306,13 +306,13 @@ body.dark-mode .topbar-btn-profile:hover {
     opacity: 0.2;
   }
 
-  /* Tarjeta central Neo-Bauhaus con esquinas vivas y sombra dura */
+  /* Tarjeta central con bordes redondeados y sombra suave de la nueva web */
   .mobile-splash-card {
-    border: 2px solid var(--border-strong, #141411);
-    border-radius: 0 !important;
-    box-shadow: 4px 4px 0px var(--border-strong, #141411);
-    background: var(--bg-panel, #F8F1DF);
-    padding: 30px 24px;
+    border: 1px solid var(--border, #D8D6CE);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+    background: var(--bg-card, #FFFFFF);
+    padding: 32px 24px;
     text-align: center;
     display: flex;
     flex-direction: column;
@@ -329,9 +329,9 @@ body.dark-mode .topbar-btn-profile:hover {
   }
 
   body.dark-mode .mobile-splash-card {
-    background: #1C1C1A;
-    border-color: #3A3A35;
-    box-shadow: 4px 4px 0px #000000;
+    background: #1B1B18;
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
   }
 
   .mobile-splash-kicker {
@@ -362,37 +362,39 @@ body.dark-mode .topbar-btn-profile:hover {
     color: var(--accent, #E84E1B);
   }
 
-  /* Indicador de progreso arquitectónico modular */
+  /* Indicador de progreso arquitectónico con estilo píldora redondeada */
   .mobile-splash-bar-wrap {
     width: 140px;
-    height: 10px;
-    border: 1.5px solid var(--border-strong, #141411);
-    background: var(--bg-raised, #F0E9D2);
+    height: 8px;
+    border: 1px solid var(--border-subtle, rgba(20, 20, 17, 0.08));
+    background: var(--bg-elevated, #F0E9D2);
     padding: 2px;
     display: flex;
-    margin: 4px 0 2px;
+    margin: 6px 0 2px;
     box-sizing: border-box;
-    border-radius: 0 !important;
+    border-radius: 9999px;
   }
 
   body.dark-mode .mobile-splash-bar-wrap {
-    background: #141411;
-    border-color: rgba(255, 255, 255, 0.2);
+    background: #242420;
+    border-color: rgba(255, 255, 255, 0.08);
   }
 
   .mobile-splash-bar {
     display: flex;
     width: 100%;
     height: 100%;
-    gap: 2px;
+    gap: 3px;
+    border-radius: 9999px;
+    overflow: hidden;
   }
 
   .mobile-splash-block {
     flex: 1;
     height: 100%;
-    background: var(--border-strong, #141411);
-    opacity: 0.15;
-    border-radius: 0;
+    background: var(--accent, #E84E1B);
+    opacity: 0.2;
+    border-radius: 9999px;
     animation: splashBlockPulse 1.2s infinite ease-in-out;
   }
 
@@ -404,7 +406,7 @@ body.dark-mode .topbar-btn-profile:hover {
 
   @keyframes splashBlockPulse {
     0%, 100% {
-      opacity: 0.15;
+      opacity: 0.2;
       background: var(--border-strong, #141411);
     }
     50% {
@@ -420,8 +422,8 @@ body.dark-mode .topbar-btn-profile:hover {
 
   @keyframes splashBlockPulseDark {
     0%, 100% {
-      opacity: 0.15;
-      background: #FFFFFF;
+      opacity: 0.2;
+      background: rgba(255, 255, 255, 0.3);
     }
     50% {
       opacity: 1;
