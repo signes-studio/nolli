@@ -73,3 +73,4 @@ console.log('✓ css/map-hud.css verified: mobile splash screen has rounded card
 console.log('\n========================================');
 console.log('ALL ROUNDED AESTHETIC VERIFICATIONS PASSED!');
 console.log('========================================');
+
