@@ -257,7 +257,7 @@ module.exports = async function handler(req, res) {
             }));
 
             finalPhotoUrl = `${publicDomain}/${objectKey}`;
-            finalThumbnailUrl = `https://wsrv.nl/?url=${encodeURIComponent(finalPhotoUrl)}&w=400&output=webp&q=80`;
+            finalThumbnailUrl = `https://wsrv.nl/?url=${encodeURIComponent(finalPhotoUrl)}&w=640&output=webp&q=82`;
             console.log(`[visit-photo] Base64 subido a R2 con éxito: ${finalPhotoUrl}`);
           } catch (r2Err) {
             console.error('[visit-photo] Error al transferir base64 a R2:', r2Err);
@@ -268,7 +268,7 @@ module.exports = async function handler(req, res) {
       // E) Construir registro para visit_photos
       const safeThumbnail = finalThumbnailUrl
         ? finalThumbnailUrl
-        : (finalPhotoUrl.startsWith('data:') ? finalPhotoUrl : `https://wsrv.nl/?url=${encodeURIComponent(finalPhotoUrl)}&w=400&output=webp&q=80`);
+        : (finalPhotoUrl.startsWith('data:') ? finalPhotoUrl : `https://wsrv.nl/?url=${encodeURIComponent(finalPhotoUrl)}&w=640&output=webp&q=82`);
 
       const validPhotoTypes = ['standard', 'analysis_sketch', 'analysis_diagram', 'analysis_detail'];
       const validVisibility = ['public', 'friends', 'private'];

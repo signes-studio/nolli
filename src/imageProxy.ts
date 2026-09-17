@@ -12,10 +12,10 @@ export interface OptimizedPhotoOptions {
 }
 
 export const IMAGE_PRESETS: Record<ImagePreset, Required<OptimizedPhotoOptions>> = {
-  thumb: { width: 160, quality: 70 },
-  card: { width: 320, quality: 75 },
-  sheet: { width: 800, quality: 80 },
-  fullscreen: { width: 1400, quality: 85 },
+  thumb: { width: 240, quality: 75 },
+  card: { width: 640, quality: 82 },
+  sheet: { width: 1400, quality: 86 },
+  fullscreen: { width: 2048, quality: 88 },
 };
 
 /**

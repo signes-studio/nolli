@@ -130,6 +130,123 @@ export interface VisitPhotoUploadData {
 }
 
 /**
+ * Optimiza un archivo de imagen en el cliente antes de transferirlo al almacenamiento.
+ * Escala proporcionalmente a un máximo de 2048px (estándar de Instagram/Facebook/LinkedIn)
+ * y comprime a WebP de alta fidelidad (~0.86), reduciendo archivos de 10-30MB a ~350-700KB
+ * preservando máxima nitidez para pantallas Retina, 2K y 4K.
+ */
+export async function optimizeImageFileForUpload(
+  file: File,
+  maxDim: number = 2048,
+  quality: number = 0.86
+): Promise<{ file: Blob | File; contentType: string; filename: string }> {
+  return new Promise((resolve) => {
+    let objectUrl = '';
+    try {
+      if (typeof URL !== 'undefined' && URL.createObjectURL) {
+        objectUrl = URL.createObjectURL(file);
+      }
+    } catch {}
+
+    const fallbackReturn = () => {
+      resolve({
+        file,
+        contentType: file.type || 'image/jpeg',
+        filename: file.name,
+      });
+    };
+
+    if (!objectUrl && typeof FileReader === 'undefined') {
+      return fallbackReturn();
+    }
+
+    const img = new Image();
+    img.onerror = () => {
+      if (objectUrl) {
+        try { URL.revokeObjectURL(objectUrl); } catch {}
+      }
+      fallbackReturn();
+    };
+
+    img.onload = () => {
+      try {
+        let w = img.width;
+        let h = img.height;
+
+        if (w > h) {
+          if (w > maxDim) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          }
+        } else {
+          if (h > maxDim) {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+        }
+
+        w = Math.max(1, w);
+        h = Math.max(1, h);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          if (objectUrl) {
+            try { URL.revokeObjectURL(objectUrl); } catch {}
+          }
+          return fallbackReturn();
+        }
+
+        ctx.drawImage(img, 0, 0, w, h);
+        if (objectUrl) {
+          try { URL.revokeObjectURL(objectUrl); } catch {}
+        }
+
+        if (typeof canvas.toBlob === 'function') {
+          canvas.toBlob(
+            (blob) => {
+              if (blob && blob.size > 0) {
+                const baseName = file.name.replace(/\.[^.]+$/, '') || 'photo';
+                const newName = `${baseName}.webp`;
+                resolve({
+                  file: blob,
+                  contentType: 'image/webp',
+                  filename: newName,
+                });
+              } else {
+                fallbackReturn();
+              }
+            },
+            'image/webp',
+            quality
+          );
+        } else {
+          fallbackReturn();
+        }
+      } catch (err) {
+        if (objectUrl) {
+          try { URL.revokeObjectURL(objectUrl); } catch {}
+        }
+        fallbackReturn();
+      }
+    };
+
+    if (objectUrl) {
+      img.src = objectUrl;
+    } else {
+      const reader = new FileReader();
+      reader.onerror = () => fallbackReturn();
+      reader.onload = () => {
+        img.src = reader.result as string;
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+}
+
+/**
  * Orquesta el flujo completo de subida de foto de visita
  */
 export async function uploadVisitPhotoWithR2(
@@ -156,29 +273,35 @@ export async function uploadVisitPhotoWithR2(
   let r2Key = `visit-${Date.now()}`;
   let usedFallback = false;
 
+  // 1. Optimización previa de imagen en el cliente (estándar 2048px)
+  const optimized = await optimizeImageFileForUpload(file, 2048, 0.86);
+  const uploadPayload = optimized.file;
+  const uploadContentType = optimized.contentType;
+  const uploadFilename = optimized.filename;
+
   try {
-    // 1. Obtener ticket con URL prefirmada
+    // 2. Obtener ticket con URL prefirmada
     const ticket = await requestPhotoUploadUrl({
-      filename: file.name,
-      contentType: file.type || 'image/jpeg',
+      filename: uploadFilename,
+      contentType: uploadContentType,
       buildingId,
       visitId,
       photoType,
     }, sessionToken);
 
     if (ticket.uploadUrl && ticket.publicUrl) {
-      // 2. Subida directa navegador -> Cloudflare R2 (Cero Egress hacia Supabase)
-      await uploadPhotoFileToR2(file, ticket.uploadUrl, onProgress);
+      // 3. Subida directa navegador -> Cloudflare R2 (Cero Egress hacia Supabase)
+      await uploadPhotoFileToR2(uploadPayload, ticket.uploadUrl, onProgress);
       photoUrl = ticket.publicUrl;
-      thumbnailUrl = getPhotoThumbnailUrl(ticket.publicUrl, 400);
+      thumbnailUrl = getPhotoThumbnailUrl(ticket.publicUrl, 640);
       r2Key = ticket.key;
     }
   } catch (err: unknown) {
     console.warn('Subida directa a Cloudflare R2 no completada, activando respaldo de servidor:', err);
-    // 3. Respaldo transparente vía servidor: comprime a WebP y envía al backend para subir a R2
+    // 4. Respaldo transparente vía servidor: comprime a WebP 2048px
     try {
       onProgress?.(30, 1, 3);
-      const dataUrl = await compressImageToDataUrl(file, 1600, 0.84);
+      const dataUrl = await compressImageToDataUrl(file, 2048, 0.86);
       onProgress?.(60, 2, 3);
 
       const res = await fetch('/api/r2-upload-url', {
@@ -189,7 +312,7 @@ export async function uploadVisitPhotoWithR2(
         },
         body: JSON.stringify({
           dataUrl,
-          filename: file.name,
+          filename: uploadFilename,
           contentType: 'image/webp',
           buildingId,
           visitId,
@@ -202,7 +325,7 @@ export async function uploadVisitPhotoWithR2(
         const data = await res.json();
         if (data.publicUrl) {
           photoUrl = data.publicUrl;
-          thumbnailUrl = getPhotoThumbnailUrl(data.publicUrl, 400);
+          thumbnailUrl = getPhotoThumbnailUrl(data.publicUrl, 640);
           r2Key = data.key || `server-${Date.now()}`;
           onProgress?.(100, 3, 3);
         }
@@ -213,7 +336,7 @@ export async function uploadVisitPhotoWithR2(
   }
 
   if (!photoUrl) {
-    photoUrl = await compressImageToDataUrl(file, 1200, 0.82);
+    photoUrl = await compressImageToDataUrl(file, 2048, 0.86);
     thumbnailUrl = photoUrl;
     usedFallback = true;
   }
@@ -265,11 +388,11 @@ export function isSafePhotoUrl(url: string | null | undefined): boolean {
 /**
  * Genera la URL de miniatura optimizada vía CDN sin computación en servidor Nolli.
  */
-export function getPhotoThumbnailUrl(originalUrl: string | null | undefined, width: number = 400): string {
+export function getPhotoThumbnailUrl(originalUrl: string | null | undefined, width: number = 640): string {
   if (!originalUrl) return '';
   if (!isSafePhotoUrl(originalUrl)) return '';
   if (originalUrl.startsWith('data:image/')) return originalUrl;
-  return `https://wsrv.nl/?url=${encodeURIComponent(originalUrl)}&w=${width}&output=webp&q=80`;
+  return `https://wsrv.nl/?url=${encodeURIComponent(originalUrl)}&w=${width}&output=webp&q=82`;
 }
 
 /**
@@ -284,16 +407,22 @@ export async function uploadGenericPhotoWithR2(
   if (!file) throw new Error('Archivo de imagen requerido.');
   if (!sessionToken) throw new Error('Debes iniciar sesión para subir fotografías.');
 
+  // 1. Optimización previa de imagen en el cliente (estándar 2048px, similar a Instagram/LinkedIn)
+  const optimized = await optimizeImageFileForUpload(file, 2048, 0.86);
+  const uploadPayload = optimized.file;
+  const uploadContentType = optimized.contentType;
+  const uploadFilename = optimized.filename;
+
   try {
     const ticket = await requestPhotoUploadUrl({
-      filename: file.name,
-      contentType: file.type || 'image/jpeg',
+      filename: uploadFilename,
+      contentType: uploadContentType,
       buildingId: buildingId || 'new',
       uploadType: 'building',
     }, sessionToken);
 
     if (ticket.uploadUrl && ticket.publicUrl) {
-      await uploadPhotoFileToR2(file, ticket.uploadUrl, onProgress);
+      await uploadPhotoFileToR2(uploadPayload, ticket.uploadUrl, onProgress);
       return { publicUrl: ticket.publicUrl, url: ticket.publicUrl, key: ticket.key };
     }
   } catch (err: unknown) {
@@ -301,10 +430,10 @@ export async function uploadGenericPhotoWithR2(
     console.warn('Subida directa a Cloudflare R2 no completada (' + msg + '). Activando respaldo de servidor...', err);
   }
 
-  // 2. Respaldo transparente vía servidor: comprime a WebP y sube directamente a R2 en el backend
+  // 2. Respaldo transparente vía servidor: comprime a WebP 2048px y sube directamente a R2 en el backend
   try {
     onProgress?.(30, 1, 3);
-    const dataUrl = await compressImageToDataUrl(file, 1600, 0.84);
+    const dataUrl = await compressImageToDataUrl(file, 2048, 0.86);
     onProgress?.(60, 2, 3);
 
     const res = await fetch('/api/r2-upload-url', {
@@ -315,7 +444,7 @@ export async function uploadGenericPhotoWithR2(
       },
       body: JSON.stringify({
         dataUrl,
-        filename: file.name,
+        filename: uploadFilename,
         contentType: 'image/webp',
         buildingId: buildingId || 'new',
         uploadType: 'building',
@@ -334,7 +463,7 @@ export async function uploadGenericPhotoWithR2(
   }
 
   // 3. Fallback de emergencia solo si la conexión falla por completo
-  const dataUrl = await compressImageToDataUrl(file, 1200, 0.82);
+  const dataUrl = await compressImageToDataUrl(file, 1600, 0.84);
   return { publicUrl: dataUrl, url: dataUrl, key: `fallback-${Date.now()}`, fallbackReason: 'Sin conexión directa' };
 }
 

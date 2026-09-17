@@ -195,7 +195,7 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
     ${building.foto_url && isValidHttpsUrl(building.foto_url) && state.sessionToken ? `
       <div class="sheet-gallery-wrap">
         <button type="button" class="photo-thumb sheet-photo-banner" data-photo-url="${escapeHtml(building.foto_url)}" data-photo-credit="${escapeHtml(building.foto_credito || '')}" data-photo-caption="${escapeHtml(building.nombre_obra || '')}" aria-label="${t('sheet_photo_expand_aria')}">
-          <img class="sheet-photo" src="${escapeHtml(getOptimizedPhotoUrl(building.foto_url, { width: 1000 }))}" alt="Fotografía de ${escapeHtml(building.nombre_obra)}" loading="lazy" decoding="async"${openedFromUrl ? ' fetchpriority="high"' : ''}>
+          <img class="sheet-photo" src="${escapeHtml(getOptimizedPhotoUrl(building.foto_url, 'sheet'))}" alt="Fotografía de ${escapeHtml(building.nombre_obra)}" loading="lazy" decoding="async"${openedFromUrl ? ' fetchpriority="high"' : ''}>
           <span class="sheet-photo-credit"><i data-lucide="camera" width="11" height="11"></i> Foto: ${escapeHtml(building.foto_credito || 'Autor no especificado')}</span>
           <span class="photo-zoom-badge"><i data-lucide="maximize-2" width="12" height="12"></i> ${t('sheet_photo_expand')}</span>
         </button>
@@ -1166,7 +1166,7 @@ async function loadSheetCommunityPhotos(building) {
       const author = escapeHtml(p.metadata?.author || p.author_credit || 'Autor no especificado');
       const caption = escapeHtml(p.caption || '');
       const photoUrl = escapeHtml(p.photo_url || '');
-      const thumbUrl = escapeHtml(getOptimizedPhotoUrl(p.photo_url, { width: 400 }));
+      const thumbUrl = escapeHtml(getOptimizedPhotoUrl(p.photo_url, 'card'));
       const isMain = building.foto_url === p.photo_url;
       const canEditCard = canManageAll || (currentUserId && p.user_id === currentUserId);
 
@@ -1530,7 +1530,7 @@ export function openEditPhotoModal(photo) {
   const setMainCheck = document.getElementById('edit-sheet-photo-set-main');
   const errorEl = document.getElementById('edit-sheet-photo-error');
 
-  if (thumb) thumb.src = getOptimizedPhotoUrl(photo.url, { width: 400 }) || photo.url;
+  if (thumb) thumb.src = getOptimizedPhotoUrl(photo.url, 'card') || photo.url;
   if (authorInput) authorInput.value = photo.author || photo.credit || '';
   if (captionInput) captionInput.value = photo.caption || '';
   if (setMainCheck) setMainCheck.checked = Boolean(photo.isMain);
