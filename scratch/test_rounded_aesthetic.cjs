@@ -67,8 +67,9 @@ const mapHudCss = fs.readFileSync(mapHudCssPath, 'utf8');
 
 assert(!/mobile-splash-card[^{]*\{[^}]*border-radius:\s*0/i.test(mapHudCss), 'mobile-splash-card must not have border-radius: 0');
 assert(!/mobile-splash-card[^{]*\{[^}]*4px\s+4px\s+0/i.test(mapHudCss), 'mobile-splash-card must not have 4px 4px 0 hard shadow');
-assert(mapHudCss.includes('border-radius: 16px;'), 'mobile-splash-card must have rounded 16px radius');
-console.log('✓ css/map-hud.css verified: mobile splash screen has rounded card and soft elevation');
+assert(mapHudCss.includes('border-radius: 20px;') || mapHudCss.includes('border-radius: 16px;'), 'mobile-splash-card must have rounded 20px radius');
+assert(!mapHudCss.includes('.mobile-splash-corner'), 'mobile-splash-corner must be removed from map-hud.css');
+console.log('✓ css/map-hud.css verified: mobile splash screen has rounded card, soft elevation, and no corner brackets');
 
 console.log('\n========================================');
 console.log('ALL ROUNDED AESTHETIC VERIFICATIONS PASSED!');

@@ -257,7 +257,7 @@ body.dark-mode .topbar-btn-profile:hover {
 }
 
 @media (max-width: 768px) {
-  /* Pantalla de Carga Móvil / Splash Screen (Neo-Bauhaus) */
+  /* Pantalla de Carga Móvil / Splash Screen */
   .mobile-splash {
     display: flex !important;
     position: fixed !important;
@@ -266,72 +266,56 @@ body.dark-mode .topbar-btn-profile:hover {
     height: 100vh !important;
     height: 100dvh !important;
     z-index: 9999 !important;
-    background: var(--bg, #F8F1DF) !important;
+    background: rgba(248, 241, 223, 0.96) !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     align-items: center !important;
     justify-content: center !important;
     opacity: 1;
     visibility: visible;
-    transition: opacity 0.35s ease-in-out, visibility 0.35s ease-in-out;
-    will-change: opacity;
+    transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
     padding: 24px;
     box-sizing: border-box;
   }
 
   body.dark-mode .mobile-splash {
-    background: #141411 !important;
+    background: rgba(20, 20, 17, 0.96) !important;
   }
 
   .mobile-splash.splash-hidden {
     opacity: 0 !important;
+    transform: scale(0.97) !important;
     pointer-events: none !important;
     visibility: hidden !important;
   }
 
-  /* Brackets de encuadre arquitectónico */
-  .mobile-splash-corner {
-    position: absolute;
-    width: 14px;
-    height: 14px;
-    pointer-events: none;
-    border-color: var(--border-strong, #141411);
-    opacity: 0.35;
-  }
-  .mobile-splash-corner.tl { top: calc(16px + env(safe-area-inset-top)); left: 16px; border-top: 1.5px solid; border-left: 1.5px solid; }
-  .mobile-splash-corner.tr { top: calc(16px + env(safe-area-inset-top)); right: 16px; border-top: 1.5px solid; border-right: 1.5px solid; }
-  .mobile-splash-corner.bl { bottom: calc(16px + env(safe-area-inset-bottom)); left: 16px; border-bottom: 1.5px solid; border-left: 1.5px solid; }
-  .mobile-splash-corner.br { bottom: calc(16px + env(safe-area-inset-bottom)); right: 16px; border-bottom: 1.5px solid; border-right: 1.5px solid; }
-
-  body.dark-mode .mobile-splash-corner {
-    border-color: #FFFFFF;
-    opacity: 0.2;
-  }
-
-  /* Tarjeta central con bordes redondeados y sombra suave de la nueva web */
+  /* Tarjeta central con bordes redondeados, sombras suaves multicapa y fondo limpio */
   .mobile-splash-card {
-    border: 1px solid var(--border, #D8D6CE);
-    border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
-    background: var(--bg-card, #FFFFFF);
-    padding: 32px 24px;
+    border: 1px solid rgba(20, 20, 17, 0.08);
+    border-radius: 20px;
+    box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.04);
+    background: #FFFFFF;
+    padding: 36px 28px 30px;
     text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
     width: min(88vw, 320px);
     box-sizing: border-box;
-    animation: splashPop 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+    animation: splashCardIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
-  @keyframes splashPop {
-    from { transform: scale(0.95); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+  @keyframes splashCardIn {
+    from { transform: scale(0.95) translateY(4px); opacity: 0; }
+    to { transform: scale(1) translateY(0); opacity: 1; }
   }
 
   body.dark-mode .mobile-splash-card {
     background: #1B1B18;
     border-color: rgba(255, 255, 255, 0.12);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 20px 48px -8px rgba(0, 0, 0, 0.55), 0 4px 16px -2px rgba(0, 0, 0, 0.3);
   }
 
   .mobile-splash-kicker {
@@ -346,7 +330,7 @@ body.dark-mode .topbar-btn-profile:hover {
   .mobile-splash-brand {
     font-family: 'League Spartan', sans-serif !important;
     font-weight: 800;
-    font-size: 46px;
+    font-size: 48px;
     line-height: 0.95;
     letter-spacing: -0.04em;
     color: var(--fg, #141411);
@@ -362,85 +346,53 @@ body.dark-mode .topbar-btn-profile:hover {
     color: var(--accent, #E84E1B);
   }
 
-  /* Indicador de progreso arquitectónico con estilo píldora redondeada */
+  /* Indicador de progreso fluido en cápsula redondeada */
   .mobile-splash-bar-wrap {
     width: 140px;
-    height: 8px;
-    border: 1px solid var(--border-subtle, rgba(20, 20, 17, 0.08));
-    background: var(--bg-elevated, #F0E9D2);
-    padding: 2px;
-    display: flex;
-    margin: 6px 0 2px;
-    box-sizing: border-box;
+    height: 4px;
+    background: rgba(20, 20, 17, 0.06);
     border-radius: 9999px;
+    overflow: hidden;
+    position: relative;
+    margin: 6px 0 2px;
   }
 
   body.dark-mode .mobile-splash-bar-wrap {
-    background: #242420;
-    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.08);
   }
 
-  .mobile-splash-bar {
-    display: flex;
-    width: 100%;
+  .mobile-splash-bar-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
     height: 100%;
-    gap: 3px;
+    width: 45%;
     border-radius: 9999px;
-    overflow: hidden;
+    background: linear-gradient(90deg, transparent 0%, var(--accent, #E84E1B) 50%, #FF7243 85%, transparent 100%);
+    box-shadow: 0 0 8px rgba(232, 78, 27, 0.45);
+    animation: splashProgressFlow 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   }
 
-  .mobile-splash-block {
-    flex: 1;
-    height: 100%;
-    background: var(--accent, #E84E1B);
-    opacity: 0.2;
-    border-radius: 9999px;
-    animation: splashBlockPulse 1.2s infinite ease-in-out;
+  @keyframes splashProgressFlow {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(320%); }
   }
 
-  .mobile-splash-block.block-1 { animation-delay: 0s; }
-  .mobile-splash-block.block-2 { animation-delay: 0.18s; }
-  .mobile-splash-block.block-3 { animation-delay: 0.36s; }
-  .mobile-splash-block.block-4 { animation-delay: 0.54s; }
-  .mobile-splash-block.block-5 { animation-delay: 0.72s; }
-
-  @keyframes splashBlockPulse {
-    0%, 100% {
-      opacity: 0.2;
-      background: var(--border-strong, #141411);
-    }
-    50% {
-      opacity: 1;
-      background: var(--accent, #E84E1B);
-    }
-  }
-
-  body.dark-mode .mobile-splash-block {
-    background: #FFFFFF;
-    animation-name: splashBlockPulseDark;
-  }
-
-  @keyframes splashBlockPulseDark {
-    0%, 100% {
-      opacity: 0.2;
-      background: rgba(255, 255, 255, 0.3);
-    }
-    50% {
-      opacity: 1;
-      background: var(--accent, #E84E1B);
-    }
-  }
-
+  /* Chip de estado en vivo con micro-pulso orgánico */
   .mobile-splash-status {
     font-family: 'Inter', sans-serif;
     font-size: 10px;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--fg-dim, #666666);
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 7px;
+    padding: 4px 10px;
+    background: rgba(20, 20, 17, 0.03);
+    border: 1px solid rgba(20, 20, 17, 0.06);
+    border-radius: 9999px;
   }
 
   .mobile-splash-status::before {
@@ -450,16 +402,19 @@ body.dark-mode .topbar-btn-profile:hover {
     height: 6px;
     border-radius: 50%;
     background: var(--accent, #E84E1B);
-    animation: splashStatusPulse 1.4s ease-in-out infinite;
+    animation: splashStatusPulse 1.6s ease-in-out infinite;
   }
 
   @keyframes splashStatusPulse {
-    0%, 100% { opacity: 0.35; transform: scale(0.85); }
-    50% { opacity: 1; transform: scale(1.15); }
+    0% { box-shadow: 0 0 0 0 rgba(232, 78, 27, 0.4); opacity: 0.8; }
+    70% { box-shadow: 0 0 0 5px rgba(232, 78, 27, 0); opacity: 1; }
+    100% { box-shadow: 0 0 0 0 rgba(232, 78, 27, 0); opacity: 0.8; }
   }
 
   body.dark-mode .mobile-splash-status {
     color: #9A9A94;
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
   }
 
   /* Pie de atribución inferior */
@@ -471,6 +426,7 @@ body.dark-mode .topbar-btn-profile:hover {
     text-align: center;
     font-family: 'Inter', sans-serif;
     font-size: 12px;
+    font-weight: 500;
     color: var(--fg-dim, #666666);
     display: flex;
     justify-content: center;

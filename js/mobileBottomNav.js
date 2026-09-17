@@ -386,7 +386,7 @@ export function initMobileBottomNav() {
 }
 
 /* =========================================================================
-   PANTALLA DE CARGA MÓVIL / SPLASH SCREEN (NEO-BAUHAUS)
+   PANTALLA DE CARGA MÓVIL / SPLASH SCREEN
    ========================================================================= */
 function initMobileSplashScreen() {
   const splash = document.getElementById('mobile-splash-screen');
