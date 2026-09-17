@@ -27,8 +27,6 @@ async function generateR2PresignedPutUrl({
   contentType,
   expiresIn = 900,
 }) {
-  const cleanContentType = (contentType || 'image/jpeg').toLowerCase().trim();
-
   const s3 = new S3Client({
     region: 'auto',
     endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
@@ -41,15 +39,15 @@ async function generateR2PresignedPutUrl({
     responseChecksumValidation: 'WHEN_REQUIRED',
   });
 
+  // No obligar a firmar Content-Type para evitar fallos de 'SignatureDoesNotMatch'
+  // si el navegador o móvil envía variaciones de charset o mayúsculas
   const command = new PutObjectCommand({
     Bucket: bucketName,
     Key: key,
-    ContentType: cleanContentType,
   });
 
   const presignedUrl = await getSignedUrl(s3, command, {
     expiresIn,
-    signableHeaders: new Set(['host', 'content-type']),
   });
 
   return presignedUrl;
@@ -133,6 +131,14 @@ module.exports = async function handler(req, res) {
 
         const corsAllowOrigin = optionsRes.headers.get('access-control-allow-origin');
         const corsAllowMethods = optionsRes.headers.get('access-control-allow-methods');
+        const corsAllowHeaders = optionsRes.headers.get('access-control-allow-headers');
+
+        const allCorsHeaders = {};
+        for (const [k, v] of optionsRes.headers.entries()) {
+          if (k.toLowerCase().startsWith('access-control-')) {
+            allCorsHeaders[k] = v;
+          }
+        }
 
         return res.status(200).json({
           ...baseDiagnostics,
@@ -144,6 +150,8 @@ module.exports = async function handler(req, res) {
             corsPreflightStatus: optionsRes.status,
             corsAllowOrigin: corsAllowOrigin || 'NONE (CORS NO CONFIGURADO EN CLOUDFLARE R2)',
             corsAllowMethods: corsAllowMethods || 'NONE',
+            corsAllowHeaders: corsAllowHeaders || 'NONE',
+            allCorsHeaders,
             corsConfiguredProperly: Boolean(corsAllowOrigin),
           },
         });
@@ -195,18 +203,10 @@ module.exports = async function handler(req, res) {
     }
 
     // 2. Validación de payload
-    const { filename, contentType, buildingId, visitId, photoType, uploadType } = req.body || {};
+    const { filename, contentType, buildingId, visitId, photoType, uploadType, dataUrl, base64 } = req.body || {};
 
-    if (!filename || typeof filename !== 'string') {
-      return res.status(400).json({ error: 'Parámetro "filename" requerido.' });
-    }
-
+    const rawData = dataUrl || base64;
     const cleanContentType = (contentType || 'image/jpeg').toLowerCase().trim();
-    if (!ALLOWED_MIME_TYPES.has(cleanContentType)) {
-      return res.status(400).json({
-        error: `Tipo de contenido no permitido (${cleanContentType}). Se permiten imágenes (JPEG, PNG, WebP, AVIF, HEIC, SVG).`,
-      });
-    }
 
     // 3. Verificación de credenciales de Cloudflare R2
     const accountId = (process.env.R2_ACCOUNT_ID || '').trim().replace(/^https?:\/\//, '').replace(/\/$/, '');
@@ -220,6 +220,75 @@ module.exports = async function handler(req, res) {
         error: 'R2_CONFIG_PENDING',
         message: 'Las credenciales de Cloudflare R2 (R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY) no están configuradas en el entorno.',
         configured: false,
+      });
+    }
+
+    // A) Si se envía imagen en base64/dataUrl (respaldo transparente del servidor)
+    if (rawData && typeof rawData === 'string') {
+      try {
+        const matches = rawData.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+        const resolvedMime = (matches ? matches[1] : cleanContentType).toLowerCase().trim();
+        const base64Data = matches ? matches[2] : rawData;
+        const buffer = Buffer.from(base64Data, 'base64');
+        const ext = resolvedMime.split('/')[1] || 'webp';
+        const timestamp = Date.now();
+        const randomSuffix = crypto.randomBytes(4).toString('hex');
+
+        let folderPrefix = buildingId ? `visits/${buildingId}` : `visits/general`;
+        let objectKey = `${folderPrefix}/${user.id}/${timestamp}_${randomSuffix}.${ext}`;
+
+        if (uploadType === 'avatar') {
+          folderPrefix = `avatars/${user.id}`;
+          objectKey = `${folderPrefix}/${timestamp}_${randomSuffix}_avatar.${ext}`;
+        } else if (uploadType === 'building') {
+          folderPrefix = buildingId ? `buildings/${buildingId}` : `buildings/new/${user.id}`;
+          objectKey = `${folderPrefix}/${timestamp}_${randomSuffix}.${ext}`;
+        }
+
+        const s3 = new S3Client({
+          region: 'auto',
+          endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+          credentials: { accessKeyId, secretAccessKey },
+          forcePathStyle: true,
+          requestChecksumCalculation: 'WHEN_REQUIRED',
+          responseChecksumValidation: 'WHEN_REQUIRED',
+        });
+
+        await s3.send(new PutObjectCommand({
+          Bucket: bucketName,
+          Key: objectKey,
+          Body: buffer,
+          ContentType: resolvedMime,
+        }));
+
+        const publicUrl = `${publicDomain}/${objectKey}`;
+
+        return res.status(200).json({
+          success: true,
+          configured: true,
+          publicUrl,
+          url: publicUrl,
+          key: objectKey,
+          photoType: photoType || 'standard',
+          userId: user.id,
+          uploadMethod: 'server_direct',
+        });
+      } catch (directErr) {
+        console.error('Error en subida directa servidor a R2:', directErr);
+        return res.status(500).json({
+          error: 'Error al subir fotografía a Cloudflare R2 vía servidor.',
+          details: directErr.message,
+        });
+      }
+    }
+
+    if (!filename || typeof filename !== 'string') {
+      return res.status(400).json({ error: 'Parámetro "filename" requerido.' });
+    }
+
+    if (!ALLOWED_MIME_TYPES.has(cleanContentType)) {
+      return res.status(400).json({
+        error: `Tipo de contenido no permitido (${cleanContentType}). Se permiten imágenes (JPEG, PNG, WebP, AVIF, HEIC, SVG).`,
       });
     }
 

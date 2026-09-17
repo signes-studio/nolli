@@ -142,10 +142,60 @@ module.exports = async function handler(req, res) {
         }
       }
 
-      // D) Construir registro para visit_photos
-      const safeThumbnail = thumbnail_url
-        ? String(thumbnail_url).trim()
-        : (cleanPhotoUrl.startsWith('data:') ? cleanPhotoUrl : `https://wsrv.nl/?url=${encodeURIComponent(cleanPhotoUrl)}&w=400&output=webp&q=80`);
+      // D) Si nos llega una data URL en base64, subirla directamente a Cloudflare R2 desde el servidor
+      // para que NUNCA se guarde un string base64 en la base de datos
+      let finalPhotoUrl = cleanPhotoUrl;
+      let finalThumbnailUrl = thumbnail_url ? String(thumbnail_url).trim() : null;
+
+      if (cleanPhotoUrl.startsWith('data:image/')) {
+        const accountId = (process.env.R2_ACCOUNT_ID || '').trim().replace(/^https?:\/\//, '').replace(/\/$/, '');
+        const accessKeyId = (process.env.R2_ACCESS_KEY_ID || '').trim();
+        const secretAccessKey = (process.env.R2_SECRET_ACCESS_KEY || '').trim();
+        const bucketName = (process.env.R2_BUCKET_NAME || 'nolli-photos').trim();
+        const publicDomain = ((process.env.R2_PUBLIC_DOMAIN || 'https://photos.nollimap.app').trim()).replace(/\/$/, '');
+
+        if (accountId && accessKeyId && secretAccessKey) {
+          try {
+            const matches = cleanPhotoUrl.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+            const mimeType = (matches ? matches[1] : 'image/webp').toLowerCase();
+            const base64Data = matches ? matches[2] : cleanPhotoUrl.split(',')[1];
+            const buffer = Buffer.from(base64Data, 'base64');
+            const ext = mimeType.split('/')[1] || 'webp';
+
+            const crypto = require('crypto');
+            const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+            const s3 = new S3Client({
+              region: 'auto',
+              endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+              credentials: { accessKeyId, secretAccessKey },
+              forcePathStyle: true,
+              requestChecksumCalculation: 'WHEN_REQUIRED',
+              responseChecksumValidation: 'WHEN_REQUIRED',
+            });
+
+            const randomSuffix = crypto.randomBytes(4).toString('hex');
+            const objectKey = `visits/${building_id}/${user.id}/${Date.now()}_${randomSuffix}.${ext}`;
+
+            await s3.send(new PutObjectCommand({
+              Bucket: bucketName,
+              Key: objectKey,
+              Body: buffer,
+              ContentType: mimeType,
+            }));
+
+            finalPhotoUrl = `${publicDomain}/${objectKey}`;
+            finalThumbnailUrl = `https://wsrv.nl/?url=${encodeURIComponent(finalPhotoUrl)}&w=400&output=webp&q=80`;
+            console.log(`[visit-photo] Base64 subido a R2 con éxito: ${finalPhotoUrl}`);
+          } catch (r2Err) {
+            console.error('[visit-photo] Error al transferir base64 a R2:', r2Err);
+          }
+        }
+      }
+
+      // E) Construir registro para visit_photos
+      const safeThumbnail = finalThumbnailUrl
+        ? finalThumbnailUrl
+        : (finalPhotoUrl.startsWith('data:') ? finalPhotoUrl : `https://wsrv.nl/?url=${encodeURIComponent(finalPhotoUrl)}&w=400&output=webp&q=80`);
 
       const validPhotoTypes = ['standard', 'analysis_sketch', 'analysis_diagram', 'analysis_detail'];
       const validVisibility = ['public', 'friends', 'private'];
@@ -159,7 +209,7 @@ module.exports = async function handler(req, res) {
       const photoRecord = {
         user_id: user.id,
         building_id: String(building_id).trim(),
-        photo_url: cleanPhotoUrl,
+        photo_url: finalPhotoUrl,
         thumbnail_url: safeThumbnail,
         photo_type: validPhotoTypes.includes(photo_type) ? photo_type : 'standard',
         caption: caption ? String(caption).trim() : null,
@@ -172,7 +222,7 @@ module.exports = async function handler(req, res) {
         photoRecord.visit_id = visit_id;
       }
 
-      // E) Inserción en visit_photos usando serviceRoleKey (bypass completo de RLS)
+      // F) Inserción en visit_photos usando serviceRoleKey (bypass completo de RLS)
       const insertKey = hasServiceRoleKey ? serviceRoleKey : token;
       const insertHeaders = {
         apikey: hasServiceRoleKey ? serviceRoleKey : (process.env.SUPABASE_KEY || ''),
@@ -199,11 +249,11 @@ module.exports = async function handler(req, res) {
       const insertedData = await insertRes.json();
       const photo = Array.isArray(insertedData) ? insertedData[0] : insertedData;
 
-      // F) Si se solicitó como foto principal de la ficha y se dispone de serviceRoleKey, actualizar ficha de la obra
+      // G) Si se solicitó como foto principal de la ficha y se dispone de serviceRoleKey, actualizar ficha de la obra
       if (setAsMain && hasServiceRoleKey) {
         try {
           const buildingUpdatePayload = {
-            foto_url: cleanPhotoUrl,
+            foto_url: finalPhotoUrl,
             foto_credito: author ? String(author).trim() : (user.user_metadata?.full_name || 'Comunidad'),
             updated_at: new Date().toISOString(),
           };

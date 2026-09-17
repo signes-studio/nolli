@@ -1938,9 +1938,8 @@ function setupEditProfileModal() {
   const btnTriggerAvatar = document.getElementById('btn-trigger-avatar-file') || document.querySelector('.profile-avatar-upload-btn');
   const avatarPreviewWrap = document.querySelector('.profile-avatar-edit-preview-wrap');
 
-  if (btnTriggerAvatar) {
-    btnTriggerAvatar.addEventListener('click', (e) => {
-      e.preventDefault();
+  if (btnTriggerAvatar && btnTriggerAvatar.tagName !== 'LABEL') {
+    btnTriggerAvatar.addEventListener('click', () => {
       avatarFileInput?.click();
     });
   }

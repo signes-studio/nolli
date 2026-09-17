@@ -1303,7 +1303,7 @@ function initSheetPhotoUploadModal() {
         } catch {}
       }
 
-      await createVisitPhoto({
+      const savedPhoto = await createVisitPhoto({
         user_id: uid,
         building_id: currentSheetPhotoBuilding.id,
         photo_url: photoUrl,
@@ -1315,18 +1315,20 @@ function initSheetPhotoUploadModal() {
         metadata: { author }
       }, state.sessionToken);
 
+      const finalR2Url = savedPhoto?.photo_url || savedPhoto?.photoUrl || photoUrl;
+
       if (setAsMain) {
         await updateBuilding(currentSheetPhotoBuilding.id, {
-          foto_url: photoUrl,
+          foto_url: finalR2Url,
           foto_credito: author
         }, state.sessionToken);
 
-        currentSheetPhotoBuilding.foto_url = photoUrl;
+        currentSheetPhotoBuilding.foto_url = finalR2Url;
         currentSheetPhotoBuilding.foto_credito = author;
 
         const obraEnState = state.OBRAS.find((o) => String(o.id) === String(currentSheetPhotoBuilding.id));
         if (obraEnState) {
-          obraEnState.foto_url = photoUrl;
+          obraEnState.foto_url = finalR2Url;
           obraEnState.foto_credito = author;
         }
 

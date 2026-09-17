@@ -174,12 +174,42 @@ export async function uploadVisitPhotoWithR2(
       r2Key = ticket.key;
     }
   } catch (err: unknown) {
-    console.warn('Subida a Cloudflare R2 no completada para foto de visita, activando respaldo WebP:', err);
-    usedFallback = true;
-    onProgress?.(50, 1, 2);
-    photoUrl = await compressImageToDataUrl(file, 1200, 0.82);
-    thumbnailUrl = photoUrl;
-    onProgress?.(100, 2, 2);
+    console.warn('Subida directa a Cloudflare R2 no completada, activando respaldo de servidor:', err);
+    // 3. Respaldo transparente vía servidor: comprime a WebP y envía al backend para subir a R2
+    try {
+      onProgress?.(30, 1, 3);
+      const dataUrl = await compressImageToDataUrl(file, 1600, 0.84);
+      onProgress?.(60, 2, 3);
+
+      const res = await fetch('/api/r2-upload-url', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${sessionToken}`,
+        },
+        body: JSON.stringify({
+          dataUrl,
+          filename: file.name,
+          contentType: 'image/webp',
+          buildingId,
+          visitId,
+          photoType,
+          uploadType: 'visit',
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.publicUrl) {
+          photoUrl = data.publicUrl;
+          thumbnailUrl = getPhotoThumbnailUrl(data.publicUrl, 400);
+          r2Key = data.key || `server-${Date.now()}`;
+          onProgress?.(100, 3, 3);
+        }
+      }
+    } catch (serverErr) {
+      console.warn('Respaldo de servidor no disponible:', serverErr);
+    }
   }
 
   if (!photoUrl) {
@@ -188,7 +218,7 @@ export async function uploadVisitPhotoWithR2(
     usedFallback = true;
   }
 
-  // 3. Registro en PostgreSQL (tabla visit_photos)
+  // 4. Registro en PostgreSQL (tabla visit_photos)
   // Dynamic import para desacoplar de la capa api.js
   const { createVisitPhoto, fetchCurrentUser } = await import('./api.js');
   const user = await fetchCurrentUser(sessionToken);
@@ -268,15 +298,44 @@ export async function uploadGenericPhotoWithR2(
     }
   } catch (err: unknown) {
     const msg = (err as Error)?.message || '';
-    console.warn('Subida a Cloudflare R2 no completada para obra (' + msg + '). Activando compresión cliente WebP de respaldo:', err);
-    onProgress?.(50, 1, 2);
-    const dataUrl = await compressImageToDataUrl(file, 1200, 0.82);
-    onProgress?.(100, 2, 2);
-    return { publicUrl: dataUrl, url: dataUrl, key: `fallback-${Date.now()}`, fallbackReason: msg };
+    console.warn('Subida directa a Cloudflare R2 no completada (' + msg + '). Activando respaldo de servidor...', err);
   }
 
+  // 2. Respaldo transparente vía servidor: comprime a WebP y sube directamente a R2 en el backend
+  try {
+    onProgress?.(30, 1, 3);
+    const dataUrl = await compressImageToDataUrl(file, 1600, 0.84);
+    onProgress?.(60, 2, 3);
+
+    const res = await fetch('/api/r2-upload-url', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${sessionToken}`,
+      },
+      body: JSON.stringify({
+        dataUrl,
+        filename: file.name,
+        contentType: 'image/webp',
+        buildingId: buildingId || 'new',
+        uploadType: 'building',
+      }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.publicUrl) {
+        onProgress?.(100, 3, 3);
+        return { publicUrl: data.publicUrl, url: data.publicUrl, key: data.key || `server-${Date.now()}` };
+      }
+    }
+  } catch (serverErr) {
+    console.warn('Respaldo de servidor no completado:', serverErr);
+  }
+
+  // 3. Fallback de emergencia solo si la conexión falla por completo
   const dataUrl = await compressImageToDataUrl(file, 1200, 0.82);
-  return { publicUrl: dataUrl, url: dataUrl, key: `fallback-${Date.now()}` };
+  return { publicUrl: dataUrl, url: dataUrl, key: `fallback-${Date.now()}`, fallbackReason: 'Sin conexión directa' };
 }
 
 /**
@@ -372,13 +431,41 @@ export async function uploadAvatarFileWithR2(
     }
   } catch (err: unknown) {
     const msg = (err as Error)?.message || '';
-    console.warn('Subida a Cloudflare R2 no completada para avatar (' + msg + '). Activando compresión cliente WebP de respaldo:', err);
-    if (onProgress) onProgress(50, 1, 2);
-    const dataUrl = await compressImageToDataUrl(file, 160, 0.82);
-    if (onProgress) onProgress(100, 2, 2);
-    return dataUrl;
+    console.warn('Subida directa a Cloudflare R2 no completada para avatar (' + msg + '). Activando respaldo de servidor...', err);
   }
 
+  // 2. Respaldo transparente vía servidor
+  try {
+    if (onProgress) onProgress(30, 1, 3);
+    const dataUrl = await compressImageToDataUrl(file, 200, 0.82);
+    if (onProgress) onProgress(60, 2, 3);
+
+    const res = await fetch('/api/r2-upload-url', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${sessionToken}`,
+      },
+      body: JSON.stringify({
+        dataUrl,
+        filename: file.name,
+        contentType: 'image/webp',
+        uploadType: 'avatar',
+      }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.publicUrl) {
+        if (onProgress) onProgress(100, 3, 3);
+        return data.publicUrl;
+      }
+    }
+  } catch (serverErr) {
+    console.warn('Respaldo de servidor para avatar no completado:', serverErr);
+  }
+
+  // 3. Fallback WebP local
   return compressImageToDataUrl(file, 160, 0.82);
 }
 
