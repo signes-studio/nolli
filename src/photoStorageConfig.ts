@@ -91,7 +91,8 @@ export function uploadPhotoFileToR2(
     const xhr = new XMLHttpRequest();
     xhr.timeout = 12000; // 12s máx para evitar congelamiento de UI
     xhr.open('PUT', uploadUrl, true);
-    xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+    const finalType = (file.type || 'image/jpeg').toLowerCase().trim();
+    xhr.setRequestHeader('Content-Type', finalType);
 
     if (onProgress && xhr.upload) {
       xhr.upload.onprogress = (e: ProgressEvent) => {

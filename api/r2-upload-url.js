@@ -1,4 +1,6 @@
 const crypto = require('crypto');
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const { getSupabaseConfig } = require('./_lib/supabaseEnv.js');
 
 // Tipos MIME de imagen permitidos
@@ -13,89 +15,43 @@ const ALLOWED_MIME_TYPES = new Set([
   'image/svg+xml',
 ]);
 
-function uriEncode(str, encodeSlash = true) {
-  let result = encodeURIComponent(str).replace(/[!'()*]/g, (c) => '%' + c.charCodeAt(0).toString(16).toUpperCase());
-  if (!encodeSlash) {
-    result = result.replace(/%2F/g, '/');
-  }
-  return result;
-}
-
-function sha256(str) {
-  return crypto.createHash('sha256').update(str, 'utf8').digest('hex');
-}
-
-function hmac(key, str) {
-  return crypto.createHmac('sha256', key).update(str, 'utf8').digest();
-}
-
-function getSignatureKey(key, dateStamp, regionName, serviceName) {
-  const kDate = hmac('AWS4' + key, dateStamp);
-  const kRegion = hmac(kDate, regionName);
-  const kService = hmac(kRegion, serviceName);
-  const kSigning = hmac(kService, 'aws4_request');
-  return kSigning;
-}
-
 /**
- * Genera una URL prefirmada PUT compatible con AWS SigV4 para Cloudflare R2
+ * Genera una URL prefirmada PUT con AWS SDK oficial compatible con Cloudflare R2
  */
-function generateR2PresignedPutUrl({
+async function generateR2PresignedPutUrl({
   accountId,
   accessKeyId,
   secretAccessKey,
   bucketName,
   key,
   contentType,
-  expiresIn = 900, // 15 minutos por defecto
-  region = 'auto',
+  expiresIn = 900,
 }) {
-  const now = new Date();
-  const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, '');
-  const dateStamp = amzDate.substring(0, 8);
-  const service = 's3';
-  const credentialScope = `${dateStamp}/${region}/${service}/aws4_request`;
+  const cleanContentType = (contentType || 'image/jpeg').toLowerCase().trim();
 
-  const host = `${accountId}.r2.cloudflarestorage.com`;
-  const canonicalUri = `/${bucketName}/${uriEncode(key, false)}`;
+  const s3 = new S3Client({
+    region: 'auto',
+    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+    credentials: {
+      accessKeyId,
+      secretAccessKey,
+    },
+    forcePathStyle: true,
+    requestChecksumCalculation: 'WHEN_REQUIRED',
+    responseChecksumValidation: 'WHEN_REQUIRED',
+  });
 
-  const queryParams = {
-    'X-Amz-Algorithm': 'AWS4-HMAC-SHA256',
-    'X-Amz-Credential': `${accessKeyId}/${credentialScope}`,
-    'X-Amz-Date': amzDate,
-    'X-Amz-Expires': String(expiresIn),
-    'X-Amz-SignedHeaders': 'host',
-  };
+  const command = new PutObjectCommand({
+    Bucket: bucketName,
+    Key: key,
+    ContentType: cleanContentType,
+  });
 
-  const canonicalQueryString = Object.keys(queryParams)
-    .sort()
-    .map((k) => `${uriEncode(k)}=${uriEncode(queryParams[k])}`)
-    .join('&');
+  const presignedUrl = await getSignedUrl(s3, command, {
+    expiresIn,
+    signableHeaders: new Set(['host', 'content-type']),
+  });
 
-  const canonicalHeaders = `host:${host}\n`;
-  const signedHeaders = 'host';
-  const payloadHash = 'UNSIGNED-PAYLOAD';
-
-  const canonicalRequest = [
-    'PUT',
-    canonicalUri,
-    canonicalQueryString,
-    canonicalHeaders,
-    signedHeaders,
-    payloadHash,
-  ].join('\n');
-
-  const stringToSign = [
-    'AWS4-HMAC-SHA256',
-    amzDate,
-    credentialScope,
-    sha256(canonicalRequest),
-  ].join('\n');
-
-  const signingKey = getSignatureKey(secretAccessKey, dateStamp, region, service);
-  const signature = crypto.createHmac('sha256', signingKey).update(stringToSign, 'utf8').digest('hex');
-
-  const presignedUrl = `https://${host}${canonicalUri}?${canonicalQueryString}&X-Amz-Signature=${signature}`;
   return presignedUrl;
 }
 
@@ -215,7 +171,7 @@ module.exports = async function handler(req, res) {
 
     // 5. Generación de URL prefirmada PUT
     const expiresIn = 900; // 15 minutos
-    const uploadUrl = generateR2PresignedPutUrl({
+    const uploadUrl = await generateR2PresignedPutUrl({
       accountId,
       accessKeyId,
       secretAccessKey,
