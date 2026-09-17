@@ -336,6 +336,49 @@ body.dark-mode .sheet-fav-btn:hover {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.sheet-photo-actions {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  gap: 4px;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.sheet-photo-card:hover .sheet-photo-actions,
+.sheet-photo-card:focus-within .sheet-photo-actions,
+.sheet-photo-actions.force-visible {
+  opacity: 1;
+}
+.sheet-photo-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  background: rgba(20, 20, 17, 0.88);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.12s ease, transform 0.12s ease;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.sheet-photo-btn:hover {
+  background: var(--accent);
+  transform: scale(1.08);
+}
+.sheet-photo-btn.btn-delete:hover {
+  background: var(--red);
+}
+.sheet-photo-btn.is-main {
+  background: var(--accent-2, #EFBC02);
+  color: #141411;
+  border-color: #141411;
+}
 .sheet-photos-empty {
   font-size: 11px;
   color: var(--text-muted, #71717a);
@@ -1733,7 +1776,7 @@ body.dark-mode .admin-badge-imp.imp-3 {
 
 .admin-meta-year {
   color: var(--fg-dim);
-  font-family: monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 9.5px;
   flex-shrink: 0;
 }
@@ -1788,7 +1831,7 @@ body.dark-mode .admin-badge-imp.imp-3 {
 .admin-meta-id {
   color: var(--fg-dim);
   opacity: 0.6;
-  font-family: monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 8.5px;
   flex-shrink: 0;
 }
@@ -3039,6 +3082,68 @@ body.dark-mode .btn-apply-search-filter:active {
   color: rgba(255, 255, 255, 0.85);
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.photo-viewer-admin-bar {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 2;
+  background: rgba(18, 18, 18, 0.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 9999px;
+  padding: 4px 8px;
+}
+.btn-photo-admin-action {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.12s ease;
+}
+.btn-photo-admin-action:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+}
+.btn-photo-admin-action.is-main {
+  background: var(--accent-2);
+  border-color: var(--accent-2);
+  color: #141411;
+}
+.btn-photo-admin-delete {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ff6b6b;
+  border: 1px solid rgba(255, 107, 107, 0.35);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.12s ease;
+}
+.btn-photo-admin-delete:hover {
+  background: var(--red);
+  border-color: var(--red);
+  color: #ffffff;
 }
 /* ==========================================================================
    PANEL DE FILTROS: ESTRUCTURA Y COMPONENTES

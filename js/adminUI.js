@@ -1360,7 +1360,7 @@ async function renderReports() {
           <div class="admin-report-copy">
             <div style="display:flex; align-items:center; gap:6px;">
               <strong>${safeTitle}</strong>
-              <span style="font-size:8.5px; font-weight:800; padding:1px 5px; border:1px solid ${statusColor}; color:${statusColor}; font-family:monospace;">${escapeHtml(status.toUpperCase())}</span>
+              <span style="font-size:8.5px; font-weight:800; padding:1px 5px; border:1px solid ${statusColor}; color:${statusColor}; font-family:'Inter',sans-serif;">${escapeHtml(status.toUpperCase())}</span>
             </div>
             <span style="font-size: 11px; color: var(--fg); margin: 4px 0;">${safeDesc}</span>
             <small style="color: var(--fg-dim); font-size: 9px;">${safeDate}</small>

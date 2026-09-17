@@ -404,7 +404,7 @@ function renderModulePending() {
             <span class="admin-work-tag">${escapeHtml(category)}</span>
             ${obra.estado_acceso ? `<span class="admin-work-tag">${escapeHtml(obra.estado_acceso)}</span>` : ''}
             ${obra.añadido_por ? `<span class="admin-work-tag">Por: ${escapeHtml(obra.añadido_por)}</span>` : ''}
-            ${createdDateStr ? `<span class="admin-work-tag" style="background:var(--admin-bg-raised); font-family:monospace;">Alta: ${escapeHtml(createdDateStr)}</span>` : ''}
+            ${createdDateStr ? `<span class="admin-work-tag" style="background:var(--admin-bg-raised); font-family:'Inter',sans-serif;">Alta: ${escapeHtml(createdDateStr)}</span>` : ''}
           </div>
         </div>
 
@@ -733,7 +733,7 @@ function renderModuleReports() {
           <div>
             <div style="display:flex; align-items:center; gap:8px;">
               <h3 class="admin-report-building">${buildingTitle}</h3>
-              <span class="admin-work-tag" style="border:1px solid ${statusColor}; color:${statusColor}; font-weight:800; font-family:monospace;">${escapeHtml(status.toUpperCase())}</span>
+              <span class="admin-work-tag" style="border:1px solid ${statusColor}; color:${statusColor}; font-weight:800; font-family:'Inter',sans-serif;">${escapeHtml(status.toUpperCase())}</span>
             </div>
             ${architect ? `<div style="font-size:11px; color:var(--admin-fg-dim); font-family: 'Inter', sans-serif;">${architect}</div>` : ''}
           </div>

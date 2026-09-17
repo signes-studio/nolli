@@ -5,7 +5,7 @@
 import { state, separarArquitectos, normalizarCategoria, normalizarImportancia, formatCategoria, esRolAdmin, esRolEditor, guardarZonaPersonalLocal, CATEGORY_META } from './state.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { cerrarFiltros, generarFiltrosUI } from './filtersUI.js';
-import { fetchBuildings, saveBuildingStatus, reviewBuilding, deleteBuilding, updateBuilding, deletePrivateBuilding, createUserCollection, addUserCollectionItem, deleteUserCollectionItem, createUserPrivateLabel, deleteUserPrivateLabel, fetchBuildingVisitPhotos, createVisitPhoto, uploadGenericPhotoWithR2, invalidateCatalogCache, fetchCurrentUser } from './api.js';
+import { fetchBuildings, saveBuildingStatus, reviewBuilding, deleteBuilding, updateBuilding, deletePrivateBuilding, createUserCollection, addUserCollectionItem, deleteUserCollectionItem, createUserPrivateLabel, deleteUserPrivateLabel, fetchBuildingVisitPhotos, createVisitPhoto, deleteVisitPhoto, updateVisitPhoto, uploadGenericPhotoWithR2, invalidateCatalogCache, fetchCurrentUser } from './api.js';
 import { abrirModalCrearLista } from './myPlacesUI.js';
 import { getOptimizedPhotoUrl } from './imageProxy.js';
 import { showNeoToast } from './renderUtils.js';
@@ -1035,11 +1035,55 @@ document.addEventListener('click', (event) => {
     openSheetPhotoUploadModal(building);
     return;
   }
+  // Acciones en tarjetas de foto de la comunidad (fijar portada, editar, eliminar)
+  const setMainAction = target.closest('[data-photo-action="set-main"]');
+  if (setMainAction) {
+    const photoId = setMainAction.dataset.photoId;
+    const photoUrl = setMainAction.dataset.photoUrl;
+    const author = setMainAction.dataset.photoAuthor;
+    handleSetPhotoAsMain(photoId, currentOpenBuilding || getSelectedBuilding(), photoUrl, author);
+    return;
+  }
+
+  const editAction = target.closest('[data-photo-action="edit"]');
+  if (editAction) {
+    openEditPhotoModal({
+      id: editAction.dataset.photoId,
+      url: editAction.dataset.photoUrl,
+      author: editAction.dataset.photoAuthor,
+      caption: editAction.dataset.photoCaption,
+      isMain: editAction.dataset.isMain === 'true',
+      building: currentOpenBuilding || getSelectedBuilding(),
+    });
+    return;
+  }
+
+  const deleteAction = target.closest('[data-photo-action="delete"]');
+  if (deleteAction) {
+    handleDeletePhoto(deleteAction.dataset.photoId, currentOpenBuilding || getSelectedBuilding(), deleteAction.dataset.photoUrl);
+    return;
+  }
+
   const photoTarget = target.closest('[data-photo-url]');
   if (photoTarget) {
     const rawUrl = photoTarget.dataset.photoUrl;
     const credit = photoTarget.dataset.photoCredit || '';
     const caption = photoTarget.dataset.photoCaption || '';
+    const photoId = photoTarget.dataset.photoId || null;
+    const photoUserId = photoTarget.dataset.photoUserId || null;
+    const isMain = photoTarget.dataset.isMain === 'true';
+    const targetBuilding = currentOpenBuilding || getSelectedBuilding();
+
+    currentViewerPhoto = {
+      id: photoId,
+      url: rawUrl,
+      credit,
+      caption,
+      userId: photoUserId,
+      isMain,
+      building: targetBuilding,
+    };
+
     const viewer = document.getElementById('modal-photo');
     const img = document.getElementById('photo-viewer-image');
     if (img) img.src = getOptimizedPhotoUrl(rawUrl, 'fullscreen') || rawUrl;
@@ -1055,6 +1099,22 @@ document.addEventListener('click', (event) => {
         creditBar.classList.add('hidden');
       }
     }
+
+    const adminBar = document.getElementById('photo-viewer-admin-bar');
+    if (adminBar) {
+      const canManage = photoId && (esRolAdmin(state.userRole) || esRolEditor(state.userRole) || (state.userId && photoUserId === state.userId));
+      if (canManage) {
+        adminBar.classList.remove('hidden');
+        const setMainBtn = document.getElementById('btn-photo-viewer-set-main');
+        if (setMainBtn) {
+          setMainBtn.classList.toggle('is-main', isMain);
+          setMainBtn.title = isMain ? 'Foto principal actual' : 'Fijar como portada principal de la obra';
+        }
+      } else {
+        adminBar.classList.add('hidden');
+      }
+    }
+
     if (viewer) viewer.classList.add('open');
     return;
   }
@@ -1081,6 +1141,9 @@ document.addEventListener('radar:user-status-changed', () => renderSheetStatusUI
 document.addEventListener('radar:open-building', (event) => { if (event.detail?.obra) abrirFicha(event.detail.obra, event.detail.obra.coordenadas, event.detail.obra.featureId); });
 function actualizarFichaAbierta() { const building = getSelectedBuilding(); if (building) abrirFicha(building, building.coordenadas, building.featureId); }
 
+let currentViewerPhoto = null;
+let currentEditPhoto = null;
+
 async function loadSheetCommunityPhotos(building) {
   const container = document.getElementById('sheet-community-photos-container');
   if (!container || !building) return;
@@ -1096,18 +1159,36 @@ async function loadSheetCommunityPhotos(building) {
       return;
     }
 
+    const canManageAll = esRolAdmin(state.userRole) || esRolEditor(state.userRole);
+    const currentUserId = state.userId;
+
     container.innerHTML = photos.map((p) => {
       const author = escapeHtml(p.metadata?.author || p.author_credit || 'Autor no especificado');
       const caption = escapeHtml(p.caption || '');
       const photoUrl = escapeHtml(p.photo_url || '');
       const thumbUrl = escapeHtml(getOptimizedPhotoUrl(p.photo_url, { width: 400 }));
+      const isMain = building.foto_url === p.photo_url;
+      const canEditCard = canManageAll || (currentUserId && p.user_id === currentUserId);
 
       return `
-        <div class="sheet-photo-card" data-photo-url="${photoUrl}" data-photo-credit="${author}" data-photo-caption="${caption}" style="cursor: pointer;">
+        <div class="sheet-photo-card" data-photo-id="${p.id}" data-photo-url="${photoUrl}" data-photo-credit="${author}" data-photo-caption="${caption}" data-photo-user-id="${p.user_id || ''}" data-is-main="${isMain ? 'true' : 'false'}" style="cursor: pointer;">
           <img src="${thumbUrl}" alt="${caption || 'Foto de ' + escapeHtml(building.nombre_obra)}" loading="lazy">
           <div class="sheet-photo-credit-badge">
             <span class="truncate">Foto: ${author}</span>
           </div>
+          ${canEditCard ? `
+            <div class="sheet-photo-actions" onclick="event.stopPropagation()">
+              <button type="button" class="sheet-photo-btn ${isMain ? 'is-main' : ''}" data-photo-action="set-main" data-photo-id="${p.id}" data-photo-url="${photoUrl}" data-photo-author="${author}" title="${isMain ? 'Foto principal actual' : 'Fijar como foto principal'}">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="${isMain ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              </button>
+              <button type="button" class="sheet-photo-btn" data-photo-action="edit" data-photo-id="${p.id}" data-photo-url="${photoUrl}" data-photo-author="${author}" data-photo-caption="${caption}" data-is-main="${isMain ? 'true' : 'false'}" title="Editar fotografía">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+              </button>
+              <button type="button" class="sheet-photo-btn btn-delete" data-photo-action="delete" data-photo-id="${p.id}" data-photo-url="${photoUrl}" title="Eliminar fotografía">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              </button>
+            </div>
+          ` : ''}
         </div>
       `;
     }).join('');
@@ -1243,10 +1324,9 @@ function initSheetPhotoUploadModal() {
         updatePreview(photoUrl);
         if (statusEl) {
           if (photoUrl.startsWith('data:')) {
-            const reason = res?.fallbackReason ? ` [R2: ${res.fallbackReason}]` : '';
-            statusEl.textContent = `✓ Imagen optimizada en WebP lista para guardar (modo respaldo)${reason}`;
+            statusEl.textContent = '✓ Imagen procesada correctamente (modo sin conexión)';
           } else {
-            statusEl.textContent = '✓ Imagen subida a Cloudflare R2 correctamente';
+            statusEl.textContent = '✓ Imagen subida correctamente';
           }
         }
       } else {
@@ -1352,4 +1432,235 @@ function initSheetPhotoUploadModal() {
   });
 }
 
+// =========================================================================
+// GESTIÓN DE FOTOGRAFÍAS PARA ADMINISTRADORES Y AUTORES (EDITAR, ELIMINAR, PORTADA)
+// =========================================================================
+
+export async function handleDeletePhoto(photoId, building, photoUrl, onComplete = null) {
+  if (!photoId) return;
+  if (!state.sessionToken) {
+    showNeoToast('Inicia sesión para eliminar fotografías.');
+    return;
+  }
+
+  const confirmed = window.confirm('¿Deseas eliminar esta fotografía permanentemente? Esta acción no se puede deshacer.');
+  if (!confirmed) return;
+
+  try {
+    await deleteVisitPhoto(photoId, state.sessionToken);
+    showNeoToast('✓ Fotografía eliminada correctamente.');
+
+    // Si la foto eliminada era la foto principal de la ficha abierta
+    const targetBuilding = building || currentOpenBuilding || getSelectedBuilding();
+    if (targetBuilding && targetBuilding.foto_url === photoUrl) {
+      targetBuilding.foto_url = null;
+      targetBuilding.foto_credito = null;
+      const obraEnState = state.OBRAS.find((o) => String(o.id) === String(targetBuilding.id));
+      if (obraEnState) {
+        obraEnState.foto_url = null;
+        obraEnState.foto_credito = null;
+      }
+      invalidateCatalogCache();
+      document.dispatchEvent(new CustomEvent('radar:catalog-invalidated'));
+      actualizarFichaAbierta();
+    } else if (targetBuilding) {
+      loadSheetCommunityPhotos(targetBuilding);
+    }
+
+    // Cerrar visor si estaba abierto con esta foto
+    const viewer = document.getElementById('modal-photo');
+    if (viewer && viewer.classList.contains('open')) {
+      viewer.classList.remove('open');
+    }
+
+    onComplete?.();
+  } catch (err) {
+    showNeoToast(err.message || 'Error al eliminar la fotografía.');
+  }
+}
+
+export async function handleSetPhotoAsMain(photoId, building, photoUrl, author) {
+  if (!photoId || !photoUrl) return;
+  if (!state.sessionToken) {
+    showNeoToast('Inicia sesión para gestionar fotografías.');
+    return;
+  }
+
+  const targetBuilding = building || currentOpenBuilding || getSelectedBuilding();
+  if (!targetBuilding) return;
+
+  try {
+    const finalAuthor = author || targetBuilding.nombre_obra;
+    await updateVisitPhoto(photoId, { setAsMain: true, author: finalAuthor }, state.sessionToken);
+    showNeoToast('✓ Establecida como foto principal de la ficha.');
+
+    targetBuilding.foto_url = photoUrl;
+    targetBuilding.foto_credito = finalAuthor || 'Comunidad';
+
+    const obraEnState = state.OBRAS.find((o) => String(o.id) === String(targetBuilding.id));
+    if (obraEnState) {
+      obraEnState.foto_url = photoUrl;
+      obraEnState.foto_credito = finalAuthor || 'Comunidad';
+    }
+
+    invalidateCatalogCache();
+    document.dispatchEvent(new CustomEvent('radar:catalog-invalidated'));
+    actualizarFichaAbierta();
+
+    // Actualizar botón del visor si está abierto
+    const setMainBtn = document.getElementById('btn-photo-viewer-set-main');
+    if (setMainBtn) {
+      setMainBtn.classList.add('is-main');
+      setMainBtn.title = 'Foto principal actual';
+    }
+  } catch (err) {
+    showNeoToast(err.message || 'Error al fijar como foto principal.');
+  }
+}
+
+export function openEditPhotoModal(photo) {
+  if (!photo) return;
+  currentEditPhoto = photo;
+  const modal = document.getElementById('modal-edit-sheet-photo');
+  if (!modal) return;
+
+  const thumb = document.getElementById('edit-sheet-photo-thumb');
+  const authorInput = document.getElementById('edit-sheet-photo-author');
+  const captionInput = document.getElementById('edit-sheet-photo-caption');
+  const setMainCheck = document.getElementById('edit-sheet-photo-set-main');
+  const errorEl = document.getElementById('edit-sheet-photo-error');
+
+  if (thumb) thumb.src = getOptimizedPhotoUrl(photo.url, { width: 400 }) || photo.url;
+  if (authorInput) authorInput.value = photo.author || photo.credit || '';
+  if (captionInput) captionInput.value = photo.caption || '';
+  if (setMainCheck) setMainCheck.checked = Boolean(photo.isMain);
+  if (errorEl) { errorEl.textContent = ''; errorEl.classList.add('hidden'); }
+
+  modal.classList.add('open');
+}
+
+export function closeEditPhotoModal() {
+  const modal = document.getElementById('modal-edit-sheet-photo');
+  if (modal) modal.classList.remove('open');
+  currentEditPhoto = null;
+}
+
+function initEditPhotoModal() {
+  const modal = document.getElementById('modal-edit-sheet-photo');
+  if (!modal) return;
+
+  const btnClose = document.getElementById('btn-edit-sheet-photo-close');
+  const btnCancel = document.getElementById('btn-edit-sheet-photo-cancel');
+  const btnDelete = document.getElementById('btn-edit-sheet-photo-delete');
+  const btnSubmit = document.getElementById('btn-edit-sheet-photo-submit');
+  const authorInput = document.getElementById('edit-sheet-photo-author');
+  const captionInput = document.getElementById('edit-sheet-photo-caption');
+  const setMainCheck = document.getElementById('edit-sheet-photo-set-main');
+  const errorEl = document.getElementById('edit-sheet-photo-error');
+
+  btnClose?.addEventListener('click', closeEditPhotoModal);
+  btnCancel?.addEventListener('click', closeEditPhotoModal);
+
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeEditPhotoModal();
+  });
+
+  btnDelete?.addEventListener('click', () => {
+    if (!currentEditPhoto) return;
+    handleDeletePhoto(currentEditPhoto.id, currentEditPhoto.building, currentEditPhoto.url, () => {
+      closeEditPhotoModal();
+    });
+  });
+
+  btnSubmit?.addEventListener('click', async () => {
+    if (!currentEditPhoto) return;
+    if (errorEl) errorEl.classList.add('hidden');
+
+    const author = authorInput?.value.trim();
+    const caption = captionInput?.value.trim() || null;
+    const setAsMain = Boolean(setMainCheck?.checked);
+
+    if (!author) {
+      if (errorEl) {
+        errorEl.textContent = 'Debes indicar el autor o crédito de la fotografía.';
+        errorEl.classList.remove('hidden');
+      }
+      return;
+    }
+
+    btnSubmit.disabled = true;
+    const origText = btnSubmit.innerHTML;
+    btnSubmit.innerHTML = '<span>GUARDANDO...</span>';
+
+    try {
+      await updateVisitPhoto(currentEditPhoto.id, {
+        author,
+        caption,
+        setAsMain,
+      }, state.sessionToken);
+
+      showNeoToast('✓ Fotografía actualizada correctamente.');
+
+      const targetBuilding = currentEditPhoto.building || currentOpenBuilding || getSelectedBuilding();
+      if (setAsMain && targetBuilding) {
+        targetBuilding.foto_url = currentEditPhoto.url;
+        targetBuilding.foto_credito = author;
+        const obraEnState = state.OBRAS.find((o) => String(o.id) === String(targetBuilding.id));
+        if (obraEnState) {
+          obraEnState.foto_url = currentEditPhoto.url;
+          obraEnState.foto_credito = author;
+        }
+        invalidateCatalogCache();
+        document.dispatchEvent(new CustomEvent('radar:catalog-invalidated'));
+        actualizarFichaAbierta();
+      } else if (targetBuilding) {
+        loadSheetCommunityPhotos(targetBuilding);
+      }
+
+      closeEditPhotoModal();
+    } catch (err) {
+      if (errorEl) {
+        errorEl.textContent = err.message || 'Error al actualizar la fotografía.';
+        errorEl.classList.remove('hidden');
+      }
+    } finally {
+      btnSubmit.disabled = false;
+      btnSubmit.innerHTML = origText;
+    }
+  });
+}
+
+function initPhotoViewerAdminActions() {
+  const btnViewerSetMain = document.getElementById('btn-photo-viewer-set-main');
+  const btnViewerEdit = document.getElementById('btn-photo-viewer-edit');
+  const btnViewerDelete = document.getElementById('btn-photo-viewer-delete');
+
+  btnViewerSetMain?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (!currentViewerPhoto) return;
+    handleSetPhotoAsMain(currentViewerPhoto.id, currentViewerPhoto.building, currentViewerPhoto.url, currentViewerPhoto.credit);
+  });
+
+  btnViewerEdit?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (!currentViewerPhoto) return;
+    openEditPhotoModal({
+      id: currentViewerPhoto.id,
+      url: currentViewerPhoto.url,
+      author: currentViewerPhoto.credit,
+      caption: currentViewerPhoto.caption,
+      isMain: currentViewerPhoto.isMain,
+      building: currentViewerPhoto.building,
+    });
+  });
+
+  btnViewerDelete?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (!currentViewerPhoto) return;
+    handleDeletePhoto(currentViewerPhoto.id, currentViewerPhoto.building, currentViewerPhoto.url);
+  });
+}
+
 initSheetPhotoUploadModal();
+initEditPhotoModal();
+initPhotoViewerAdminActions();

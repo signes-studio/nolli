@@ -63,7 +63,7 @@ export async function requestPhotoUploadUrl(
 
     if (!response.ok) {
       const err = (await response.json().catch(() => ({}))) as { message?: string; error?: string };
-      throw new Error(err.message || err.error || 'No se pudo obtener la URL de subida para Cloudflare R2.');
+      throw new Error(err.message || err.error || 'No se pudo preparar la subida de la imagen. Inténtalo de nuevo.');
     }
 
     return (await response.json()) as PhotoUploadTicket;
@@ -75,7 +75,7 @@ export async function requestPhotoUploadUrl(
 export type ProgressCallback = (percent: number, loaded: number, total: number) => void;
 
 /**
- * Sube el archivo binario directamente al bucket Cloudflare R2 mediante la URL prefirmada PUT.
+ * Sube el archivo binario directamente mediante la URL prefirmada PUT.
  * CERO tráfico hacia el servidor Nolli o Supabase (Egress = 0).
  */
 export function uploadPhotoFileToR2(
@@ -107,12 +107,12 @@ export function uploadPhotoFileToR2(
       if (xhr.status >= 200 && xhr.status < 300) {
         resolve(true);
       } else {
-        reject(new Error(`Error al transferir imagen a Cloudflare R2: HTTP ${xhr.status}`));
+        reject(new Error(`Error al transferir la imagen: HTTP ${xhr.status}`));
       }
     };
 
-    xhr.onerror = () => reject(new Error('Error de red al transferir archivo a Cloudflare R2 (posible política CORS no configurada o bloqueo de origen en Cloudflare R2).'));
-    xhr.ontimeout = () => reject(new Error('Tiempo de espera agotado al transferir archivo a Cloudflare R2.'));
+    xhr.onerror = () => reject(new Error('Error de conexión al transferir la imagen. Comprueba tu conexión a internet.'));
+    xhr.ontimeout = () => reject(new Error('Tiempo de espera agotado al transferir la imagen.'));
 
     xhr.send(file);
   });

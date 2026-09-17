@@ -14,6 +14,17 @@ export function fetchBuildingVisitPhotos(
   sessionToken?: string | null
 ): Promise<VisitPhotoRow[]>;
 
+export function deleteVisitPhoto(
+  photoId: string | number,
+  sessionToken: string
+): Promise<{ success: boolean; message?: string }>;
+
+export function updateVisitPhoto(
+  photoId: string | number,
+  updates: Record<string, unknown>,
+  sessionToken: string
+): Promise<{ success: boolean; photo: VisitPhotoRow }>;
+
 export function uploadGenericPhotoWithR2(
   file: File,
   buildingId?: string | number | null,

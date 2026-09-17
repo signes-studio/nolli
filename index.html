@@ -973,6 +973,20 @@
 <div id="modal-photo" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Fotografía del proyecto" data-i18n-aria="photo_viewer_aria">
   <div class="photo-viewer">
     <button type="button" id="btn-photo-close" class="photo-close" aria-label="Cerrar fotografía" data-i18n-aria="photo_close_aria">X</button>
+    <div id="photo-viewer-admin-bar" class="photo-viewer-admin-bar hidden">
+      <button type="button" id="btn-photo-viewer-set-main" class="btn-photo-admin-action" title="Fijar como portada principal de la obra">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        <span>PORTADA</span>
+      </button>
+      <button type="button" id="btn-photo-viewer-edit" class="btn-photo-admin-action" title="Editar metadatos de la foto">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+        <span>EDITAR</span>
+      </button>
+      <button type="button" id="btn-photo-viewer-delete" class="btn-photo-admin-delete" title="Eliminar fotografía">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        <span>ELIMINAR</span>
+      </button>
+    </div>
     <img id="photo-viewer-image" src="" alt="">
     <div id="photo-viewer-credit-bar" class="photo-viewer-credit-bar hidden">
       <span id="photo-viewer-credit-text"></span>
@@ -1401,6 +1415,68 @@
             <span>SUBIR FOTO</span>
           </span>
         </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para editar fotografía de obra (Administradores y propietarios) -->
+<div id="modal-edit-sheet-photo" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-edit-sheet-photo-title">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="flex items-center gap-2">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+        </svg>
+        <span id="modal-edit-sheet-photo-title" style="letter-spacing:.06em; font-size:11px; font-weight:800; font-family:'League Spartan',sans-serif;">EDITAR FOTOGRAFÍA</span>
+      </div>
+      <button type="button" id="btn-edit-sheet-photo-close" class="sheet-close-button" aria-label="Cerrar modal de edición">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg>
+      </button>
+    </div>
+    <div class="modal-body flex flex-col gap-3">
+      <!-- Miniatura de la foto -->
+      <div class="relative rounded-xl overflow-hidden border border-[var(--border)] max-h-40 bg-[var(--bg-raised)]">
+        <img id="edit-sheet-photo-thumb" src="" alt="Vista previa" class="w-full h-36 object-cover">
+      </div>
+
+      <!-- Autor / Crédito -->
+      <div>
+        <label for="edit-sheet-photo-author" class="tech-label" style="display:flex; justify-content:space-between;">
+          <span>AUTOR / CRÉDITO DE LA FOTOGRAFÍA_</span>
+          <span style="color:var(--accent); font-weight:700;">* OBLIGATORIO</span>
+        </label>
+        <input type="text" id="edit-sheet-photo-author" class="tech-input" placeholder="p.ej. Fotografía propia, Julius Shulman...">
+      </div>
+
+      <!-- Pie de foto / Título -->
+      <div>
+        <label for="edit-sheet-photo-caption" class="tech-label">PIE DE FOTO / DESCRIPCIÓN_</label>
+        <input type="text" id="edit-sheet-photo-caption" class="tech-input" placeholder="p.ej. Fachada principal, detalle de acceso...">
+      </div>
+
+      <!-- Fijar como foto principal de la obra -->
+      <div id="wrap-edit-sheet-photo-set-main">
+        <label class="flex items-center gap-2 text-xs cursor-pointer select-none">
+          <input type="checkbox" id="edit-sheet-photo-set-main" class="rounded">
+          <span>Establecer como foto principal de la ficha</span>
+        </label>
+      </div>
+
+      <div id="edit-sheet-photo-error" class="text-[10px] text-red-500 hidden mt-1" role="alert"></div>
+
+      <div class="flex justify-between items-center gap-2 mt-2 pt-2 border-t border-[var(--border)]">
+        <button class="btn btn-auth-secondary" id="btn-edit-sheet-photo-delete" type="button" style="color:var(--red); border-color:var(--red);">
+          <span class="inline-flex items-center gap-1">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            <span>ELIMINAR</span>
+          </span>
+        </button>
+        <div class="flex gap-2">
+          <button class="btn btn-auth-secondary" id="btn-edit-sheet-photo-cancel" type="button">CANCELAR</button>
+          <button class="btn btn-auth-primary" id="btn-edit-sheet-photo-submit" type="button">GUARDAR CAMBIOS</button>
+        </div>
       </div>
     </div>
   </div>

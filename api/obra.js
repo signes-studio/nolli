@@ -849,7 +849,7 @@ module.exports = async (request, response) => {
   const rate = checkRateLimit(request, response);
   if (rate.limited) {
     response.setHeader('Content-Type', 'text/html; charset=utf-8');
-    return response.status(429).send(`<!DOCTYPE html><html><head><title>Too Many Requests</title></head><body style="font-family:sans-serif;padding:40px;text-align:center;"><h1>429 - Límite de solicitudes excedido</h1><p>Has realizado demasiadas consultas. Por favor, espera un momento.</p></body></html>`);
+    return response.status(429).send(`<!DOCTYPE html><html><head><title>Too Many Requests</title></head><body style="font-family:'Inter',sans-serif;padding:40px;text-align:center;"><h1>429 - Límite de solicitudes excedido</h1><p>Has realizado demasiadas consultas. Por favor, espera un momento.</p></body></html>`);
   }
 
   try {
