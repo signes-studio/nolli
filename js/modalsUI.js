@@ -583,13 +583,18 @@ function initAddBuildingModal() {
       statusFotoUpload.classList.remove('hidden');
     }
     try {
-      const res = await uploadGenericPhotoWithR2(file, state.editingBuildingId || 'new', state.sessionToken);
-      if (res?.url) {
-        if (inputFotoUrl) inputFotoUrl.value = res.url;
-        updateAddFotoPreview(res.url);
+      const res = await uploadGenericPhotoWithR2(file, state.editingBuildingId || 'new', state.sessionToken, (pct) => {
+        if (statusFotoUpload) statusFotoUpload.textContent = `Subiendo imagen... ${pct}%`;
+      });
+      const photoUrl = res?.publicUrl || res?.url;
+      if (photoUrl) {
+        if (inputFotoUrl) inputFotoUrl.value = photoUrl;
+        updateAddFotoPreview(photoUrl);
         if (statusFotoUpload) {
           statusFotoUpload.textContent = 'Imagen subida correctamente';
         }
+      } else {
+        throw new Error('No se recibió la URL de la imagen.');
       }
     } catch (err) {
       if (statusFotoUpload) {

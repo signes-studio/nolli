@@ -1234,13 +1234,18 @@ function initSheetPhotoUploadModal() {
       statusEl.classList.remove('hidden');
     }
     try {
-      const res = await uploadGenericPhotoWithR2(file, currentSheetPhotoBuilding?.id || 'sheet', state.sessionToken);
-      if (res?.url) {
-        if (urlInput) urlInput.value = res.url;
-        updatePreview(res.url);
+      const res = await uploadGenericPhotoWithR2(file, currentSheetPhotoBuilding?.id || 'sheet', state.sessionToken, (pct) => {
+        if (statusEl) statusEl.textContent = `Subiendo imagen... ${pct}%`;
+      });
+      const photoUrl = res?.publicUrl || res?.url;
+      if (photoUrl) {
+        if (urlInput) urlInput.value = photoUrl;
+        updatePreview(photoUrl);
         if (statusEl) {
           statusEl.textContent = 'Imagen subida correctamente';
         }
+      } else {
+        throw new Error('No se recibió la URL de la imagen.');
       }
     } catch (err) {
       if (statusEl) {

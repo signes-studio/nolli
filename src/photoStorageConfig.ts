@@ -47,21 +47,29 @@ export async function requestPhotoUploadUrl(
     throw new Error('Debes iniciar sesión para subir fotografías.');
   }
 
-  const response = await fetch('/api/r2-upload-url', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${sessionToken}`,
-    },
-    body: JSON.stringify(params),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 7000);
 
-  if (!response.ok) {
-    const err = (await response.json().catch(() => ({}))) as { message?: string; error?: string };
-    throw new Error(err.message || err.error || 'No se pudo obtener la URL de subida para Cloudflare R2.');
+  try {
+    const response = await fetch('/api/r2-upload-url', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${sessionToken}`,
+      },
+      body: JSON.stringify(params),
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      const err = (await response.json().catch(() => ({}))) as { message?: string; error?: string };
+      throw new Error(err.message || err.error || 'No se pudo obtener la URL de subida para Cloudflare R2.');
+    }
+
+    return (await response.json()) as PhotoUploadTicket;
+  } finally {
+    clearTimeout(timer);
   }
-
-  return response.json() as Promise<PhotoUploadTicket>;
 }
 
 export type ProgressCallback = (percent: number, loaded: number, total: number) => void;
@@ -81,6 +89,7 @@ export function uploadPhotoFileToR2(
     }
 
     const xhr = new XMLHttpRequest();
+    xhr.timeout = 12000; // 12s máx para evitar congelamiento de UI
     xhr.open('PUT', uploadUrl, true);
     xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
 
@@ -240,7 +249,7 @@ export async function uploadGenericPhotoWithR2(
   buildingId: string | number | null = null,
   sessionToken: string | null | undefined,
   onProgress: ProgressCallback | null = null
-): Promise<{ publicUrl: string; key: string }> {
+): Promise<{ publicUrl: string; url: string; key: string }> {
   if (!file) throw new Error('Archivo de imagen requerido.');
   if (!sessionToken) throw new Error('Debes iniciar sesión para subir fotografías.');
 
@@ -254,7 +263,7 @@ export async function uploadGenericPhotoWithR2(
 
     if (ticket.uploadUrl && ticket.publicUrl) {
       await uploadPhotoFileToR2(file, ticket.uploadUrl, onProgress);
-      return { publicUrl: ticket.publicUrl, key: ticket.key };
+      return { publicUrl: ticket.publicUrl, url: ticket.publicUrl, key: ticket.key };
     }
   } catch (err: unknown) {
     const msg = (err as Error)?.message || '';
@@ -262,24 +271,38 @@ export async function uploadGenericPhotoWithR2(
     onProgress?.(50, 1, 2);
     const dataUrl = await compressImageToDataUrl(file, 1200, 0.82);
     onProgress?.(100, 2, 2);
-    return { publicUrl: dataUrl, key: `fallback-${Date.now()}` };
+    return { publicUrl: dataUrl, url: dataUrl, key: `fallback-${Date.now()}` };
   }
 
   const dataUrl = await compressImageToDataUrl(file, 1200, 0.82);
-  return { publicUrl: dataUrl, key: `fallback-${Date.now()}` };
+  return { publicUrl: dataUrl, url: dataUrl, key: `fallback-${Date.now()}` };
 }
 
 /**
- * Comprime una imagen en el cliente a WebP ligero para avatares
+ * Comprime una imagen en el cliente a WebP ligero para avatares y miniaturas
  */
 export async function compressImageToDataUrl(file: File, maxDim: number = 160, quality: number = 0.82): Promise<string> {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error('Error al leer el archivo de imagen.'));
-    reader.onload = () => {
-      const img = new Image();
-      img.onerror = () => reject(new Error('Error al decodificar la imagen seleccionada.'));
-      img.onload = () => {
+    let objectUrl = '';
+    try {
+      if (typeof URL !== 'undefined' && URL.createObjectURL) {
+        objectUrl = URL.createObjectURL(file);
+      }
+    } catch {}
+
+    const cleanup = () => {
+      if (objectUrl) {
+        try { URL.revokeObjectURL(objectUrl); } catch {}
+      }
+    };
+
+    const img = new Image();
+    img.onerror = () => {
+      cleanup();
+      reject(new Error('Error al decodificar la imagen seleccionada.'));
+    };
+    img.onload = () => {
+      try {
         const canvas = document.createElement('canvas');
         let w = img.width;
         let h = img.height;
@@ -297,13 +320,30 @@ export async function compressImageToDataUrl(file: File, maxDim: number = 160, q
         canvas.width = Math.max(1, w);
         canvas.height = Math.max(1, h);
         const ctx = canvas.getContext('2d');
-        if (!ctx) return reject(new Error('Contexto 2D no disponible.'));
+        if (!ctx) {
+          cleanup();
+          return reject(new Error('Contexto 2D no disponible.'));
+        }
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL('image/webp', quality));
-      };
-      img.src = reader.result as string;
+        const dataUrl = canvas.toDataURL('image/webp', quality);
+        cleanup();
+        resolve(dataUrl);
+      } catch (err) {
+        cleanup();
+        reject(err);
+      }
     };
-    reader.readAsDataURL(file);
+
+    if (objectUrl) {
+      img.src = objectUrl;
+    } else {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error('Error al leer el archivo de imagen.'));
+      reader.onload = () => {
+        img.src = reader.result as string;
+      };
+      reader.readAsDataURL(file);
+    }
   });
 }
 

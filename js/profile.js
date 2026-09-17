@@ -2006,7 +2006,9 @@ function setupEditProfileModal() {
     }
 
     try {
-      const publicUrl = await uploadAvatarFileWithR2(file, token);
+      const publicUrl = await uploadAvatarFileWithR2(file, token, (pct) => {
+        if (avatarStatus) avatarStatus.textContent = `Subiendo foto... ${pct}%`;
+      });
       if (publicUrl) {
         if (avatarUrlInput) avatarUrlInput.value = publicUrl;
         updateAvatarPreview(publicUrl);
