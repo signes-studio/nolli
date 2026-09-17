@@ -4,7 +4,7 @@
 
 const { categoryLabel, categoryDescription, getCategorySlugs, isValidCategory } = require('./_lib/categories.js');
 const { detectServerLanguage, getLangPrefix, getSSRText, getHreflangTags, getOgLocaleTags, renderSiteFooter } = require('./_lib/i18n.js');
-const { slugify, extractCityName, isIgnoredArchitect, escapeHtml, getOptimizedUrl } = require('./_lib/slugs.js');
+const { slugify, extractCityName, isIgnoredArchitect, escapeHtml, getOptimizedUrl, cleanArchitectName } = require('./_lib/slugs.js');
 const { createRateLimiter } = require('./_lib/rateLimiter.js');
 const { getSupabaseConfig } = require('./_lib/supabaseEnv.js');
 
@@ -76,7 +76,7 @@ async function fetchCategoryData(slug, page) {
 
   allMetadata.forEach((b) => {
     if (b.arquitecto) {
-      const parts = b.arquitecto.split(/[;,]/).map((p) => p.trim()).filter(Boolean);
+      const parts = b.arquitecto.split(/[;,]/).map((p) => cleanArchitectName(p)).filter(Boolean);
       parts.forEach((name) => {
         if (!isIgnoredArchitect(name)) {
           const aSlug = slugify(name);

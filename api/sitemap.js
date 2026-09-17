@@ -6,7 +6,7 @@
 
 const { getCategorySlugs } = require('./_lib/categories.js');
 const { getMultilingualSitemapEntries, escapeXml } = require('./_lib/i18n.js');
-const { slugify, extractCityName, isIgnoredArchitect, ARCHITECT_ALIASES } = require('./_lib/slugs.js');
+const { slugify, extractCityName, isIgnoredArchitect, ARCHITECT_ALIASES, cleanArchitectName } = require('./_lib/slugs.js');
 const { createRateLimiter } = require('./_lib/rateLimiter.js');
 const { getSupabaseConfig } = require('./_lib/supabaseEnv.js');
 
@@ -80,7 +80,7 @@ async function fetchAllArchitectSlugs() {
 
     for (const b of data) {
       if (b.arquitecto) {
-        const names = b.arquitecto.split(/[;,]/).map((p) => p.trim()).filter(Boolean);
+        const names = b.arquitecto.split(/[;,]/).map((p) => cleanArchitectName(p)).filter(Boolean);
         for (const name of names) {
           if (!isIgnoredArchitect(name)) {
             const rawSlug = slugify(name);

@@ -33,6 +33,15 @@ export type BuildingImportance = 0 | 1 | 2 | 3;
 export type LngLatCoordinates = [longitude: number, latitude: number];
 
 /**
+ * Intervención arquitectónica en edificio histórico (año y arquitecto interviniente)
+ */
+export interface BuildingIntervention {
+  arquitecto: string;
+  año: string;
+  texto?: string;
+}
+
+/**
  * Entidad de obra enriquecida para el cliente web (utilizada en state.OBRAS y UI)
  */
 export interface Building {
@@ -45,6 +54,7 @@ export interface Building {
   enlace_url?: string | null;
   arquitecto: string | null;
   arquitectos?: string[] | string | null;
+  intervenciones?: BuildingIntervention[];
   año_construccion: number | string | null;
   importancia: BuildingImportance | number | null;
   categoria: BuildingCategory | string;
@@ -79,6 +89,7 @@ export interface RawBuildingRow {
   enlace_url: string | null;
   arquitecto: string | null;
   arquitectos?: string[] | string | null;
+  intervenciones?: BuildingIntervention[];
   año_construccion: number | string | null;
   importancia: number | null;
   categoria: string;

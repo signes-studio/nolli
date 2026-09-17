@@ -4,6 +4,7 @@
 
 import type {
   Building,
+  BuildingIntervention,
   BuildingCategory,
   BuildingAccessState,
   BuildingImportance,
@@ -204,11 +205,85 @@ export function esRolSuperadmin(role: string | null = state.userRole): boolean {
   return role === 'superadmin';
 }
 
-export function separarArquitectos(valor: string | null | undefined): string[] {
-  return String(valor || '')
+/**
+ * Limpia el nombre de un arquitecto eliminando cualquier referencia a año o intervención entre paréntesis.
+ * Ej: "Vetges tú (2008)" -> "Vetges tú"
+ * Ej: "Carles Dolç (intervención 2015)" -> "Carles Dolç"
+ */
+export function limpiarNombreArquitecto(nombre: string | null | undefined): string {
+  if (!nombre) return '';
+  return String(nombre)
+    .replace(/\s*\((?:intervenci[oó]n|reforma|ampliaci[oó]n|restauraci[oó]n|a[ñn]o)?\s*:?\s*\d{4}(?:\s*[-/–]\s*\d{4})?\s*\)/gi, '')
+    .trim();
+}
+
+/**
+ * Analiza un campo de texto de arquitectos separando nombres limpios y extrayendo
+ * intervenciones históricas detectadas mediante el año entre paréntesis.
+ * Ej: "Enrique Viedma, Vetges tú (2008)"
+ *  -> arquitectos: ["Enrique Viedma", "Vetges tú"]
+ *  -> intervenciones: [{ arquitecto: "Vetges tú", año: "2008", texto: "Intervención en 2008 por Vetges tú" }]
+ */
+export function parsearArquitectosEIntervenciones(valor: string | null | undefined): {
+  arquitectos: string[];
+  intervenciones: BuildingIntervention[];
+} {
+  const arquitectos: string[] = [];
+  const intervenciones: BuildingIntervention[] = [];
+
+  if (!valor) {
+    return { arquitectos, intervenciones };
+  }
+
+  const items = String(valor)
     .split(/[,;]/)
-    .map((nombre) => nombre.trim())
+    .map((item) => item.trim())
     .filter(Boolean);
+
+  for (const item of items) {
+    const match = item.match(/\((?:intervenci[oó]n|reforma|ampliaci[oó]n|restauraci[oó]n|a[ñn]o)?\s*:?\s*(\d{4}(?:\s*[-/–]\s*\d{4})?)\s*\)/i);
+    if (match && match[1]) {
+      const anio = match[1].trim();
+      const limpio = limpiarNombreArquitecto(item);
+      if (limpio) {
+        arquitectos.push(limpio);
+        intervenciones.push({
+          arquitecto: limpio,
+          año: anio,
+          texto: `Intervención en ${anio} por ${limpio}`,
+        });
+      }
+    } else {
+      arquitectos.push(item);
+    }
+  }
+
+  return { arquitectos, intervenciones };
+}
+
+/**
+ * Extrae la lista limpia de arquitectos (sin años ni paréntesis de intervención)
+ */
+export function separarArquitectos(valor: string | null | undefined): string[] {
+  return parsearArquitectosEIntervenciones(valor).arquitectos;
+}
+
+/**
+ * Extrae las intervenciones históricas de un edificio a partir de sus campos de autor
+ */
+export function extraerIntervenciones(valor: unknown): BuildingIntervention[] {
+  if (Array.isArray(valor)) {
+    const res: BuildingIntervention[] = [];
+    for (const item of valor) {
+      if (typeof item === 'string') {
+        res.push(...parsearArquitectosEIntervenciones(item).intervenciones);
+      } else if (item && typeof item === 'object' && 'arquitecto' in item && 'año' in item) {
+        res.push(item as BuildingIntervention);
+      }
+    }
+    return res;
+  }
+  return parsearArquitectosEIntervenciones(String(valor || '')).intervenciones;
 }
 
 export function normalizarCategoria(valor: unknown): BuildingCategory {
@@ -419,6 +494,15 @@ export function transformarEdificio(fila: Partial<Building> | null, index: numbe
   const idStr = String(fila.id ?? `obra-${index}`);
   const lon = Number(fila.longitud ?? (Array.isArray(fila.coordenadas) ? fila.coordenadas[0] : 0));
   const lat = Number(fila.latitud ?? (Array.isArray(fila.coordenadas) ? fila.coordenadas[1] : 0));
+
+  const parsed = parsearArquitectosEIntervenciones(fila.arquitecto);
+  const arquitectosArray = Array.isArray(fila.arquitectos)
+    ? fila.arquitectos.map(limpiarNombreArquitecto).filter(Boolean)
+    : parsed.arquitectos;
+  const intervenciones = parsed.intervenciones.length > 0
+    ? parsed.intervenciones
+    : (Array.isArray(fila.arquitectos) ? extraerIntervenciones(fila.arquitectos) : []);
+
   return {
     id: fila.id ?? idStr,
     featureId: idStr,
@@ -429,7 +513,8 @@ export function transformarEdificio(fila: Partial<Building> | null, index: numbe
     foto_fuente_url: fila.foto_fuente_url || null,
     enlace_url: fila.enlace_url || null,
     arquitecto: fila.arquitecto || '',
-    arquitectos: Array.isArray(fila.arquitectos) ? fila.arquitectos : separarArquitectos(fila.arquitecto),
+    arquitectos: arquitectosArray,
+    intervenciones,
     año_construccion: extraerAnioDefensivo(fila.año_construccion),
     importancia: normalizarImportancia(fila.importancia),
     categoria: normalizarCategoria(fila.categoria),

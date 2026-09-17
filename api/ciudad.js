@@ -4,7 +4,7 @@
 
 const { categoryLabel } = require('./_lib/categories.js');
 const { detectServerLanguage, getLangPrefix, getSSRText, getHreflangTags, getOgLocaleTags, renderSiteFooter } = require('./_lib/i18n.js');
-const { slugify, slugToRegex, extractCityName, extractCountry, isIgnoredArchitect, escapeHtml, getOptimizedUrl } = require('./_lib/slugs.js');
+const { slugify, slugToRegex, extractCityName, extractCountry, isIgnoredArchitect, escapeHtml, getOptimizedUrl, cleanArchitectName } = require('./_lib/slugs.js');
 const { createRateLimiter } = require('./_lib/rateLimiter.js');
 const { getSupabaseConfig } = require('./_lib/supabaseEnv.js');
 
@@ -92,7 +92,7 @@ async function fetchCityData(rawInput, page) {
 
     if (b.arquitecto) {
       // Un registro puede tener múltiples arquitectos separados por coma o punto y coma
-      const parts = b.arquitecto.split(/[;,]/).map((p) => p.trim()).filter(Boolean);
+      const parts = b.arquitecto.split(/[;,]/).map((p) => cleanArchitectName(p)).filter(Boolean);
       parts.forEach((name) => {
         if (!isIgnoredArchitect(name)) {
           const aSlug = slugify(name);

@@ -1,6 +1,6 @@
 const { categoryClass, categoryLabel } = require('./_lib/categories.js');
 const { detectServerLanguage, getLangPrefix, getSSRText, getHreflangTags, getOgLocaleTags, renderSiteFooter } = require('./_lib/i18n.js');
-const { slugify, isIgnoredArchitect, ARCHITECT_ALIASES } = require('./_lib/slugs.js');
+const { slugify, isIgnoredArchitect, ARCHITECT_ALIASES, cleanArchitectName, parseArchitectsAndInterventions } = require('./_lib/slugs.js');
 const { createRateLimiter } = require('./_lib/rateLimiter.js');
 const { getSupabaseConfig } = require('./_lib/supabaseEnv.js');
 
@@ -66,10 +66,14 @@ function renderBuildingPage(building, lang = 'es') {
   const isIndexable = lang === 'es';
 
   let architectHtml = '';
+  let interventionsHtml = '';
+  let interventionsSubtitleHtml = '';
   const validArchitects = [];
-  if (building.arquitecto) {
-    const rawNames = building.arquitecto.split(/[;,]/).map((p) => p.trim()).filter(Boolean);
-    const renderedParts = rawNames.map((name) => {
+
+  const { arquitectos: cleanArchitects, intervenciones } = parseArchitectsAndInterventions(building.arquitecto);
+
+  if (cleanArchitects.length > 0) {
+    const renderedParts = cleanArchitects.map((name) => {
       if (isIgnoredArchitect(name)) {
         return escapeHtml(name);
       }
@@ -84,8 +88,33 @@ function renderBuildingPage(building, lang = 'es') {
     architectHtml = renderedParts.join(', ');
   }
 
+  if (intervenciones.length > 0) {
+    interventionsHtml = intervenciones.map((inv) => {
+      const rawSlug = slugify(inv.arquitecto);
+      const slug = (ARCHITECT_ALIASES && ARCHITECT_ALIASES[rawSlug]) || rawSlug;
+      const link = (slug && !isIgnoredArchitect(slug))
+        ? `<a class="architect-link" href="${SITE_URL}${prefix}/arquitecto/${encodeURIComponent(slug)}">${escapeHtml(inv.arquitecto)}</a>`
+        : escapeHtml(inv.arquitecto);
+      return `Intervención en ${escapeHtml(inv.año)} por ${link}`;
+    }).join('<br>');
+
+    interventionsSubtitleHtml = intervenciones.map((inv) => {
+      const rawSlug = slugify(inv.arquitecto);
+      const slug = (ARCHITECT_ALIASES && ARCHITECT_ALIASES[rawSlug]) || rawSlug;
+      const link = (slug && !isIgnoredArchitect(slug))
+        ? `<a class="architect-link" href="${SITE_URL}${prefix}/arquitecto/${encodeURIComponent(slug)}">${escapeHtml(inv.arquitecto)}</a>`
+        : escapeHtml(inv.arquitecto);
+      return `Intervención en ${escapeHtml(inv.año)} por ${link}`;
+    }).join(' · ');
+  }
+
   const detailsList = [
-    building.arquitecto && { label: getSSRText('label_architecture', lang), value: architectHtml, isHtml: true },
+    cleanArchitects.length > 0 && { label: getSSRText('label_architecture', lang), value: architectHtml, isHtml: true },
+    intervenciones.length > 0 && {
+      label: intervenciones.length === 1 ? getSSRText('label_intervention', lang) : getSSRText('label_interventions', lang),
+      value: interventionsHtml,
+      isHtml: true,
+    },
     building.año_construccion && { label: getSSRText('label_year', lang), value: escapeHtml(building.año_construccion) },
     building.categoria && {
       label: getSSRText('label_category', lang),
@@ -428,6 +457,20 @@ function renderBuildingPage(building, lang = 'es') {
     .work-subtitle a:hover {
       text-decoration: underline;
     }
+    .work-intervention-subtitle {
+      margin: 4px 0 0 0;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--ink-dim);
+    }
+    .work-intervention-subtitle a {
+      color: var(--brand);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .work-intervention-subtitle a:hover {
+      text-decoration: underline;
+    }
     .work-layout {
       display: grid;
       grid-template-columns: minmax(0, 1.35fr) minmax(280px, 1fr);
@@ -644,7 +687,8 @@ function renderBuildingPage(building, lang = 'es') {
           ${escapeHtml(categoriaText)}
         </a>
         <h1 class="work-title">${escapeHtml(building.nombre_obra)}</h1>
-        ${building.arquitecto ? `<p class="work-subtitle">${architectHtml}</p>` : ''}
+        ${architectHtml ? `<p class="work-subtitle">${architectHtml}</p>` : ''}
+        ${interventionsSubtitleHtml ? `<p class="work-intervention-subtitle">${interventionsSubtitleHtml}</p>` : ''}
       </div>
 
       <div class="work-layout">

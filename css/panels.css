@@ -72,6 +72,55 @@
   text-decoration: underline;
   font-weight: 600;
 }
+.sheet-meta-primary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 3px;
+}
+.sheet-meta-interventions {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 5px;
+}
+.sheet-meta-intervention-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--fg-dim);
+}
+.sheet-meta-intervention-badge button,
+.tech-row-intervention button {
+  color: var(--accent);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  font-weight: 600;
+}
+.sheet-meta-intervention-badge button:hover,
+.tech-row-intervention button:hover {
+  opacity: 0.85;
+}
+.sheet-intervention-icon {
+  flex-shrink: 0;
+  opacity: 0.7;
+  color: var(--accent);
+}
+.tech-row-intervention {
+  align-items: flex-start;
+}
+.tech-row-intervention .tech-value {
+  text-align: right;
+  line-height: 1.45;
+}
+.intervention-entry {
+  display: inline-block;
+}
 .sheet-hero-actions {
   display: flex;
   gap: 6px;

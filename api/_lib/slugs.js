@@ -185,6 +185,50 @@ function getOptimizedUrl(fotoUrl, width = 600) {
   }
 }
 
+/**
+ * Limpia el nombre de un arquitecto eliminando años o intervenciones entre paréntesis.
+ * Ej: "Vetges tú (2008)" -> "Vetges tú"
+ */
+function cleanArchitectName(name) {
+  if (!name) return '';
+  return String(name)
+    .replace(/\s*\((?:intervenci[oó]n|reforma|ampliaci[oó]n|restauraci[oó]n|a[ñn]o)?\s*:?\s*\d{4}(?:\s*[-/–]\s*\d{4})?\s*\)/gi, '')
+    .trim();
+}
+
+/**
+ * Parsea un campo de texto de arquitectos separando nombres limpios y
+ * extrayendo intervenciones históricas con su año correspondiente.
+ * Ej: "Enrique Viedma, Vetges tú (2008)"
+ *  -> arquitectos: ["Enrique Viedma", "Vetges tú"]
+ *  -> intervenciones: [{ arquitecto: "Vetges tú", año: "2008", texto: "Intervención en 2008 por Vetges tú" }]
+ */
+function parseArchitectsAndInterventions(raw) {
+  const arquitectos = [];
+  const intervenciones = [];
+  if (!raw) return { arquitectos, intervenciones };
+
+  const parts = String(raw).split(/[;,]/).map((p) => p.trim()).filter(Boolean);
+  for (const part of parts) {
+    const match = part.match(/\((?:intervenci[oó]n|reforma|ampliaci[oó]n|restauraci[oó]n|a[ñn]o)?\s*:?\s*(\d{4}(?:\s*[-/–]\s*\d{4})?)\s*\)/i);
+    if (match) {
+      const year = match[1].trim();
+      const cleanName = cleanArchitectName(part);
+      if (cleanName) {
+        arquitectos.push(cleanName);
+        intervenciones.push({
+          arquitecto: cleanName,
+          año: year,
+          texto: `Intervención en ${year} por ${cleanName}`,
+        });
+      }
+    } else {
+      arquitectos.push(part);
+    }
+  }
+  return { arquitectos, intervenciones };
+}
+
 module.exports = {
   slugify,
   slugToRegex,
@@ -194,5 +238,7 @@ module.exports = {
   ARCHITECT_ALIASES,
   escapeHtml,
   getOptimizedUrl,
+  cleanArchitectName,
+  parseArchitectsAndInterventions,
 };
 

@@ -2,7 +2,7 @@
    SHEETUI.JS - Ficha tecnica y acciones personales de una obra
    ========================================================================= */
 
-import { state, separarArquitectos, normalizarCategoria, normalizarImportancia, formatCategoria, esRolAdmin, esRolEditor, guardarZonaPersonalLocal, CATEGORY_META } from './state.js';
+import { state, separarArquitectos, limpiarNombreArquitecto, extraerIntervenciones, normalizarCategoria, normalizarImportancia, formatCategoria, esRolAdmin, esRolEditor, guardarZonaPersonalLocal, CATEGORY_META } from './state.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { cerrarFiltros, generarFiltrosUI } from './filtersUI.js';
 import { fetchBuildings, saveBuildingStatus, reviewBuilding, deleteBuilding, updateBuilding, deletePrivateBuilding, createUserCollection, addUserCollectionItem, deleteUserCollectionItem, createUserPrivateLabel, deleteUserPrivateLabel, fetchBuildingVisitPhotos, createVisitPhoto, deleteVisitPhoto, updateVisitPhoto, uploadGenericPhotoWithR2, invalidateCatalogCache, fetchCurrentUser } from './api.js';
@@ -137,7 +137,14 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
 
   const coords = coordinates || selected.coordenadas || building.coordenadas || [0, 0];
 
-  const architectsList = Array.isArray(building.arquitectos) ? building.arquitectos : separarArquitectos(building.arquitecto);
+  const rawIntervenciones = Array.isArray(building.intervenciones) && building.intervenciones.length > 0
+    ? building.intervenciones
+    : extraerIntervenciones(building.arquitecto || building.arquitectos);
+
+  const architectsList = Array.isArray(building.arquitectos)
+    ? building.arquitectos.map(limpiarNombreArquitecto).filter(Boolean)
+    : separarArquitectos(building.arquitecto);
+
   const architects = architectsList
     .map((architect) => `<button type="button" class="architect-filter" data-arq="${escapeHtml(architect)}">${escapeHtml(architect)}</button>`).join(', ');
   const adminActive = esRolAdmin(state.userRole);
@@ -164,9 +171,21 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
   document.getElementById('sheet-body').innerHTML = `
     <!-- Subtítulo de autor y año -->
     <div class="sheet-meta-subtitle">
-      <span class="sheet-meta-architects">${architects}</span>
-      ${building.año_construccion ? `<span class="sheet-meta-year">· ${escapeHtml(building.año_construccion)}</span>` : ''}
-      ${building.ciudad ? `<span class="sheet-meta-city">· ${escapeHtml(building.ciudad)}</span>` : ''}
+      <div class="sheet-meta-primary">
+        <span class="sheet-meta-architects">${architects}</span>
+        ${building.año_construccion ? `<span class="sheet-meta-year">· ${escapeHtml(building.año_construccion)}</span>` : ''}
+        ${building.ciudad ? `<span class="sheet-meta-city">· ${escapeHtml(building.ciudad)}</span>` : ''}
+      </div>
+      ${rawIntervenciones.length > 0 ? `
+        <div class="sheet-meta-interventions">
+          ${rawIntervenciones.map((inv) => `
+            <div class="sheet-meta-intervention-badge">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sheet-intervention-icon"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+              <span>${t('sheet_intervention_in', { year: escapeHtml(inv.año) }) || `Intervención en ${escapeHtml(inv.año)}`} por <button type="button" class="architect-filter" data-arq="${escapeHtml(inv.arquitecto)}">${escapeHtml(inv.arquitecto)}</button></span>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
     </div>
 
     <!-- Botonera de Acción Rápida (Hero Actions) -->
@@ -214,6 +233,17 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
         <span class="tech-label">${t('sheet_architecture')}</span>
         <span class="tech-value tech-value-accent">${architects}</span>
       </div>
+
+      ${rawIntervenciones.length > 0 ? `
+        <div class="tech-row tech-row-intervention">
+          <span class="tech-label">${rawIntervenciones.length === 1 ? (t('sheet_intervention') || 'intervención') : (t('sheet_interventions') || 'intervenciones')}</span>
+          <span class="tech-value tech-value-accent">
+            ${rawIntervenciones.map((inv) => `
+              <span class="intervention-entry">${t('sheet_intervention_in', { year: escapeHtml(inv.año) }) || `Intervención en ${escapeHtml(inv.año)}`} por <button type="button" class="architect-filter" data-arq="${escapeHtml(inv.arquitecto)}">${escapeHtml(inv.arquitecto)}</button></span>
+            `).join('<br>')}
+          </span>
+        </div>
+      ` : ''}
 
       <div class="tech-grid-2col">
         <div class="tech-col">

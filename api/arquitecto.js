@@ -4,7 +4,7 @@
 
 const { categoryLabel } = require('./_lib/categories.js');
 const { detectServerLanguage, getLangPrefix, getSSRText, getHreflangTags, getOgLocaleTags, renderSiteFooter } = require('./_lib/i18n.js');
-const { slugify, slugToRegex, extractCityName, escapeHtml, getOptimizedUrl, isIgnoredArchitect, ARCHITECT_ALIASES } = require('./_lib/slugs.js');
+const { slugify, slugToRegex, extractCityName, escapeHtml, getOptimizedUrl, isIgnoredArchitect, ARCHITECT_ALIASES, cleanArchitectName } = require('./_lib/slugs.js');
 const { createRateLimiter } = require('./_lib/rateLimiter.js');
 const { getSupabaseConfig } = require('./_lib/supabaseEnv.js');
 
@@ -81,8 +81,12 @@ async function fetchArchitectData(rawInput, page) {
 
   allMetadata.forEach((b) => {
     if (b.arquitecto) {
-      const archName = b.arquitecto.trim();
-      nameCounts.set(archName, (nameCounts.get(archName) || 0) + 1);
+      const parts = b.arquitecto.split(/[;,]/).map((p) => cleanArchitectName(p)).filter(Boolean);
+      parts.forEach((archName) => {
+        if (slugify(archName) === cleanSlug || !nameCounts.size) {
+          nameCounts.set(archName, (nameCounts.get(archName) || 0) + 1);
+        }
+      });
     }
     if (b.place) {
       const city = extractCityName(b.place);
