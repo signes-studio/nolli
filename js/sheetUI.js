@@ -1243,7 +1243,8 @@ function initSheetPhotoUploadModal() {
         updatePreview(photoUrl);
         if (statusEl) {
           if (photoUrl.startsWith('data:')) {
-            statusEl.textContent = '✓ Imagen optimizada en WebP lista para guardar (modo respaldo)';
+            const reason = res?.fallbackReason ? ` [R2: ${res.fallbackReason}]` : '';
+            statusEl.textContent = `✓ Imagen optimizada en WebP lista para guardar (modo respaldo)${reason}`;
           } else {
             statusEl.textContent = '✓ Imagen subida a Cloudflare R2 correctamente';
           }

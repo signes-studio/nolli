@@ -19,7 +19,7 @@ export function uploadGenericPhotoWithR2(
   buildingId?: string | number | null,
   sessionToken?: string | null,
   onProgress?: ((percent: number, loaded: number, total: number) => void) | null
-): Promise<{ publicUrl: string; url: string; key: string }>;
+): Promise<{ publicUrl: string; url: string; key: string; fallbackReason?: string }>;
 
 export function uploadAvatarFileWithR2(
   file: File,

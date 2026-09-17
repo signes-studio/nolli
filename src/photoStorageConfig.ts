@@ -249,7 +249,7 @@ export async function uploadGenericPhotoWithR2(
   buildingId: string | number | null = null,
   sessionToken: string | null | undefined,
   onProgress: ProgressCallback | null = null
-): Promise<{ publicUrl: string; url: string; key: string }> {
+): Promise<{ publicUrl: string; url: string; key: string; fallbackReason?: string }> {
   if (!file) throw new Error('Archivo de imagen requerido.');
   if (!sessionToken) throw new Error('Debes iniciar sesión para subir fotografías.');
 
@@ -271,7 +271,7 @@ export async function uploadGenericPhotoWithR2(
     onProgress?.(50, 1, 2);
     const dataUrl = await compressImageToDataUrl(file, 1200, 0.82);
     onProgress?.(100, 2, 2);
-    return { publicUrl: dataUrl, url: dataUrl, key: `fallback-${Date.now()}` };
+    return { publicUrl: dataUrl, url: dataUrl, key: `fallback-${Date.now()}`, fallbackReason: msg };
   }
 
   const dataUrl = await compressImageToDataUrl(file, 1200, 0.82);

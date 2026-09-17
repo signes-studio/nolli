@@ -103,10 +103,33 @@ module.exports = async function handler(req, res) {
   // Configuración de cabeceras CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
 
   if (req.method === 'OPTIONS') {
     return res.status(204).end();
+  }
+
+  if (req.method === 'GET') {
+    const accountId = (process.env.R2_ACCOUNT_ID || '').trim().replace(/^https?:\/\//, '').replace(/\/$/, '');
+    const accessKeyId = (process.env.R2_ACCESS_KEY_ID || '').trim();
+    const secretAccessKey = (process.env.R2_SECRET_ACCESS_KEY || '').trim();
+    const bucketName = (process.env.R2_BUCKET_NAME || 'nolli-photos').trim();
+    const publicDomain = ((process.env.R2_PUBLIC_DOMAIN || 'https://photos.nollimap.app').trim()).replace(/\/$/, '');
+
+    return res.status(200).json({
+      status: 'ok',
+      hasAccountId: Boolean(accountId),
+      accountIdLength: accountId ? accountId.length : 0,
+      hasAccessKeyId: Boolean(accessKeyId),
+      accessKeyIdType: accessKeyId.startsWith('cfat_') ? 'warning_user_api_token_instead_of_s3_key' : 'standard',
+      accessKeyIdPrefix: accessKeyId ? accessKeyId.substring(0, 4) + '...' : null,
+      accessKeyIdLength: accessKeyId ? accessKeyId.length : 0,
+      hasSecretAccessKey: Boolean(secretAccessKey),
+      secretAccessKeyLength: secretAccessKey ? secretAccessKey.length : 0,
+      bucketName,
+      publicDomain,
+      allCredentialsConfigured: Boolean(accountId && accessKeyId && secretAccessKey),
+    });
   }
 
   if (req.method !== 'POST') {
