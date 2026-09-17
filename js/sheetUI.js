@@ -1305,6 +1305,8 @@ function initSheetPhotoUploadModal() {
         caption: caption,
         visibility: 'public',
         is_featured_in_catalog: Boolean(setAsMain),
+        setAsMain: Boolean(setAsMain),
+        author: author,
         metadata: { author }
       }, state.sessionToken);
 

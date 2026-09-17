@@ -36,3 +36,4 @@ WITH CHECK (
 -- 4. Asegurar permisos para authenticated
 GRANT INSERT, UPDATE, DELETE ON TABLE public.visit_photos TO authenticated;
 GRANT SELECT ON TABLE public.visit_photos TO anon, authenticated;
+

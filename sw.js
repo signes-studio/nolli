@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nolli-shell-0ff73856';
+const CACHE_NAME = 'nolli-shell-768ff440';
 const CATALOG_FRESHNESS_MINUTES = 60;
 const CATALOG_CACHE_TTL_MS = CATALOG_FRESHNESS_MINUTES * 60 * 1000;
 const APP_SHELL = [
@@ -97,7 +97,25 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (!event.request.url.startsWith(self.location.origin)) return;
-  const isStaticAsset = /^\/(?:css|js|icons|img|locales)\//.test(url.pathname) || /\.(?:webp|png|svg|ico|webmanifest|json)$/.test(url.pathname);
+
+  // Archivos de código (JS/CSS): Network-First para recibir siempre actualizaciones en caliente, con fallback a caché offline
+  const isCodeAsset = /^\/(?:css|js)\//.test(url.pathname);
+  if (isCodeAsset) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response && response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  const isStaticAsset = /^\/(?:icons|img|locales)\//.test(url.pathname) || /\.(?:webp|png|svg|ico|webmanifest|json)$/.test(url.pathname);
 
   if (isStaticAsset) {
     event.respondWith(
