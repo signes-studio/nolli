@@ -117,27 +117,17 @@ const ARCHITECT_ALIASES = {
   // Frank Gehry
   'gehry': 'frank-gehry',
 
-  // Norman Foster / Foster + Partners
-  'norman-foster': 'foster-partners',
+  // Foster + Partners
   'foster': 'foster-partners',
 
   // Zaha Hadid
-  'zaha-hadid': 'zha-zaha-hadid-architects',
-  'zaha': 'zha-zaha-hadid-architects',
+  'zaha': 'zaha-hadid',
 
   // Rem Koolhaas / OMA
-  'rem-koolhaas': 'oma-office-for-metropolitan-architecture',
-  'koolhaas': 'oma-office-for-metropolitan-architecture',
-
-  // Bjarke Ingels / BIG
-  'bjarke-ingels': 'big-bjarke-ingels-group',
+  'koolhaas': 'rem-koolhaas',
 
   // David Chipperfield
-  'david-chipperfield': 'david-chipperfield-architects',
-  'chipperfield': 'david-chipperfield-architects',
-
-  // Renzo Piano
-  'renzo-piano': 'renzo-piano-building-workshop',
+  'chipperfield': 'david-chipperfield',
 
   // Miguel Fisac Serna
   'miguel-fisac': 'miguel-fisac-serna',

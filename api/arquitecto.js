@@ -7,6 +7,13 @@ const { detectServerLanguage, getLangPrefix, getSSRText, getHreflangTags, getOgL
 const { slugify, slugToRegex, extractCityName, escapeHtml, getOptimizedUrl, isIgnoredArchitect, ARCHITECT_ALIASES, cleanArchitectName } = require('./_lib/slugs.js');
 const { createRateLimiter } = require('./_lib/rateLimiter.js');
 const { getSupabaseConfig } = require('./_lib/supabaseEnv.js');
+const {
+  getAssociatedSearchTerms,
+  getStudioMembers,
+  getMemberStudios,
+  isStudio,
+  getCanonicalArchitectName,
+} = require('./_lib/architectRelationships.js');
 
 const checkRateLimit = createRateLimiter({ windowMs: 60 * 1000, maxRequests: 60 });
 
@@ -17,7 +24,15 @@ async function fetchArchitectData(rawInput, page) {
   const { supabaseUrl, serviceRoleKey: supabaseKey } = getSupabaseConfig();
 
   const cleanSlug = slugify(rawInput);
-  const regex = slugToRegex(cleanSlug);
+  const terms = getAssociatedSearchTerms(rawInput);
+
+  let regex;
+  if (terms.length > 1) {
+    const regexParts = terms.map((t) => slugToRegex(slugify(t)).replace(/^\.\*/, '').replace(/\.\*$/, ''));
+    regex = `.*(?:${regexParts.join('|')}).*`;
+  } else {
+    regex = slugToRegex(cleanSlug);
+  }
 
   const start = (page - 1) * PAGE_SIZE;
   const end = start + PAGE_SIZE - 1;
@@ -73,17 +88,20 @@ async function fetchArchitectData(rawInput, page) {
 
   const allMetadata = metaRes.ok ? await metaRes.json() : buildings;
 
-  // Determinar nombre canónico del arquitecto más frecuente en los registros
+  // Determinar nombre canónico del arquitecto más frecuente en los registros o del registro
+  const regCanonical = getCanonicalArchitectName(rawInput);
   const nameCounts = new Map();
   const cityMap = new Map();
   const catMap = new Map();
   const years = [];
+  const validSlugs = new Set([cleanSlug, ...terms.map((t) => slugify(t))]);
 
   allMetadata.forEach((b) => {
     if (b.arquitecto) {
       const parts = b.arquitecto.split(/[;,]/).map((p) => cleanArchitectName(p)).filter(Boolean);
       parts.forEach((archName) => {
-        if (slugify(archName) === cleanSlug || !nameCounts.size) {
+        const archSlug = slugify(archName);
+        if (validSlugs.has(archSlug)) {
           nameCounts.set(archName, (nameCounts.get(archName) || 0) + 1);
         }
       });
@@ -110,8 +128,14 @@ async function fetchArchitectData(rawInput, page) {
 
   // Ordenar nombre canónico
   const sortedNames = [...nameCounts.entries()].sort((a, b) => b[1] - a[1]);
-  const canonicalName = sortedNames.length > 0 ? sortedNames[0][0] : rawInput;
+  const canonicalName = (regCanonical && regCanonical !== rawInput)
+    ? regCanonical
+    : (sortedNames.length > 0 ? sortedNames[0][0] : rawInput);
   const canonicalSlug = slugify(canonicalName) || cleanSlug;
+
+  const isStudioMode = isStudio(canonicalName);
+  const studioMembers = isStudioMode ? getStudioMembers(canonicalName) : [];
+  const memberStudios = !isStudioMode ? getMemberStudios(canonicalName) : [];
 
   // Top ciudades (hasta 12)
   const topCities = [...cityMap.entries()]
@@ -139,6 +163,9 @@ async function fetchArchitectData(rawInput, page) {
     topCities,
     categoriesList,
     activeYears,
+    isStudioMode,
+    studioMembers,
+    memberStudios,
   };
 }
 
@@ -151,6 +178,9 @@ function renderArchitectPage(data, page, lang = 'es') {
     topCities,
     categoriesList,
     activeYears,
+    isStudioMode,
+    studioMembers,
+    memberStudios,
   } = data;
 
   const prefix = getLangPrefix(lang);
@@ -211,10 +241,33 @@ function renderArchitectPage(data, page, lang = 'es') {
     name: getSSRText('architect_page_name', lang, { nombre: canonicalName }),
     description,
     url: canonicalUrl,
-    about: {
-      '@type': 'Person',
-      name: canonicalName,
-    },
+    about: isStudioMode
+      ? {
+          '@type': 'Organization',
+          name: canonicalName,
+          ...(studioMembers && studioMembers.length > 0
+            ? {
+                member: studioMembers.map((m) => ({
+                  '@type': 'Person',
+                  name: m.name,
+                  url: `${SITE_URL}${prefix}/arquitecto/${encodeURIComponent(m.slug)}`,
+                })),
+              }
+            : {}),
+        }
+      : {
+          '@type': 'Person',
+          name: canonicalName,
+          ...(memberStudios && memberStudios.length > 0
+            ? {
+                memberOf: memberStudios.map((s) => ({
+                  '@type': 'Organization',
+                  name: s.studio,
+                  url: `${SITE_URL}${prefix}/arquitecto/${encodeURIComponent(s.slug)}`,
+                })),
+              }
+            : {}),
+        },
     mainEntity: {
       '@type': 'ItemList',
       numberOfItems: buildings.length,
@@ -277,6 +330,31 @@ function renderArchitectPage(data, page, lang = 'es') {
 
   const schemaJson = JSON.stringify(jsonLd).replace(/</g, '\\u003c');
   const breadcrumbJson = JSON.stringify(breadcrumbLd).replace(/</g, '\\u003c');
+
+  let relationsHtml = '';
+  if (isStudioMode && studioMembers && studioMembers.length > 0) {
+    const label = lang === 'en' ? 'Studio members / founded by:' : (lang === 'ca' ? 'Estudi format per:' : 'Estudio formado por:');
+    relationsHtml = `
+      <div class="hub-relations">
+        <span class="hub-relations-label">${escapeHtml(label)}</span>
+        <div class="hub-relation-pills">
+          ${studioMembers.map((m) => `<a href="${SITE_URL}${prefix}/arquitecto/${encodeURIComponent(m.slug)}" class="relation-chip">${escapeHtml(m.name)}</a>`).join('')}
+        </div>
+      </div>
+    `;
+  } else if (!isStudioMode && memberStudios && memberStudios.length > 0) {
+    const label = lang === 'en' ? 'Studio / Collective:' : (lang === 'ca' ? 'Estudi / Col·lectiu:' : 'Estudio / Colectivo:');
+    relationsHtml = `
+      <div class="hub-relations">
+        <span class="hub-relations-label">${escapeHtml(label)}</span>
+        <div class="hub-relation-pills">
+          ${memberStudios.map((s) => `<a href="${SITE_URL}${prefix}/arquitecto/${encodeURIComponent(s.slug)}" class="relation-chip">${escapeHtml(s.studio)}</a>`).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  const studioKicker = lang === 'en' ? 'ARCHITECTURE STUDIO' : (lang === 'ca' ? "ESTUDI D'ARQUITECTURA" : 'ESTUDIO DE ARQUITECTURA');
 
   return `<!doctype html>
 <html lang="${lang}">
@@ -508,6 +586,45 @@ function renderArchitectPage(data, page, lang = 'es') {
       transform: translateY(-2px);
       box-shadow: 0 5px 16px rgba(232, 78, 27, 0.4);
       color: #fff;
+    }
+    .hub-relations {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+      margin-bottom: 8px;
+    }
+    .hub-relations-label {
+      font-family: var(--font-display);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+    }
+    .hub-relation-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .relation-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink);
+      text-decoration: none;
+      transition: all .15s ease;
+    }
+    .relation-chip:hover {
+      border-color: var(--brand);
+      color: var(--brand);
+      transform: translateY(-1px);
     }
     .cross-links-section {
       margin-top: var(--space-4);
@@ -778,8 +895,9 @@ function renderArchitectPage(data, page, lang = 'es') {
   </nav>
 
   <section class="hub-header">
-    <span class="hub-badge">${getSSRText('breadcrumb_architects', lang)}</span>
+    <span class="hub-badge">${isStudioMode ? studioKicker : getSSRText('breadcrumb_architects', lang)}</span>
     <h1 class="hub-title">${escapeHtml(canonicalName)}</h1>
+    ${relationsHtml}
     <p class="hub-subtitle">
       ${totalCount} ${getSSRText('cataloged_works', lang)}${activeYears ? ` · ${activeYears}` : ''} · ${getSSRText('page_of', lang, { page, totalPages })}
     </p>

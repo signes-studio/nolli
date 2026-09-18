@@ -4,6 +4,7 @@
 
 import { state, normalizarCategoria, separarArquitectos, CATEGORY_META, escapeHtml } from './state.js';
 import { actualizarFuenteMapa } from './mapData.js';
+import { getAssociatedSearchTerms } from './architectRelationships.js';
 import type { Building } from './types/index.js';
 
 interface LngLatBoundsAcc {
@@ -46,13 +47,16 @@ export function obraCumpleFiltroIndividual(obra: Building | null | undefined, ch
     return catObra === catFiltro;
   }
 
-  // 2. Filtro por Arquitecto
+  // 2. Filtro por Arquitecto con herencia direccional
   if (chip.type === 'architect' && chip.value) {
-    const valNorm = normalizarTexto(chip.value);
-    if (!valNorm) return true;
+    const terms = getAssociatedSearchTerms(chip.value);
+    const normTerms = terms.map((t) => normalizarTexto(t)).filter(Boolean);
+    if (normTerms.length === 0) return true;
     const arq1 = normalizarTexto(obra.arquitecto || '');
     const arqs = (Array.isArray(obra.arquitectos) ? obra.arquitectos : separarArquitectos(obra.arquitecto || '')).map((a) => normalizarTexto(a));
-    return arq1.includes(valNorm) || arqs.some((a) => a.includes(valNorm) || valNorm.includes(a));
+    return normTerms.some((term) => (
+      arq1.includes(term) || arqs.some((a) => a.includes(term) || term.includes(a))
+    ));
   }
 
   // 3. Filtro por Ciudad / Ubicación

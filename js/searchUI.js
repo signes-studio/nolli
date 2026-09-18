@@ -6,6 +6,7 @@ import { renderInChunks } from './renderUtils.js';
 import { addFilterChip } from './filterEngine.js';
 import { t } from './i18n.js';
 import { renderObraCard } from './workCard.js';
+import { getAssociatedSearchTerms, getStudioMembers, getMemberStudios, isStudio } from './architectRelationships.js';
 
 const searchPanel = document.getElementById('search-panel');
 const btnSearch = document.getElementById('btn-search');
@@ -285,7 +286,19 @@ async function ejecutarBusquedaGlobal() {
       if (!mapaArquitectos.has(arq)) {
         mapaArquitectos.set(arq, []);
       }
-      mapaArquitectos.set(arq, [...mapaArquitectos.get(arq), obra]);
+      mapaArquitectos.get(arq).push(obra);
+
+      // Si este arquitecto es un estudio registrado, asociar también a sus miembros
+      const members = getStudioMembers(arq);
+      members.forEach((m) => {
+        if (!mapaArquitectos.has(m.name)) {
+          mapaArquitectos.set(m.name, []);
+        }
+        const list = mapaArquitectos.get(m.name);
+        if (!list.includes(obra)) {
+          list.push(obra);
+        }
+      });
     });
   });
 
@@ -314,12 +327,27 @@ async function ejecutarBusquedaGlobal() {
     return;
   }
 
-  searchResults.innerHTML = arquitectosList.map(({ nombre, count }) => `
-    <button type="button" class="nearby-item architect-result-item" data-architect-select="${escapeHtml(nombre)}">
-      <span class="nearby-name">${escapeHtml(nombre)}</span>
-      <span class="nearby-meta">${count} ${count === 1 ? t('architect_single_work_label').toLowerCase() : t('architect_multiple_works_label').toLowerCase()}</span>
-    </button>
-  `).join('');
+  searchResults.innerHTML = arquitectosList.map(({ nombre, count }) => {
+    const studioMode = isStudio(nombre);
+    let hint = '';
+    if (studioMode) {
+      const members = getStudioMembers(nombre);
+      if (members.length) {
+        hint = ` · Estudio (${members.map((m) => m.name).join(', ')})`;
+      }
+    } else {
+      const studios = getMemberStudios(nombre);
+      if (studios.length) {
+        hint = ` · Estudio: ${studios.map((s) => s.studio).join(', ')}`;
+      }
+    }
+    return `
+      <button type="button" class="nearby-item architect-result-item" data-architect-select="${escapeHtml(nombre)}">
+        <span class="nearby-name">${escapeHtml(nombre)}</span>
+        <span class="nearby-meta">${count} ${count === 1 ? t('architect_single_work_label').toLowerCase() : t('architect_multiple_works_label').toLowerCase()}${escapeHtml(hint)}</span>
+      </button>
+    `;
+  }).join('');
 }
 
 function normalizarTexto(value) {
@@ -440,11 +468,15 @@ document.addEventListener('click', (event) => {
 
 async function mostrarEdificiosDeArquitecto(nombreArquitecto) {
   const obrasEncontradas = await obtenerObrasGlobales();
-  const arqQuery = normalizarTexto(nombreArquitecto);
+  const terms = getAssociatedSearchTerms(nombreArquitecto);
+  const normTerms = terms.map((t) => normalizarTexto(t)).filter(Boolean);
 
   const obrasDelArquitecto = obrasEncontradas.filter((obra) => {
     const arqs = obra.arquitectos?.length ? obra.arquitectos : separarArquitectos(obra.arquitecto);
-    return arqs.some((arq) => normalizarTexto(arq) === arqQuery);
+    return arqs.some((arq) => {
+      const aNorm = normalizarTexto(arq);
+      return normTerms.some((term) => aNorm === term || aNorm.includes(term) || term.includes(aNorm));
+    });
   });
 
   currentSearchResults = obrasDelArquitecto;

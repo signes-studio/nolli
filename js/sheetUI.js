@@ -12,6 +12,7 @@ import { showNeoToast } from './renderUtils.js';
 import { addFilterChip } from './filterEngine.js';
 import { t, getUrlPrefix } from './i18n.js';
 import { renderObraCard } from './workCard.js';
+import { getAssociatedSearchTerms, getStudioMembers, getMemberStudios, isStudio, getCanonicalArchitectName } from './architectRelationships.js';
 
 const sheet = document.getElementById('sheet');
 let organizerMode = 'collections';
@@ -34,14 +35,58 @@ export function isValidHttpsUrl(url) {
 async function abrirFichaArquitecto(nombreArquitecto) {
   const modal = document.getElementById('modal-architect');
   const works = document.getElementById('architect-profile-works');
-  document.getElementById('architect-profile-name').textContent = nombreArquitecto;
+  const kickerEl = modal.querySelector('.architect-profile-kicker');
+  const relationsEl = document.getElementById('architect-profile-relations');
+
+  const canonicalName = getCanonicalArchitectName(nombreArquitecto) || nombreArquitecto;
+  const studioMode = isStudio(canonicalName);
+
+  document.getElementById('architect-profile-name').textContent = canonicalName;
+  if (kickerEl) {
+    kickerEl.textContent = studioMode ? t('architect_kicker_studio', null, 'ESTUDIO DE ARQUITECTURA') : t('architect_title', null, 'ARQUITECTO');
+  }
+
+  // Renderizar relaciones arquitecto-estudio
+  if (relationsEl) {
+    if (studioMode) {
+      const members = getStudioMembers(canonicalName);
+      if (members.length > 0) {
+        relationsEl.innerHTML = `
+          <div class="architect-relations-bar">
+            <span class="architect-relations-label">${t('architect_studio_members_label', null, 'Estudio formado por:')}</span>
+            <div class="architect-relation-pills">
+              ${members.map((m) => `<button type="button" class="architect-relation-pill" data-open-architect="${escapeHtml(m.name)}">${escapeHtml(m.name)}</button>`).join('')}
+            </div>
+          </div>
+        `;
+      } else {
+        relationsEl.innerHTML = '';
+      }
+    } else {
+      const studios = getMemberStudios(canonicalName);
+      if (studios.length > 0) {
+        relationsEl.innerHTML = `
+          <div class="architect-relations-bar">
+            <span class="architect-relations-label">${t('architect_member_studios_label', null, 'Estudio / Colectivo:')}</span>
+            <div class="architect-relation-pills">
+              ${studios.map((s) => `<button type="button" class="architect-relation-pill" data-open-architect="${escapeHtml(s.studio)}">${escapeHtml(s.studio)}</button>`).join('')}
+            </div>
+          </div>
+        `;
+      } else {
+        relationsEl.innerHTML = '';
+      }
+    }
+  }
+
   document.getElementById('architect-profile-count').textContent = t('architect_loading');
   works.innerHTML = `<p class="architect-profile-empty">${t('architect_querying_db')}</p>`;
   modal.classList.add('open');
 
   let obras;
   try {
-    const filas = await fetchBuildings({ architect: nombreArquitecto, includeAllImportance: true });
+    const terms = getAssociatedSearchTerms(nombreArquitecto);
+    const filas = await fetchBuildings({ architectTerms: terms, architect: canonicalName, includeAllImportance: true });
     obras = (filas || []).map((fila, index) => ({
       id: fila.id,
       featureId: String(fila.id ?? `obra-${index}`),
@@ -1020,6 +1065,8 @@ document.addEventListener('click', (event) => {
   if (target.closest('[data-save-personal]')) { saveNote(target.closest('[data-save-personal]')); return; }
   const architect = target.closest('.architect-filter');
   if (architect) { abrirFichaArquitecto(architect.dataset.arq); return; }
+  const relationPill = target.closest('[data-open-architect]');
+  if (relationPill) { abrirFichaArquitecto(relationPill.dataset.openArchitect); return; }
   const btnFilterArq = target.closest('#btn-filter-architect-on-map');
   if (btnFilterArq) {
     const arqName = document.getElementById('architect-profile-name')?.textContent?.trim();
