@@ -421,12 +421,16 @@
       "destination": "/admin"
     },
     {
+      "source": "/panel-admin",
+      "destination": "/admin"
+    },
+    {
       "source": "/en/panel-admin",
-      "destination": "/panel-admin"
+      "destination": "/admin"
     },
     {
       "source": "/ca/panel-admin",
-      "destination": "/panel-admin"
+      "destination": "/admin"
     },
     {
       "source": "/en",

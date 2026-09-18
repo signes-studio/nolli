@@ -49,7 +49,7 @@
     <div class="admin-header-inner">
       <div class="admin-brand-group">
         <a href="./" class="admin-logo">nolli<span>.</span></a>
-        <span class="admin-tagline">CONSOLA DE ADMINISTRACIÓN // RADAR</span>
+        <span class="admin-tagline">CONSOLA MAESTRA // CURADURÍA & MACROHERRAMIENTAS</span>
       </div>
 
       <div class="admin-header-actions">
@@ -61,11 +61,6 @@
         <button type="button" id="btn-theme-toggle" class="admin-header-btn" title="Alternar Modo Oscuro / Claro" aria-label="Alternar tema">
           <i data-lucide="sun-moon" width="14" height="14"></i>
         </button>
-
-        <a href="./panel-admin.html" class="admin-header-btn" style="background: var(--admin-accent); color: #fff; border-color: var(--admin-accent);" title="Macroherramientas de Gestión" aria-label="Macroherramientas de Gestión">
-          <i data-lucide="zap" width="14" height="14"></i>
-          <span class="admin-header-btn-text">MACROHERRAMIENTAS ⚡</span>
-        </a>
 
         <a href="./itinerarios.html" class="admin-header-btn" style="border-color: var(--admin-accent); color: var(--admin-accent);" title="Gestionar Itinerarios" aria-label="Gestionar Itinerarios">
           <i data-lucide="compass" width="14" height="14"></i>
@@ -114,33 +109,142 @@
        ========================================================================= -->
   <main id="admin-main-app" class="admin-container admin-main hidden">
 
-    <!-- Menú de Navegación Curatorial de Texto Puro -->
+    <!-- Menú de Navegación Curatorial y Macroherramientas -->
     <nav class="admin-curatorial-nav" aria-label="Secciones de administración">
-      <button type="button" class="admin-nav-tab active" data-tab-target="pending">
-        <span>01. OBRAS & CATÁLOGO</span>
+      <button type="button" class="admin-nav-tab active" data-tab-target="dashboard">
+        <i data-lucide="layout-dashboard" width="13" height="13"></i>
+        <span>01. DASHBOARD</span>
+      </button>
+
+      <button type="button" class="admin-nav-tab" data-tab-target="pending">
+        <i data-lucide="building-2" width="13" height="13"></i>
+        <span>02. OBRAS & CATÁLOGO</span>
         <span id="badge-count-pending" class="admin-tab-count">0</span>
       </button>
 
+      <button type="button" class="admin-nav-tab" data-tab-target="relationships">
+        <i data-lucide="network" width="13" height="13"></i>
+        <span>03. ESTUDIOS & RELACIONES</span>
+        <span id="badge-count-relationships" class="admin-tab-count">0</span>
+      </button>
+
       <button type="button" class="admin-nav-tab" data-tab-target="architects">
-        <span>02. ARQUITECTOS</span>
+        <i data-lucide="users" width="13" height="13"></i>
+        <span>04. ARQUITECTOS</span>
         <span id="badge-count-architects" class="admin-tab-count">0</span>
       </button>
 
+      <button type="button" class="admin-nav-tab" data-tab-target="normalizer">
+        <i data-lucide="wand-2" width="13" height="13"></i>
+        <span>05. NORMALIZADOR & LOTES</span>
+      </button>
+
       <button type="button" class="admin-nav-tab" data-tab-target="reports">
-        <span>03. REPORTES DE ERROR</span>
+        <i data-lucide="flag" width="13" height="13"></i>
+        <span>06. REPORTES DE ERROR</span>
         <span id="badge-count-reports" class="admin-tab-count">0</span>
       </button>
 
       <button type="button" class="admin-nav-tab" data-tab-target="users">
-        <span>04. DIRECTORIO DE USUARIOS</span>
+        <i data-lucide="user-cog" width="13" height="13"></i>
+        <span>07. USUARIOS & ROLES</span>
         <span id="badge-count-users" class="admin-tab-count">0</span>
+      </button>
+
+      <button type="button" class="admin-nav-tab" data-tab-target="system">
+        <i data-lucide="server" width="13" height="13"></i>
+        <span>08. SISTEMA & CACHÉ</span>
       </button>
     </nav>
 
     <!-- =======================================================================
-         VISTA 01: OBRAS PENDIENTES & CATÁLOGO
+         VISTA 01: MACRO-DASHBOARD (KPIS Y SALUD DEL SISTEMA)
          ======================================================================= -->
-    <section id="view-pending" class="admin-tab-view">
+    <section id="view-dashboard" class="admin-tab-view">
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">TOTAL OBRAS</div>
+          <div id="kpi-total-buildings" class="kpi-value">0</div>
+          <div class="kpi-subtext">Catálogo maestro registrado</div>
+        </div>
+
+        <div class="kpi-card kpi-success">
+          <div class="kpi-label">OBRAS PUBLICADAS</div>
+          <div id="kpi-published-buildings" class="kpi-value">0</div>
+          <div class="kpi-subtext">Visibles en el mapa público</div>
+        </div>
+
+        <div class="kpi-card kpi-warning">
+          <div class="kpi-label">PENDIENTES DE REVISIÓN</div>
+          <div id="kpi-pending-buildings" class="kpi-value">0</div>
+          <div class="kpi-subtext">Sugeridas por la comunidad</div>
+        </div>
+
+        <div class="kpi-card kpi-danger">
+          <div class="kpi-label">SIN FOTOGRAFÍA (R2)</div>
+          <div id="kpi-no-photo" class="kpi-value">0</div>
+          <div class="kpi-subtext">Requieren foto en Cloudflare</div>
+        </div>
+
+        <div class="kpi-card kpi-danger">
+          <div class="kpi-label">SIN ARQUITECTO</div>
+          <div id="kpi-no-arq" class="kpi-value">0</div>
+          <div class="kpi-subtext">Autor no especificado</div>
+        </div>
+
+        <div class="kpi-card kpi-blue">
+          <div class="kpi-label">CON INTERVENCIONES</div>
+          <div id="kpi-with-interventions" class="kpi-value">0</div>
+          <div class="kpi-subtext">Detectadas con año entre paréntesis</div>
+        </div>
+
+        <div class="kpi-card kpi-blue">
+          <div class="kpi-label">ESTUDIOS & COLECTIVOS</div>
+          <div id="kpi-studios-count" class="kpi-value">0</div>
+          <div class="kpi-subtext">Reglas de herencia direccional</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">USUARIOS REGISTRADOS</div>
+          <div id="kpi-users-count" class="kpi-value">0</div>
+          <div class="kpi-subtext">Directorio con control de roles</div>
+        </div>
+      </div>
+
+      <div class="module-card">
+        <div class="module-card-head">
+          <div>
+            <h3 class="module-title">
+              <i data-lucide="zap" width="18" height="18" style="color:var(--admin-accent);"></i>
+              ACCESOS DIRECTOS A MACROHERRAMIENTAS
+            </h3>
+            <p class="module-subtitle">Consola de operaciones consolidadas para la curaduría arquitectónica y salud técnica de Nolli.</p>
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:14px;">
+          <div style="background:var(--admin-bg-raised); padding:16px; border-radius:4px; border:1px solid var(--admin-border-light);">
+            <h4 style="font-family:'League Spartan', sans-serif; font-size:13px; font-weight:800; margin-bottom:6px;">REGLAS DE ESTUDIOS</h4>
+            <p style="font-size:12px; color:var(--admin-fg-dim); margin-bottom:12px;">Relaciona estudios y miembros (VAM10, Gradolí & Sanz, Foster...). Verifica la herencia en tiempo real.</p>
+            <button type="button" class="admin-btn admin-btn-approve" onclick="document.querySelector('[data-tab-target=\'relationships\']').click()">IR A ESTUDIOS & RELACIONES</button>
+          </div>
+          <div style="background:var(--admin-bg-raised); padding:16px; border-radius:4px; border:1px solid var(--admin-border-light);">
+            <h4 style="font-family:'League Spartan', sans-serif; font-size:13px; font-weight:800; margin-bottom:6px;">NORMALIZADOR & LOTES</h4>
+            <p style="font-size:12px; color:var(--admin-fg-dim); margin-bottom:12px;">Detecta intervenciones históricas, fusiona autores erróneos y audita obras anómalas en bloque.</p>
+            <button type="button" class="admin-btn" onclick="document.querySelector('[data-tab-target=\'normalizer\']').click()">IR AL NORMALIZADOR</button>
+          </div>
+          <div style="background:var(--admin-bg-raised); padding:16px; border-radius:4px; border:1px solid var(--admin-border-light);">
+            <h4 style="font-family:'League Spartan', sans-serif; font-size:13px; font-weight:800; margin-bottom:6px;">GESTIÓN DE CACHÉ CDN</h4>
+            <p style="font-size:12px; color:var(--admin-fg-dim); margin-bottom:12px;">Purga instantáneamente la caché del borde de Vercel para propagar cambios de inmediato.</p>
+            <button type="button" class="admin-btn" onclick="document.querySelector('[data-tab-target=\'system\']').click()">IR A SISTEMA & CACHÉ</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         VISTA 02: OBRAS PENDIENTES & CATÁLOGO
+         ======================================================================= -->
+    <section id="view-pending" class="admin-tab-view hidden">
       <div class="admin-control-bar">
         <div class="admin-search-wrapper">
           <i data-lucide="search" width="14" height="14" style="color:var(--admin-fg-dim);"></i>
@@ -173,7 +277,91 @@
     </section>
 
     <!-- =======================================================================
-         VISTA 02: DIRECTORIO DE ARQUITECTOS & DESGLOSE DE OBRAS
+         VISTA 03: ESTUDIOS Y RELACIONES ARQUITECTÓNICAS & SIMULADOR
+         ======================================================================= -->
+    <section id="view-relationships" class="admin-tab-view hidden">
+      <div class="split-layout">
+        <!-- Columna Izquierda: Tabla de Estudios / Colectivos -->
+        <div class="module-card">
+          <div class="module-card-head">
+            <div>
+              <h3 class="module-title">
+                <i data-lucide="network" width="18" height="18" style="color:var(--admin-accent);"></i>
+                ESTUDIOS Y COLECTIVOS ARQUITECTÓNICOS
+              </h3>
+              <p class="module-subtitle">Herencia direccional: un miembro hereda las obras de su estudio; el estudio no las del autor independiente.</p>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <button type="button" id="btn-export-relationships" class="admin-btn" title="Copiar código TypeScript para el backend y frontend">
+                <i data-lucide="code" width="13" height="13"></i>
+                <span>EXPORTAR CÓDIGO</span>
+              </button>
+              <button type="button" id="btn-new-relationship" class="admin-btn admin-btn-approve">
+                <i data-lucide="plus" width="13" height="13"></i>
+                <span>NUEVA RELACIÓN</span>
+              </button>
+            </div>
+          </div>
+
+          <div style="margin-bottom:14px;">
+            <input type="text" id="search-relationships" class="admin-input" placeholder="🔍 Filtrar estudios, integrantes o alias...">
+          </div>
+
+          <div class="data-table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Estudio / Colectivo</th>
+                  <th>Miembros Integrantes</th>
+                  <th>Alias / Variantes</th>
+                  <th style="width:100px; text-align:right;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="relationships-table-body">
+                <!-- Inyectado dinámicamente -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Columna Derecha: Simulador de Herencia Direccional en Vivo -->
+        <aside class="simulator-box">
+          <div class="simulator-title">
+            <i data-lucide="play-circle" width="16" height="16"></i>
+            <span>SIMULADOR EN VIVO</span>
+          </div>
+          <p style="font-size:11.5px; color:var(--admin-fg-dim); margin-bottom:12px;">
+            Comprueba cómo se resuelve la búsqueda y qué obras del catálogo se atribuirán según las reglas activas:
+          </p>
+
+          <input type="text" id="sim-architect-input" class="simulator-input" placeholder="Ej: Miguel del Rey, VAM10, Foster...">
+
+          <div class="simulator-results">
+            <div class="sim-field">
+              <div class="sim-label">Naturaleza de la entidad:</div>
+              <div id="sim-result-type" class="sim-val">—</div>
+            </div>
+
+            <div class="sim-field">
+              <div class="sim-label">Términos de búsqueda asociados:</div>
+              <div id="sim-result-terms" class="sim-terms-list">
+                <span style="color:var(--admin-fg-dim)">Introduce un nombre arriba para simular.</span>
+              </div>
+            </div>
+
+            <div class="sim-field" style="margin-top:10px;">
+              <div class="sim-label">Impacto en catálogo real:</div>
+              <div id="sim-result-count" class="sim-val" style="color:var(--admin-accent);">0 obras</div>
+            </div>
+
+            <div id="sim-result-preview" class="sim-works-preview"></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         VISTA 04: DIRECTORIO DE ARQUITECTOS & DESGLOSE DE OBRAS
          ======================================================================= -->
     <section id="view-architects" class="admin-tab-view hidden">
       <div class="admin-control-bar">
@@ -214,7 +402,120 @@
     </section>
 
     <!-- =======================================================================
-         VISTA 03: REPORTES DE ERROR E INCIDENCIAS
+         VISTA 05: NORMALIZADOR, INTERVENCIONES & AUDITORÍA EN LOTE
+         ======================================================================= -->
+    <section id="view-normalizer" class="admin-tab-view hidden">
+      <!-- Auditoría de Intervenciones -->
+      <div class="module-card">
+        <div class="module-card-head">
+          <div>
+            <h3 class="module-title">
+              <i data-lucide="clock" width="18" height="18" style="color:var(--admin-accent);"></i>
+              INTERVENCIONES HISTÓRICAS DETECTADAS
+            </h3>
+            <p class="module-subtitle">
+              Obras donde el campo arquitecto incluye intervenciones tipo <code>Enrique Viedma, Vetges tú (2008)</code>.
+              El motor aísla el autor de la intervención y asigna la obra sin ensuciar la autoría principal.
+            </p>
+          </div>
+        </div>
+
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Obra</th>
+                <th>Ubicación</th>
+                <th>Autoría Cruda (DB)</th>
+                <th>Autores Limpios (Filtro)</th>
+                <th>Intervención Extraída</th>
+              </tr>
+            </thead>
+            <tbody id="interventions-table-body">
+              <!-- Inyectado dinámicamente -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Fusión de Autor en Lote -->
+      <div class="module-card">
+        <div class="module-card-head">
+          <div>
+            <h3 class="module-title">
+              <i data-lucide="merge" width="18" height="18" style="color:var(--admin-accent);"></i>
+              FUSIÓN Y SUSTITUCIÓN DE AUTOR EN LOTE
+            </h3>
+            <p class="module-subtitle">Reemplaza erratas o variantes históricas en todas las obras del catálogo directamente en la base de datos.</p>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr auto; gap:12px; align-items:flex-end;">
+          <div class="admin-form-group" style="margin-bottom:0;">
+            <label class="admin-form-label" for="merge-old-author">Autor original o errata a buscar</label>
+            <input type="text" id="merge-old-author" class="admin-input" placeholder="Ej: Vetges Tu (sin acento)">
+          </div>
+          <div class="admin-form-group" style="margin-bottom:0;">
+            <label class="admin-form-label" for="merge-new-author">Nombre normalizado de destino</label>
+            <input type="text" id="merge-new-author" class="admin-input" placeholder="Ej: Vetges tú">
+          </div>
+          <button type="button" id="btn-execute-author-merge" class="admin-btn admin-btn-approve" style="height:38px;">
+            <i data-lucide="replace" width="14" height="14"></i>
+            <span>APLICAR EN LOTE</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Auditoría Global de Catálogo & Operaciones en Lote -->
+      <div class="module-card">
+        <div class="module-card-head">
+          <div>
+            <h3 class="module-title">
+              <i data-lucide="shield-alert" width="18" height="18" style="color:var(--admin-accent);"></i>
+              AUDITORÍA GLOBAL DE CATÁLOGO & ACCIONES MASIVAS
+            </h3>
+            <p class="module-subtitle">Detecta anomalías de catálogo (sin foto, sin coordenadas, sin autor) y ejecuta revisiones en lote.</p>
+          </div>
+          <div id="integrity-count-badge" class="badge-tag badge-tag-warning">0 obras encontradas</div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:260px 1fr; gap:12px; margin-bottom:14px;">
+          <select id="integrity-audit-filter" class="admin-filter-select">
+            <option value="all">Todas las obras</option>
+            <option value="pending">Pendientes de revisión</option>
+            <option value="no-photo">Obras sin fotografía</option>
+            <option value="no-arq">Obras sin autor asignado</option>
+            <option value="no-coords">Obras sin coordenadas válidas</option>
+            <option value="no-r2">Fotos no alojadas en Cloudflare R2</option>
+          </select>
+          <input type="text" id="integrity-search-input" class="admin-input" placeholder="🔍 Buscar por nombre de obra, arquitecto, ciudad o ID...">
+        </div>
+
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width:36px; text-align:center;">
+                  <input type="checkbox" id="check-select-all-works" title="Seleccionar todas las visibles">
+                </th>
+                <th>Obra</th>
+                <th>Arquitecto</th>
+                <th>Ciudad</th>
+                <th>Estado</th>
+                <th>Fotografía</th>
+                <th style="width:60px; text-align:right;">Ficha</th>
+              </tr>
+            </thead>
+            <tbody id="integrity-table-body">
+              <!-- Inyectado dinámicamente -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         VISTA 06: REPORTES DE ERROR E INCIDENCIAS
          ======================================================================= -->
     <section id="view-reports" class="admin-tab-view hidden">
       <div class="admin-control-bar">
@@ -276,6 +577,40 @@
             <!-- Renderizado dinámico desde admin.js -->
           </tbody>
         </table>
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         VISTA 08: SISTEMA & CACHÉS
+         ======================================================================= -->
+    <section id="view-system" class="admin-tab-view hidden">
+      <div class="module-card">
+        <div class="module-card-head">
+          <div>
+            <h3 class="module-title">
+              <i data-lucide="hard-drive" width="18" height="18" style="color:var(--admin-accent);"></i>
+              GESTIÓN DE CACHÉ GLOBAL & SISTEMA
+            </h3>
+            <p class="module-subtitle">Operaciones de revalidación forzada en el borde CDN de Vercel y purga de almacenamiento local.</p>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px;">
+          <button type="button" id="btn-trigger-revalidate" class="admin-btn admin-btn-approve" style="padding:10px 18px;">
+            <i data-lucide="refresh-cw" width="14" height="14"></i>
+            <span>PURGAR CACHÉ CDN (/api/revalidate-catalog)</span>
+          </button>
+
+          <button type="button" id="btn-clear-local-caches" class="admin-btn" style="padding:10px 18px;">
+            <i data-lucide="trash-2" width="14" height="14"></i>
+            <span>PURGAR CACHÉ LOCAL E INDEXEDDB</span>
+          </button>
+        </div>
+
+        <div>
+          <label class="admin-form-label">Consola de Eventos del Sistema en Tiempo Real</label>
+          <pre id="system-log-console" style="background:var(--admin-bg-raised); border:1px solid var(--admin-border-light); border-radius:4px; padding:14px; font-family:'Inter', monospace; font-size:11.5px; max-height:260px; overflow-y:auto; line-height:1.6; color:var(--admin-fg); white-space:pre-wrap;">[Sistema listo. Consola de eventos iniciada.]</pre>
+        </div>
       </div>
     </section>
 
@@ -408,6 +743,73 @@
         <button type="button" id="btn-admin-confirm-cancel" class="admin-btn">CANCELAR</button>
         <button type="button" id="btn-admin-confirm-ok" class="admin-btn admin-btn-danger">CONFIRMAR</button>
       </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       BARRA FLOTANTE DE ACCIONES EN LOTE
+       ========================================================================= -->
+  <aside id="batch-action-bar" class="batch-bar" aria-label="Acciones en lote">
+    <span id="batch-selected-count" class="batch-count-label">0 obras seleccionadas</span>
+    <button type="button" id="btn-batch-publish" class="btn-batch btn-batch-approve">
+      <i data-lucide="check" width="13" height="13"></i>
+      <span>PUBLICAR SELECCIONADAS</span>
+    </button>
+    <button type="button" id="btn-batch-reject" class="btn-batch btn-batch-reject">
+      <i data-lucide="x" width="13" height="13"></i>
+      <span>RECHAZAR SELECCIONADAS</span>
+    </button>
+    <button type="button" id="btn-batch-clear" class="btn-batch btn-batch-tool">
+      <span>DESMARCAR</span>
+    </button>
+  </aside>
+
+  <!-- =========================================================================
+       MODAL: CREAR / EDITAR RELACIÓN DE ESTUDIO
+       ========================================================================= -->
+  <div id="modal-relationship" class="admin-modal-overlay" aria-hidden="true">
+    <div class="admin-modal-box" style="max-width: 600px;">
+      <div class="admin-modal-head">
+        <h3 id="modal-rel-title" class="font-display" style="font-size: 18px; margin: 0;">NUEVO ESTUDIO / COLECTIVO</h3>
+        <button type="button" id="btn-close-modal-rel" class="admin-btn" aria-label="Cerrar modal">
+          <i data-lucide="x" width="16" height="16"></i>
+        </button>
+      </div>
+
+      <form id="form-relationship" onsubmit="event.preventDefault();" style="margin-top: 16px;">
+        <div style="margin-bottom: 16px;">
+          <label class="admin-form-label" for="rel-studio-name">Nombre Oficial del Estudio o Colectivo</label>
+          <input type="text" id="rel-studio-name" class="admin-input" placeholder="Ej: VAM10, Gradolí & Sanz, Foster and Partners..." required>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <label class="admin-form-label">Miembros Integrantes (Arquitectos Individuales)</label>
+          <div id="rel-members-chips" class="chips-input-container">
+            <!-- Chips inyectados dinámicamente -->
+          </div>
+          <p style="font-size:11px; color:var(--admin-fg-dim); margin-top:4px;">
+            Escribe un nombre y pulsa Enter o coma. Los miembros heredarán automáticamente las obras del estudio en su ficha.
+          </p>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <label class="admin-form-label">Alias, Siglas o Variantes Históricas</label>
+          <div id="rel-aliases-chips" class="chips-input-container">
+            <!-- Chips inyectados dinámicamente -->
+          </div>
+          <p style="font-size:11px; color:var(--admin-fg-dim); margin-top:4px;">
+            Nombres alternativos o erratas habituales en el catálogo que deben resolver a este estudio.
+          </p>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; border-top: 1.5px solid var(--admin-border-light); padding-top: 16px;">
+          <button type="button" id="btn-cancel-rel" class="admin-btn">CANCELAR</button>
+          <button type="button" id="btn-save-rel" class="admin-btn admin-btn-approve">
+            <i data-lucide="save" width="14" height="14"></i>
+            <span>GUARDAR RELACIÓN</span>
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 

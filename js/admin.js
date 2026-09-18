@@ -18,11 +18,25 @@ import {
   updateBuilding,
   updateUserPresence,
   updateUserRole,
-  getBuildingsCatalog
+  getBuildingsCatalog,
+  invalidateCatalogCache
 } from './api.js';
-import { escapeHtml, normalizarCategoria, formatCategoria, separarArquitectos, formatearImportancia } from './state.js';
+import { 
+  escapeHtml, 
+  normalizarCategoria, 
+  formatCategoria, 
+  separarArquitectos, 
+  limpiarNombreArquitecto,
+  extraerIntervenciones,
+  formatearImportancia 
+} from './state.js';
+import { 
+  STUDIO_RELATIONSHIPS as SEED_RELATIONSHIPS, 
+  normalizeArchitectKey 
+} from './architectRelationships.js';
 
 const SESSION_KEY = 'nolli_admin_session_token';
+const LOCAL_RELATIONSHIPS_KEY = 'nolli_admin_custom_relationships_v1';
 
 let visibleAdminConsoleArqsCount = 60;
 
@@ -34,17 +48,20 @@ function cleanDiacritics(str) {
     .trim();
 }
 
-// Estado local de la consola de administración
+// Estado local unificado de la consola de administración
 const adminConsoleState = {
   token: null,
   user: null,
   role: null,
-  activeTab: 'pending', // 'pending' | 'architects' | 'reports' | 'users'
+  activeTab: 'dashboard', // 'dashboard' | 'pending' | 'relationships' | 'architects' | 'normalizer' | 'reports' | 'users' | 'system'
   pendingWorks: [],
   allWorks: [],
   reports: [],
   users: [],
+  relationships: [],
+  selectedWorkIds: new Set(),
   editingWorkId: null,
+  editingRelationshipId: null,
   expandedArchitects: new Set(),
 };
 
@@ -221,8 +238,14 @@ function setupTabNavigation() {
       const activeView = document.getElementById(`view-${target}`);
       if (activeView) activeView.classList.remove('hidden');
 
-      if (target === 'pending') renderModulePending();
+      if (target === 'dashboard') renderDashboardKPIs();
+      else if (target === 'pending') renderModulePending();
+      else if (target === 'relationships') renderRelationshipsTable();
       else if (target === 'architects') renderModuleArchitects();
+      else if (target === 'normalizer') {
+        renderNormalizerAudit();
+        renderIntegrityAudit();
+      }
       else if (target === 'reports') renderModuleReports();
       else if (target === 'users') renderModuleUsers();
 
@@ -235,13 +258,18 @@ function setupTabNavigation() {
 // 3. CARGA GLOBAL DE DATOS
 // =========================================================================
 async function loadDashboardData() {
+  loadRelationships();
   await Promise.all([
     loadWorksData(),
     loadReportsData(),
     loadUsersData(),
   ]);
   updateBadges();
-  renderModulePending();
+  renderDashboardKPIs();
+  renderRelationshipsTable();
+  initSimulator();
+  renderNormalizerAudit();
+  renderIntegrityAudit();
 }
 
 async function loadWorksData() {
@@ -295,11 +323,13 @@ async function loadUsersData() {
 
 function updateBadges() {
   const badgePending = document.getElementById('badge-count-pending');
+  const badgeRelationships = document.getElementById('badge-count-relationships');
   const badgeArchitects = document.getElementById('badge-count-architects');
   const badgeReports = document.getElementById('badge-count-reports');
   const badgeUsers = document.getElementById('badge-count-users');
 
   if (badgePending) badgePending.textContent = adminConsoleState.pendingWorks.length;
+  if (badgeRelationships) badgeRelationships.textContent = adminConsoleState.relationships.length;
 
   const architectsSet = new Set();
   (adminConsoleState.allWorks || []).forEach((w) => {
@@ -1044,6 +1074,8 @@ function setupSearchAndFilters() {
       await handleDeleteReport(id);
     }
   });
+
+  setupMacroToolsEvents();
 }
 
 // =========================================================================
@@ -1309,3 +1341,679 @@ function openEditModal(id) {
     if (window.lucide) window.lucide.createIcons({ context: modal });
   }
 }
+
+// =========================================================================
+// 8. MACROHERRAMIENTAS: DASHBOARD, RELACIONES, NORMALIZADOR Y SISTEMA
+// =========================================================================
+
+function setupMacroToolsEvents() {
+  // Búsqueda de relaciones
+  document.getElementById('search-relationships')?.addEventListener('input', (e) => {
+    renderRelationshipsTable(e.target.value);
+  });
+  document.getElementById('btn-new-relationship')?.addEventListener('click', () => {
+    openRelationshipModal(null);
+  });
+  document.getElementById('btn-export-relationships')?.addEventListener('click', exportRelationshipsCode);
+  document.getElementById('btn-close-modal-rel')?.addEventListener('click', closeRelationshipModal);
+  document.getElementById('btn-cancel-rel')?.addEventListener('click', closeRelationshipModal);
+  document.getElementById('btn-save-rel')?.addEventListener('click', saveRelationshipModal);
+
+  // Delegación de clics generales para relaciones y lotes
+  document.addEventListener('click', (e) => {
+    const simBtn = e.target.closest('[data-sim-test]');
+    if (simBtn) {
+      const studio = simBtn.dataset.simTest;
+      const simInput = document.getElementById('sim-architect-input');
+      if (simInput) {
+        simInput.value = studio;
+        simInput.dispatchEvent(new Event('input'));
+        simInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
+
+    const editBtn = e.target.closest('[data-rel-edit]');
+    if (editBtn) {
+      openRelationshipModal(editBtn.dataset.relEdit);
+      return;
+    }
+
+    const delBtn = e.target.closest('[data-rel-delete]');
+    if (delBtn) {
+      const relId = delBtn.dataset.relDelete;
+      const rel = adminConsoleState.relationships.find((r) => r.id === relId);
+      if (rel && confirm(`¿Eliminar la relación de "${rel.studio}"?`)) {
+        adminConsoleState.relationships = adminConsoleState.relationships.filter((r) => r.id !== relId);
+        saveRelationships();
+        renderRelationshipsTable();
+        renderDashboardKPIs();
+        updateBadges();
+        showAdminToast(`Relación "${rel.studio}" eliminada.`, 'info');
+      }
+      return;
+    }
+
+    const check = e.target.closest('.work-select-check');
+    if (check) {
+      const id = String(check.dataset.workId);
+      if (check.checked) {
+        adminConsoleState.selectedWorkIds.add(id);
+      } else {
+        adminConsoleState.selectedWorkIds.delete(id);
+      }
+      updateBatchBar();
+      return;
+    }
+
+    const workEditBtn = e.target.closest('[data-work-edit]');
+    if (workEditBtn) {
+      const id = workEditBtn.dataset.workEdit;
+      openEditModal(id);
+      return;
+    }
+  });
+
+  // Normalizador: Fusión de autor en lote
+  document.getElementById('btn-execute-author-merge')?.addEventListener('click', executeBatchAuthorMerge);
+
+  // Auditoría: filtro y buscador
+  const auditFilterSelect = document.getElementById('integrity-audit-filter');
+  const auditSearchInput = document.getElementById('integrity-search-input');
+  const applyAuditFilter = () => {
+    renderIntegrityAudit(auditFilterSelect?.value || 'all', auditSearchInput?.value || '');
+  };
+  auditFilterSelect?.addEventListener('change', applyAuditFilter);
+  auditSearchInput?.addEventListener('input', applyAuditFilter);
+
+  // Seleccionar todas las obras visibles
+  document.getElementById('check-select-all-works')?.addEventListener('change', (e) => {
+    const isChecked = e.target.checked;
+    document.querySelectorAll('.work-select-check').forEach((chk) => {
+      chk.checked = isChecked;
+      const id = String(chk.dataset.workId);
+      if (isChecked) adminConsoleState.selectedWorkIds.add(id);
+      else adminConsoleState.selectedWorkIds.delete(id);
+    });
+    updateBatchBar();
+  });
+
+  // Acciones en lote
+  document.getElementById('btn-batch-publish')?.addEventListener('click', () => executeBatchStatus('publicada'));
+  document.getElementById('btn-batch-reject')?.addEventListener('click', () => executeBatchStatus('rechazada'));
+  document.getElementById('btn-batch-clear')?.addEventListener('click', () => {
+    adminConsoleState.selectedWorkIds.clear();
+    document.querySelectorAll('.work-select-check').forEach((c) => { c.checked = false; });
+    const master = document.getElementById('check-select-all-works');
+    if (master) master.checked = false;
+    updateBatchBar();
+  });
+
+  // Controles de sistema
+  document.getElementById('btn-trigger-revalidate')?.addEventListener('click', triggerRevalidateCatalog);
+  document.getElementById('btn-clear-local-caches')?.addEventListener('click', clearLocalCaches);
+}
+
+function loadRelationships() {
+  try {
+    const custom = localStorage.getItem(LOCAL_RELATIONSHIPS_KEY);
+    if (custom) {
+      adminConsoleState.relationships = JSON.parse(custom);
+      return;
+    }
+  } catch (e) {
+    console.warn('Error leyendo relaciones de localStorage:', e);
+  }
+  adminConsoleState.relationships = JSON.parse(JSON.stringify(SEED_RELATIONSHIPS));
+}
+
+function saveRelationships() {
+  try {
+    localStorage.setItem(LOCAL_RELATIONSHIPS_KEY, JSON.stringify(adminConsoleState.relationships));
+  } catch (e) {
+    console.warn('Error guardando relaciones:', e);
+  }
+}
+
+function renderDashboardKPIs() {
+  const total = adminConsoleState.allWorks.length;
+  const published = adminConsoleState.allWorks.filter((b) => (b.estado_revision || 'publicada') === 'publicada').length;
+  const pending = adminConsoleState.pendingWorks.length;
+  const noPhoto = adminConsoleState.allWorks.filter((b) => !b.foto_url || !String(b.foto_url).trim()).length;
+  const noArq = adminConsoleState.allWorks.filter((b) => !b.arquitecto || !String(b.arquitecto).trim()).length;
+  const withInterventions = adminConsoleState.allWorks.filter((b) => /\(\d{4}(?:-\d{4})?\)/.test(b.arquitecto || '')).length;
+
+  const kpiTotal = document.getElementById('kpi-total-buildings');
+  const kpiPub = document.getElementById('kpi-published-buildings');
+  const kpiPend = document.getElementById('kpi-pending-buildings');
+  const kpiNoPhoto = document.getElementById('kpi-no-photo');
+  const kpiNoArq = document.getElementById('kpi-no-arq');
+  const kpiInterv = document.getElementById('kpi-with-interventions');
+  const kpiStud = document.getElementById('kpi-studios-count');
+  const kpiUsers = document.getElementById('kpi-users-count');
+
+  if (kpiTotal) kpiTotal.textContent = total.toLocaleString();
+  if (kpiPub) kpiPub.textContent = published.toLocaleString();
+  if (kpiPend) kpiPend.textContent = pending.toLocaleString();
+  if (kpiNoPhoto) kpiNoPhoto.textContent = noPhoto.toLocaleString();
+  if (kpiNoArq) kpiNoArq.textContent = noArq.toLocaleString();
+  if (kpiInterv) kpiInterv.textContent = withInterventions.toLocaleString();
+  if (kpiStud) kpiStud.textContent = adminConsoleState.relationships.length.toString();
+  if (kpiUsers) kpiUsers.textContent = adminConsoleState.users.length.toString();
+}
+
+function renderRelationshipsTable(filterText = '') {
+  const tbody = document.getElementById('relationships-table-body');
+  if (!tbody) return;
+
+  const q = normalizeArchitectKey(filterText);
+  const filtered = adminConsoleState.relationships.filter((rel) => {
+    if (!q) return true;
+    if (normalizeArchitectKey(rel.studio).includes(q)) return true;
+    if (rel.members.some((m) => normalizeArchitectKey(m).includes(q))) return true;
+    if (rel.aliases?.some((a) => normalizeArchitectKey(a).includes(q))) return true;
+    return false;
+  });
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:30px; color:var(--admin-fg-dim);">No se encontraron estudios o colectivos que coincidan con "${escapeHtml(filterText)}".</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map((rel) => {
+    const membersHtml = rel.members.map((m) => `<span class="pill-sm">${escapeHtml(m)}</span>`).join(' ');
+    const aliasesHtml = (rel.aliases || []).map((a) => `<span class="pill-sm" style="opacity:0.8;">${escapeHtml(a)}</span>`).join(' ') || '<em style="color:var(--admin-fg-dim); font-size:11px;">Sin alias</em>';
+
+    return `
+      <tr>
+        <td style="font-weight:800; font-family:'League Spartan', sans-serif; font-size:13px;">
+          ${escapeHtml(rel.studio)}
+          <div style="font-family:'Inter', sans-serif; font-size:10px; font-weight:400; color:var(--admin-fg-dim);">${escapeHtml(rel.id)}</div>
+        </td>
+        <td><div class="pills-group">${membersHtml}</div></td>
+        <td><div class="pills-group">${aliasesHtml}</div></td>
+        <td style="text-align:right;">
+          <button type="button" class="btn-action-icon" data-sim-test="${escapeHtml(rel.studio)}" title="Probar en simulador">
+            <i data-lucide="play" width="13" height="13"></i>
+          </button>
+          <button type="button" class="btn-action-icon" data-rel-edit="${escapeHtml(rel.id)}" title="Editar relación">
+            <i data-lucide="edit-2" width="13" height="13"></i>
+          </button>
+          <button type="button" class="btn-action-icon btn-action-icon-danger" data-rel-delete="${escapeHtml(rel.id)}" title="Eliminar relación">
+            <i data-lucide="trash-2" width="13" height="13"></i>
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  if (window.lucide) window.lucide.createIcons({ context: tbody });
+}
+
+function initSimulator() {
+  const input = document.getElementById('sim-architect-input');
+  if (!input || input.dataset.bound) return;
+  input.dataset.bound = 'true';
+
+  const runSim = () => {
+    const rawVal = input.value.trim();
+    const typeBadge = document.getElementById('sim-result-type');
+    const termsContainer = document.getElementById('sim-result-terms');
+    const countEl = document.getElementById('sim-result-count');
+    const previewEl = document.getElementById('sim-result-preview');
+
+    if (!rawVal) {
+      if (typeBadge) typeBadge.textContent = '—';
+      if (termsContainer) termsContainer.innerHTML = '<span style="color:var(--admin-fg-dim)">Introduce un nombre arriba para simular.</span>';
+      if (countEl) countEl.textContent = '0 obras';
+      if (previewEl) previewEl.innerHTML = '';
+      return;
+    }
+
+    const terms = resolveAssociatedTermsWithState(rawVal);
+    const isStud = isStudioInState(rawVal);
+    const isMemb = isMemberInState(rawVal);
+
+    if (typeBadge) {
+      if (isStud) {
+        typeBadge.textContent = 'ESTUDIO DE ARQUITECTURA';
+        typeBadge.className = 'badge-tag badge-tag-success';
+      } else if (isMemb) {
+        typeBadge.textContent = 'MIEMBRO DE ESTUDIO';
+        typeBadge.className = 'badge-tag badge-tag-blue';
+      } else {
+        typeBadge.textContent = 'AUTOR INDEPENDIENTE';
+        typeBadge.className = 'badge-tag badge-tag-warning';
+      }
+    }
+
+    if (termsContainer) {
+      termsContainer.innerHTML = terms.map((t) => `<span class="sim-term-pill">${escapeHtml(t)}</span>`).join('');
+    }
+
+    const normTerms = terms.map((t) => normalizeArchitectKey(t)).filter(Boolean);
+    const matchingWorks = adminConsoleState.allWorks.filter((b) => {
+      const arqRaw = String(b.arquitectos ? (Array.isArray(b.arquitectos) ? b.arquitectos.join(' ') : b.arquitectos) : (b.arquitecto || ''));
+      const arqNorm = normalizeArchitectKey(arqRaw);
+      return normTerms.some((term) => arqNorm.includes(term));
+    });
+
+    if (countEl) {
+      countEl.textContent = `${matchingWorks.length} obra${matchingWorks.length === 1 ? '' : 's'} coincidente${matchingWorks.length === 1 ? '' : 's'}`;
+    }
+
+    if (previewEl) {
+      if (matchingWorks.length === 0) {
+        previewEl.innerHTML = '<div style="color:var(--admin-fg-dim); font-size:11px; padding:6px 0;">No se encontraron obras coincidentes en el catálogo local.</div>';
+      } else {
+        previewEl.innerHTML = matchingWorks.slice(0, 15).map((w) => `
+          <div class="sim-work-item">
+            <span style="font-weight:600;">${escapeHtml(w.nombre_obra || 'Sin título')}</span>
+            <span style="color:var(--admin-fg-dim); font-size:10.5px;">${escapeHtml(w.arquitecto || '—')}</span>
+          </div>
+        `).join('') + (matchingWorks.length > 15 ? `<div style="font-size:10px; text-align:center; padding:4px; color:var(--admin-accent);">+ ${matchingWorks.length - 15} obras más</div>` : '');
+      }
+    }
+  };
+
+  input.addEventListener('input', runSim);
+}
+
+function resolveAssociatedTermsWithState(input) {
+  if (!input) return [];
+  const key = normalizeArchitectKey(input);
+
+  const studio = adminConsoleState.relationships.find((r) => {
+    return r.id === key || normalizeArchitectKey(r.studio) === key || r.aliases?.some((a) => normalizeArchitectKey(a) === key);
+  });
+
+  if (studio) {
+    const terms = new Set();
+    terms.add(studio.studio);
+    studio.aliases?.forEach((a) => terms.add(a));
+    return [...terms];
+  }
+
+  const memberStudios = adminConsoleState.relationships.filter((r) => {
+    return r.members.some((m) => {
+      if (normalizeArchitectKey(m) === key) return true;
+      const aliases = r.memberAliases?.[m];
+      return aliases?.some((a) => normalizeArchitectKey(a) === key);
+    });
+  });
+
+  if (memberStudios.length > 0) {
+    const terms = new Set();
+    terms.add(input);
+    memberStudios.forEach((s) => {
+      s.members.forEach((m) => {
+        if (normalizeArchitectKey(m) === key || s.memberAliases?.[m]?.some((a) => normalizeArchitectKey(a) === key)) {
+          terms.add(m);
+          s.memberAliases?.[m]?.forEach((a) => terms.add(a));
+        }
+      });
+      terms.add(s.studio);
+      s.aliases?.forEach((a) => terms.add(a));
+    });
+    return [...terms];
+  }
+
+  return [input];
+}
+
+function isStudioInState(input) {
+  const key = normalizeArchitectKey(input);
+  return adminConsoleState.relationships.some((r) => r.id === key || normalizeArchitectKey(r.studio) === key || r.aliases?.some((a) => normalizeArchitectKey(a) === key));
+}
+
+function isMemberInState(input) {
+  const key = normalizeArchitectKey(input);
+  return adminConsoleState.relationships.some((r) => r.members.some((m) => normalizeArchitectKey(m) === key));
+}
+
+function openRelationshipModal(relationshipId = null) {
+  adminConsoleState.editingRelationshipId = relationshipId;
+  const modal = document.getElementById('modal-relationship');
+  const titleEl = document.getElementById('modal-rel-title');
+  const studioInput = document.getElementById('rel-studio-name');
+  const membersWrap = document.getElementById('rel-members-chips');
+  const aliasesWrap = document.getElementById('rel-aliases-chips');
+
+  if (relationshipId) {
+    const rel = adminConsoleState.relationships.find((r) => r.id === relationshipId);
+    if (!rel) return;
+    if (titleEl) titleEl.textContent = `EDITAR // ${rel.studio.toUpperCase()}`;
+    if (studioInput) studioInput.value = rel.studio;
+    renderChipsList(membersWrap, rel.members || []);
+    renderChipsList(aliasesWrap, rel.aliases || []);
+  } else {
+    if (titleEl) titleEl.textContent = 'NUEVO ESTUDIO / COLECTIVO';
+    if (studioInput) studioInput.value = '';
+    renderChipsList(membersWrap, []);
+    renderChipsList(aliasesWrap, []);
+  }
+
+  modal?.classList.add('open');
+}
+
+function renderChipsList(container, items = []) {
+  if (!container) return;
+  container.innerHTML = items.map((item) => `
+    <span class="input-chip" data-chip-val="${escapeHtml(item)}">
+      ${escapeHtml(item)}
+      <span class="chip-remove" title="Eliminar">×</span>
+    </span>
+  `).join('') + `<input type="text" class="chip-add-input" placeholder="+ Escribir y pulsar Enter..." style="border:none; outline:none; background:transparent; font-size:12px; min-width:140px; padding:4px; color:var(--admin-fg);">`;
+
+  const addInput = container.querySelector('.chip-add-input');
+  addInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      const val = addInput.value.trim().replace(/,$/, '');
+      if (val) {
+        const current = getChipsFromContainer(container);
+        if (!current.includes(val)) {
+          current.push(val);
+          renderChipsList(container, current);
+          container.querySelector('.chip-add-input')?.focus();
+        }
+      }
+    }
+  });
+
+  container.querySelectorAll('.chip-remove').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const chip = btn.closest('.input-chip');
+      const val = chip?.dataset.chipVal;
+      const current = getChipsFromContainer(container).filter((item) => item !== val);
+      renderChipsList(container, current);
+    });
+  });
+}
+
+function getChipsFromContainer(container) {
+  if (!container) return [];
+  return Array.from(container.querySelectorAll('.input-chip')).map((chip) => chip.dataset.chipVal);
+}
+
+function saveRelationshipModal() {
+  const studioName = document.getElementById('rel-studio-name')?.value.trim();
+  const members = getChipsFromContainer(document.getElementById('rel-members-chips'));
+  const aliases = getChipsFromContainer(document.getElementById('rel-aliases-chips'));
+
+  if (!studioName) {
+    showAdminToast('Debes indicar el nombre oficial del estudio.', 'error');
+    return;
+  }
+
+  const id = normalizeArchitectKey(studioName);
+
+  if (adminConsoleState.editingRelationshipId) {
+    const idx = adminConsoleState.relationships.findIndex((r) => r.id === adminConsoleState.editingRelationshipId);
+    if (idx !== -1) {
+      adminConsoleState.relationships[idx] = {
+        ...adminConsoleState.relationships[idx],
+        studio: studioName,
+        members,
+        aliases,
+      };
+    }
+  } else {
+    if (adminConsoleState.relationships.some((r) => r.id === id)) {
+      showAdminToast('Ya existe un estudio con ese identificador.', 'error');
+      return;
+    }
+    adminConsoleState.relationships.push({
+      id,
+      studio: studioName,
+      members,
+      aliases,
+    });
+  }
+
+  saveRelationships();
+  renderRelationshipsTable();
+  renderDashboardKPIs();
+  updateBadges();
+  closeRelationshipModal();
+  showAdminToast(`Relación "${studioName}" guardada en el proyecto.`, 'success');
+
+  const simInput = document.getElementById('sim-architect-input');
+  if (simInput && simInput.value) {
+    simInput.dispatchEvent(new Event('input'));
+  }
+}
+
+function closeRelationshipModal() {
+  document.getElementById('modal-relationship')?.classList.remove('open');
+  adminConsoleState.editingRelationshipId = null;
+}
+
+function exportRelationshipsCode() {
+  const tsCode = `export const STUDIO_RELATIONSHIPS: StudioRelationship[] = ${JSON.stringify(adminConsoleState.relationships, null, 2)};`;
+  navigator.clipboard.writeText(tsCode).then(() => {
+    showAdminToast('Código TypeScript copiado al portapapeles.', 'success');
+  }).catch(() => {
+    showAdminToast('No se pudo copiar automáticamente.', 'error');
+  });
+}
+
+function renderNormalizerAudit() {
+  const tbody = document.getElementById('interventions-table-body');
+  if (!tbody) return;
+
+  const withInterventions = adminConsoleState.allWorks.filter((b) => /\(\d{4}(?:-\d{4})?\)/.test(b.arquitecto || ''));
+
+  if (withInterventions.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--admin-fg-dim);">No se detectaron obras con menciones de intervenciones (año entre paréntesis).</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = withInterventions.map((b) => {
+    const rawArq = b.arquitecto || '';
+    const cleanNames = separarArquitectos(rawArq).join(', ');
+    const extracted = extraerIntervenciones(rawArq);
+    const intervText = extracted.map((i) => `${i.arquitecto} (${i.año})`).join('; ') || 'Detectada sin parsear';
+
+    return `
+      <tr>
+        <td style="font-weight:700;">${escapeHtml(b.nombre_obra || 'Sin título')}</td>
+        <td style="color:var(--admin-fg-dim); font-size:11.5px;">${escapeHtml(b.place || b.ciudad || '—')}</td>
+        <td style="font-family:'Inter', monospace; font-size:11px; background:var(--admin-bg-raised); padding:6px 10px;">${escapeHtml(rawArq)}</td>
+        <td style="color:var(--admin-accent); font-weight:600;">${escapeHtml(cleanNames)}</td>
+        <td><span class="badge-tag badge-tag-success">${escapeHtml(intervText)}</span></td>
+      </tr>
+    `;
+  }).join('');
+}
+
+async function executeBatchAuthorMerge() {
+  const oldAuthor = document.getElementById('merge-old-author')?.value.trim();
+  const newAuthor = document.getElementById('merge-new-author')?.value.trim();
+
+  if (!oldAuthor || !newAuthor) {
+    showAdminToast('Indica tanto el autor a sustituir como el autor destino.', 'error');
+    return;
+  }
+
+  const matches = adminConsoleState.allWorks.filter((b) => {
+    return (b.arquitecto || '').toLowerCase().includes(oldAuthor.toLowerCase());
+  });
+
+  if (matches.length === 0) {
+    showAdminToast(`No se encontraron obras que contengan "${oldAuthor}".`, 'error');
+    return;
+  }
+
+  const confirmed = confirm(`Se actualizarán ${matches.length} obras en la base de datos cambiando "${oldAuthor}" por "${newAuthor}". ¿Continuar?`);
+  if (!confirmed) return;
+
+  showAdminToast(`Actualizando ${matches.length} obras en lote...`, 'info');
+
+  let updatedCount = 0;
+  for (const b of matches) {
+    try {
+      const updatedArq = (b.arquitecto || '').replace(new RegExp(oldAuthor, 'gi'), newAuthor);
+      await updateBuilding(b.id, { arquitecto: updatedArq }, adminConsoleState.token);
+      b.arquitecto = updatedArq;
+      updatedCount++;
+    } catch (e) {
+      console.warn(`Error al actualizar obra ${b.id}:`, e);
+    }
+  }
+
+  showAdminToast(`¡Completado! ${updatedCount} obras actualizadas.`, 'success');
+  renderNormalizerAudit();
+  renderIntegrityAudit();
+  invalidateCatalogCache();
+}
+
+function renderIntegrityAudit(filterType = 'all', searchQuery = '') {
+  const tbody = document.getElementById('integrity-table-body');
+  if (!tbody) return;
+
+  const q = normalizeArchitectKey(searchQuery);
+
+  const filtered = adminConsoleState.allWorks.filter((b) => {
+    if (filterType === 'no-photo' && (b.foto_url && String(b.foto_url).trim())) return false;
+    if (filterType === 'no-arq' && (b.arquitecto && String(b.arquitecto).trim())) return false;
+    if (filterType === 'no-coords' && (Number.isFinite(b.latitud) && Number.isFinite(b.longitud) && (b.latitud !== 0 || b.longitud !== 0))) return false;
+    if (filterType === 'no-r2' && (!b.foto_url || b.foto_url.includes('imagedelivery.net') || b.foto_url.includes('cloudflare'))) return false;
+    if (filterType === 'pending' && (b.estado_revision !== 'pendiente')) return false;
+
+    if (q) {
+      const haystack = normalizeArchitectKey(`${b.nombre_obra} ${b.arquitecto} ${b.place} ${b.ciudad} ${b.id}`);
+      if (!haystack.includes(q)) return false;
+    }
+
+    return true;
+  });
+
+  const countBadge = document.getElementById('integrity-count-badge');
+  if (countBadge) countBadge.textContent = `${filtered.length} obras encontradas`;
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--admin-fg-dim);">No se encontraron obras con los criterios seleccionados.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.slice(0, 100).map((b) => {
+    const isChecked = adminConsoleState.selectedWorkIds.has(String(b.id));
+    const hasPhoto = Boolean(b.foto_url && String(b.foto_url).trim());
+    const status = b.estado_revision || 'publicada';
+
+    let statusBadge = `<span class="badge-tag badge-tag-success">${status.toUpperCase()}</span>`;
+    if (status === 'pendiente') statusBadge = `<span class="badge-tag badge-tag-warning">PENDIENTE</span>`;
+    if (status === 'rechazada') statusBadge = `<span class="badge-tag badge-tag-danger">RECHAZADA</span>`;
+
+    return `
+      <tr>
+        <td style="text-align:center;">
+          <input type="checkbox" class="work-select-check" data-work-id="${b.id}" ${isChecked ? 'checked' : ''}>
+        </td>
+        <td style="font-weight:700;">
+          <a href="./obra/${encodeURIComponent(b.id)}" target="_blank" style="color:inherit; text-decoration:underline;">
+            ${escapeHtml(b.nombre_obra || 'Sin título')}
+          </a>
+        </td>
+        <td>${escapeHtml(b.arquitecto || '⚠️ SIN AUTOR')}</td>
+        <td>${escapeHtml(b.place || b.ciudad || '—')}</td>
+        <td>${statusBadge}</td>
+        <td>
+          ${hasPhoto ? '<span style="color:var(--admin-green); font-weight:700;">✓ R2</span>' : '<span style="color:var(--admin-red); font-weight:700;">⚠️ Sin foto</span>'}
+        </td>
+        <td style="text-align:right;">
+          <button type="button" class="btn-action-icon" data-work-edit="${b.id}" title="Editar ficha completa">
+            <i data-lucide="edit" width="13" height="13"></i>
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  if (window.lucide) window.lucide.createIcons({ context: tbody });
+  updateBatchBar();
+}
+
+function updateBatchBar() {
+  const bar = document.getElementById('batch-action-bar');
+  const countLabel = document.getElementById('batch-selected-count');
+  if (!bar) return;
+
+  const count = adminConsoleState.selectedWorkIds.size;
+  if (count > 0) {
+    if (countLabel) countLabel.textContent = `${count} obra${count === 1 ? '' : 's'} seleccionada${count === 1 ? '' : 's'}`;
+    bar.classList.add('visible');
+  } else {
+    bar.classList.remove('visible');
+  }
+}
+
+async function executeBatchStatus(newStatus) {
+  const ids = Array.from(adminConsoleState.selectedWorkIds);
+  if (ids.length === 0) return;
+
+  const confirmed = confirm(`¿Cambiar estado a "${newStatus.toUpperCase()}" para las ${ids.length} obras seleccionadas?`);
+  if (!confirmed) return;
+
+  showAdminToast(`Aplicando estado "${newStatus}" a ${ids.length} obras...`, 'info');
+
+  let successCount = 0;
+  for (const id of ids) {
+    try {
+      await reviewBuilding(id, newStatus, adminConsoleState.token);
+      const b = adminConsoleState.allWorks.find((item) => String(item.id) === String(id));
+      if (b) b.estado_revision = newStatus;
+      successCount++;
+    } catch (e) {
+      console.warn(`Error actualizando ${id}:`, e);
+    }
+  }
+
+  showAdminToast(`¡Completado! ${successCount} obras actualizadas.`, 'success');
+  adminConsoleState.selectedWorkIds.clear();
+  renderIntegrityAudit();
+  renderDashboardKPIs();
+  updateBadges();
+  invalidateCatalogCache();
+}
+
+async function triggerRevalidateCatalog() {
+  const btn = document.getElementById('btn-trigger-revalidate');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'REVALIDANDO CDN...';
+  }
+
+  try {
+    const res = await fetch('./api/revalidate-catalog', { method: 'POST' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    showAdminToast('¡Catálogo CDN purgado y revalidado con éxito!', 'success');
+    logSystemEvent('Revalidación manual de CDN ejecutada con éxito.');
+  } catch (err) {
+    showAdminToast('Aviso: Fallo al revalidar CDN.', 'error');
+    console.warn('Revalidate error:', err);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<i data-lucide="refresh-cw" width="14" height="14"></i><span>PURGAR CACHÉ CDN (/api/revalidate-catalog)</span>';
+      if (window.lucide) window.lucide.createIcons();
+    }
+  }
+}
+
+function clearLocalCaches() {
+  invalidateCatalogCache();
+  showAdminToast('Caché local e IndexedDB purgadas con éxito.', 'success');
+  logSystemEvent('Caché local e IndexedDB reseteadas.');
+  setTimeout(() => window.location.reload(), 800);
+}
+
+function logSystemEvent(msg) {
+  const logEl = document.getElementById('system-log-console');
+  if (!logEl) return;
+  const time = new Date().toLocaleTimeString();
+  logEl.innerHTML = `[${time}] ${escapeHtml(msg)}\n` + logEl.innerHTML;
+}
+
