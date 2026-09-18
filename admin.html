@@ -14,7 +14,7 @@
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
   <link rel="apple-touch-icon" href="./icons/icon-192.png">
   <link rel="shortcut icon" href="./favicon.ico">
-  <meta name="theme-color" content="#F4F1EA">
+  <meta name="theme-color" content="#F8F1DF" id="meta-theme-color">
   <meta name="robots" content="noindex, nofollow">
 
   <!-- Google Fonts: Inter & League Spartan (Asynchronous Non-Blocking) -->
@@ -29,10 +29,23 @@
   <script src="./js/cookieConsent.js" defer></script>
 
   <script>
-    if (window.location.pathname.endsWith('.html')) {
-      const clean = window.location.pathname.replace(/\/index\.html$/, '/').replace(/\.html$/, '') || '/';
-      window.history.replaceState(null, '', clean + window.location.search + window.location.hash);
-    }
+    (function() {
+      if (window.location.pathname.endsWith('.html')) {
+        const clean = window.location.pathname.replace(/\/index\.html$/, '/').replace(/\.html$/, '') || '/';
+        window.history.replaceState(null, '', clean + window.location.search + window.location.hash);
+      }
+      const saved = localStorage.getItem('nolli_theme') || localStorage.getItem('nolli_map_style');
+      if (saved === 'dark') {
+        document.documentElement.classList.add('dark-mode');
+        const applyDark = () => {
+          document.body && document.body.classList.add('dark-mode');
+          const meta = document.getElementById('meta-theme-color');
+          if (meta) meta.setAttribute('content', '#141411');
+        };
+        if (document.body) applyDark();
+        else document.addEventListener('DOMContentLoaded', applyDark);
+      }
+    })();
   </script>
 
   <!-- Lucide Icons local -->
@@ -48,7 +61,7 @@
   <header class="admin-header">
     <div class="admin-header-inner">
       <div class="admin-brand-group">
-        <a href="./" class="admin-logo">nolli<span>.</span></a>
+        <a href="./" class="admin-logo brand-nolli">nolli<span class="brand-dot">.</span></a>
         <span class="admin-tagline">CONSOLA MAESTRA // CURADURÍA & MACROHERRAMIENTAS</span>
       </div>
 
@@ -222,17 +235,17 @@
           </div>
         </div>
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:14px;">
-          <div style="background:var(--admin-bg-raised); padding:16px; border-radius:4px; border:1px solid var(--admin-border-light);">
+          <div style="background:var(--admin-bg-raised); padding:18px; border-radius:var(--admin-radius-md); border:1px solid var(--admin-border-light);">
             <h4 style="font-family:'League Spartan', sans-serif; font-size:13px; font-weight:800; margin-bottom:6px;">REGLAS DE ESTUDIOS</h4>
             <p style="font-size:12px; color:var(--admin-fg-dim); margin-bottom:12px;">Relaciona estudios y miembros (VAM10, Gradolí & Sanz, Foster...). Verifica la herencia en tiempo real.</p>
             <button type="button" class="admin-btn admin-btn-approve" onclick="document.querySelector('[data-tab-target=\'relationships\']').click()">IR A ESTUDIOS & RELACIONES</button>
           </div>
-          <div style="background:var(--admin-bg-raised); padding:16px; border-radius:4px; border:1px solid var(--admin-border-light);">
+          <div style="background:var(--admin-bg-raised); padding:18px; border-radius:var(--admin-radius-md); border:1px solid var(--admin-border-light);">
             <h4 style="font-family:'League Spartan', sans-serif; font-size:13px; font-weight:800; margin-bottom:6px;">NORMALIZADOR & LOTES</h4>
             <p style="font-size:12px; color:var(--admin-fg-dim); margin-bottom:12px;">Detecta intervenciones históricas, fusiona autores erróneos y audita obras anómalas en bloque.</p>
             <button type="button" class="admin-btn" onclick="document.querySelector('[data-tab-target=\'normalizer\']').click()">IR AL NORMALIZADOR</button>
           </div>
-          <div style="background:var(--admin-bg-raised); padding:16px; border-radius:4px; border:1px solid var(--admin-border-light);">
+          <div style="background:var(--admin-bg-raised); padding:18px; border-radius:var(--admin-radius-md); border:1px solid var(--admin-border-light);">
             <h4 style="font-family:'League Spartan', sans-serif; font-size:13px; font-weight:800; margin-bottom:6px;">GESTIÓN DE CACHÉ CDN</h4>
             <p style="font-size:12px; color:var(--admin-fg-dim); margin-bottom:12px;">Purga instantáneamente la caché del borde de Vercel para propagar cambios de inmediato.</p>
             <button type="button" class="admin-btn" onclick="document.querySelector('[data-tab-target=\'system\']').click()">IR A SISTEMA & CACHÉ</button>

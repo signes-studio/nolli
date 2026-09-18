@@ -81,16 +81,20 @@ if (document.readyState === 'loading') {
 }
 
 function initTheme() {
-  const saved = localStorage.getItem('nolli_theme');
+  const saved = localStorage.getItem('nolli_theme') || localStorage.getItem('nolli_map_style');
   if (saved === 'dark') {
     document.documentElement.classList.add('dark-mode');
     document.body?.classList.add('dark-mode');
+    const meta = document.getElementById('meta-theme-color');
+    if (meta) meta.setAttribute('content', '#141411');
   }
   const btnTheme = document.getElementById('btn-theme-toggle');
   if (btnTheme) {
     btnTheme.addEventListener('click', () => {
       const isDark = document.body.classList.toggle('dark-mode');
       document.documentElement.classList.toggle('dark-mode', isDark);
+      const meta = document.getElementById('meta-theme-color');
+      if (meta) meta.setAttribute('content', isDark ? '#141411' : '#F8F1DF');
       try {
         localStorage.setItem('nolli_theme', isDark ? 'dark' : 'light');
       } catch {}
