@@ -63,3 +63,4 @@ console.log('🧪 Iniciando pruebas de la regla de intervenciones de arquitectos
 }
 
 console.log('\n🎉 ¡Todas las pruebas unitarias pasaron con éxito!');
+
