@@ -415,3 +415,4 @@ export function getAssociatedSearchTerms(input: string): string[] {
   // CASO 3: Autor independiente no registrado
   return [input];
 }
+

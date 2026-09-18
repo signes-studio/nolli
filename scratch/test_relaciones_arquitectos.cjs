@@ -138,3 +138,4 @@ assert(!reVam.test('Recinto ferial por Miguel del Rey'), 'Regex VAM10 NO debe ma
 console.log('   ✅ Expresión regular de PostgREST imatch verificada correctamente.');
 
 console.log('\n🎉 ¡TODAS LAS PRUEBAS UNITARIAS Y DE INTEGRACIÓN PASARON CON ÉXITO!');
+
