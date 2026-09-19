@@ -623,6 +623,9 @@ function initAddBuildingModal() {
     if (e.target.closest('#btn-add-close')) closeAdd();
   });
   document.getElementById('btn-add-cancel')?.addEventListener('click', closeAdd);
+  mAdd?.addEventListener('click', (e) => {
+    if (e.target === mAdd) closeAdd();
+  });
 
   const selectVisibility = document.getElementById('add-visibility');
 

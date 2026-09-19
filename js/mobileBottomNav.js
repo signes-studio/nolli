@@ -1221,6 +1221,14 @@ function initSheetTouchGestures() {
       onDismiss: () => {
         document.getElementById('modal-architect')?.classList.remove('open');
       }
+    },
+    {
+      panel: document.querySelector('#modal-add-building .modal-box'),
+      parentModal: document.getElementById('modal-add-building'),
+      handles: ['.modal-head'],
+      onDismiss: () => {
+        document.getElementById('btn-add-close')?.click();
+      }
     }
   ];
 
@@ -1238,6 +1246,7 @@ function initSheetTouchGestures() {
 
     function onTouchStart(e) {
       if (window.innerWidth > 768) return;
+      if (e.target && e.target.closest && e.target.closest('button, a, input, select')) return;
       const targetPanel = parentModal || panel;
       if (!targetPanel.classList.contains('open')) return;
 
