@@ -1403,11 +1403,14 @@ function renderArchitectPage(data, page, lang = 'es') {
         if (btnViewGrid) btnViewGrid.classList.add('active');
         if (btnViewList) btnViewList.classList.remove('active');
       }
-      try { localStorage.setItem('nolli_arch_view', mode); } catch (e) {}
+      try {
+        localStorage.setItem('nolli_catalog_view', mode);
+        localStorage.setItem('nolli_arch_view', mode);
+      } catch (e) {}
     }
 
     try {
-      var savedView = localStorage.getItem('nolli_arch_view');
+      var savedView = localStorage.getItem('nolli_catalog_view') || localStorage.getItem('nolli_arch_view');
       if (savedView === 'list') setViewMode('list');
     } catch (e) {}
 
