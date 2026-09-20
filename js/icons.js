@@ -183,14 +183,14 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
   const haloColor = isDark ? '#141411' : '#F8F1DF';
 
   if (importance === 0) {
-    // 0: OBRA CUMBRE (CATEGORÍA 1) — Gran diamante patrimonial Neo-Bauhaus (45°), macizo con contorno firme y punto central
+    // 0: OBRA CUMBRE (CATEGORÍA 1) — Diamante patrimonial Neo-Bauhaus (45°), macizo con contorno firme y punto central
     ctx.save();
     ctx.translate(c, c);
     ctx.rotate(Math.PI / 4);
 
-    const half = s * 0.22;
+    const half = s * 0.135;
     const strokeWidth = 1.8;
-    const pip = half * 0.28;
+    const pip = Math.max(1.8, half * 0.28);
 
     // Halo perimetral de contraste
     ctx.fillStyle = haloColor;
@@ -371,9 +371,9 @@ export function drawPrivateSquareIcon(ctx, color, importance, s, options = {}) {
   if (importance === 0) {
     ctx.translate(c, c);
     ctx.rotate(Math.PI / 4);
-    const half = s * 0.22;
+    const half = s * 0.135;
     const strokeWidth = 1.8;
-    const pip = half * 0.28;
+    const pip = Math.max(1.8, half * 0.28);
 
     ctx.fillStyle = haloColor;
     ctx.fillRect(-half - strokeWidth * 0.5 - 1.2, -half - strokeWidth * 0.5 - 1.2, (half + strokeWidth * 0.5 + 1.2) * 2, (half + strokeWidth * 0.5 + 1.2) * 2);

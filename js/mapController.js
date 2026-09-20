@@ -417,7 +417,7 @@ export function cargarMapaMapbox() {
       const minzoom = (importance === 0 || importance === 1) ? 0 : importance === 2 ? 6.5 : 13.5;
       const baseFilter = ['==', ['get', 'importancia'], importance];
       const sourceId = (importance === 0 || importance === 1) ? 'obras-maestras' : 'obras';
-      const iconSize = importance === 0 ? 1.10 : importance === 1 ? 0.82 : importance === 2 ? 0.58 : 0.44;
+      const iconSize = importance === 0 ? 0.88 : importance === 1 ? 0.82 : importance === 2 ? 0.58 : 0.44;
       const catExpr = ['coalesce', ['get', 'categoria'], 'otro'];
       const permitirSolapamiento = false;
       const sortKeyExpr = (importance === 0 || importance === 1)
