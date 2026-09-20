@@ -4,7 +4,7 @@
 
 const { categoryLabel, categoryDescription, getCategorySlugs, isValidCategory } = require('./_lib/categories.js');
 const { detectServerLanguage, getLangPrefix, getSSRText, getHreflangTags, getOgLocaleTags, renderSiteFooter } = require('./_lib/i18n.js');
-const { slugify, extractCityName, isIgnoredArchitect, escapeHtml, getOptimizedUrl, cleanArchitectName } = require('./_lib/slugs.js');
+const { slugify, extractCityName, isIgnoredArchitect, escapeHtml, getOptimizedUrl, cleanArchitectName, ARCHITECT_SEPARATOR_REGEX } = require('./_lib/slugs.js');
 const { createRateLimiter } = require('./_lib/rateLimiter.js');
 const { getSupabaseConfig } = require('./_lib/supabaseEnv.js');
 
@@ -87,7 +87,7 @@ async function fetchCategoryData(slug, page) {
 
   allMetadata.forEach((b) => {
     if (b.arquitecto) {
-      const parts = b.arquitecto.split(/[;,]/).map((p) => cleanArchitectName(p)).filter(Boolean);
+      const parts = b.arquitecto.split(ARCHITECT_SEPARATOR_REGEX).map((p) => cleanArchitectName(p)).filter(Boolean);
       parts.forEach((name) => {
         if (!isIgnoredArchitect(name)) {
           const aSlug = slugify(name);
@@ -1194,8 +1194,11 @@ function renderCategoryPage(slug, data, page, lang = 'es') {
               <option value="year-desc">${escapeHtml(getSSRText('sort_year_desc', lang))}</option>
               <option value="year-asc">${escapeHtml(getSSRText('sort_year_asc', lang))}</option>
               <option value="name-asc">${escapeHtml(getSSRText('sort_name_asc', lang))}</option>
+              <option value="name-desc">${escapeHtml(getSSRText('sort_name_desc', lang))}</option>
               <option value="city-asc">${escapeHtml(getSSRText('sort_city_asc', lang))}</option>
+              <option value="city-desc">${escapeHtml(getSSRText('sort_city_desc', lang))}</option>
               <option value="arch-asc">${escapeHtml(getSSRText('sort_architect_asc', lang))}</option>
+              <option value="arch-desc">${escapeHtml(getSSRText('sort_architect_desc', lang))}</option>
             </select>
             <svg class="select-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </div>
@@ -1324,16 +1327,31 @@ function renderCategoryPage(slug, data, page, lang = 'es') {
         if (sortVal === 'name-asc') {
           return (a.getAttribute('data-title') || '').localeCompare(b.getAttribute('data-title') || '');
         }
+        if (sortVal === 'name-desc') {
+          return (b.getAttribute('data-title') || '').localeCompare(a.getAttribute('data-title') || '');
+        }
         if (sortVal === 'city-asc') {
           var cA = a.getAttribute('data-city') || '';
           var cB = b.getAttribute('data-city') || '';
           if (cA !== cB) return cA.localeCompare(cB);
           return (a.getAttribute('data-title') || '').localeCompare(b.getAttribute('data-title') || '');
         }
+        if (sortVal === 'city-desc') {
+          var cA_d = a.getAttribute('data-city') || '';
+          var cB_d = b.getAttribute('data-city') || '';
+          if (cA_d !== cB_d) return cB_d.localeCompare(cA_d);
+          return (a.getAttribute('data-title') || '').localeCompare(b.getAttribute('data-title') || '');
+        }
         if (sortVal === 'arch-asc') {
           var aA = a.getAttribute('data-architect') || '';
           var aB = b.getAttribute('data-architect') || '';
           if (aA !== aB) return aA.localeCompare(aB);
+          return (a.getAttribute('data-title') || '').localeCompare(b.getAttribute('data-title') || '');
+        }
+        if (sortVal === 'arch-desc') {
+          var aA_d = a.getAttribute('data-architect') || '';
+          var aB_d = b.getAttribute('data-architect') || '';
+          if (aA_d !== aB_d) return aB_d.localeCompare(aA_d);
           return (a.getAttribute('data-title') || '').localeCompare(b.getAttribute('data-title') || '');
         }
         return 0;

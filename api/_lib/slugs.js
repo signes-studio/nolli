@@ -187,6 +187,14 @@ function cleanArchitectName(name) {
 }
 
 /**
+ * Expresión regular para separar listas de arquitectos de manera uniforme:
+ * - Comas (,) y puntos y comas (;)
+ * - Barras (/) y plecas (|) con o sin espacios
+ * - Guiones y rayas con espacios alrededor ( - , – , — ), preservando apellidos compuestos sin espacios (ej. García-Solera)
+ */
+const ARCHITECT_SEPARATOR_REGEX = /[;,]|\s*[\/|]\s*|\s+[-–—]\s+/;
+
+/**
  * Parsea un campo de texto de arquitectos separando nombres limpios y
  * extrayendo intervenciones históricas con su año correspondiente.
  * Ej: "Enrique Viedma, Vetges tú (2008)"
@@ -198,7 +206,7 @@ function parseArchitectsAndInterventions(raw) {
   const intervenciones = [];
   if (!raw) return { arquitectos, intervenciones };
 
-  const parts = String(raw).split(/[;,]/).map((p) => p.trim()).filter(Boolean);
+  const parts = String(raw).split(ARCHITECT_SEPARATOR_REGEX).map((p) => p.trim()).filter(Boolean);
   for (const part of parts) {
     const match = part.match(/\((?:intervenci[oó]n|reforma|ampliaci[oó]n|restauraci[oó]n|a[ñn]o)?\s*:?\s*(\d{4}(?:\s*[-/–]\s*\d{4})?)\s*\)/i);
     if (match) {
@@ -230,5 +238,6 @@ module.exports = {
   getOptimizedUrl,
   cleanArchitectName,
   parseArchitectsAndInterventions,
+  ARCHITECT_SEPARATOR_REGEX,
 };
 

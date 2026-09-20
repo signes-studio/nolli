@@ -4,7 +4,7 @@
 
 const { categoryLabel } = require('./_lib/categories.js');
 const { detectServerLanguage, getLangPrefix, getSSRText, getHreflangTags, getOgLocaleTags, renderSiteFooter } = require('./_lib/i18n.js');
-const { slugify, slugToRegex, extractCityName, escapeHtml, getOptimizedUrl, isIgnoredArchitect, ARCHITECT_ALIASES, cleanArchitectName } = require('./_lib/slugs.js');
+const { slugify, slugToRegex, extractCityName, escapeHtml, getOptimizedUrl, isIgnoredArchitect, ARCHITECT_ALIASES, cleanArchitectName, ARCHITECT_SEPARATOR_REGEX } = require('./_lib/slugs.js');
 const { createRateLimiter } = require('./_lib/rateLimiter.js');
 const { getSupabaseConfig } = require('./_lib/supabaseEnv.js');
 const {
@@ -99,17 +99,24 @@ async function fetchArchitectData(rawInput, page) {
 
   const allMetadata = metaRes.ok ? await metaRes.json() : buildings;
 
+  const validSlugs = new Set([cleanSlug, ...terms.map((t) => slugify(t))]);
+
+  const matchesArchitect = (b) => {
+    if (!b || !b.arquitecto) return false;
+    const parts = b.arquitecto.split(ARCHITECT_SEPARATOR_REGEX).map((p) => cleanArchitectName(p)).filter(Boolean);
+    return parts.some((archName) => validSlugs.has(slugify(archName)));
+  };
+
   // Determinar nombre canónico del arquitecto más frecuente en los registros o del registro
   const regCanonical = getCanonicalArchitectName(rawInput);
   const nameCounts = new Map();
   const cityMap = new Map();
   const catMap = new Map();
   const years = [];
-  const validSlugs = new Set([cleanSlug, ...terms.map((t) => slugify(t))]);
 
   allMetadata.forEach((b) => {
     if (b.arquitecto) {
-      const parts = b.arquitecto.split(/[;,]/).map((p) => cleanArchitectName(p)).filter(Boolean);
+      const parts = b.arquitecto.split(ARCHITECT_SEPARATOR_REGEX).map((p) => cleanArchitectName(p)).filter(Boolean);
       parts.forEach((archName) => {
         const archSlug = slugify(archName);
         if (validSlugs.has(archSlug)) {
@@ -117,6 +124,38 @@ async function fetchArchitectData(rawInput, page) {
         }
       });
     }
+  });
+
+  // Ordenar nombre canónico
+  const sortedNames = [...nameCounts.entries()].sort((a, b) => b[1] - a[1]);
+  const canonicalName = (regCanonical && regCanonical !== rawInput)
+    ? regCanonical
+    : (sortedNames.length > 0 ? sortedNames[0][0] : rawInput);
+  const canonicalSlug = slugify(canonicalName) || cleanSlug;
+
+  const isStudioMode = isStudio(canonicalName) || isStudio(rawInput) || isStudio(cleanSlug);
+
+  // Validación estricta: si no hay ningún autor individual que coincida y no es un estudio registrado, la ficha NO existe
+  if (nameCounts.size === 0 && !isStudioMode) {
+    return {
+      buildings: [],
+      totalCount: 0,
+      canonicalName: rawInput,
+      canonicalSlug: cleanSlug,
+      topCities: [],
+      categoriesList: [],
+      activeYears: '',
+      isStudioMode: false,
+      studioMembers: [],
+      memberStudios: [],
+    };
+  }
+
+  // Filtrado estricto para descartar coincidencias parciales de PostgREST (ej. Goerlich al buscar Javier)
+  const filteredMetadata = allMetadata.filter(matchesArchitect);
+  const filteredBuildings = buildings.filter(matchesArchitect);
+
+  filteredMetadata.forEach((b) => {
     if (b.place) {
       const city = extractCityName(b.place);
       const cSlug = slugify(city);
@@ -137,14 +176,6 @@ async function fetchArchitectData(rawInput, page) {
     }
   });
 
-  // Ordenar nombre canónico
-  const sortedNames = [...nameCounts.entries()].sort((a, b) => b[1] - a[1]);
-  const canonicalName = (regCanonical && regCanonical !== rawInput)
-    ? regCanonical
-    : (sortedNames.length > 0 ? sortedNames[0][0] : rawInput);
-  const canonicalSlug = slugify(canonicalName) || cleanSlug;
-
-  const isStudioMode = isStudio(canonicalName);
   const studioMembers = isStudioMode ? getStudioMembers(canonicalName) : [];
   const memberStudios = !isStudioMode ? getMemberStudios(canonicalName) : [];
 
@@ -166,9 +197,17 @@ async function fetchArchitectData(rawInput, page) {
     activeYears = minYear === maxYear ? `${minYear}` : `${minYear} – ${maxYear}`;
   }
 
+  let finalTotalCount = filteredMetadata.length;
+  if (totalCount && totalCount > PAGE_SIZE && allMetadata.length === filteredMetadata.length) {
+    finalTotalCount = totalCount;
+  }
+  if (filteredBuildings.length > finalTotalCount) {
+    finalTotalCount = filteredBuildings.length;
+  }
+
   return {
-    buildings,
-    totalCount,
+    buildings: filteredBuildings,
+    totalCount: finalTotalCount,
     canonicalName,
     canonicalSlug,
     topCities,
@@ -1322,7 +1361,11 @@ function renderArchitectPage(data, page, lang = 'es') {
               <option value="year-desc">${escapeHtml(getSSRText('sort_year_desc', lang))}</option>
               <option value="year-asc">${escapeHtml(getSSRText('sort_year_asc', lang))}</option>
               <option value="name-asc">${escapeHtml(getSSRText('sort_name_asc', lang))}</option>
+              <option value="name-desc">${escapeHtml(getSSRText('sort_name_desc', lang))}</option>
               <option value="cat-asc">${escapeHtml(getSSRText('sort_category_asc', lang))}</option>
+              <option value="cat-desc">${escapeHtml(getSSRText('sort_category_desc', lang))}</option>
+              <option value="city-asc">${escapeHtml(getSSRText('sort_city_asc', lang))}</option>
+              <option value="city-desc">${escapeHtml(getSSRText('sort_city_desc', lang))}</option>
             </select>
             <svg class="select-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </div>
@@ -1434,7 +1477,7 @@ function renderArchitectPage(data, page, lang = 'es') {
         else btnReset.classList.add('hidden');
       }
 
-      var currentCards = Array.prototype.slice.call(grid.querySelectorAll('.work-card'));
+      var currentCards = originalCards.slice();
       currentCards.sort(function(a, b) {
         if (sortVal === 'year-desc') {
           var yB = parseInt(b.getAttribute('data-year') || '0', 10);
@@ -1451,10 +1494,31 @@ function renderArchitectPage(data, page, lang = 'es') {
         if (sortVal === 'name-asc') {
           return (a.getAttribute('data-title') || '').localeCompare(b.getAttribute('data-title') || '');
         }
+        if (sortVal === 'name-desc') {
+          return (b.getAttribute('data-title') || '').localeCompare(a.getAttribute('data-title') || '');
+        }
         if (sortVal === 'cat-asc') {
           var cA = a.getAttribute('data-category-name') || '';
           var cB = b.getAttribute('data-category-name') || '';
           if (cA !== cB) return cA.localeCompare(cB);
+          return (a.getAttribute('data-title') || '').localeCompare(b.getAttribute('data-title') || '');
+        }
+        if (sortVal === 'cat-desc') {
+          var cA_d = a.getAttribute('data-category-name') || '';
+          var cB_d = b.getAttribute('data-category-name') || '';
+          if (cA_d !== cB_d) return cB_d.localeCompare(cA_d);
+          return (a.getAttribute('data-title') || '').localeCompare(b.getAttribute('data-title') || '');
+        }
+        if (sortVal === 'city-asc') {
+          var cityA = a.getAttribute('data-city') || '';
+          var cityB = b.getAttribute('data-city') || '';
+          if (cityA !== cityB) return cityA.localeCompare(cityB);
+          return (a.getAttribute('data-title') || '').localeCompare(b.getAttribute('data-title') || '');
+        }
+        if (sortVal === 'city-desc') {
+          var cityA_d = a.getAttribute('data-city') || '';
+          var cityB_d = b.getAttribute('data-city') || '';
+          if (cityA_d !== cityB_d) return cityB_d.localeCompare(cityA_d);
           return (a.getAttribute('data-title') || '').localeCompare(b.getAttribute('data-title') || '');
         }
         return 0;
