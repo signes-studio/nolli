@@ -370,11 +370,6 @@ body.dark-mode .legend-icon-svg polygon[stroke="#F8F1DF"] {
   stroke: #141411;
 }
 
-body.dark-mode .legend-icon-svg circle[fill="#F8F1DF"],
-body.dark-mode .legend-icon-svg rect[fill="#F8F1DF"] {
-  fill: #141411;
-}
-
 .legend-item-name {
   font-family: 'Inter', sans-serif;
   line-height: 1.2;
