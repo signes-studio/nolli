@@ -13,10 +13,10 @@
   --border:        #D8D6CE; /* subdivisión interna de módulo, NO estructural */
   --border-strong: #141411; /* línea de retícula — SIEMPRE negra */
 
-  /* Primarios Bauhaus — Ajustados para accesibilidad WCAG 2.1/2.2 AA (Ratio >= 4.5:1 sobre fondo claro) */
-  --accent:        #C44605; /* Bermellón Bauhaus Accesible (4.85:1 sobre #F8F1DF) */
-  --accent-hover:  #9E3700; /* Bermellón oscuro interactivo */
-  --accent-contrast: #FFFFFF; /* Texto blanco accesible sobre bermellón */
+  /* Primarios Bauhaus — Identidad Vermellón Nolli y acentos */
+  --accent:        #EA560D; /* Naranja de Marca / Residencial Nolli */
+  --accent-hover:  #C44605; /* Bermellón oscuro interactivo */
+  --accent-contrast: #FFFFFF; /* Texto blanco accesible sobre naranja */
   --accent-2:      #F6A600; /* Amarillo Mostaza Constructivista */
   --accent-select: #F6A600; /* Selección activa en mapa/listas */
   --blue:          #163D62; /* Azul Profundo */
@@ -365,14 +365,14 @@ h1, h2, h3, h4, h5, h6,
   flex-shrink: 0;
 }
 
-body.dark-mode .legend-icon-svg circle[stroke="#141411"],
-body.dark-mode .legend-icon-svg polygon[stroke="#141411"] {
-  stroke: #FFFFFF;
+body.dark-mode .legend-icon-svg circle[stroke="#F8F1DF"],
+body.dark-mode .legend-icon-svg polygon[stroke="#F8F1DF"] {
+  stroke: #141411;
 }
 
-body.dark-mode .legend-icon-svg circle[fill="#141411"],
-body.dark-mode .legend-icon-svg rect[fill="#141411"] {
-  fill: #FFFFFF;
+body.dark-mode .legend-icon-svg circle[fill="#F8F1DF"],
+body.dark-mode .legend-icon-svg rect[fill="#F8F1DF"] {
+  fill: #141411;
 }
 
 .legend-item-name {
@@ -529,9 +529,9 @@ body.dark-mode .sheet-icon-action:hover {
 }
 
 body.dark-mode {
-  --accent: #FF7528; /* Naranja luminoso accesible sobre fondo negro (6.4:1 sobre #141411) */
-  --accent-hover: #FFA366;
-  --accent-contrast: #141411;
+  --accent: #EA560D; /* Naranja de marca unificado */
+  --accent-hover: #FF7528;
+  --accent-contrast: #FFFFFF;
 }
 
 body.dark-mode .btn {
@@ -696,8 +696,8 @@ body.dark-mode .lang-switcher-neo .lang-btn {
 }
 
 body.dark-mode .lang-switcher-neo .lang-btn.active {
-  background: var(--accent, #FF7528);
-  color: #141411;
+  background: var(--accent, #EA560D);
+  color: #FFFFFF;
 }
 
 /* =========================================================================
@@ -750,10 +750,10 @@ body.dark-mode .lang-pill {
 }
 
 body.dark-mode .lang-pill.active {
-  background: var(--accent, rgb(255, 117, 40));
-  border-color: var(--accent, rgb(255, 117, 40));
-  color: rgb(20, 20, 17);
-  box-shadow: 0 1px 4px rgba(255, 117, 40, 0.25);
+  background: var(--accent, rgb(234, 86, 13));
+  border-color: var(--accent, rgb(234, 86, 13));
+  color: #FFFFFF;
+  box-shadow: 0 1px 4px rgba(234, 86, 13, 0.25);
 }
 
 /* Nota explicativa de idioma del dispositivo */

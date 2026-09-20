@@ -29,7 +29,7 @@
             --border: #D5CFC0;
             --border-subtle: rgba(20, 20, 17, 0.08);
             --accent: #EA560D;
-            --accent-hover: #9E3700;
+            --accent-hover: #C44605;
             --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
             --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06);
           }

@@ -170,7 +170,7 @@ CREATE TABLE IF NOT EXISTS public.user_private_labels (
   building_id TEXT REFERENCES public.Buildings(id) ON DELETE CASCADE,
   label TEXT NOT NULL,
   notes TEXT,
-  color TEXT DEFAULT '#E84E1B'
+  color TEXT DEFAULT '#EA560D'
 );
 
 ALTER TABLE public.user_private_labels ENABLE ROW LEVEL SECURITY;

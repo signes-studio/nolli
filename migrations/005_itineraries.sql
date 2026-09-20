@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS public.itineraries (
   title TEXT NOT NULL,
   subtitle TEXT,
   tag TEXT DEFAULT 'MOVIMIENTO MODERNO',
-  color TEXT DEFAULT '#E84E1B',
+  color TEXT DEFAULT '#EA560D',
   stops TEXT,
   work_ids JSONB DEFAULT '[]'::jsonb,
   year_range JSONB,

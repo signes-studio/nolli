@@ -177,8 +177,9 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
   const isDark = Boolean(options.isDark);
   const isFullColor = Boolean(options.isFullColor);
 
-  // Paleta estructural Neo-Bauhaus: tinta arquitectónica y halo de recorte técnico
-  const inkColor = isDark ? '#FFFFFF' : '#141411';
+  // Paleta estructural: contorno crema en modo claro, contorno negro en modo oscuro
+  const strokeColor = isDark ? '#141411' : '#F8F1DF';
+  const dotColor = isDark ? '#141411' : '#F8F1DF';
   const haloColor = isDark ? '#141411' : '#F8F1DF';
 
   if (importance === 0) {
@@ -197,13 +198,13 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
 
     if (isSelected) {
       // Estado seleccionado: inversión de alto contraste
-      ctx.fillStyle = inkColor;
+      ctx.fillStyle = isDark ? '#FFFFFF' : '#141411';
       ctx.fillRect(-half, -half, half * 2, half * 2);
       ctx.lineWidth = strokeWidth;
-      ctx.strokeStyle = haloColor;
+      ctx.strokeStyle = strokeColor;
       ctx.strokeRect(-half, -half, half * 2, half * 2);
 
-      ctx.fillStyle = haloColor;
+      ctx.fillStyle = dotColor;
       ctx.fillRect(-pip, -pip, pip * 2, pip * 2);
     } else {
       // 1. Cuerpo macizo en color de categoría
@@ -212,11 +213,11 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
 
       // 2. Contorno macizo
       ctx.lineWidth = strokeWidth;
-      ctx.strokeStyle = inkColor;
+      ctx.strokeStyle = strokeColor;
       ctx.strokeRect(-half, -half, half * 2, half * 2);
 
       // 3. Pequeño punto en el centro
-      ctx.fillStyle = inkColor;
+      ctx.fillStyle = dotColor;
       ctx.fillRect(-pip, -pip, pip * 2, pip * 2);
     }
 
@@ -236,16 +237,18 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
     ctx.fill();
 
     if (isSelected) {
-      ctx.fillStyle = inkColor;
+      ctx.fillStyle = isDark ? '#FFFFFF' : '#141411';
       ctx.beginPath();
       ctx.arc(c, c, r, 0, Math.PI * 2);
       ctx.fill();
 
       ctx.lineWidth = strokeWidth;
-      ctx.strokeStyle = haloColor;
+      ctx.strokeStyle = strokeColor;
+      ctx.beginPath();
+      ctx.arc(c, c, r, 0, Math.PI * 2);
       ctx.stroke();
 
-      ctx.fillStyle = haloColor;
+      ctx.fillStyle = dotColor;
       ctx.beginPath();
       ctx.arc(c, c, pipR, 0, Math.PI * 2);
       ctx.fill();
@@ -256,15 +259,15 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
       ctx.arc(c, c, r, 0, Math.PI * 2);
       ctx.fill();
 
-      // 2. Contorno macizo
+      // 2. Contorno macizo (crema en modo claro, negro en modo oscuro)
       ctx.lineWidth = strokeWidth;
-      ctx.strokeStyle = inkColor;
+      ctx.strokeStyle = strokeColor;
       ctx.beginPath();
       ctx.arc(c, c, r, 0, Math.PI * 2);
       ctx.stroke();
 
       // 3. Pequeño punto en el centro
-      ctx.fillStyle = inkColor;
+      ctx.fillStyle = dotColor;
       ctx.beginPath();
       ctx.arc(c, c, pipR, 0, Math.PI * 2);
       ctx.fill();
@@ -284,16 +287,18 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
     ctx.fill();
 
     if (isSelected) {
-      ctx.fillStyle = inkColor;
+      ctx.fillStyle = isDark ? '#FFFFFF' : '#141411';
       ctx.beginPath();
       ctx.arc(c, c, r, 0, Math.PI * 2);
       ctx.fill();
 
       ctx.lineWidth = strokeWidth;
-      ctx.strokeStyle = haloColor;
+      ctx.strokeStyle = strokeColor;
+      ctx.beginPath();
+      ctx.arc(c, c, r, 0, Math.PI * 2);
       ctx.stroke();
 
-      ctx.fillStyle = haloColor;
+      ctx.fillStyle = dotColor;
       ctx.beginPath();
       ctx.arc(c, c, pipR, 0, Math.PI * 2);
       ctx.fill();
@@ -304,15 +309,15 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
       ctx.arc(c, c, r, 0, Math.PI * 2);
       ctx.fill();
 
-      // 2. Contorno macizo
+      // 2. Contorno macizo (crema en modo claro, negro en modo oscuro)
       ctx.lineWidth = strokeWidth;
-      ctx.strokeStyle = inkColor;
+      ctx.strokeStyle = strokeColor;
       ctx.beginPath();
       ctx.arc(c, c, r, 0, Math.PI * 2);
       ctx.stroke();
 
       // 3. Pequeño punto en el centro
-      ctx.fillStyle = inkColor;
+      ctx.fillStyle = dotColor;
       ctx.beginPath();
       ctx.arc(c, c, pipR, 0, Math.PI * 2);
       ctx.fill();
@@ -332,16 +337,18 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
     ctx.fill();
 
     if (isSelected) {
-      ctx.fillStyle = inkColor;
+      ctx.fillStyle = isDark ? '#FFFFFF' : '#141411';
       ctx.beginPath();
       ctx.arc(c, c, r, 0, Math.PI * 2);
       ctx.fill();
 
       ctx.lineWidth = strokeWidth;
-      ctx.strokeStyle = haloColor;
+      ctx.strokeStyle = strokeColor;
+      ctx.beginPath();
+      ctx.arc(c, c, r, 0, Math.PI * 2);
       ctx.stroke();
 
-      ctx.fillStyle = haloColor;
+      ctx.fillStyle = dotColor;
       ctx.beginPath();
       ctx.arc(c, c, pipR, 0, Math.PI * 2);
       ctx.fill();
@@ -352,15 +359,15 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
       ctx.arc(c, c, r, 0, Math.PI * 2);
       ctx.fill();
 
-      // 2. Contorno macizo
+      // 2. Contorno macizo (crema en modo claro, negro en modo oscuro)
       ctx.lineWidth = strokeWidth;
-      ctx.strokeStyle = inkColor;
+      ctx.strokeStyle = strokeColor;
       ctx.beginPath();
       ctx.arc(c, c, r, 0, Math.PI * 2);
       ctx.stroke();
 
       // 3. Pequeño punto en el centro
-      ctx.fillStyle = inkColor;
+      ctx.fillStyle = dotColor;
       ctx.beginPath();
       ctx.arc(c, c, pipR, 0, Math.PI * 2);
       ctx.fill();
@@ -379,7 +386,8 @@ export function drawPrivateSquareIcon(ctx, color, importance, s, options = {}) {
   const isPending = Boolean(options.isPending || color === '#FFCC00');
   const isFavorite = Boolean(options.isFavorite);
   const isDark = Boolean(options.isDark);
-  const inkColor = isDark ? '#FFFFFF' : '#141411';
+  const strokeColor = isDark ? '#141411' : '#F8F1DF';
+  const dotColor = isDark ? '#141411' : '#F8F1DF';
   const haloColor = isDark ? '#141411' : '#F8F1DF';
 
   ctx.save();
@@ -398,10 +406,10 @@ export function drawPrivateSquareIcon(ctx, color, importance, s, options = {}) {
     ctx.fillRect(-half, -half, half * 2, half * 2);
 
     ctx.lineWidth = strokeWidth;
-    ctx.strokeStyle = inkColor;
+    ctx.strokeStyle = strokeColor;
     ctx.strokeRect(-half, -half, half * 2, half * 2);
 
-    ctx.fillStyle = inkColor;
+    ctx.fillStyle = dotColor;
     ctx.fillRect(-pip, -pip, pip * 2, pip * 2);
   } else if (importance === 1) {
     const half = s * 0.16;
@@ -415,10 +423,10 @@ export function drawPrivateSquareIcon(ctx, color, importance, s, options = {}) {
     ctx.fillRect(c - half, c - half, half * 2, half * 2);
 
     ctx.lineWidth = strokeWidth;
-    ctx.strokeStyle = inkColor;
+    ctx.strokeStyle = strokeColor;
     ctx.strokeRect(c - half, c - half, half * 2, half * 2);
 
-    ctx.fillStyle = inkColor;
+    ctx.fillStyle = dotColor;
     ctx.fillRect(c - pip, c - pip, pip * 2, pip * 2);
   } else if (importance === 2) {
     const half = s * 0.12;
@@ -432,10 +440,10 @@ export function drawPrivateSquareIcon(ctx, color, importance, s, options = {}) {
     ctx.fillRect(c - half, c - half, half * 2, half * 2);
 
     ctx.lineWidth = strokeWidth;
-    ctx.strokeStyle = inkColor;
+    ctx.strokeStyle = strokeColor;
     ctx.strokeRect(c - half, c - half, half * 2, half * 2);
 
-    ctx.fillStyle = inkColor;
+    ctx.fillStyle = dotColor;
     ctx.fillRect(c - pip, c - pip, pip * 2, pip * 2);
   } else {
     const half = s * 0.085;
@@ -449,10 +457,10 @@ export function drawPrivateSquareIcon(ctx, color, importance, s, options = {}) {
     ctx.fillRect(c - half, c - half, half * 2, half * 2);
 
     ctx.lineWidth = strokeWidth;
-    ctx.strokeStyle = inkColor;
+    ctx.strokeStyle = strokeColor;
     ctx.strokeRect(c - half, c - half, half * 2, half * 2);
 
-    ctx.fillStyle = inkColor;
+    ctx.fillStyle = dotColor;
     ctx.fillRect(c - pip, c - pip, pip * 2, pip * 2);
   }
 
@@ -469,7 +477,7 @@ export function drawSearchLupaIcon(ctx, color, importance, s, options = {}) {
   const isDark = Boolean(options.isDark);
   const isLight = typeof color === 'string' && (color === 'white' || color.includes('255, 255, 255') || color.toLowerCase() === String.fromCharCode(35) + 'ffffff' || color.toLowerCase() === String.fromCharCode(35) + 'f8f1df' || color.toLowerCase() === String.fromCharCode(35) + 'f5f4f0');
   const isDarkSelection = typeof color === 'string' && (color === 'black' || color.includes('20, 20, 17') || color.toLowerCase() === String.fromCharCode(35) + '141411' || color.toLowerCase() === String.fromCharCode(35) + '000000');
-  const strokeColor = (isDark || isDarkSelection) ? 'rgb(248, 241, 223)' : 'rgb(20, 20, 17)';
+  const strokeColor = (isDark || isDarkSelection) ? 'rgb(20, 20, 17)' : 'rgb(248, 241, 223)';
   const haloColor = (isDark || isDarkSelection) ? 'rgb(20, 20, 17)' : 'rgba(248, 241, 223, 0.95)';
   const bodyColor = isLight ? 'rgb(255, 255, 255)' : (isDarkSelection ? 'rgb(20, 20, 17)' : color);
 
@@ -584,7 +592,7 @@ export function drawExploreCompassIcon(ctx, color, importance, s, options = {}) 
   const isDark = Boolean(options.isDark);
   const isLight = typeof color === 'string' && (color === 'white' || color.includes('255, 255, 255') || color.toLowerCase() === String.fromCharCode(35) + 'ffffff' || color.toLowerCase() === String.fromCharCode(35) + 'f8f1df' || color.toLowerCase() === String.fromCharCode(35) + 'f5f4f0');
   const isDarkSelection = typeof color === 'string' && (color === 'black' || color.includes('20, 20, 17') || color.toLowerCase() === String.fromCharCode(35) + '141411' || color.toLowerCase() === String.fromCharCode(35) + '000000');
-  const strokeColor = (isDark || isDarkSelection) ? 'rgb(248, 241, 223)' : 'rgb(20, 20, 17)';
+  const strokeColor = (isDark || isDarkSelection) ? 'rgb(20, 20, 17)' : 'rgb(248, 241, 223)';
   const haloColor = (isDark || isDarkSelection) ? 'rgb(20, 20, 17)' : 'rgba(248, 241, 223, 0.95)';
   const bodyColor = isLight ? 'rgb(255, 255, 255)' : (isDarkSelection ? 'rgb(20, 20, 17)' : color);
   const vermilionNolli = 'rgb(234, 86, 13)';

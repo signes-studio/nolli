@@ -248,7 +248,7 @@ function renderBuildingPage(building, lang = 'es') {
       --border-strong: #141411;
       --brand: #EA560D;
       --accent: #EA560D;
-      --accent-hover: #9E3700;
+      --accent-hover: #C44605;
       --font-display: 'League Spartan', sans-serif;
       --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       --space-1: 8px;

@@ -399,7 +399,7 @@ function renderArchitectPage(data, page, lang = 'es') {
       --border-subtle: rgba(20, 20, 17, 0.08);
       --brand: #EA560D;
       --accent: #EA560D;
-      --accent-hover: #9E3700;
+      --accent-hover: #C44605;
       --font-display: 'League Spartan', sans-serif;
       --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       --space-1: 8px;
@@ -1062,7 +1062,7 @@ function renderArchitectNotFoundPage(rawInput, lang = 'es') {
       transition: all 0.15s ease;
     }
     .nf-btn:hover {
-      background: #9E3700;
+      background: #C44605;
       transform: translateY(-2px);
       box-shadow: 0 5px 16px rgba(234, 86, 13, 0.4);
     }

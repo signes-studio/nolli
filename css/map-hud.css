@@ -1191,8 +1191,8 @@ body.dark-mode .topbar-btn-profile:hover {
   }
 
   body.dark-mode .speed-dial-item-primary .speed-dial-label {
-    color: var(--accent, rgb(255, 117, 40));
-    border-color: rgba(255, 117, 40, 0.3);
+    color: var(--accent, rgb(234, 86, 13));
+    border-color: rgba(234, 86, 13, 0.3);
   }
 
   /* Botón FAB Principal Disparador */

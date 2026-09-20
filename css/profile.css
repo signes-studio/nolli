@@ -178,7 +178,7 @@ body.dark-mode .profile-btn-logout {
 
 body.dark-mode .profile-btn-logout:hover {
   background: rgba(255, 255, 255, 0.08);
-  color: var(--accent, rgb(255, 117, 40));
+  color: var(--accent, rgb(234, 86, 13));
   border-color: rgba(255, 255, 255, 0.2);
 }
 
@@ -312,7 +312,7 @@ body.dark-mode .profile-hero-avatar-wrap {
 
 body.dark-mode .profile-hero-avatar-placeholder {
   background: #252522;
-  color: var(--accent, #FF7528);
+  color: var(--accent, #EA560D);
 }
 
 .profile-hero-avatar-badge {
@@ -333,8 +333,8 @@ body.dark-mode .profile-hero-avatar-placeholder {
 }
 
 body.dark-mode .profile-hero-avatar-badge {
-  background: var(--accent, #FF7528);
-  color: #141411;
+  background: var(--accent, #EA560D);
+  color: #FFFFFF;
   border-color: var(--bg, #141411);
 }
 
@@ -428,9 +428,9 @@ body.dark-mode .profile-avatar-edit-preview-wrap {
 }
 
 body.dark-mode .profile-avatar-upload-btn {
-  background: var(--accent, #FF7528);
-  color: #141411;
-  border-color: var(--accent, #FF7528);
+  background: var(--accent, #EA560D);
+  color: #FFFFFF;
+  border-color: var(--accent, #EA560D);
 }
 
 .profile-avatar-upload-btn:hover {
@@ -1542,7 +1542,7 @@ body.dark-mode .profile-col-name {
 }
 
 body.dark-mode .profile-col-title-link:hover .profile-col-name {
-  color: var(--accent, rgb(255, 117, 40));
+  color: var(--accent, rgb(234, 86, 13));
 }
 
 .profile-col-visibility-badge {
@@ -1565,9 +1565,9 @@ body.dark-mode .profile-col-title-link:hover .profile-col-name {
 }
 
 body.dark-mode .profile-col-visibility-badge.is-public {
-  color: var(--accent, rgb(255, 117, 40));
-  border-color: rgba(255, 117, 40, 0.3);
-  background: rgba(255, 117, 40, 0.12);
+  color: var(--accent, rgb(234, 86, 13));
+  border-color: rgba(234, 86, 13, 0.3);
+  background: rgba(234, 86, 13, 0.12);
 }
 
 .profile-col-visibility-badge.is-private {
@@ -1675,8 +1675,8 @@ body.dark-mode .profile-col-action-btn {
 }
 
 body.dark-mode .profile-col-action-btn:hover {
-  border-color: var(--accent, rgb(255, 117, 40));
-  color: var(--accent, rgb(255, 117, 40));
+  border-color: var(--accent, rgb(234, 86, 13));
+  color: var(--accent, rgb(234, 86, 13));
   background: rgb(28, 28, 26);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
@@ -1837,7 +1837,7 @@ body.dark-mode .gamification-points-pill {
 }
 
 body.dark-mode .gamification-points-value {
-  color: var(--accent, rgb(255, 117, 40));
+  color: var(--accent, rgb(234, 86, 13));
 }
 
 .gamification-points-unit {
@@ -1877,7 +1877,7 @@ body.dark-mode .gamification-track {
 }
 
 body.dark-mode .gamification-fill {
-  background: var(--accent, rgb(255, 117, 40));
+  background: var(--accent, rgb(234, 86, 13));
 }
 
 .gamification-footer {
@@ -1914,7 +1914,7 @@ body.dark-mode .gamification-remaining-text strong {
 }
 
 body.dark-mode .gamification-remaining-text em {
-  color: var(--accent, rgb(255, 117, 40));
+  color: var(--accent, rgb(234, 86, 13));
 }
 
 .gamification-goal-text {
@@ -2137,7 +2137,7 @@ body.dark-mode .profile-support-btn {
 
 body.dark-mode .profile-support-btn:hover {
   background: rgba(255, 255, 255, 0.06);
-  color: var(--accent, rgb(255, 117, 40));
+  color: var(--accent, rgb(234, 86, 13));
   border-color: rgba(255, 255, 255, 0.2);
 }
 
@@ -2326,7 +2326,7 @@ body.dark-mode .neo-list-row-icon {
 }
 
 body.dark-mode .neo-list-row:hover .neo-list-row-icon {
-  color: var(--accent, rgb(255, 117, 40));
+  color: var(--accent, rgb(234, 86, 13));
 }
 
 .neo-list-row-label {
