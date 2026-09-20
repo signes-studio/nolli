@@ -182,62 +182,57 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
   const haloColor = isDark ? '#141411' : '#F8F1DF';
 
   if (importance === 0) {
-    // 0: OBRA CUMBRE (CATEGORÍA 1) — Gran diamante patrimonial Neo-Bauhaus (45°), protagonista y dominante
+    // 0: OBRA CUMBRE (CATEGORÍA 1) — Gran diamante patrimonial Neo-Bauhaus (45°), macizo con contorno firme y punto central
     ctx.save();
     ctx.translate(c, c);
     ctx.rotate(Math.PI / 4);
 
     const half = s * 0.22;
+    const strokeWidth = 1.8;
+    const pip = half * 0.28;
 
-    // Halo perimetral ultrafino de contraste
+    // Halo perimetral de contraste
     ctx.fillStyle = haloColor;
-    ctx.fillRect(-half - 1.2, -half - 1.2, (half + 1.2) * 2, (half + 1.2) * 2);
+    ctx.fillRect(-half - strokeWidth * 0.5 - 1.2, -half - strokeWidth * 0.5 - 1.2, (half + strokeWidth * 0.5 + 1.2) * 2, (half + strokeWidth * 0.5 + 1.2) * 2);
 
     if (isSelected) {
       // Estado seleccionado: inversión de alto contraste
       ctx.fillStyle = inkColor;
       ctx.fillRect(-half, -half, half * 2, half * 2);
-      ctx.lineWidth = 1.0;
+      ctx.lineWidth = strokeWidth;
       ctx.strokeStyle = haloColor;
       ctx.strokeRect(-half, -half, half * 2, half * 2);
 
-      ctx.fillStyle = color;
-      const inner = half * 0.45;
-      ctx.fillRect(-inner, -inner, inner * 2, inner * 2);
+      ctx.fillStyle = haloColor;
+      ctx.fillRect(-pip, -pip, pip * 2, pip * 2);
     } else {
-      // Cuerpo en color de categoría vivo y protagonista
+      // 1. Cuerpo macizo en color de categoría
       ctx.fillStyle = color;
       ctx.fillRect(-half, -half, half * 2, half * 2);
 
-      // Borde técnico negro ultrafino (hairline nítido, no grueso)
-      ctx.lineWidth = 0.85;
+      // 2. Contorno macizo
+      ctx.lineWidth = strokeWidth;
       ctx.strokeStyle = inkColor;
       ctx.strokeRect(-half, -half, half * 2, half * 2);
 
-      // Núcleo geométrico interior de hito patrimonial (blanco/halo con punto de tinta)
-      const inner = half * 0.38;
-      ctx.fillStyle = haloColor;
-      ctx.fillRect(-inner, -inner, inner * 2, inner * 2);
-      ctx.lineWidth = 0.7;
-      ctx.strokeStyle = inkColor;
-      ctx.strokeRect(-inner, -inner, inner * 2, inner * 2);
-
-      const micro = inner * 0.45;
+      // 3. Pequeño punto en el centro
       ctx.fillStyle = inkColor;
-      ctx.fillRect(-micro, -micro, micro * 2, micro * 2);
+      ctx.fillRect(-pip, -pip, pip * 2, pip * 2);
     }
 
     ctx.restore();
 
     drawBadges(ctx, c, s, isVisited, isFavorite, isPending);
   } else if (importance === 1) {
-    // 1: IMPRESCINDIBLE (CATEGORÍA 2) — Diana técnica circular en color de categoría con borde fino
+    // 1: IMPRESCINDIBLE (CATEGORÍA 2) — Círculo macizo con pequeño punto central y contorno macizo
     const r = s * 0.16;
+    const strokeWidth = 1.8;
+    const pipR = Math.max(2.0, r * 0.28);
 
-    // Halo perimetral ultrafino
+    // Halo perimetral de contraste nítido
     ctx.fillStyle = haloColor;
     ctx.beginPath();
-    ctx.arc(c, c, r + 1.2, 0, Math.PI * 2);
+    ctx.arc(c, c, r + strokeWidth * 0.5 + 1.2, 0, Math.PI * 2);
     ctx.fill();
 
     if (isSelected) {
@@ -246,50 +241,46 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
       ctx.arc(c, c, r, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.lineWidth = 1.0;
+      ctx.lineWidth = strokeWidth;
       ctx.strokeStyle = haloColor;
       ctx.stroke();
 
-      ctx.fillStyle = color;
+      ctx.fillStyle = haloColor;
       ctx.beginPath();
-      ctx.arc(c, c, r * 0.45, 0, Math.PI * 2);
+      ctx.arc(c, c, pipR, 0, Math.PI * 2);
       ctx.fill();
     } else {
-      // Cuerpo en color de categoría pleno
+      // 1. Círculo macizo en color de categoría pleno
       ctx.fillStyle = color;
       ctx.beginPath();
       ctx.arc(c, c, r, 0, Math.PI * 2);
       ctx.fill();
 
-      // Borde técnico negro ultrafino
-      ctx.lineWidth = 0.8;
+      // 2. Contorno macizo
+      ctx.lineWidth = strokeWidth;
       ctx.strokeStyle = inkColor;
-      ctx.stroke();
-
-      // Diana concéntrica interior
-      const innerR = r * 0.42;
-      ctx.fillStyle = haloColor;
       ctx.beginPath();
-      ctx.arc(c, c, innerR, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.lineWidth = 0.7;
-      ctx.strokeStyle = inkColor;
+      ctx.arc(c, c, r, 0, Math.PI * 2);
       ctx.stroke();
 
+      // 3. Pequeño punto en el centro
       ctx.fillStyle = inkColor;
       ctx.beginPath();
-      ctx.arc(c, c, innerR * 0.45, 0, Math.PI * 2);
+      ctx.arc(c, c, pipR, 0, Math.PI * 2);
       ctx.fill();
     }
 
     drawBadges(ctx, c, s, isVisited, isFavorite, isPending);
   } else if (importance === 2) {
-    // 2: RECOMENDADA — Nodo compacto en color de categoría con borde ultrafino
+    // 2: RECOMENDADA — Círculo macizo con pequeño punto central y contorno macizo
     const r = s * 0.12;
+    const strokeWidth = 1.5;
+    const pipR = Math.max(1.6, r * 0.28);
 
+    // Halo perimetral de contraste nítido
     ctx.fillStyle = haloColor;
     ctx.beginPath();
-    ctx.arc(c, c, r + 1.0, 0, Math.PI * 2);
+    ctx.arc(c, c, r + strokeWidth * 0.5 + 1.0, 0, Math.PI * 2);
     ctx.fill();
 
     if (isSelected) {
@@ -297,21 +288,31 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
       ctx.beginPath();
       ctx.arc(c, c, r, 0, Math.PI * 2);
       ctx.fill();
+
+      ctx.lineWidth = strokeWidth;
+      ctx.strokeStyle = haloColor;
+      ctx.stroke();
+
+      ctx.fillStyle = haloColor;
+      ctx.beginPath();
+      ctx.arc(c, c, pipR, 0, Math.PI * 2);
+      ctx.fill();
     } else {
-      // Cuerpo en color de categoría
+      // 1. Círculo macizo en color de categoría
       ctx.fillStyle = color;
       ctx.beginPath();
       ctx.arc(c, c, r, 0, Math.PI * 2);
       ctx.fill();
 
-      // Borde técnico ultrafino
-      ctx.lineWidth = 0.75;
+      // 2. Contorno macizo
+      ctx.lineWidth = strokeWidth;
       ctx.strokeStyle = inkColor;
+      ctx.beginPath();
+      ctx.arc(c, c, r, 0, Math.PI * 2);
       ctx.stroke();
 
-      // Micro-punto central técnico
-      const pipR = r * 0.35;
-      ctx.fillStyle = haloColor;
+      // 3. Pequeño punto en el centro
+      ctx.fillStyle = inkColor;
       ctx.beginPath();
       ctx.arc(c, c, pipR, 0, Math.PI * 2);
       ctx.fill();
@@ -319,12 +320,15 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
 
     drawBadges(ctx, c, s, isVisited, isFavorite, isPending);
   } else {
-    // 3: DOCUMENTADA — Micro-punto cartográfico en color de categoría con borde ultrafino
-    const r = s * 0.08;
+    // 3: DOCUMENTADA — Círculo macizo con pequeño punto central y contorno macizo
+    const r = s * 0.085;
+    const strokeWidth = 1.3;
+    const pipR = Math.max(1.2, r * 0.28);
 
+    // Halo perimetral de contraste nítido
     ctx.fillStyle = haloColor;
     ctx.beginPath();
-    ctx.arc(c, c, r + 0.9, 0, Math.PI * 2);
+    ctx.arc(c, c, r + strokeWidth * 0.5 + 0.9, 0, Math.PI * 2);
     ctx.fill();
 
     if (isSelected) {
@@ -332,17 +336,34 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
       ctx.beginPath();
       ctx.arc(c, c, r, 0, Math.PI * 2);
       ctx.fill();
+
+      ctx.lineWidth = strokeWidth;
+      ctx.strokeStyle = haloColor;
+      ctx.stroke();
+
+      ctx.fillStyle = haloColor;
+      ctx.beginPath();
+      ctx.arc(c, c, pipR, 0, Math.PI * 2);
+      ctx.fill();
     } else {
-      // Cuerpo sólido en color de categoría
+      // 1. Círculo macizo en color de categoría
       ctx.fillStyle = color;
       ctx.beginPath();
       ctx.arc(c, c, r, 0, Math.PI * 2);
       ctx.fill();
 
-      // Borde ultrafino
-      ctx.lineWidth = 0.7;
+      // 2. Contorno macizo
+      ctx.lineWidth = strokeWidth;
       ctx.strokeStyle = inkColor;
+      ctx.beginPath();
+      ctx.arc(c, c, r, 0, Math.PI * 2);
       ctx.stroke();
+
+      // 3. Pequeño punto en el centro
+      ctx.fillStyle = inkColor;
+      ctx.beginPath();
+      ctx.arc(c, c, pipR, 0, Math.PI * 2);
+      ctx.fill();
     }
 
     drawBadges(ctx, c, s, isVisited, isFavorite, isPending);
@@ -367,67 +388,72 @@ export function drawPrivateSquareIcon(ctx, color, importance, s, options = {}) {
     ctx.translate(c, c);
     ctx.rotate(Math.PI / 4);
     const half = s * 0.22;
+    const strokeWidth = 1.8;
+    const pip = half * 0.28;
 
     ctx.fillStyle = haloColor;
-    ctx.fillRect(-half - 1.2, -half - 1.2, (half + 1.2) * 2, (half + 1.2) * 2);
+    ctx.fillRect(-half - strokeWidth * 0.5 - 1.2, -half - strokeWidth * 0.5 - 1.2, (half + strokeWidth * 0.5 + 1.2) * 2, (half + strokeWidth * 0.5 + 1.2) * 2);
 
     ctx.fillStyle = color;
     ctx.fillRect(-half, -half, half * 2, half * 2);
 
-    ctx.lineWidth = 0.85;
+    ctx.lineWidth = strokeWidth;
     ctx.strokeStyle = inkColor;
     ctx.strokeRect(-half, -half, half * 2, half * 2);
 
-    const inner = half * 0.38;
-    ctx.fillStyle = haloColor;
-    ctx.fillRect(-inner, -inner, inner * 2, inner * 2);
-    ctx.lineWidth = 0.7;
-    ctx.strokeStyle = inkColor;
-    ctx.strokeRect(-inner, -inner, inner * 2, inner * 2);
+    ctx.fillStyle = inkColor;
+    ctx.fillRect(-pip, -pip, pip * 2, pip * 2);
   } else if (importance === 1) {
     const half = s * 0.16;
+    const strokeWidth = 1.8;
+    const pip = half * 0.28;
 
     ctx.fillStyle = haloColor;
-    ctx.fillRect(c - half - 1.2, c - half - 1.2, (half + 1.2) * 2, (half + 1.2) * 2);
+    ctx.fillRect(c - half - strokeWidth * 0.5 - 1.2, c - half - strokeWidth * 0.5 - 1.2, (half + strokeWidth * 0.5 + 1.2) * 2, (half + strokeWidth * 0.5 + 1.2) * 2);
 
     ctx.fillStyle = color;
     ctx.fillRect(c - half, c - half, half * 2, half * 2);
 
-    ctx.lineWidth = 0.8;
+    ctx.lineWidth = strokeWidth;
     ctx.strokeStyle = inkColor;
     ctx.strokeRect(c - half, c - half, half * 2, half * 2);
 
-    const inner = half * 0.40;
-    ctx.fillStyle = haloColor;
-    ctx.fillRect(c - inner, c - inner, inner * 2, inner * 2);
+    ctx.fillStyle = inkColor;
+    ctx.fillRect(c - pip, c - pip, pip * 2, pip * 2);
   } else if (importance === 2) {
     const half = s * 0.12;
+    const strokeWidth = 1.5;
+    const pip = half * 0.28;
 
     ctx.fillStyle = haloColor;
-    ctx.fillRect(c - half - 1.0, c - half - 1.0, (half + 1.0) * 2, (half + 1.0) * 2);
+    ctx.fillRect(c - half - strokeWidth * 0.5 - 1.0, c - half - strokeWidth * 0.5 - 1.0, (half + strokeWidth * 0.5 + 1.0) * 2, (half + strokeWidth * 0.5 + 1.0) * 2);
 
     ctx.fillStyle = color;
     ctx.fillRect(c - half, c - half, half * 2, half * 2);
 
-    ctx.lineWidth = 0.75;
+    ctx.lineWidth = strokeWidth;
     ctx.strokeStyle = inkColor;
     ctx.strokeRect(c - half, c - half, half * 2, half * 2);
 
-    const inner = half * 0.35;
-    ctx.fillStyle = haloColor;
-    ctx.fillRect(c - inner, c - inner, inner * 2, inner * 2);
+    ctx.fillStyle = inkColor;
+    ctx.fillRect(c - pip, c - pip, pip * 2, pip * 2);
   } else {
-    const half = s * 0.08;
+    const half = s * 0.085;
+    const strokeWidth = 1.3;
+    const pip = half * 0.28;
 
     ctx.fillStyle = haloColor;
-    ctx.fillRect(c - half - 0.9, c - half - 0.9, (half + 0.9) * 2, (half + 0.9) * 2);
+    ctx.fillRect(c - half - strokeWidth * 0.5 - 0.9, c - half - strokeWidth * 0.5 - 0.9, (half + strokeWidth * 0.5 + 0.9) * 2, (half + strokeWidth * 0.5 + 0.9) * 2);
 
     ctx.fillStyle = color;
     ctx.fillRect(c - half, c - half, half * 2, half * 2);
 
-    ctx.lineWidth = 0.7;
+    ctx.lineWidth = strokeWidth;
     ctx.strokeStyle = inkColor;
     ctx.strokeRect(c - half, c - half, half * 2, half * 2);
+
+    ctx.fillStyle = inkColor;
+    ctx.fillRect(c - pip, c - pip, pip * 2, pip * 2);
   }
 
   ctx.restore();

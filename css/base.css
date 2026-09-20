@@ -365,6 +365,16 @@ h1, h2, h3, h4, h5, h6,
   flex-shrink: 0;
 }
 
+body.dark-mode .legend-icon-svg circle[stroke="#141411"],
+body.dark-mode .legend-icon-svg polygon[stroke="#141411"] {
+  stroke: #FFFFFF;
+}
+
+body.dark-mode .legend-icon-svg circle[fill="#141411"],
+body.dark-mode .legend-icon-svg rect[fill="#141411"] {
+  fill: #FFFFFF;
+}
+
 .legend-item-name {
   font-family: 'Inter', sans-serif;
   line-height: 1.2;
