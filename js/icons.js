@@ -275,10 +275,9 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
 
     drawBadges(ctx, c, s, isVisited, isFavorite, isPending);
   } else if (importance === 2) {
-    // 2: RECOMENDADA — Círculo macizo con pequeño punto central y contorno macizo
+    // 2: RECOMENDADA — Círculo macizo solo con contorno (sin punto central)
     const r = s * 0.12;
     const strokeWidth = 1.5;
-    const pipR = Math.max(1.6, r * 0.28);
 
     // Halo perimetral de contraste nítido
     ctx.fillStyle = haloColor;
@@ -297,11 +296,6 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
       ctx.beginPath();
       ctx.arc(c, c, r, 0, Math.PI * 2);
       ctx.stroke();
-
-      ctx.fillStyle = isDark ? '#141411' : '#F8F1DF';
-      ctx.beginPath();
-      ctx.arc(c, c, pipR, 0, Math.PI * 2);
-      ctx.fill();
     } else {
       // 1. Círculo macizo en color de categoría
       ctx.fillStyle = color;
@@ -315,20 +309,13 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
       ctx.beginPath();
       ctx.arc(c, c, r, 0, Math.PI * 2);
       ctx.stroke();
-
-      // 3. Pequeño punto en el centro (siempre negro)
-      ctx.fillStyle = dotColor;
-      ctx.beginPath();
-      ctx.arc(c, c, pipR, 0, Math.PI * 2);
-      ctx.fill();
     }
 
     drawBadges(ctx, c, s, isVisited, isFavorite, isPending);
   } else {
-    // 3: DOCUMENTADA — Círculo macizo con pequeño punto central y contorno macizo
+    // 3: DOCUMENTADA — Círculo macizo solo con contorno (sin punto central)
     const r = s * 0.085;
     const strokeWidth = 1.3;
-    const pipR = Math.max(1.2, r * 0.28);
 
     // Halo perimetral de contraste nítido
     ctx.fillStyle = haloColor;
@@ -347,11 +334,6 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
       ctx.beginPath();
       ctx.arc(c, c, r, 0, Math.PI * 2);
       ctx.stroke();
-
-      ctx.fillStyle = isDark ? '#141411' : '#F8F1DF';
-      ctx.beginPath();
-      ctx.arc(c, c, pipR, 0, Math.PI * 2);
-      ctx.fill();
     } else {
       // 1. Círculo macizo en color de categoría
       ctx.fillStyle = color;
@@ -365,12 +347,6 @@ export function drawTargetIcon(ctx, color, importance, s, options = {}) {
       ctx.beginPath();
       ctx.arc(c, c, r, 0, Math.PI * 2);
       ctx.stroke();
-
-      // 3. Pequeño punto en el centro
-      ctx.fillStyle = dotColor;
-      ctx.beginPath();
-      ctx.arc(c, c, pipR, 0, Math.PI * 2);
-      ctx.fill();
     }
 
     drawBadges(ctx, c, s, isVisited, isFavorite, isPending);
@@ -442,13 +418,9 @@ export function drawPrivateSquareIcon(ctx, color, importance, s, options = {}) {
     ctx.lineWidth = strokeWidth;
     ctx.strokeStyle = strokeColor;
     ctx.strokeRect(c - half, c - half, half * 2, half * 2);
-
-    ctx.fillStyle = dotColor;
-    ctx.fillRect(c - pip, c - pip, pip * 2, pip * 2);
   } else {
     const half = s * 0.085;
     const strokeWidth = 1.3;
-    const pip = half * 0.28;
 
     ctx.fillStyle = haloColor;
     ctx.fillRect(c - half - strokeWidth * 0.5 - 0.9, c - half - strokeWidth * 0.5 - 0.9, (half + strokeWidth * 0.5 + 0.9) * 2, (half + strokeWidth * 0.5 + 0.9) * 2);
@@ -459,9 +431,6 @@ export function drawPrivateSquareIcon(ctx, color, importance, s, options = {}) {
     ctx.lineWidth = strokeWidth;
     ctx.strokeStyle = strokeColor;
     ctx.strokeRect(c - half, c - half, half * 2, half * 2);
-
-    ctx.fillStyle = dotColor;
-    ctx.fillRect(c - pip, c - pip, pip * 2, pip * 2);
   }
 
   ctx.restore();
