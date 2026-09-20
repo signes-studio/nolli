@@ -319,7 +319,7 @@ module.exports = async (request, response) => {
       }
 
       const params = new URLSearchParams({
-        select: 'id,updated_at',
+        select: 'id,updated_at,importancia',
         or: '(estado_revision.eq.publicada,estado_revision.is.null)',
         order: 'id.asc',
       });
@@ -340,7 +340,13 @@ module.exports = async (request, response) => {
 
       const entries = (Array.isArray(buildings) ? buildings : []).map((b) => {
         const lastmod = b.updated_at ? new Date(b.updated_at).toISOString().slice(0, 10) : today;
-        return getMultilingualSitemapEntries(`/obra/${encodeURIComponent(b.id)}`, lastmod, 'monthly', '0.6', SITE_URL);
+        const imp = Number(b.importancia);
+        let priority = '0.6';
+        if (imp === 0) priority = '0.9';
+        else if (imp === 1) priority = '0.8';
+        else if (imp === 2) priority = '0.6';
+        else if (imp === 3) priority = '0.5';
+        return getMultilingualSitemapEntries(`/obra/${encodeURIComponent(b.id)}`, lastmod, 'monthly', priority, SITE_URL);
       });
 
       const xml = [

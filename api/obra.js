@@ -3,6 +3,7 @@ const { detectServerLanguage, getLangPrefix, getSSRText, getHreflangTags, getOgL
 const { slugify, isIgnoredArchitect, ARCHITECT_ALIASES, cleanArchitectName, parseArchitectsAndInterventions } = require('./_lib/slugs.js');
 const { createRateLimiter } = require('./_lib/rateLimiter.js');
 const { getSupabaseConfig } = require('./_lib/supabaseEnv.js');
+const { getImportanceInfo } = require('./_lib/importance.js');
 
 const checkRateLimit = createRateLimiter({ windowMs: 60 * 1000, maxRequests: 60 });
 
@@ -37,7 +38,7 @@ function getOptimizedUrl(fotoUrl, width = 1200) {
 async function fetchPublicBuilding(id) {
   const { supabaseUrl, serviceRoleKey: supabaseKey } = getSupabaseConfig();
 
-  const fields = 'id,nombre_obra,arquitecto,año_construccion,categoria,place,foto_url,foto_credito,foto_licencia,enlace_url,latitud,longitud,estado_revision';
+  const fields = 'id,nombre_obra,arquitecto,año_construccion,categoria,place,foto_url,foto_credito,foto_licencia,enlace_url,latitud,longitud,estado_revision,importancia';
   const params = new URLSearchParams({
     select: fields,
     id: `eq.${id}`,
@@ -108,6 +109,8 @@ function renderBuildingPage(building, lang = 'es') {
     }).join(' · ');
   }
 
+  const impInfo = getImportanceInfo(building.importancia, lang);
+
   const detailsList = [
     cleanArchitects.length > 0 && { label: getSSRText('label_architecture', lang), value: architectHtml, isHtml: true },
     intervenciones.length > 0 && {
@@ -116,6 +119,11 @@ function renderBuildingPage(building, lang = 'es') {
       isHtml: true,
     },
     building.año_construccion && { label: getSSRText('label_year', lang), value: escapeHtml(building.año_construccion) },
+    {
+      label: getSSRText('label_importance', lang),
+      value: `<span class="badge-importance ${impInfo.badgeClass}" title="${escapeHtml(impInfo.desc)}">${impInfo.iconSvg}<span>${escapeHtml(impInfo.label)}</span></span>`,
+      isHtml: true,
+    },
     building.categoria && {
       label: getSSRText('label_category', lang),
       value: `<a href="${SITE_URL}${prefix}/categoria/${encodeURIComponent(categoriaSlug)}" class="badge-category category-${categoryClass(building.categoria)}"><span class="dot"></span>${escapeHtml(categoriaText)}</a>`,
@@ -399,6 +407,16 @@ function renderBuildingPage(building, lang = 'es') {
     .work-header {
       margin-bottom: var(--space-4);
     }
+    .badges-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .badges-row .badge-category {
+      margin-bottom: 0;
+    }
     .badge-category {
       display: inline-flex;
       align-items: center;
@@ -419,6 +437,32 @@ function renderBuildingPage(building, lang = 'es') {
     }
     .badge-category:hover {
       transform: translateY(-1px);
+    }
+    .badge-importance {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      font-family: var(--font-display);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--ink);
+      line-height: 1.2;
+    }
+    .badge-importance.imp-0 {
+      background: rgba(234, 86, 13, 0.08);
+      border-color: rgba(234, 86, 13, 0.3);
+      color: var(--brand);
+    }
+    .badge-importance .imp-icon-svg {
+      flex-shrink: 0;
+      display: inline-block;
+      vertical-align: middle;
     }
     .badge-category .dot {
       width: 7px;
@@ -682,10 +726,16 @@ function renderBuildingPage(building, lang = 'es') {
 
     <article class="work-card">
       <div class="work-header">
-        <a href="${SITE_URL}${prefix}/categoria/${encodeURIComponent(categoriaSlug)}" class="badge-category category-${categoryClass(building.categoria)}">
-          <span class="dot"></span>
-          ${escapeHtml(categoriaText)}
-        </a>
+        <div class="badges-row">
+          <a href="${SITE_URL}${prefix}/categoria/${encodeURIComponent(categoriaSlug)}" class="badge-category category-${categoryClass(building.categoria)}">
+            <span class="dot"></span>
+            ${escapeHtml(categoriaText)}
+          </a>
+          <span class="badge-importance ${impInfo.badgeClass}" title="${escapeHtml(impInfo.desc)}">
+            ${impInfo.iconSvg}
+            <span>${escapeHtml(impInfo.label)}</span>
+          </span>
+        </div>
         <h1 class="work-title">${escapeHtml(building.nombre_obra)}</h1>
         ${architectHtml ? `<p class="work-subtitle">${architectHtml}</p>` : ''}
         ${interventionsSubtitleHtml ? `<p class="work-intervention-subtitle">${interventionsSubtitleHtml}</p>` : ''}
@@ -924,9 +974,12 @@ module.exports = async (request, response) => {
     response.setHeader('Cache-Tag', cacheTag);
     return response.status(200).send(renderBuildingPage(building, lang));
   } catch (error) {
-    console.error('Error al generar la ficha de obra:', error);
-    response.setHeader('Content-Type', 'text/html; charset=utf-8');
+    console.error('No se pudo generar la página de obra:', error);
+    response.setHeader('Content-Type', 'text/plain; charset=utf-8');
     response.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=1800');
-    return response.status(404).send(renderNotFoundPage(lang));
+    return response.status(500).send('No se pudo cargar la obra.');
   }
 };
+
+module.exports.renderBuildingPage = renderBuildingPage;
+module.exports.renderNotFoundPage = renderNotFoundPage;

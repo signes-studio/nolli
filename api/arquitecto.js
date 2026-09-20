@@ -7,6 +7,7 @@ const { detectServerLanguage, getLangPrefix, getSSRText, getHreflangTags, getOgL
 const { slugify, slugToRegex, extractCityName, escapeHtml, getOptimizedUrl, isIgnoredArchitect, ARCHITECT_ALIASES, cleanArchitectName, ARCHITECT_SEPARATOR_REGEX } = require('./_lib/slugs.js');
 const { createRateLimiter } = require('./_lib/rateLimiter.js');
 const { getSupabaseConfig } = require('./_lib/supabaseEnv.js');
+const { getImportanceInfo } = require('./_lib/importance.js');
 const {
   getAssociatedSearchTerms,
   getStudioMembers,
@@ -50,7 +51,7 @@ async function fetchArchitectData(rawInput, page) {
 
   // 1. Consulta paginada para las tarjetas de la página actual
   const pageParams = new URLSearchParams({
-    select: 'id,nombre_obra,arquitecto,año_construccion,place,foto_url,categoria,latitud,longitud',
+    select: 'id,nombre_obra,arquitecto,año_construccion,place,foto_url,categoria,latitud,longitud,importancia',
     arquitecto: `imatch.${regex}`,
     or: '(estado_revision.eq.publicada,estado_revision.is.null)',
     order: 'año_construccion.desc.nullslast,id.asc',
@@ -254,11 +255,12 @@ function renderArchitectPage(data, page, lang = 'es') {
     const catSlug = b.categoria || 'otro';
     const catLabel = categoryLabel(catSlug, lang);
     const catColor = CATEGORY_COLORS[catSlug] || CATEGORY_COLORS.otro;
+    const impInfo = getImportanceInfo(b.importancia, lang);
     const yearVal = parseInt(b.año_construccion, 10) || 0;
     const yearText = yearVal > 0 ? String(yearVal) : (b.año_construccion ? String(b.año_construccion) : '');
     const metaItems = [b.place, yearText].filter(Boolean).join(' · ');
     const cityName = extractCityName(b.place || '');
-    const searchTokens = `${b.nombre_obra || ''} ${b.place || ''} ${cityName} ${yearText} ${catLabel} ${catSlug}`.toLowerCase();
+    const searchTokens = `${b.nombre_obra || ''} ${b.place || ''} ${cityName} ${yearText} ${catLabel} ${catSlug} ${impInfo.label} nivel ${impInfo.level}`.toLowerCase();
 
     return `
       <article class="work-card"
@@ -267,6 +269,8 @@ function renderArchitectPage(data, page, lang = 'es') {
         data-year="${yearVal}"
         data-category="${escapeHtml(catSlug)}"
         data-category-name="${escapeHtml(catLabel.toLowerCase())}"
+        data-importance="${impInfo.level}"
+        data-importance-name="${escapeHtml(impInfo.label.toLowerCase())}"
         data-city="${escapeHtml(cityName.toLowerCase())}"
         data-search="${escapeHtml(searchTokens)}">
         <a href="${SITE_URL}${prefix}/obra/${encodeURIComponent(b.id)}" class="card-link">
@@ -276,7 +280,11 @@ function renderArchitectPage(data, page, lang = 'es') {
           }
           <div class="card-body">
             <h2 class="card-title">${escapeHtml(b.nombre_obra)}</h2>
-            <div class="card-category-wrap">
+            <div class="card-badges-wrap">
+              <span class="card-importance-badge ${impInfo.badgeClass}" title="${escapeHtml(impInfo.desc)}">
+                ${impInfo.iconSvg}
+                <span class="imp-text">${escapeHtml(impInfo.label)}</span>
+              </span>
               <span class="card-category-badge" title="${escapeHtml(catLabel)}">
                 <span class="cat-dot" style="background-color: ${catColor};"></span>
                 <span class="cat-text">${escapeHtml(catLabel)}</span>
@@ -285,6 +293,10 @@ function renderArchitectPage(data, page, lang = 'es') {
             ${metaItems ? `<p class="card-meta">${escapeHtml(metaItems)}</p>` : ''}
           </div>
           <div class="card-list-side">
+            <span class="card-importance-badge list-badge ${impInfo.badgeClass}" title="${escapeHtml(impInfo.desc)}">
+              ${impInfo.iconSvg}
+              <span class="imp-text">${escapeHtml(impInfo.label)}</span>
+            </span>
             <span class="card-category-badge list-badge" title="${escapeHtml(catLabel)}">
               <span class="cat-dot" style="background-color: ${catColor};"></span>
               <span class="cat-text">${escapeHtml(catLabel)}</span>
@@ -823,8 +835,43 @@ function renderArchitectPage(data, page, lang = 'es') {
       line-height: 1.25;
       color: var(--ink);
     }
-    .card-category-wrap {
+    .card-badges-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 5px;
       margin: 0 0 var(--space-1);
+    }
+    .card-importance-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 8px;
+      border-radius: var(--radius-pill);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      font-family: var(--font-display);
+      font-size: 10.5px;
+      font-weight: 800;
+      letter-spacing: .03em;
+      text-transform: uppercase;
+      color: var(--ink);
+      line-height: 1.1;
+      max-width: 100%;
+    }
+    .card-importance-badge.imp-0 {
+      background: rgba(234, 86, 13, 0.08);
+      border-color: rgba(234, 86, 13, 0.35);
+      color: var(--brand);
+    }
+    .card-importance-badge .imp-icon-svg {
+      flex-shrink: 0;
+      display: inline-block;
+    }
+    .card-importance-badge .imp-text {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .card-category-badge {
       display: inline-flex;
@@ -1184,7 +1231,7 @@ function renderArchitectPage(data, page, lang = 'es') {
       flex-direction: column;
       justify-content: center;
     }
-    .cards-grid.is-list-view .card-category-wrap {
+    .cards-grid.is-list-view .card-badges-wrap {
       display: none;
     }
     .cards-grid.is-list-view .card-title {
@@ -1205,7 +1252,7 @@ function renderArchitectPage(data, page, lang = 'es') {
     .cards-grid.is-list-view .card-list-side {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 8px;
       flex-shrink: 0;
       margin-left: auto;
     }
@@ -1259,7 +1306,7 @@ function renderArchitectPage(data, page, lang = 'es') {
       .cards-grid.is-list-view .card-list-side {
         display: none;
       }
-      .cards-grid.is-list-view .card-category-wrap {
+      .cards-grid.is-list-view .card-badges-wrap {
         display: flex;
         margin-top: 2px;
         margin-bottom: 0;
@@ -1355,11 +1402,25 @@ function renderArchitectPage(data, page, lang = 'es') {
             <svg class="select-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </div>` : ''}
 
+          <!-- Filtro Importancia -->
+          <div class="toolbar-select-wrap">
+            <select id="filter-importance-select" class="toolbar-select" aria-label="${escapeHtml(getSSRText('filter_all_importance', lang))}">
+              <option value="all">${escapeHtml(getSSRText('filter_all_importance', lang))}</option>
+              <option value="0">${escapeHtml(getSSRText('importance_0', lang))}</option>
+              <option value="1">${escapeHtml(getSSRText('importance_1', lang))}</option>
+              <option value="2">${escapeHtml(getSSRText('importance_2', lang))}</option>
+              <option value="3">${escapeHtml(getSSRText('importance_3', lang))}</option>
+            </select>
+            <svg class="select-caret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </div>
+
           <!-- Ordenación -->
           <div class="toolbar-select-wrap">
             <select id="sort-works-select" class="toolbar-select" aria-label="${escapeHtml(getSSRText('sort_by', lang))}">
               <option value="year-desc">${escapeHtml(getSSRText('sort_year_desc', lang))}</option>
               <option value="year-asc">${escapeHtml(getSSRText('sort_year_asc', lang))}</option>
+              <option value="imp-desc">${escapeHtml(getSSRText('sort_importance_desc', lang))}</option>
+              <option value="imp-asc">${escapeHtml(getSSRText('sort_importance_asc', lang))}</option>
               <option value="name-asc">${escapeHtml(getSSRText('sort_name_asc', lang))}</option>
               <option value="name-desc">${escapeHtml(getSSRText('sort_name_desc', lang))}</option>
               <option value="cat-asc">${escapeHtml(getSSRText('sort_category_asc', lang))}</option>
@@ -1420,6 +1481,7 @@ function renderArchitectPage(data, page, lang = 'es') {
     var searchClear = document.getElementById('works-search-clear');
     var filterCat = document.getElementById('filter-category-select');
     var filterCity = document.getElementById('filter-city-select');
+    var filterImp = document.getElementById('filter-importance-select');
     var sortSelect = document.getElementById('sort-works-select');
     var btnViewGrid = document.getElementById('btn-view-grid');
     var btnViewList = document.getElementById('btn-view-list');
@@ -1464,6 +1526,7 @@ function renderArchitectPage(data, page, lang = 'es') {
       var q = (searchInput ? searchInput.value : '').trim().toLowerCase();
       var cat = filterCat ? filterCat.value : 'all';
       var city = filterCity ? filterCity.value : 'all';
+      var imp = filterImp ? filterImp.value : 'all';
       var sortVal = sortSelect ? sortSelect.value : 'year-desc';
 
       if (searchClear) {
@@ -1471,7 +1534,7 @@ function renderArchitectPage(data, page, lang = 'es') {
         else searchClear.classList.add('hidden');
       }
 
-      var isFiltered = Boolean(q || cat !== 'all' || city !== 'all');
+      var isFiltered = Boolean(q || cat !== 'all' || city !== 'all' || imp !== 'all');
       if (btnReset) {
         if (isFiltered) btnReset.classList.remove('hidden');
         else btnReset.classList.add('hidden');
@@ -1489,6 +1552,24 @@ function renderArchitectPage(data, page, lang = 'es') {
           var yA2 = parseInt(a.getAttribute('data-year') || '0', 10) || 9999;
           var yB2 = parseInt(b.getAttribute('data-year') || '0', 10) || 9999;
           if (yA2 !== yB2) return yA2 - yB2;
+          return (a.getAttribute('data-title') || '').localeCompare(b.getAttribute('data-title') || '');
+        }
+        if (sortVal === 'imp-desc') {
+          var impA = parseInt(a.getAttribute('data-importance') || '1', 10);
+          var impB = parseInt(b.getAttribute('data-importance') || '1', 10);
+          if (impA !== impB) return impA - impB;
+          var yB_imp = parseInt(b.getAttribute('data-year') || '0', 10);
+          var yA_imp = parseInt(a.getAttribute('data-year') || '0', 10);
+          if (yB_imp !== yA_imp) return yB_imp - yA_imp;
+          return (a.getAttribute('data-title') || '').localeCompare(b.getAttribute('data-title') || '');
+        }
+        if (sortVal === 'imp-asc') {
+          var impA2 = parseInt(a.getAttribute('data-importance') || '1', 10);
+          var impB2 = parseInt(b.getAttribute('data-importance') || '1', 10);
+          if (impA2 !== impB2) return impB2 - impA2;
+          var yB_imp2 = parseInt(b.getAttribute('data-year') || '0', 10);
+          var yA_imp2 = parseInt(a.getAttribute('data-year') || '0', 10);
+          if (yB_imp2 !== yA_imp2) return yB_imp2 - yA_imp2;
           return (a.getAttribute('data-title') || '').localeCompare(b.getAttribute('data-title') || '');
         }
         if (sortVal === 'name-asc') {
@@ -1530,12 +1611,14 @@ function renderArchitectPage(data, page, lang = 'es') {
         var searchData = card.getAttribute('data-search') || '';
         var cardCat = card.getAttribute('data-category') || '';
         var cardCity = card.getAttribute('data-city') || '';
+        var cardImp = card.getAttribute('data-importance') || '1';
 
         var matchSearch = !q || searchData.indexOf(q) !== -1;
         var matchCat = cat === 'all' || cardCat === cat;
         var matchCity = city === 'all' || cardCity.indexOf(city) !== -1;
+        var matchImp = imp === 'all' || cardImp === imp;
 
-        if (matchSearch && matchCat && matchCity) {
+        if (matchSearch && matchCat && matchCity && matchImp) {
           card.style.display = '';
           visibleCount++;
         } else {
@@ -1562,6 +1645,7 @@ function renderArchitectPage(data, page, lang = 'es') {
       if (searchInput) searchInput.value = '';
       if (filterCat) filterCat.value = 'all';
       if (filterCity) filterCity.value = 'all';
+      if (filterImp) filterImp.value = 'all';
       if (sortSelect) sortSelect.value = 'year-desc';
       applyFilterAndSort();
       if (searchInput) searchInput.focus();
@@ -1571,6 +1655,7 @@ function renderArchitectPage(data, page, lang = 'es') {
     if (searchClear) searchClear.addEventListener('click', resetAllFilters);
     if (filterCat) filterCat.addEventListener('change', applyFilterAndSort);
     if (filterCity) filterCity.addEventListener('change', applyFilterAndSort);
+    if (filterImp) filterImp.addEventListener('change', applyFilterAndSort);
     if (sortSelect) sortSelect.addEventListener('change', applyFilterAndSort);
     if (btnReset) btnReset.addEventListener('click', resetAllFilters);
     if (btnEmptyReset) btnEmptyReset.addEventListener('click', resetAllFilters);
@@ -1825,3 +1910,6 @@ module.exports = async (request, response) => {
     return response.status(500).send('No se pudo cargar la página de arquitecto.');
   }
 };
+
+module.exports.renderArchitectPage = renderArchitectPage;
+module.exports.renderArchitectNotFoundPage = renderArchitectNotFoundPage;
