@@ -308,14 +308,14 @@ export function extraerAnioDefensivo(valor: unknown): string | null {
 }
 
 export const CATEGORY_COLORS: Record<BuildingCategory, string> = {
-  residencial: '#E95C0C',
-  dotacional_equipamiento: '#EFBC02',
-  industrial_logistico: '#064773',
-  religioso_funerario: '#F2ACCD',
-  comercial_terciario: '#4388C6',
-  espacio_publico_paisaje: '#0D682F',
-  infraestructura_urbanismo: '#E41F23',
-  otro: '#691B14'
+  residencial: '#EA560D',
+  dotacional_equipamiento: '#F6A600',
+  industrial_logistico: '#163D62',
+  religioso_funerario: '#F6B9C5',
+  comercial_terciario: '#007BC3',
+  espacio_publico_paisaje: '#007446',
+  infraestructura_urbanismo: '#E02523',
+  otro: '#492900'
 };
 
 export const CATEGORY_NAMES: Record<BuildingCategory, string> = {
@@ -342,56 +342,56 @@ export const CATEGORY_META: Record<BuildingCategory, CategoryMetaItem> = {
     key: 'residencial',
     label: 'Residencial',
     labelShort: 'RESIDENCIAL',
-    color: '#E95C0C',
+    color: '#EA560D',
     icon: 'home'
   },
   dotacional_equipamiento: {
     key: 'dotacional_equipamiento',
     label: 'Dotacional / Equipamiento',
     labelShort: 'DOTACIONAL / EQUIPAMIENTO',
-    color: '#EFBC02',
+    color: '#F6A600',
     icon: 'building-2'
   },
   industrial_logistico: {
     key: 'industrial_logistico',
     label: 'Industrial / Logístico',
     labelShort: 'INDUSTRIAL / LOGÍSTICO',
-    color: '#064773',
+    color: '#163D62',
     icon: 'factory'
   },
   religioso_funerario: {
     key: 'religioso_funerario',
     label: 'Religioso / Funerario',
     labelShort: 'RELIGIOSO / FUNERARIO',
-    color: '#F2ACCD',
+    color: '#F6B9C5',
     icon: 'cross'
   },
   comercial_terciario: {
     key: 'comercial_terciario',
     label: 'Comercial / Terciario',
     labelShort: 'COMERCIAL / TERCIARIO',
-    color: '#4388C6',
+    color: '#007BC3',
     icon: 'shopping-bag'
   },
   espacio_publico_paisaje: {
     key: 'espacio_publico_paisaje',
     label: 'Espacio Público / Paisaje',
     labelShort: 'ESPACIO PÚBLICO / PAISAJE',
-    color: '#0D682F',
+    color: '#007446',
     icon: 'trees'
   },
   infraestructura_urbanismo: {
     key: 'infraestructura_urbanismo',
     label: 'Infraestructura / Urbanismo',
     labelShort: 'INFRAESTRUCTURA / URBANISMO',
-    color: '#E41F23',
+    color: '#E02523',
     icon: 'bridge'
   },
   otro: {
     key: 'otro',
     label: 'Otro',
     labelShort: 'OTRO',
-    color: '#691B14',
+    color: '#492900',
     icon: 'map-pin'
   }
 };

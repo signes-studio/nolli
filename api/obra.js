@@ -246,8 +246,8 @@ function renderBuildingPage(building, lang = 'es') {
       --border: #D8D6CE;
       --border-subtle: rgba(20, 20, 17, 0.08);
       --border-strong: #141411;
-      --brand: #E84E1B;
-      --accent: #E84E1B;
+      --brand: #EA560D;
+      --accent: #EA560D;
       --accent-hover: #9E3700;
       --font-display: 'League Spartan', sans-serif;
       --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -263,16 +263,16 @@ function renderBuildingPage(building, lang = 'es') {
       --radius-pill: 9999px;
       --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
       --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.03);
-      --shadow-accent: 0 3px 12px rgba(232, 78, 27, 0.28);
+      --shadow-accent: 0 3px 12px rgba(234, 86, 13, 0.28);
       
-      --cat-residential: #E95C0C;
-      --cat-institutional: #EFBC02;
-      --cat-industrial: #064773;
-      --cat-religious: #F2ACCD;
-      --cat-commercial: #4388C6;
-      --cat-public-space: #0D682F;
-      --cat-infrastructure: #E41F23;
-      --cat-other: #691B14;
+      --cat-residential: #EA560D;
+      --cat-institutional: #F6A600;
+      --cat-industrial: #163D62;
+      --cat-religious: #F6B9C5;
+      --cat-commercial: #007BC3;
+      --cat-public-space: #007446;
+      --cat-infrastructure: #E02523;
+      --cat-other: #492900;
     }
 
     @media (prefers-color-scheme: dark) {
@@ -525,7 +525,7 @@ function renderBuildingPage(building, lang = 'es') {
     .btn-primary-map:hover {
       background: var(--accent-hover);
       transform: translateY(-2px);
-      box-shadow: 0 5px 16px rgba(232, 78, 27, 0.4);
+      box-shadow: 0 5px 16px rgba(234, 86, 13, 0.4);
     }
     .tech-card {
       background: var(--bg-elevated);
@@ -756,7 +756,7 @@ function renderNotFoundPage(lang = 'es') {
       --ink: #141411;
       --ink-dim: #6B6B6B;
       --border: #D8D6CE;
-      --brand: #E84E1B;
+      --brand: #EA560D;
       --font-display: 'League Spartan', sans-serif;
       --font-body: 'Inter', sans-serif;
       --radius-sm: 6px;
@@ -858,12 +858,12 @@ function renderNotFoundPage(lang = 'es') {
       letter-spacing: 0.04em;
       text-decoration: none;
       text-transform: uppercase;
-      box-shadow: 0 3px 12px rgba(232, 78, 27, 0.28);
+      box-shadow: 0 3px 12px rgba(234, 86, 13, 0.28);
       transition: transform 0.12s ease, box-shadow 0.12s ease;
     }
     .map-link:hover {
       transform: translateY(-2px);
-      box-shadow: 0 5px 16px rgba(232, 78, 27, 0.4);
+      box-shadow: 0 5px 16px rgba(234, 86, 13, 0.4);
     }
   </style>
 </head>

@@ -140,7 +140,7 @@ export function renderWishlistRadarBadge(wishlistWorks) {
   const nearest = wishlistWorks[0];
   const count = wishlistWorks.length;
   badgeContainer.innerHTML = `
-    <div style="width:100%; display:flex; align-items:center; justify-content:space-between; background:rgba(232,78,27,0.08); border:1.5px solid var(--accent); padding:8px 10px; margin-bottom:8px; font-family:'Inter',sans-serif; font-size:10px; font-weight:700;">
+    <div style="width:100%; display:flex; align-items:center; justify-content:space-between; background:rgba(234, 86, 13,0.08); border:1.5px solid var(--accent); padding:8px 10px; margin-bottom:8px; font-family:'Inter',sans-serif; font-size:10px; font-weight:700;">
       <div style="display:flex; align-items:center; gap:6px;">
         <span style="display:inline-block; width:8px; height:8px; background:var(--accent);"></span>
         <span>${count} ${count === 1 ? 'OBRA DE TU LISTA DE DESEOS' : 'OBRAS DE TU LISTA DE DESEOS'} EN TU RADIO</span>
@@ -255,14 +255,14 @@ export function actualizarEstadoGPSUI() {
     if (isGpsActive) {
       badge.textContent = t('radar_gps_active_badge', null, 'GPS ACTIVO');
       badge.style.color = 'var(--bg, rgb(248, 241, 223))';
-      badge.style.background = 'var(--accent, rgb(233, 92, 12))';
-      badge.style.borderColor = 'var(--accent, rgb(233, 92, 12))';
+      badge.style.background = 'var(--accent, rgb(234, 86, 13))';
+      badge.style.borderColor = 'var(--accent, rgb(234, 86, 13))';
     } else if (isManual) {
       const cityName = (state.manualLocationName || '').trim();
       badge.textContent = `${t('radar_manual_location_badge', null, 'UBICACIÓN MANUAL')}${cityName ? `: ${cityName.toUpperCase()}` : ''}`;
       badge.style.color = 'var(--bg, rgb(248, 241, 223))';
-      badge.style.background = 'var(--accent, rgb(233, 92, 12))';
-      badge.style.borderColor = 'var(--accent, rgb(233, 92, 12))';
+      badge.style.background = 'var(--accent, rgb(234, 86, 13))';
+      badge.style.borderColor = 'var(--accent, rgb(234, 86, 13))';
     } else {
       badge.textContent = 'UBICACIÓN: VALENCIA';
       badge.style.color = 'var(--fg-dim, rgb(107, 107, 107))';
@@ -287,7 +287,7 @@ export function actualizarEstadoGPSUI() {
         notice.innerHTML = `
           <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
             <span style="font-weight: 600; font-family: 'Inter', sans-serif; font-size: 12px; color: var(--fg); text-transform: lowercase;">${t('radar_manual_location_notice_title', null, 'modo ubicación manual')}</span>
-            <span style="font-size: 10px; font-weight: 700; color: var(--accent, rgb(233, 92, 12)); text-transform: uppercase;">${placeTitle}</span>
+            <span style="font-size: 10px; font-weight: 700; color: var(--accent, rgb(234, 86, 13)); text-transform: uppercase;">${placeTitle}</span>
           </div>
           <p style="margin: 0; font-size: 11px; color: var(--fg-dim); line-height: 1.4;">${t('radar_manual_location_notice_desc', null, 'Obras calculadas según este punto. Para volver a tu posición física real, activa el GPS.')}</p>
           <div style="display: flex; gap: 8px;">
@@ -299,7 +299,7 @@ export function actualizarEstadoGPSUI() {
         notice.innerHTML = `
           <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
             <span style="font-weight: 600; font-family: 'Inter', sans-serif; font-size: 12px; color: var(--fg); text-transform: lowercase;">sin acceso a gps</span>
-            <span style="font-size: 10px; font-weight: 500; color: var(--accent, rgb(233, 92, 12)); text-transform: lowercase;">valencia</span>
+            <span style="font-size: 10px; font-weight: 500; color: var(--accent, rgb(234, 86, 13)); text-transform: lowercase;">valencia</span>
           </div>
           <p style="margin: 0; font-size: 11px; color: var(--fg-dim); line-height: 1.4;">Para calcular obras a tu alrededor, activa el GPS o busca otra ciudad en el mapa.</p>
           <div style="display: flex; gap: 8px;">
@@ -522,7 +522,7 @@ export async function activarRutaEnMapa(routeId) {
     titleEl.textContent = `Cargando: ${route.title || 'Itinerario'}…`;
     if (countEl) countEl.textContent = '';
     const dotEl = document.getElementById('itinerary-badge-dot');
-    if (dotEl) dotEl.style.backgroundColor = 'var(--accent, #E84E1B)';
+    if (dotEl) dotEl.style.backgroundColor = 'var(--accent, #EA560D)';
     itineraryBadge.classList.remove('hidden');
     window.lucide?.createIcons?.();
   }
@@ -632,7 +632,7 @@ export async function activarRutaEnMapa(routeId) {
     titleEl.textContent = `Ruta: ${route.title || 'Itinerario'}`;
     if (countEl) countEl.textContent = `(${matchingWorks.length})`;
     const dotEl = document.getElementById('itinerary-badge-dot');
-    if (dotEl) dotEl.style.backgroundColor = 'var(--accent, #E84E1B)';
+    if (dotEl) dotEl.style.backgroundColor = 'var(--accent, #EA560D)';
     window.lucide?.createIcons?.();
   }
 

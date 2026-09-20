@@ -36,7 +36,7 @@ export const CURATED_ROUTES: CuratedRoute[] = [
     title: 'DOCOMOMO IBÉRICO',
     subtitle: 'Registro y documentación de la arquitectura del Movimiento Moderno',
     tag: 'REGISTRO OFICIAL',
-    color: '#E84E1B',
+    color: '#EA560D',
     stops: 'CATÁLOGO',
     addedByFilter: 'DOCOMOMO'
   },
@@ -115,7 +115,7 @@ export const CURATED_ROUTES: CuratedRoute[] = [
     title: 'ARQUITECTURA CONTEMPORÁNEA ESPAÑOLA',
     subtitle: 'Moneo, RCR, Nieto Sobejano, Mansilla+Tuñón, Campo Baeza y la escena actual, 1985-2025',
     tag: 'CONTEMPORÁNEA',
-    color: '#E84E1B',
+    color: '#EA560D',
     stops: '~150 OBRAS',
     yearRange: [1985, 2025],
     architectsFilter: ['Moneo', 'Nieto', 'Sobejano', 'Mansilla', 'Tuñón', 'RCR', 'Souto de Moura', 'Siza', 'Campo Baeza', 'Ábalos', 'Herreros']

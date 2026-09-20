@@ -294,8 +294,8 @@ function renderCategoryPage(slug, data, page, lang = 'es') {
       --ink-dim: #6B6B6B;
       --border: #D8D6CE;
       --border-subtle: rgba(20, 20, 17, 0.08);
-      --brand: #E84E1B;
-      --accent: #E84E1B;
+      --brand: #EA560D;
+      --accent: #EA560D;
       --accent-hover: #9E3700;
       --font-display: 'League Spartan', sans-serif;
       --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -482,13 +482,13 @@ function renderCategoryPage(slug, data, page, lang = 'es') {
       letter-spacing: .04em;
       text-transform: uppercase;
       border-radius: var(--radius-sm);
-      box-shadow: 0 3px 12px rgba(232, 78, 27, 0.28);
+      box-shadow: 0 3px 12px rgba(234, 86, 13, 0.28);
       transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
     }
     .btn-action-primary:hover {
       background: var(--accent-hover);
       transform: translateY(-2px);
-      box-shadow: 0 5px 16px rgba(232, 78, 27, 0.4);
+      box-shadow: 0 5px 16px rgba(234, 86, 13, 0.4);
       color: #fff;
     }
     .cross-links-section {
@@ -563,7 +563,7 @@ function renderCategoryPage(slug, data, page, lang = 'es') {
     .work-card:hover {
       transform: translateY(-4px);
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.03);
-      border-color: rgba(232, 78, 27, 0.3);
+      border-color: rgba(234, 86, 13, 0.3);
     }
     .card-link {
       color: inherit;
@@ -845,7 +845,7 @@ function renderCategoryNotFoundPage(slug, lang = 'es') {
       --ink: #141411;
       --ink-dim: #6B6B6B;
       --border: #D8D6CE;
-      --brand: #E84E1B;
+      --brand: #EA560D;
       --font-display: 'League Spartan', sans-serif;
       --font-body: 'Inter', sans-serif;
       --radius-sm: 6px;
@@ -925,13 +925,13 @@ function renderCategoryNotFoundPage(slug, lang = 'es') {
       font-weight: 800;
       letter-spacing: .04em;
       border-radius: var(--radius-sm);
-      box-shadow: 0 3px 12px rgba(232, 78, 27, 0.28);
+      box-shadow: 0 3px 12px rgba(234, 86, 13, 0.28);
       transition: all 0.15s ease;
     }
     .nf-btn:hover {
       background: #9E3700;
       transform: translateY(-2px);
-      box-shadow: 0 5px 16px rgba(232, 78, 27, 0.4);
+      box-shadow: 0 5px 16px rgba(234, 86, 13, 0.4);
     }
   </style>
 </head>

@@ -586,7 +586,7 @@ export async function activarFiltroBusquedaEnMapa(queryText, providedMatches = n
     type: 'search',
     label: q,
     value: q,
-    color: 'var(--accent, #E84E1B)',
+    color: 'var(--accent, #EA560D)',
     workIds: matchIds,
   });
 

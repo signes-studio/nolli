@@ -1,6 +1,6 @@
 /* =========================================================================
    ADMIN.CSS — Estilos Neo-Bauhaus para la Consola de Administración Nolli
-   Paleta: #F8F1DF (crema papel), #141411 (tinta negra), #C44605 (bermellón accesible), #EFBC02 (mostaza constructivista)
+   Paleta: #F8F1DF (crema papel), #141411 (tinta negra), #C44605 (bermellón accesible), #F6A600 (amarillo equipamiento)
    ========================================================================= */
 
 :root {
@@ -18,15 +18,15 @@
   --admin-accent-hover: #9E3700;
   --admin-accent-subtle: rgba(196, 70, 5, 0.08);
   --admin-accent-contrast: #FFFFFF;
-  --admin-accent-2: #EFBC02;
+  --admin-accent-2: #F6A600;
 
   /* Estados Funcionales */
   --admin-green: #1E7E34;
   --admin-green-bg: rgba(30, 126, 52, 0.12);
   --admin-red: #D6201D;
   --admin-red-bg: rgba(214, 32, 29, 0.1);
-  --admin-blue: #064773;
-  --admin-blue-bg: rgba(6, 71, 115, 0.12);
+  --admin-blue: #163D62;
+  --admin-blue-bg: rgba(22, 61, 98, 0.12);
 
   /* Sombras Neo-Bauhaus Suaves */
   --admin-shadow: 0 4px 16px rgba(20, 20, 17, 0.06);
@@ -58,7 +58,7 @@ body.dark-mode {
   --admin-accent-hover: #FFA366;
   --admin-accent-subtle: rgba(255, 117, 40, 0.14);
   --admin-accent-contrast: #141411;
-  --admin-accent-2: #EFBC02;
+  --admin-accent-2: #F6A600;
 
   /* Estados Funcionales Oscuros */
   --admin-green: #00CC66;
@@ -1587,8 +1587,8 @@ body.dark-mode .admin-importance-tag.imp-3 {
 }
 
 .badge-tag-success { background: var(--admin-green-bg); color: var(--admin-green); }
-.badge-tag-warning { background: rgba(239, 188, 2, 0.15); color: #8C6A00; }
-body.dark-mode .badge-tag-warning { color: #EFBC02; }
+.badge-tag-warning { background: rgba(246, 166, 0, 0.15); color: #8C6A00; }
+body.dark-mode .badge-tag-warning { color: #F6A600; }
 .badge-tag-danger { background: var(--admin-red-bg); color: var(--admin-red); }
 .badge-tag-blue { background: var(--admin-blue-bg); color: var(--admin-blue); }
 body.dark-mode .badge-tag-blue { color: #4FA8D8; }

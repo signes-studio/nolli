@@ -33,22 +33,22 @@ All values below must be implemented as CSS custom properties (`:root` scope) or
   --border-strong: #141411; /* structural grid lines — ALWAYS black, never a theme color */
 
   /* Brand */
-  --brand:         #E95C0C; /* Vermillion / Bauhaus Orange — identity, primary CTA, symbol */
+  --brand:         #EA560D; /* Vermillion / Bauhaus Orange — identity, primary CTA, symbol */
 
   /* Semantic (Bauhaus primaries) — system state, NEVER brand identity */
-  --semantic-select:  #EFBC02; /* Constructivist Mustard — selection, active, info */
-  --semantic-info:    #064773; /* Deep Blue — secondary info, links, informational states */
+  --semantic-select:  #F6A600; /* Constructivist Mustard — selection, active, info */
+  --semantic-info:    #163D62; /* Deep Blue — secondary info, links, informational states */
   --semantic-alert:   #D6201D; /* Alert Red — errors, destructive actions, warnings */
 
   /* Categorization (architectural typology badges ONLY) */
-  --cat-residential:     #E95C0C;
-  --cat-institutional:   #EFBC02; /* "Dotacional" */
-  --cat-industrial:      #064773;
-  --cat-religious:       #F2ACCD;
-  --cat-commercial:      #4388C6;
-  --cat-public-space:    #0D682F;
-  --cat-infrastructure:  #E41F23;
-  --cat-other:           #691B14;
+  --cat-residential:     #EA560D;
+  --cat-institutional:   #F6A600; /* "Dotacional" */
+  --cat-industrial:      #163D62;
+  --cat-religious:       #F6B9C5;
+  --cat-commercial:      #007BC3;
+  --cat-public-space:    #007446;
+  --cat-infrastructure:  #E02523;
+  --cat-other:           #492900;
 
   /* Typography */
   --font-display: 'League Spartan', sans-serif;
@@ -71,7 +71,7 @@ All values below must be implemented as CSS custom properties (`:root` scope) or
 ```
 
 ### [AVISO] Correction against the previously supplied `brand.md`
-The reference file included with this prompt mislabels two colors — it calls `#EFBC02` **"Constructivist Blue"** and `#064773` **"Mustard/Warm Yellow"**, which is inverted: `#EFBC02` is a mustard/yellow, `#064773` is a deep blue. The token names above (`--semantic-select` / `--semantic-info`) are named by **function**, not by color word, specifically to prevent this class of naming error from ever reaching production code. Agents must use the functional token names, never a color-word alias.
+The reference file included with this prompt mislabels two colors — it calls `#F6A600` **"Constructivist Blue"** and `#163D62` **"Mustard/Warm Yellow"**, which is inverted: `#F6A600` is a mustard/yellow, `#163D62` is a deep blue. The token names above (`--semantic-select` / `--semantic-info`) are named by **function**, not by color word, specifically to prevent this class of naming error from ever reaching production code. Agents must use the functional token names, never a color-word alias.
 
 The uploaded reference also omits the Alert Red (`#D6201D`) and the eight categorization colors — both are part of the canonical system and are included above. Any component touching error states or typology badges must use these, not the semantic Mustard/Blue pair.
 
@@ -137,7 +137,7 @@ No third typeface may be introduced anywhere in the product, including loading s
 
 1. **No `border-radius` greater than `0px` on any layout container** (cards, panels, buttons, modals, inputs). Fully circular elements (the brand symbol, avatar dots) are the only exception, and must use `border-radius: 50%` explicitly, never a token.
 2. **No blurred/soft shadows, gradients, or glow effects** anywhere in the system. The only permitted shadow is `var(--shadow-hard)`.
-3. **No use of `--brand` (`#E95C0C`) as a large background surface** (full sections, full cards, full-screen backgrounds). It is reserved for compact accents, symbols, and primary CTAs — see the brand manual's "prohibited actions" list.
+3. **No use of `--brand` (`#EA560D`) as a large background surface** (full sections, full cards, full-screen backgrounds). It is reserved for compact accents, symbols, and primary CTAs — see the brand manual's "prohibited actions" list.
 4. **No mixing of category colors (`--cat-*`) into semantic or structural roles.** A category color may only ever style a category badge. It cannot color a button, a structural border, a link, or an error state, even when the content it labels belongs to that category.
 5. **No third-party font fallback in production** (system-ui, Arial, etc.) beyond a controlled loading-state fallback. If `League Spartan` or `Inter` fail to load, the fallback stack must still be explicitly defined in the token file, not left to browser default.
 6. **No color-word variable names.** All new tokens must be named by function (`--semantic-alert`, `--cat-industrial`), never by literal color (`--blue`, `--yellow`), to prevent the naming/hex mismatch present in earlier drafts of this system.

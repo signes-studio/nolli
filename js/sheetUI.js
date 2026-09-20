@@ -199,7 +199,7 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
   const isSaved = state.userCollectionItems.some((item) => String(item.building_id) === String(building.id));
   const hasTags = state.userPrivateLabels.some((item) => String(item.building_id) === String(building.id));
   const catKey = building.categoria || 'otro';
-  const catColor = CATEGORY_META[catKey]?.color || '#E95C0C';
+  const catColor = CATEGORY_META[catKey]?.color || '#EA560D';
   const canDeletePrivate = Boolean(selected?.private && state.userId && String(selected.user_id) === String(state.userId));
   const isPending = adminActive && building.estado_revision === 'pendiente';
 
@@ -1079,7 +1079,7 @@ document.addEventListener('click', (event) => {
         type: 'architect',
         label: arqName,
         value: arqName,
-        color: 'var(--accent, #E84E1B)',
+        color: 'var(--accent, #EA560D)',
       });
       const mapNavBtn = document.getElementById('mobile-nav-map');
       if (mapNavBtn) {

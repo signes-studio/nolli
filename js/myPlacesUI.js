@@ -287,7 +287,7 @@ export async function handleListHashRoute() {
       titleEl.textContent = `Lista: ${col.name || 'Colección'}`;
       if (countEl) countEl.textContent = `(${buildingIds.length})`;
       const dotEl = document.getElementById('itinerary-badge-dot');
-      if (dotEl) dotEl.style.backgroundColor = 'var(--accent, #E84E1B)';
+      if (dotEl) dotEl.style.backgroundColor = 'var(--accent, #EA560D)';
       itineraryBadge.classList.remove('hidden');
       if (window.lucide) window.lucide.createIcons();
     }
@@ -415,11 +415,11 @@ export function abrirModalCrearLista() {
           <label style="font-size:9.5px; font-weight:800; color:var(--fg-dim);">VISIBILIDAD:</label>
           <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
             <label style="display:flex; align-items:center; gap:6px; padding:6px 8px; border:1.5px solid var(--border-strong, #111111); background:rgba(17,17,17,0.04); cursor:pointer; font-size:10px; font-weight:700;">
-              <input type="radio" name="modal-create-status" value="private" checked style="accent-color:var(--accent, #E84E1B);">
+              <input type="radio" name="modal-create-status" value="private" checked style="accent-color:var(--accent, #EA560D);">
               <span>${t('collection_status_private', null, 'PRIVADA')}</span>
             </label>
             <label style="display:flex; align-items:center; gap:6px; padding:6px 8px; border:1.5px solid var(--border-strong, #111111); background:rgba(17,17,17,0.04); cursor:pointer; font-size:10px; font-weight:700;">
-              <input type="radio" name="modal-create-status" value="public" style="accent-color:var(--accent, #E84E1B);">
+              <input type="radio" name="modal-create-status" value="public" style="accent-color:var(--accent, #EA560D);">
               <span>${t('collection_status_public', null, 'PÚBLICA')}</span>
             </label>
           </div>
@@ -563,18 +563,18 @@ function abrirModalEditarLista(collectionId) {
           <label style="font-size:9.5px; font-weight:800; color:var(--fg-dim);">VISIBILIDAD:</label>
           <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
             <label style="display:flex; align-items:center; gap:6px; padding:6px 8px; border:1.5px solid var(--border-strong, #111111); background:rgba(17,17,17,0.04); cursor:pointer; font-size:10px; font-weight:700;">
-              <input type="radio" name="modal-edit-status" value="private" ${!isPublic ? 'checked' : ''} style="accent-color:var(--accent, #E84E1B);">
+              <input type="radio" name="modal-edit-status" value="private" ${!isPublic ? 'checked' : ''} style="accent-color:var(--accent, #EA560D);">
               <span>PRIVADA</span>
             </label>
             <label style="display:flex; align-items:center; gap:6px; padding:6px 8px; border:1.5px solid var(--border-strong, #111111); background:rgba(17,17,17,0.04); cursor:pointer; font-size:10px; font-weight:700;">
-              <input type="radio" name="modal-edit-status" value="public" ${isPublic ? 'checked' : ''} style="accent-color:var(--accent, #E84E1B);">
+              <input type="radio" name="modal-edit-status" value="public" ${isPublic ? 'checked' : ''} style="accent-color:var(--accent, #EA560D);">
               <span>PÚBLICA</span>
             </label>
           </div>
         </div>
 
         ${isPublic ? `
-          <button type="button" class="filter-action" data-copy-collection-link="${collection.id}" style="width:100%; padding:6px 10px; font-size:10px; font-weight:800; color:var(--accent); border:1.5px solid var(--accent); background:rgba(232,78,27,0.06); cursor:pointer;">
+          <button type="button" class="filter-action" data-copy-collection-link="${collection.id}" style="width:100%; padding:6px 10px; font-size:10px; font-weight:800; color:var(--accent); border:1.5px solid var(--accent); background:rgba(234, 86, 13,0.06); cursor:pointer;">
             COPIAR ENLACE COMPARTIBLE
           </button>
         ` : ''}
@@ -837,7 +837,7 @@ function renderCollections() {
           <div style="min-width:0; flex:1;">
             <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
               <span style="font-weight:700; color:var(--fg);">${collectionEmoji}${escapeHtml(collection.name)}</span>
-              <span style="font-size:9px; font-weight:800; font-family: 'Inter', sans-serif; color:${isPublic ? 'var(--accent, #E84E1B)' : 'var(--fg-dim)'}; letter-spacing:0.04em;">// ${isPublic ? t('collection_status_public') : t('collection_status_private')}</span>
+              <span style="font-size:9px; font-weight:800; font-family: 'Inter', sans-serif; color:${isPublic ? 'var(--accent, #EA560D)' : 'var(--fg-dim)'}; letter-spacing:0.04em;">// ${isPublic ? t('collection_status_public') : t('collection_status_private')}</span>
             </div>
             ${collectionDescription}
           </div>
@@ -875,12 +875,12 @@ function renderCollections() {
     const title = col.name || 'Lista pública';
 
     return `
-      <article class="my-collection-card" style="border-left: 3px solid var(--accent, #E84E1B);">
+      <article class="my-collection-card" style="border-left: 3px solid var(--accent, #EA560D);">
         <div class="my-collection-head">
           <div style="min-width:0; flex:1;">
             <div style="display:flex; align-items:center; gap:6px;">
               <span style="font-weight:700; color:var(--fg);">${escapeHtml(emoji)} ${escapeHtml(title)}</span>
-              <span style="font-size:8.5px; font-weight:800; font-family: 'Inter', sans-serif; padding:1px 4px; background:rgba(232,78,27,0.08); color:var(--accent, #E84E1B);">${t('collection_followed_badge')}</span>
+              <span style="font-size:8.5px; font-weight:800; font-family: 'Inter', sans-serif; padding:1px 4px; background:rgba(234, 86, 13,0.08); color:var(--accent, #EA560D);">${t('collection_followed_badge')}</span>
             </div>
             <div class="my-place-meta" style="font-size:9.5px; color:var(--fg-dim); margin-top:2px;">Por ${escapeHtml(creatorName)}</div>
           </div>
@@ -915,7 +915,7 @@ function renderCollections() {
 
     ${(state.userFollowedCollections || []).length > 0 ? `
       <div class="my-collections-header" style="margin-top:20px;">
-        <span style="font-size: 10px; color: var(--accent, #E84E1B); font-weight: 700; font-family: 'Inter', sans-serif;">${t('followed_lists_heading', { count: state.userFollowedCollections.length })}</span>
+        <span style="font-size: 10px; color: var(--accent, #EA560D); font-weight: 700; font-family: 'Inter', sans-serif;">${t('followed_lists_heading', { count: state.userFollowedCollections.length })}</span>
       </div>
       ${followedCards}
     ` : ''}

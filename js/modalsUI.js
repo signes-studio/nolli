@@ -119,7 +119,7 @@ async function initLoginModal() {
     bLoginT.textContent = canUseAdminTools ? t('nav_admin_unlocked') : (role === 'editor' ? 'EDITOR' : t('nav_session_active'));
     bLoginT.style.color = 'var(--accent-2)';
     bLoginT.style.borderColor = 'var(--accent-2)';
-    bLoginT.style.background = 'rgba(239, 188, 2, 0.12)';
+    bLoginT.style.background = 'rgba(246, 166, 0, 0.12)';
 
     const mobileBadge = document.getElementById('mobile-identity-badge');
     if (mobileBadge) {
@@ -531,7 +531,7 @@ async function initLoginModal() {
       bLoginT.textContent = t('login_init_btn');
       bLoginT.style.color = 'var(--accent)';
       bLoginT.style.borderColor = 'var(--accent)';
-      bLoginT.style.background = 'rgba(233, 92, 12, 0.1)';
+      bLoginT.style.background = 'rgba(234, 86, 13, 0.1)';
     }
     if (mLogin) mLogin.classList.remove('open');
     document.dispatchEvent(new CustomEvent('radar:logout'));

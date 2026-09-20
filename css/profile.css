@@ -77,7 +77,7 @@ body.dark-mode .profile-header {
   font-weight: 800;
   font-size: var(--brand-logo-size, 24px);
   letter-spacing: -0.03em;
-  color: var(--accent, #E84E1B);
+  color: var(--accent, #EA560D);
   text-decoration: none;
   line-height: 1;
 }
@@ -131,7 +131,7 @@ body.dark-mode .profile-minimal-btn {
 
 .profile-minimal-btn:hover {
   opacity: 1;
-  color: var(--accent, #E84E1B);
+  color: var(--accent, #EA560D);
 }
 
 .profile-btn-logout {
@@ -158,7 +158,7 @@ body.dark-mode .profile-minimal-btn {
 
 .profile-btn-logout:hover {
   background: rgba(0, 0, 0, 0.04);
-  color: var(--accent, rgb(232, 78, 27));
+  color: var(--accent, rgb(234, 86, 13));
   border-color: rgba(0, 0, 0, 0.15);
   transform: none;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
@@ -229,7 +229,7 @@ body.dark-mode .profile-btn-logout:hover {
 }
 
 body.dark-mode .profile-login-cta-btn {
-  background: var(--accent, rgb(232, 78, 27));
+  background: var(--accent, rgb(234, 86, 13));
   color: white;
   border-color: rgba(255, 255, 255, 0.15);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
@@ -302,7 +302,7 @@ body.dark-mode .profile-hero-avatar-wrap {
   justify-content: center;
   border-radius: 50%;
   background: var(--bg-raised, #F0E9D2);
-  color: var(--accent, #E84E1B);
+  color: var(--accent, #EA560D);
   font-family: 'League Spartan', sans-serif;
   font-weight: 800;
   font-size: 24px;
@@ -396,7 +396,7 @@ body.dark-mode .profile-avatar-edit-preview-wrap {
   font-family: 'League Spartan', sans-serif;
   font-weight: 800;
   font-size: 20px;
-  color: var(--accent, #E84E1B);
+  color: var(--accent, #EA560D);
 }
 
 .profile-avatar-edit-controls {
@@ -498,9 +498,9 @@ body.dark-mode .profile-hero-name {
 
 .profile-hero-name.is-placeholder:hover,
 .profile-hero-name.is-placeholder:focus-visible {
-  color: var(--accent, #E95C0C);
-  border-color: var(--accent, #E95C0C);
-  background: rgba(233, 92, 12, 0.08);
+  color: var(--accent, #EA560D);
+  border-color: var(--accent, #EA560D);
+  background: rgba(234, 86, 13, 0.08);
   outline: none;
 }
 
@@ -512,9 +512,9 @@ body.dark-mode .profile-hero-name.is-placeholder {
 
 body.dark-mode .profile-hero-name.is-placeholder:hover,
 body.dark-mode .profile-hero-name.is-placeholder:focus-visible {
-  color: var(--accent, #E95C0C);
-  border-color: var(--accent, #E95C0C);
-  background: rgba(233, 92, 12, 0.15);
+  color: var(--accent, #EA560D);
+  border-color: var(--accent, #EA560D);
+  background: rgba(234, 86, 13, 0.15);
 }
 
 .profile-hero-sub {
@@ -547,8 +547,8 @@ body.dark-mode .profile-hero-sub {
 
 .profile-hero-sub.is-placeholder:hover,
 .profile-hero-sub.is-placeholder:focus-visible {
-  color: var(--accent, #E95C0C);
-  border-bottom-color: var(--accent, #E95C0C);
+  color: var(--accent, #EA560D);
+  border-bottom-color: var(--accent, #EA560D);
   outline: none;
 }
 
@@ -559,8 +559,8 @@ body.dark-mode .profile-hero-sub.is-placeholder {
 
 body.dark-mode .profile-hero-sub.is-placeholder:hover,
 body.dark-mode .profile-hero-sub.is-placeholder:focus-visible {
-  color: var(--accent, #E95C0C);
-  border-bottom-color: var(--accent, #E95C0C);
+  color: var(--accent, #EA560D);
+  border-bottom-color: var(--accent, #EA560D);
 }
 
 /* =========================================================================
@@ -700,12 +700,12 @@ body.dark-mode .profile-curatorial-tab:hover {
 
 .profile-curatorial-tab.active {
   color: var(--fg, rgb(20, 20, 17)) !important;
-  border-bottom: 2px solid var(--accent, rgb(232, 78, 27)) !important;
+  border-bottom: 2px solid var(--accent, rgb(234, 86, 13)) !important;
 }
 
 body.dark-mode .profile-curatorial-tab.active {
   color: var(--fg, rgb(248, 241, 223)) !important;
-  border-bottom-color: var(--accent, rgb(232, 78, 27)) !important;
+  border-bottom-color: var(--accent, rgb(234, 86, 13)) !important;
 }
 
 /* =========================================================================
@@ -759,7 +759,7 @@ body.dark-mode .profile-feed-thumb {
   background: var(--bg-raised, rgb(236, 230, 216));
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 6px !important;
-  color: var(--accent, rgb(232, 78, 27));
+  color: var(--accent, rgb(234, 86, 13));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -957,7 +957,7 @@ body.dark-mode .profile-feed-empty {
 }
 
 body.dark-mode .profile-floating-cta {
-  background: var(--accent, rgb(232, 78, 27)) !important;
+  background: var(--accent, rgb(234, 86, 13)) !important;
   color: white !important;
   border-color: rgba(255, 255, 255, 0.15) !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
@@ -1082,7 +1082,7 @@ body.dark-mode .profile-edit-close {
 }
 
 .profile-edit-close:hover {
-  color: var(--accent, rgb(232, 78, 27));
+  color: var(--accent, rgb(234, 86, 13));
   background: rgba(0, 0, 0, 0.04);
 }
 
@@ -1140,7 +1140,7 @@ body.dark-mode .profile-edit-form .tech-input {
 }
 
 .profile-edit-form .tech-input:focus {
-  outline: 2px solid var(--accent, rgb(232, 78, 27));
+  outline: 2px solid var(--accent, rgb(234, 86, 13));
   outline-offset: 1px;
 }
 
@@ -1164,7 +1164,7 @@ body.dark-mode .profile-edit-form .tech-input {
 }
 
 body.dark-mode .profile-save-btn {
-  background: var(--accent, rgb(232, 78, 27)) !important;
+  background: var(--accent, rgb(234, 86, 13)) !important;
   color: white !important;
   border-color: rgba(255, 255, 255, 0.15);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
@@ -1179,7 +1179,7 @@ body.dark-mode .profile-save-btn {
   font-family: 'Inter', sans-serif;
   font-size: 11px;
   font-weight: 700;
-  color: var(--accent, rgb(232, 78, 27));
+  color: var(--accent, rgb(234, 86, 13));
   padding: 6px 0;
 }
 
@@ -1322,8 +1322,8 @@ body.dark-mode .profile-card-action-btn {
 }
 
 .profile-card-action-btn:hover {
-  border-color: var(--accent, rgb(232, 78, 27));
-  color: var(--accent, rgb(232, 78, 27));
+  border-color: var(--accent, rgb(234, 86, 13));
+  color: var(--accent, rgb(234, 86, 13));
 }
 
 .profile-card-action-btn.danger {
@@ -1377,7 +1377,7 @@ body.dark-mode .profile-card-action-btn.danger:focus-visible {
 }
 
 body.dark-mode .profile-new-list-btn {
-  background: var(--accent, rgb(232, 78, 27));
+  background: var(--accent, rgb(234, 86, 13));
   color: white;
   border-color: rgba(255, 255, 255, 0.15);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
@@ -1534,7 +1534,7 @@ body.dark-mode .profile-col-thumb-blueprint {
 }
 
 .profile-col-title-link:hover .profile-col-name {
-  color: var(--accent, rgb(232, 78, 27));
+  color: var(--accent, rgb(234, 86, 13));
 }
 
 body.dark-mode .profile-col-name {
@@ -1559,9 +1559,9 @@ body.dark-mode .profile-col-title-link:hover .profile-col-name {
 }
 
 .profile-col-visibility-badge.is-public {
-  color: var(--accent, rgb(232, 78, 27));
-  border-color: rgba(232, 78, 27, 0.3);
-  background: rgba(232, 78, 27, 0.08);
+  color: var(--accent, rgb(234, 86, 13));
+  border-color: rgba(234, 86, 13, 0.3);
+  background: rgba(234, 86, 13, 0.08);
 }
 
 body.dark-mode .profile-col-visibility-badge.is-public {
@@ -1595,9 +1595,9 @@ body.dark-mode .profile-col-visibility-badge.is-friends {
 }
 
 .profile-col-visibility-badge.is-followed {
-  color: var(--accent, rgb(232, 78, 27));
-  border-color: rgba(232, 78, 27, 0.3);
-  background: rgba(232, 78, 27, 0.08);
+  color: var(--accent, rgb(234, 86, 13));
+  border-color: rgba(234, 86, 13, 0.3);
+  background: rgba(234, 86, 13, 0.08);
 }
 
 /* Metadatos */
@@ -1668,8 +1668,8 @@ body.dark-mode .profile-col-action-btn {
 }
 
 .profile-col-action-btn:hover {
-  border-color: var(--accent, rgb(232, 78, 27));
-  color: var(--accent, rgb(232, 78, 27));
+  border-color: var(--accent, rgb(234, 86, 13));
+  color: var(--accent, rgb(234, 86, 13));
   background: var(--bg-panel, rgb(248, 241, 223));
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
@@ -1832,7 +1832,7 @@ body.dark-mode .gamification-points-pill {
   font-family: 'League Spartan', sans-serif !important;
   font-size: 16px;
   font-weight: 900;
-  color: var(--accent, rgb(232, 78, 27));
+  color: var(--accent, rgb(234, 86, 13));
   line-height: 1;
 }
 
@@ -1871,7 +1871,7 @@ body.dark-mode .gamification-track {
 
 .gamification-fill {
   height: 100%;
-  background: var(--accent, rgb(232, 78, 27));
+  background: var(--accent, rgb(234, 86, 13));
   border-radius: 999px !important;
   transition: width 0.35s ease-out;
 }
@@ -1901,7 +1901,7 @@ body.dark-mode .gamification-fill {
 
 .gamification-remaining-text em {
   font-style: normal;
-  color: var(--accent, rgb(232, 78, 27));
+  color: var(--accent, rgb(234, 86, 13));
   font-weight: 600;
 }
 
@@ -1964,14 +1964,14 @@ body.dark-mode .profile-collection-tool-btn {
 }
 
 .profile-collection-tool-btn:hover {
-  border-color: var(--accent, rgb(232, 78, 27));
-  color: var(--accent, rgb(232, 78, 27));
+  border-color: var(--accent, rgb(234, 86, 13));
+  color: var(--accent, rgb(234, 86, 13));
 }
 
 .profile-collection-tool-btn.active {
-  background: var(--accent, rgb(232, 78, 27));
+  background: var(--accent, rgb(234, 86, 13));
   color: white;
-  border-color: var(--accent, rgb(232, 78, 27));
+  border-color: var(--accent, rgb(234, 86, 13));
 }
 
 .profile-collection-tool-btn.btn-delete {
@@ -2131,7 +2131,7 @@ body.dark-mode .profile-support-btn {
 
 .profile-support-btn:hover {
   background: rgba(0, 0, 0, 0.04);
-  color: var(--accent, rgb(232, 78, 27));
+  color: var(--accent, rgb(234, 86, 13));
   border-color: rgba(0, 0, 0, 0.15);
 }
 
@@ -2175,8 +2175,8 @@ body.dark-mode .profile-support-link {
 }
 
 .profile-support-link:hover {
-  color: var(--accent, rgb(232, 78, 27));
-  border-color: var(--accent, rgb(232, 78, 27));
+  color: var(--accent, rgb(234, 86, 13));
+  border-color: var(--accent, rgb(234, 86, 13));
 }
 
 .profile-admin-access {
@@ -2205,8 +2205,8 @@ body.dark-mode .profile-support-link {
 
 .profile-admin-link:hover,
 .profile-admin-link:focus-visible {
-  color: var(--accent, rgb(232, 78, 27));
-  border-color: var(--accent, rgb(232, 78, 27));
+  color: var(--accent, rgb(234, 86, 13));
+  border-color: var(--accent, rgb(234, 86, 13));
   border-style: solid;
   background: var(--bg-panel, rgb(248, 241, 223));
   outline: none;
@@ -2220,8 +2220,8 @@ body.dark-mode .profile-admin-link {
 
 body.dark-mode .profile-admin-link:hover,
 body.dark-mode .profile-admin-link:focus-visible {
-  color: var(--accent, rgb(232, 78, 27));
-  border-color: var(--accent, rgb(232, 78, 27));
+  color: var(--accent, rgb(234, 86, 13));
+  border-color: var(--accent, rgb(234, 86, 13));
 }
 
 /* =========================================================================
@@ -2322,7 +2322,7 @@ body.dark-mode .neo-list-row-icon {
 }
 
 .neo-list-row:hover .neo-list-row-icon {
-  color: var(--accent, rgb(232, 78, 27));
+  color: var(--accent, rgb(234, 86, 13));
 }
 
 body.dark-mode .neo-list-row:hover .neo-list-row-icon {

@@ -90,7 +90,7 @@ body.dark-mode .maplibregl-ctrl-attrib.maplibregl-compact .maplibregl-ctrl-attri
 
 .mapboxgl-ctrl-attrib.mapboxgl-compact .mapboxgl-ctrl-attrib-inner a:hover,
 .maplibregl-ctrl-attrib.maplibregl-compact .mapboxgl-ctrl-attrib-inner a:hover {
-  color: var(--accent, rgb(233, 92, 12)) !important;
+  color: var(--accent, rgb(234, 86, 13)) !important;
   text-decoration: underline !important;
 }
 
@@ -161,7 +161,7 @@ body.dark-mode .maplibregl-ctrl-attrib.maplibregl-compact .maplibregl-ctrl-attri
   font-size: var(--brand-logo-size, 24px);
   font-weight: 800;
   letter-spacing: -0.03em;
-  color: var(--accent, #E95C0C);
+  color: var(--accent, #EA560D);
   text-transform: lowercase;
   line-height: 1;
 }
@@ -200,12 +200,12 @@ body.dark-mode .maplibregl-ctrl-attrib.maplibregl-compact .maplibregl-ctrl-attri
   box-sizing: border-box;
 }
 .topbar-btn-login {
-  border: 1.5px solid var(--accent, #E95C0C);
-  color: var(--accent, #E95C0C);
-  background: rgba(233, 92, 12, 0.08);
+  border: 1.5px solid var(--accent, #EA560D);
+  color: var(--accent, #EA560D);
+  background: rgba(234, 86, 13, 0.08);
 }
 .topbar-btn-login:hover {
-  background: var(--accent, #E95C0C);
+  background: var(--accent, #EA560D);
   color: #FFFFFF;
 }
 .topbar-btn-profile {
@@ -322,7 +322,7 @@ body.dark-mode .topbar-btn-profile:hover {
     font-family: 'Inter', sans-serif;
     font-size: 11px;
     font-weight: 600;
-    color: var(--accent, #E84E1B);
+    color: var(--accent, #EA560D);
     letter-spacing: -0.01em;
     text-transform: lowercase;
   }
@@ -343,7 +343,7 @@ body.dark-mode .topbar-btn-profile:hover {
   }
 
   .mobile-splash-dot {
-    color: var(--accent, #E84E1B);
+    color: var(--accent, #EA560D);
   }
 
   /* Indicador de progreso fluido en cápsula redondeada */
@@ -368,8 +368,8 @@ body.dark-mode .topbar-btn-profile:hover {
     height: 100%;
     width: 45%;
     border-radius: 9999px;
-    background: linear-gradient(90deg, transparent 0%, var(--accent, #E84E1B) 50%, #FF7243 85%, transparent 100%);
-    box-shadow: 0 0 8px rgba(232, 78, 27, 0.45);
+    background: linear-gradient(90deg, transparent 0%, var(--accent, #EA560D) 50%, #FF7243 85%, transparent 100%);
+    box-shadow: 0 0 8px rgba(234, 86, 13, 0.45);
     animation: splashProgressFlow 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   }
 
@@ -401,14 +401,14 @@ body.dark-mode .topbar-btn-profile:hover {
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: var(--accent, #E84E1B);
+    background: var(--accent, #EA560D);
     animation: splashStatusPulse 1.6s ease-in-out infinite;
   }
 
   @keyframes splashStatusPulse {
-    0% { box-shadow: 0 0 0 0 rgba(232, 78, 27, 0.4); opacity: 0.8; }
-    70% { box-shadow: 0 0 0 5px rgba(232, 78, 27, 0); opacity: 1; }
-    100% { box-shadow: 0 0 0 0 rgba(232, 78, 27, 0); opacity: 0.8; }
+    0% { box-shadow: 0 0 0 0 rgba(234, 86, 13, 0.4); opacity: 0.8; }
+    70% { box-shadow: 0 0 0 5px rgba(234, 86, 13, 0); opacity: 1; }
+    100% { box-shadow: 0 0 0 0 rgba(234, 86, 13, 0); opacity: 0.8; }
   }
 
   body.dark-mode .mobile-splash-status {
@@ -533,7 +533,7 @@ body.dark-mode .topbar-btn-profile:hover {
     font-weight: 800;
     font-size: var(--brand-logo-size, 24px) !important;
     line-height: 1;
-    color: var(--accent, rgb(233, 92, 12));
+    color: var(--accent, rgb(234, 86, 13));
     text-decoration: none;
     letter-spacing: -0.03em;
     padding: 0 14px;
@@ -619,7 +619,7 @@ body.dark-mode .topbar-btn-profile:hover {
   }
 
   .mobile-search-icon {
-    color: var(--accent, #E95C0C);
+    color: var(--accent, #EA560D);
     flex-shrink: 0;
   }
 
@@ -720,15 +720,15 @@ body.dark-mode .topbar-btn-profile:hover {
   }
 
   .mobile-search-filter-action i {
-    color: var(--accent, rgb(232, 78, 27)) !important;
+    color: var(--accent, rgb(234, 86, 13)) !important;
     flex-shrink: 0;
   }
 
   .mobile-search-filter-action:active,
   .mobile-search-filter-action:hover {
     background: var(--bg-hover, rgba(0, 0, 0, 0.04)) !important;
-    border-color: var(--accent, rgb(232, 78, 27));
-    color: var(--accent, rgb(232, 78, 27)) !important;
+    border-color: var(--accent, rgb(234, 86, 13));
+    color: var(--accent, rgb(234, 86, 13)) !important;
     transform: none;
     box-shadow: none;
   }
@@ -743,8 +743,8 @@ body.dark-mode .topbar-btn-profile:hover {
   body.dark-mode .mobile-search-filter-action:active,
   body.dark-mode .mobile-search-filter-action:hover {
     background: rgba(255, 255, 255, 0.06) !important;
-    border-color: var(--accent, rgb(232, 78, 27));
-    color: var(--accent, rgb(232, 78, 27)) !important;
+    border-color: var(--accent, rgb(234, 86, 13));
+    color: var(--accent, rgb(234, 86, 13)) !important;
   }
 
   .mobile-search-item {
@@ -935,7 +935,7 @@ body.dark-mode .topbar-btn-profile:hover {
   }
 
   .map-compass-btn .compass-contour-tick {
-    stroke: var(--accent, rgb(233, 92, 12));
+    stroke: var(--accent, rgb(234, 86, 13));
   }
 
   .map-compass-btn .compass-direction-label {
@@ -958,13 +958,13 @@ body.dark-mode .topbar-btn-profile:hover {
     pointer-events: auto !important;
     transform: scale(1) !important;
     -webkit-transform: scale(1) !important;
-    border-color: var(--accent, rgb(233, 92, 12)) !important;
-    box-shadow: 0 0 0 1px var(--accent, rgb(233, 92, 12)), 0 2px 8px rgba(233, 92, 12, 0.25) !important;
+    border-color: var(--accent, rgb(234, 86, 13)) !important;
+    box-shadow: 0 0 0 1px var(--accent, rgb(234, 86, 13)), 0 2px 8px rgba(234, 86, 13, 0.25) !important;
   }
 
   body.dark-mode .map-compass-btn.is-rotated {
-    border-color: var(--accent, rgb(233, 92, 12)) !important;
-    box-shadow: 0 0 0 1px var(--accent, rgb(233, 92, 12)), 0 2px 8px rgba(233, 92, 12, 0.35) !important;
+    border-color: var(--accent, rgb(234, 86, 13)) !important;
+    box-shadow: 0 0 0 1px var(--accent, rgb(234, 86, 13)), 0 2px 8px rgba(234, 86, 13, 0.35) !important;
   }
 
   @media (min-width: 769px) {
@@ -1177,7 +1177,7 @@ body.dark-mode .topbar-btn-profile:hover {
   }
 
   .speed-dial-item-primary .speed-dial-icon {
-    background: var(--accent, rgb(232, 78, 27)) !important;
+    background: var(--accent, rgb(234, 86, 13)) !important;
     color: white !important;
   }
 
@@ -1186,8 +1186,8 @@ body.dark-mode .topbar-btn-profile:hover {
   }
 
   .speed-dial-item-primary .speed-dial-label {
-    color: var(--accent, rgb(232, 78, 27));
-    border-color: rgba(232, 78, 27, 0.3);
+    color: var(--accent, rgb(234, 86, 13));
+    border-color: rgba(234, 86, 13, 0.3);
   }
 
   body.dark-mode .speed-dial-item-primary .speed-dial-label {
@@ -1199,10 +1199,10 @@ body.dark-mode .topbar-btn-profile:hover {
   .mobile-fab-toggle {
     width: 48px;
     height: 48px;
-    background: var(--accent, rgb(232, 78, 27)) !important;
+    background: var(--accent, rgb(234, 86, 13)) !important;
     color: white !important;
     border: 1px solid rgba(0, 0, 0, 0.1) !important;
-    box-shadow: 0 4px 14px rgba(232, 78, 27, 0.35) !important;
+    box-shadow: 0 4px 14px rgba(234, 86, 13, 0.35) !important;
     border-radius: 50% !important;
     display: inline-flex;
     align-items: center;
@@ -1313,7 +1313,7 @@ body.dark-mode .topbar-btn-profile:hover {
 }
 .map-compass-btn.is-rotated {
   border-color: var(--accent) !important;
-  box-shadow: 0 0 0 1px var(--accent), 0 2px 8px rgba(232, 78, 27, 0.25) !important;
+  box-shadow: 0 0 0 1px var(--accent), 0 2px 8px rgba(234, 86, 13, 0.25) !important;
 }
 
 /* 4. Speed-Dial en Móvil */
@@ -1333,7 +1333,7 @@ body.dark-mode .topbar-btn-profile:hover {
 .mobile-fab-toggle {
   border: 1px solid rgba(0, 0, 0, 0.08) !important;
   border-radius: 8px !important;
-  box-shadow: 0 3px 10px rgba(232, 78, 27, 0.35) !important;
+  box-shadow: 0 3px 10px rgba(234, 86, 13, 0.35) !important;
 }
 .mobile-fab-toggle svg {
   stroke-width: 1.5px !important;
@@ -1350,11 +1350,11 @@ body.dark-mode .speed-dial-label {
 }
 body.dark-mode .map-compass-btn.is-rotated {
   border-color: var(--accent) !important;
-  box-shadow: 0 0 0 1px var(--accent), 0 2px 10px rgba(232, 78, 27, 0.35) !important;
+  box-shadow: 0 0 0 1px var(--accent), 0 2px 10px rgba(234, 86, 13, 0.35) !important;
 }
 body.dark-mode .mobile-fab-toggle {
   border-color: rgba(255, 255, 255, 0.12) !important;
-  box-shadow: 0 3px 12px rgba(232, 78, 27, 0.45) !important;
+  box-shadow: 0 3px 12px rgba(234, 86, 13, 0.45) !important;
 }
 
 /* 6. Barra de Navegación Inferior Móvil (Estilo Ligero y Minimalista) */
@@ -1402,13 +1402,13 @@ button.mobile-nav-btn svg {
 a.mobile-nav-btn.active,
 a.mobile-nav-btn.active:link,
 a.mobile-nav-btn.active:visited {
-  color: var(--accent, #E84E1B) !important;
+  color: var(--accent, #EA560D) !important;
 }
 .mobile-nav-btn.active svg,
 a.mobile-nav-btn.active svg,
 button.mobile-nav-btn.active svg {
-  color: var(--accent, #E84E1B) !important;
-  stroke: var(--accent, #E84E1B) !important;
+  color: var(--accent, #EA560D) !important;
+  stroke: var(--accent, #EA560D) !important;
 }
 .mobile-nav-btn span {
   font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
@@ -1422,7 +1422,7 @@ button.mobile-nav-btn.active svg {
 }
 .mobile-nav-btn.active span {
   font-weight: 600 !important;
-  color: var(--accent, #E84E1B) !important;
+  color: var(--accent, #EA560D) !important;
 }
 body.dark-mode .mobile-bottom-bar {
   border-top: none !important;
@@ -1448,18 +1448,18 @@ body.dark-mode .mobile-nav-btn.active,
 body.dark-mode a.mobile-nav-btn.active,
 body.dark-mode .mobile-nav-btn.active:link,
 body.dark-mode .mobile-nav-btn.active:visited {
-  color: var(--accent, #E84E1B) !important;
+  color: var(--accent, #EA560D) !important;
 }
 body.dark-mode .mobile-nav-btn.active svg,
 body.dark-mode a.mobile-nav-btn.active svg {
-  color: var(--accent, #E84E1B) !important;
-  stroke: var(--accent, #E84E1B) !important;
+  color: var(--accent, #EA560D) !important;
+  stroke: var(--accent, #EA560D) !important;
 }
 body.dark-mode .mobile-nav-btn span {
   color: var(--fg-dim) !important;
 }
 body.dark-mode .mobile-nav-btn.active span {
-  color: var(--accent, #E84E1B) !important;
+  color: var(--accent, #EA560D) !important;
 }
 
 /* 7. Barra Superior de Escritorio (Estilo Ligero y Fino) */

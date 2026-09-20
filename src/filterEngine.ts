@@ -238,7 +238,7 @@ export function renderFilterChipsUI(): void {
   // Renderizar pills apilables
   chipsList.innerHTML = chips.map((chip) => {
     const metaColor = chip.type === 'category' && chip.value ? CATEGORY_META[normalizarCategoria(chip.value)]?.color : null;
-    const color = chip.color || metaColor || 'var(--accent, #E84E1B)';
+    const color = chip.color || metaColor || 'var(--accent, #EA560D)';
     return `
       <div class="filter-pill-chip" data-chip-id="${escapeHtml(chip.id)}">
         <span class="filter-pill-dot" style="background-color: ${escapeHtml(color)};"></span>

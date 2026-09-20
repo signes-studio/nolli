@@ -966,7 +966,7 @@ async function renderNetworkFeed() {
     if (requests.length > 0) {
       html += `
         <div style="margin-bottom: 24px;">
-          <h3 style="font-family: 'League Spartan', sans-serif; font-size: 16px; margin: 0 0 12px; color: var(--accent, #E84E1B); letter-spacing: 0.04em;">
+          <h3 style="font-family: 'League Spartan', sans-serif; font-size: 16px; margin: 0 0 12px; color: var(--accent, #EA560D); letter-spacing: 0.04em;">
             SOLICITUDES DE AMISTAD RECIBIDAS (${requests.length})
           </h3>
           <div style="display: grid; gap: 10px;">
@@ -1287,7 +1287,7 @@ function renderCollectionsFeed() {
         `;
 
       return `
-        <article class="profile-rich-collection-card is-followed" style="border-left: 3.5px solid var(--accent, #E84E1B);">
+        <article class="profile-rich-collection-card is-followed" style="border-left: 3.5px solid var(--accent, #EA560D);">
           ${thumbHtml}
           <div class="profile-col-body">
             <div class="profile-col-title-row">
@@ -1316,7 +1316,7 @@ function renderCollectionsFeed() {
 
     content.innerHTML += `
       <div class="profile-collections-top" style="margin-top:28px;">
-        <span style="font-family: 'Inter', sans-serif; font-size:11px; font-weight:800; color:var(--accent, #E84E1B);">${t('profile_followed_collections_header', { count: followed.length }, `LISTAS SEGUIDAS DE LA COMUNIDAD // ${followed.length}`)}</span>
+        <span style="font-family: 'Inter', sans-serif; font-size:11px; font-weight:800; color:var(--accent, #EA560D);">${t('profile_followed_collections_header', { count: followed.length }, `LISTAS SEGUIDAS DE LA COMUNIDAD // ${followed.length}`)}</span>
       </div>
       ${followedHtml}
     `;
@@ -1376,7 +1376,7 @@ function renderNotesFeed() {
             </button>
           </div>
         </div>
-        <div style="background:var(--bg-raised, #ECE6D8); padding:10px 12px; border-left:3px solid var(--accent, #E84E1B); font-size:13px; line-height:1.5; color:var(--fg);">
+        <div style="background:var(--bg-raised, #ECE6D8); padding:10px 12px; border-left:3px solid var(--accent, #EA560D); font-size:13px; line-height:1.5; color:var(--fg);">
           “${escapeHtml(noteText)}”
         </div>
       </article>

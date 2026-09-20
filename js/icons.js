@@ -89,7 +89,7 @@ export function drawFavoriteBadge(ctx, c, s, positionLeft = false) {
   ctx.fill();
 
   // Fondo circular en Vermillón Nolli
-  ctx.fillStyle = 'rgb(232, 78, 27)';
+  ctx.fillStyle = 'rgb(234, 86, 13)';
   ctx.beginPath();
   ctx.arc(badgeX, badgeY, badgeR, 0, Math.PI * 2);
   ctx.fill();
@@ -133,7 +133,7 @@ export function drawPendingBadge(ctx, c, s) {
   ctx.fill();
 
   // Fondo circular ámbar
-  ctx.fillStyle = 'rgb(239, 188, 2)';
+  ctx.fillStyle = 'rgb(246, 166, 0)';
   ctx.beginPath();
   ctx.arc(badgeX, badgeY, badgeR, 0, Math.PI * 2);
   ctx.fill();
@@ -587,7 +587,7 @@ export function drawExploreCompassIcon(ctx, color, importance, s, options = {}) 
   const strokeColor = (isDark || isDarkSelection) ? 'rgb(248, 241, 223)' : 'rgb(20, 20, 17)';
   const haloColor = (isDark || isDarkSelection) ? 'rgb(20, 20, 17)' : 'rgba(248, 241, 223, 0.95)';
   const bodyColor = isLight ? 'rgb(255, 255, 255)' : (isDarkSelection ? 'rgb(20, 20, 17)' : color);
-  const vermilionNolli = 'rgb(232, 78, 27)';
+  const vermilionNolli = 'rgb(234, 86, 13)';
 
   let outerRadius, ringWidth, tickLen, tickWidth;
 

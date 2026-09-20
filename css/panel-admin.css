@@ -22,8 +22,8 @@
   --admin-warning-subtle: rgba(179, 134, 0, 0.12);
   --admin-danger: #D6201D;
   --admin-danger-subtle: rgba(214, 32, 29, 0.1);
-  --admin-blue: #064773;
-  --admin-blue-subtle: rgba(6, 71, 115, 0.1);
+  --admin-blue: #163D62;
+  --admin-blue-subtle: rgba(22, 61, 98, 0.1);
   --font-display: 'League Spartan', sans-serif;
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --radius-sm: 4px;
@@ -43,9 +43,9 @@ body.dark-mode {
   --admin-fg-muted: #73726C;
   --admin-border: #2C2C26;
   --admin-border-strong: #3D3D35;
-  --admin-accent: #E84E1B;
+  --admin-accent: #EA560D;
   --admin-accent-hover: #FF6633;
-  --admin-accent-subtle: rgba(232, 78, 27, 0.16);
+  --admin-accent-subtle: rgba(234, 86, 13, 0.16);
   --admin-success: #28A745;
   --admin-success-subtle: rgba(40, 167, 69, 0.18);
   --admin-warning: #FFC107;

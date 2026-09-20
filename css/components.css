@@ -47,7 +47,7 @@
   background: var(--bg-panel) !important;
   color: var(--accent) !important;
   border-color: var(--accent) !important;
-  box-shadow: 0 0 0 1px var(--accent), 0 2px 8px rgba(232, 78, 27, 0.25) !important;
+  box-shadow: 0 0 0 1px var(--accent), 0 2px 8px rgba(234, 86, 13, 0.25) !important;
 }
 
 /* Acción primaria: Añadir obra (+) mantiene jerarquía visual pero con bordes suaves y sombra difusa */
@@ -55,13 +55,13 @@
   background: var(--accent) !important;
   color: var(--bg-panel) !important;
   border: 1px solid rgba(0, 0, 0, 0.08) !important;
-  box-shadow: 0 3px 10px rgba(232, 78, 27, 0.35) !important;
+  box-shadow: 0 3px 10px rgba(234, 86, 13, 0.35) !important;
 }
 #btn-add-project.fab svg {
   stroke: var(--bg-panel) !important;
 }
 #btn-add-project.fab:hover {
-  box-shadow: 0 4px 14px rgba(232, 78, 27, 0.45) !important;
+  box-shadow: 0 4px 14px rgba(234, 86, 13, 0.45) !important;
 }
 
 /* Estado activo GPS: anillo sutil de color sobre fondo de panel */
@@ -76,7 +76,7 @@ body.dark-mode .fab {
 }
 
 body.dark-mode .fab.active-state {
-  box-shadow: 0 0 0 1px var(--accent), 0 2px 10px rgba(232, 78, 27, 0.35) !important;
+  box-shadow: 0 0 0 1px var(--accent), 0 2px 10px rgba(234, 86, 13, 0.35) !important;
 }
 
 body.dark-mode #btn-add-project.fab {
@@ -136,7 +136,7 @@ body.dark-mode .location-active {
   position: absolute;
   inset: -12px;
   border-radius: 50% !important;
-  border: 1px dashed rgba(232, 78, 27, 0.65);
+  border: 1px dashed rgba(234, 86, 13, 0.65);
   animation: radarLocationRotate 12s linear infinite;
   pointer-events: none;
   z-index: 2;
@@ -174,7 +174,7 @@ body.dark-mode .location-pulse {
 }
 
 body.dark-mode .location-reticle {
-  border-color: rgba(232, 78, 27, 0.85);
+  border-color: rgba(234, 86, 13, 0.85);
 }
 .fab.active-state#btn-add-project { background: var(--accent-2); color: var(--fg); border-color: var(--accent-2); }
 .map-tools-toggle { display: none; }
@@ -200,7 +200,7 @@ body.dark-mode .location-reticle {
 .admin-mode-control input { position: absolute; opacity: 0; pointer-events: none; }
 .admin-mode-track { position: relative; width: 30px; height: 16px; border: 1px solid var(--border); background: var(--bg-panel); border-radius: 999px; }
 .admin-mode-track::after { content: ''; position: absolute; top: 2px; left: 2px; width: 10px; height: 10px; border-radius: 50%; background: var(--fg-dim); transition: left .12s ease; }
-.admin-mode-control input:checked + .admin-mode-track { border-color: var(--accent); background: rgba(232, 78, 27, 0.1); }
+.admin-mode-control input:checked + .admin-mode-track { border-color: var(--accent); background: rgba(234, 86, 13, 0.1); }
 .admin-mode-control input:checked + .admin-mode-track::after { left: 16px; background: var(--accent); }
 .architect-filter {
   padding: 0; border: 0; background: transparent; color: var(--accent);
@@ -295,8 +295,8 @@ body.dark-mode .architect-profile-box {
 }
 
 .architect-relation-pill:hover {
-  background: var(--accent, #E84E1B);
-  border-color: var(--accent, #E84E1B);
+  background: var(--accent, #EA560D);
+  border-color: var(--accent, #EA560D);
   color: #ffffff;
   transform: translateY(-1px);
 }
@@ -1022,7 +1022,7 @@ body.dark-mode .tech-input {
 .tech-input:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(232, 78, 27, 0.15);
+  box-shadow: 0 0 0 2px rgba(234, 86, 13, 0.15);
 }
 
 /* Consentimiento Legal y Checkboxes */
@@ -1477,9 +1477,9 @@ body.dark-mode .register-success-msg {
   font-family: 'Inter', sans-serif !important;
   font-size: 11px !important;
   font-weight: 800 !important;
-  color: var(--accent, #E84E1B) !important;
-  background: rgba(232, 78, 27, 0.08) !important;
-  border: 1.5px dashed var(--accent, #E84E1B) !important;
+  color: var(--accent, #EA560D) !important;
+  background: rgba(234, 86, 13, 0.08) !important;
+  border: 1.5px dashed var(--accent, #EA560D) !important;
   padding: 6px 12px !important;
   word-break: break-all;
   width: 100%;
@@ -1487,7 +1487,7 @@ body.dark-mode .register-success-msg {
 }
 
 body.dark-mode .register-success-meta {
-  background: rgba(232, 78, 27, 0.15) !important;
+  background: rgba(234, 86, 13, 0.15) !important;
 }
 
 /* =========================================================================
@@ -1586,7 +1586,7 @@ body.dark-mode .register-success-meta {
   a.mobile-nav-btn.active:link,
   a.mobile-nav-btn.active:visited {
     background: transparent !important;
-    color: var(--accent, #E84E1B) !important;
+    color: var(--accent, #EA560D) !important;
   }
 
   .mobile-nav-btn i,
@@ -1616,8 +1616,8 @@ body.dark-mode .register-success-meta {
   .mobile-nav-btn.active svg,
   a.mobile-nav-btn.active svg,
   button.mobile-nav-btn.active svg {
-    color: var(--accent, #E84E1B) !important;
-    stroke: var(--accent, #E84E1B) !important;
+    color: var(--accent, #EA560D) !important;
+    stroke: var(--accent, #EA560D) !important;
   }
 
   .mobile-nav-btn span {
@@ -1638,7 +1638,7 @@ body.dark-mode .register-success-meta {
   }
 
   .mobile-nav-btn.active span {
-    color: var(--accent, #E84E1B) !important;
+    color: var(--accent, #EA560D) !important;
     font-weight: 600 !important;
   }
 
@@ -1671,14 +1671,14 @@ body.dark-mode .register-success-meta {
   body.dark-mode a.mobile-nav-btn.active,
   body.dark-mode .mobile-nav-btn.active:link,
   body.dark-mode .mobile-nav-btn.active:visited {
-    color: var(--accent, #E84E1B) !important;
+    color: var(--accent, #EA560D) !important;
   }
 
   body.dark-mode .mobile-nav-btn.active i,
   body.dark-mode .mobile-nav-btn.active svg,
   body.dark-mode a.mobile-nav-btn.active svg {
-    color: var(--accent, #E84E1B) !important;
-    stroke: var(--accent, #E84E1B) !important;
+    color: var(--accent, #EA560D) !important;
+    stroke: var(--accent, #EA560D) !important;
   }
 
   body.dark-mode .mobile-nav-btn span {
@@ -1686,7 +1686,7 @@ body.dark-mode .register-success-meta {
   }
 
   body.dark-mode .mobile-nav-btn.active span {
-    color: var(--accent, #E84E1B) !important;
+    color: var(--accent, #EA560D) !important;
   }
 }
 
@@ -2115,7 +2115,7 @@ body.dark-mode .neo-option-box:hover {
 .neo-option-box[aria-checked="true"],
 .neo-option-box[aria-selected="true"] {
   border: 1px solid var(--accent) !important;
-  background: rgba(232, 78, 27, 0.08) !important;
+  background: rgba(234, 86, 13, 0.08) !important;
   color: var(--accent) !important;
   box-shadow: 0 0 0 1px var(--accent) !important;
   transform: none;
@@ -2125,7 +2125,7 @@ body.dark-mode .neo-option-box.active,
 body.dark-mode .neo-option-box[aria-checked="true"],
 body.dark-mode .neo-option-box[aria-selected="true"] {
   border-color: var(--accent) !important;
-  background: rgba(232, 78, 27, 0.15) !important;
+  background: rgba(234, 86, 13, 0.15) !important;
   color: var(--accent) !important;
   box-shadow: 0 0 0 1px var(--accent) !important;
 }
@@ -2273,7 +2273,7 @@ body.dark-mode .neo-options-grid--cream .neo-option-box.active {
 
 /* Notificaciones Toast Flotantes (Capa 1) */
 #nolli-neo-toast {
-  border: 1px solid rgba(233, 92, 12, 0.4) !important;
+  border: 1px solid rgba(234, 86, 13, 0.4) !important;
   border-radius: 8px !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25), 0 2px 6px rgba(0, 0, 0, 0.1) !important;
 }

@@ -24,7 +24,7 @@ export async function renderPublicCollections(query = '') {
       exploreContainer.innerHTML = `
         <div class="explore-restricted-gate" style="text-align: center; padding: 50px 20px; display: flex; flex-direction: column; align-items: center; gap: 16px;">
           <div style="width: 52px; height: 52px; border: 2px solid var(--border-strong, #111111); display: flex; align-items: center; justify-content: center; background: var(--bg-raised, #EAE6DD); box-shadow: 3px 3px 0px #111111;">
-            <i data-lucide="lock" width="24" height="24" style="color: var(--accent, #E84E1B);"></i>
+            <i data-lucide="lock" width="24" height="24" style="color: var(--accent, #EA560D);"></i>
           </div>
           <div>
             <h3 style="font-family: 'League Spartan', sans-serif; font-size: 19px; font-weight: 900; margin: 0 0 6px; text-transform: uppercase; color: var(--fg); letter-spacing: 0.04em;">
@@ -158,7 +158,7 @@ export async function renderPublicCollections(query = '') {
                     <span style="font-size:16px;">${escapeHtml(emoji)}</span>
                     <strong style="font-family:'League Spartan',sans-serif; font-size:15px; color:var(--fg);">${escapeHtml(title)}</strong>
                   </div>
-                  <span style="font-family: 'Inter', sans-serif; font-size:9px; font-weight:800; color:var(--accent, #E84E1B);">${countLabel}</span>
+                  <span style="font-family: 'Inter', sans-serif; font-size:9px; font-weight:800; color:var(--accent, #EA560D);">${countLabel}</span>
                 </div>
                 
                 ${desc ? `<p style="font-size:11px; color:var(--fg-dim); line-height:1.4; margin:0;">${escapeHtml(desc)}</p>` : ''}
@@ -168,11 +168,11 @@ export async function renderPublicCollections(query = '') {
                   
                   <div style="display:flex; gap:6px; align-items:center;">
                     ${!isOwn ? `
-                      <button type="button" class="btn-follow-collection" data-follow-collection-id="${col.id}" style="font-family: 'Inter', sans-serif; font-size:9.5px; font-weight:800; padding:4px 8px; border:1.5px solid ${isFollowing ? 'var(--accent, #E84E1B)' : 'var(--border-strong, #111111)'}; background:${isFollowing ? 'var(--accent, #E84E1B)' : 'transparent'}; color:${isFollowing ? '#FFF' : 'var(--fg)'}; cursor:pointer;">
+                      <button type="button" class="btn-follow-collection" data-follow-collection-id="${col.id}" style="font-family: 'Inter', sans-serif; font-size:9.5px; font-weight:800; padding:4px 8px; border:1.5px solid ${isFollowing ? 'var(--accent, #EA560D)' : 'var(--border-strong, #111111)'}; background:${isFollowing ? 'var(--accent, #EA560D)' : 'transparent'}; color:${isFollowing ? '#FFF' : 'var(--fg)'}; cursor:pointer;">
                         ${isFollowing ? 'SIGUIENDO' : '+ SEGUIR'}
                       </button>
                     ` : `
-                      <span style="font-size:9px; font-family: 'Inter', sans-serif; color:var(--accent, #E84E1B); font-weight:800;">TU LISTA</span>
+                      <span style="font-size:9px; font-family: 'Inter', sans-serif; color:var(--accent, #EA560D); font-weight:800;">TU LISTA</span>
                     `}
                     
                     <button type="button" class="btn-view-collection-map" data-view-collection-id="${col.id}" style="font-family: 'Inter', sans-serif; font-size:9.5px; font-weight:800; padding:4px 8px; border:1.5px solid var(--border-strong, #111111); background:var(--bg-card, #FFFFFF); color:var(--fg); cursor:pointer;">VER EN MAPA ↗</button>

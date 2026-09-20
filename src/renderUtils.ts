@@ -355,7 +355,7 @@ export function showNeoToast(message: string, options: ShowNeoToastOptions = {})
       z-index: 99999;
       background: #141411;
       color: #F8F1DF;
-      border: 2px solid #E95C0C;
+      border: 2px solid #EA560D;
       padding: 10px 16px;
       max-width: min(92vw, 420px);
       width: max-content;
@@ -380,7 +380,7 @@ export function showNeoToast(message: string, options: ShowNeoToastOptions = {})
 
   toast.innerHTML = `
     <span style="flex:1;">${String(message)}</span>
-    ${finalActionText ? `<button type="button" id="nolli-toast-action-btn" style="background:var(--accent, rgb(233, 92, 12)); color:white; border:none; padding:6px 12px; font-family:'Inter',sans-serif; font-size:11px; font-weight:600; cursor:pointer; text-transform:lowercase; border-radius:6px !important; flex-shrink:0;">${finalActionText}</button>` : ''}
+    ${finalActionText ? `<button type="button" id="nolli-toast-action-btn" style="background:var(--accent, rgb(234, 86, 13)); color:white; border:none; padding:6px 12px; font-family:'Inter',sans-serif; font-size:11px; font-weight:600; cursor:pointer; text-transform:lowercase; border-radius:6px !important; flex-shrink:0;">${finalActionText}</button>` : ''}
   `;
 
   if (finalActionText) {

@@ -28,7 +28,7 @@
             --fg-dim: #666660;
             --border: #D5CFC0;
             --border-subtle: rgba(20, 20, 17, 0.08);
-            --accent: #E84E1B;
+            --accent: #EA560D;
             --accent-hover: #9E3700;
             --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
             --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06);
@@ -243,7 +243,7 @@
           .search-input:focus {
             border-color: var(--accent);
             background-color: var(--bg-surface);
-            box-shadow: 0 0 0 2px rgba(232, 78, 27, 0.15);
+            box-shadow: 0 0 0 2px rgba(234, 86, 13, 0.15);
           }
 
           .search-input::placeholder {
@@ -295,7 +295,7 @@
           }
 
           tbody tr:hover {
-            background-color: rgba(232, 78, 27, 0.04);
+            background-color: rgba(234, 86, 13, 0.04);
           }
 
           .col-num {

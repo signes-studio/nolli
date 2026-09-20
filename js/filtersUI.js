@@ -89,7 +89,7 @@ export function generarFiltrosUI() {
     <div class="filter-group filter-group-lang collapsed" data-filter-group="language">
       <button type="button" class="filter-group-head" aria-expanded="false">
         <span style="display:flex; align-items:center; gap:6px;">
-          <i data-lucide="globe" width="13" height="13" style="color:var(--accent, #E84E1B)"></i>
+          <i data-lucide="globe" width="13" height="13" style="color:var(--accent, #EA560D)"></i>
           <span>${t('lang_settings_title')}</span>
         </span>
         <span class="filter-chevron filter-lang-badge">[ ${currentLang.toUpperCase()} ]</span>

@@ -278,8 +278,8 @@ export function cargarMapaMapbox() {
       filter: ['==', ['get', 'favorite'], 1],
       paint: {
         'circle-radius': 15,
-        'circle-color': 'rgba(232, 78, 27, 0.08)',
-        'circle-stroke-color': 'rgb(232, 78, 27)',
+        'circle-color': 'rgba(234, 86, 13, 0.08)',
+        'circle-stroke-color': 'rgb(234, 86, 13)',
         'circle-stroke-width': 1.4,
         'circle-stroke-opacity': 0.85,
         'circle-blur': 0,
@@ -294,8 +294,8 @@ export function cargarMapaMapbox() {
       filter: ['==', ['get', 'favorite'], 1],
       paint: {
         'circle-radius': 18,
-        'circle-color': 'rgba(232, 78, 27, 0.08)',
-        'circle-stroke-color': 'rgb(232, 78, 27)',
+        'circle-color': 'rgba(234, 86, 13, 0.08)',
+        'circle-stroke-color': 'rgb(234, 86, 13)',
         'circle-stroke-width': 1.6,
         'circle-stroke-opacity': 0.85,
         'circle-blur': 0,
@@ -312,7 +312,7 @@ export function cargarMapaMapbox() {
       paint: {
         'circle-radius': 15.5,
         'circle-color': 'transparent',
-        'circle-stroke-color': '#E84E1B',
+        'circle-stroke-color': '#EA560D',
         'circle-stroke-width': 2.5,
         'circle-stroke-opacity': 1,
         'circle-blur': 0,
@@ -328,7 +328,7 @@ export function cargarMapaMapbox() {
       paint: {
         'circle-radius': 18.5,
         'circle-color': 'transparent',
-        'circle-stroke-color': '#E84E1B',
+        'circle-stroke-color': '#EA560D',
         'circle-stroke-width': 2.5,
         'circle-stroke-opacity': 1,
         'circle-blur': 0,
@@ -1006,7 +1006,7 @@ function mostrarToastUbicacion(mensaje) {
       z-index: 2200;
       background: rgba(17, 17, 17, 0.96);
       color: #F4F1EA;
-      border: 2px solid #E84E1B;
+      border: 2px solid #EA560D;
       box-shadow: 4px 4px 0px rgba(17, 17, 17, 0.9);
       padding: 10px 14px;
       max-width: min(88vw, 360px);

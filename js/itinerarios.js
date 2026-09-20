@@ -284,7 +284,7 @@ function renderItinerariesList() {
         <div class="itinerary-card-header">
           <div>
             <div class="itinerary-badge-row">
-              <span class="itinerary-color-chip" style="background-color: ${escapeHtml(item.color || '#E84E1B')};"></span>
+              <span class="itinerary-color-chip" style="background-color: ${escapeHtml(item.color || '#EA560D')};"></span>
               <span class="itinerary-tag-badge">${escapeHtml(item.tag || 'MOVIMIENTO')}</span>
               <span style="font-family: 'Inter', sans-serif; font-size: 10px; color: var(--admin-fg-dim);">ID: ${escapeHtml(item.id)}</span>
               ${isInactive ? '<span style="font-family: \'Inter\', sans-serif; font-size: 10px; color: var(--admin-red); font-weight: 800;">INACTIVO</span>' : ''}
@@ -293,8 +293,8 @@ function renderItinerariesList() {
             <p class="itinerary-subtitle">${escapeHtml(item.subtitle || '')}</p>
           </div>
           
-          <div class="itinerary-match-pill" style="border-color: ${escapeHtml(item.color || '#E84E1B')};">
-            <i data-lucide="compass" width="13" height="13" style="color: ${escapeHtml(item.color || '#E84E1B')};"></i>
+          <div class="itinerary-match-pill" style="border-color: ${escapeHtml(item.color || '#EA560D')};">
+            <i data-lucide="compass" width="13" height="13" style="color: ${escapeHtml(item.color || '#EA560D')};"></i>
             <span>${count} OBRAS SELECCIONADAS</span>
           </div>
         </div>
@@ -468,8 +468,8 @@ function openItineraryModal(item = null) {
     document.getElementById('form-title').value = item.title || '';
     document.getElementById('form-subtitle').value = item.subtitle || '';
     document.getElementById('form-tag').value = item.tag || 'MOVIMIENTO MODERNO';
-    document.getElementById('form-color').value = item.color || '#E84E1B';
-    document.getElementById('form-color-picker').value = item.color || '#E84E1B';
+    document.getElementById('form-color').value = item.color || '#EA560D';
+    document.getElementById('form-color-picker').value = item.color || '#EA560D';
     document.getElementById('form-order').value = item.order_num || 0;
     document.getElementById('form-active').checked = item.active !== false;
 
@@ -491,8 +491,8 @@ function openItineraryModal(item = null) {
     document.getElementById('form-title').value = '';
     document.getElementById('form-subtitle').value = '';
     document.getElementById('form-tag').value = 'MOVIMIENTO MODERNO';
-    document.getElementById('form-color').value = '#E84E1B';
-    document.getElementById('form-color-picker').value = '#E84E1B';
+    document.getElementById('form-color').value = '#EA560D';
+    document.getElementById('form-color-picker').value = '#EA560D';
     document.getElementById('form-order').value = itineraryAdminState.itineraries.length + 1;
     document.getElementById('form-active').checked = true;
 
@@ -561,7 +561,7 @@ function handleSearchBuildingsToSelect(e) {
   }
 
   resultsBox.innerHTML = matches.map((obra) => {
-    const catColor = CATEGORY_META[obra.categoria]?.color || '#E84E1B';
+    const catColor = CATEGORY_META[obra.categoria]?.color || '#EA560D';
     return `
       <div class="building-search-item" data-id="${escapeHtml(obra.id)}">
         <div style="flex: 1; min-width: 0; padding-right: 12px;">
@@ -618,7 +618,7 @@ function renderFormSelectedWorksList() {
   }
 
   container.innerHTML = list.map((obra, index) => {
-    const catColor = CATEGORY_META[obra.categoria]?.color || '#E84E1B';
+    const catColor = CATEGORY_META[obra.categoria]?.color || '#EA560D';
     return `
       <div class="selected-work-row" data-id="${escapeHtml(obra.id)}" data-index="${index}">
         <span class="selected-work-num">${index + 1}.</span>
@@ -689,7 +689,7 @@ async function handleSaveItinerary(e) {
     const title = document.getElementById('form-title').value.trim();
     const subtitle = document.getElementById('form-subtitle').value.trim();
     const tag = document.getElementById('form-tag').value.trim() || 'MOVIMIENTO MODERNO';
-    const color = document.getElementById('form-color').value.trim() || '#E84E1B';
+    const color = document.getElementById('form-color').value.trim() || '#EA560D';
     const order_num = Number(document.getElementById('form-order').value || 0);
     const active = document.getElementById('form-active').checked;
     const isEdit = document.getElementById('form-is-edit').value === 'true';
