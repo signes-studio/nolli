@@ -75,3 +75,4 @@ module.exports = {
   getImportanceIconSvg,
   IMPORTANCE_TEXTS,
 };
+

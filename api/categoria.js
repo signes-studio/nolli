@@ -2,7 +2,7 @@
    API/CATEGORIA.JS — Página de Agregación por Categoría Tipológica (SSR)
    ========================================================================= */
 
-const { categoryLabel, categoryDescription, getCategorySlugs, isValidCategory } = require('./_lib/categories.js');
+const { categoryLabel, categoryAbbr, categoryDescription, getCategorySlugs, isValidCategory } = require('./_lib/categories.js');
 const { detectServerLanguage, getLangPrefix, getSSRText, getHreflangTags, getOgLocaleTags, renderSiteFooter } = require('./_lib/i18n.js');
 const { slugify, extractCityName, isIgnoredArchitect, escapeHtml, getOptimizedUrl, cleanArchitectName, ARCHITECT_SEPARATOR_REGEX } = require('./_lib/slugs.js');
 const { createRateLimiter } = require('./_lib/rateLimiter.js');
@@ -157,6 +157,7 @@ function renderCategoryPage(slug, data, page, lang = 'es') {
   const cardsHtml = buildings.map((b) => {
     const catSlug = b.categoria || slug || 'otro';
     const catLabel = categoryLabel(catSlug, lang);
+    const catAbbr = categoryAbbr(catSlug, lang);
     const catColor = CATEGORY_COLORS[catSlug] || CATEGORY_COLORS.otro;
     const impInfo = getImportanceInfo(b.importancia, lang);
     const yearVal = parseInt(b.año_construccion, 10) || 0;
@@ -180,7 +181,7 @@ function renderCategoryPage(slug, data, page, lang = 'es') {
         <a href="${SITE_URL}${prefix}/obra/${encodeURIComponent(b.id)}" class="card-link">
           ${b.foto_url
             ? `<img class="card-img" src="${escapeHtml(getOptimizedUrl(b.foto_url, 480))}" alt="${escapeHtml(b.nombre_obra)}" loading="lazy" decoding="async">`
-            : `<div class="card-img-placeholder"><span class="card-tag">${escapeHtml(categoriaText)}</span></div>`
+            : `<div class="card-img-placeholder" title="${escapeHtml(catLabel)}"><span class="cat-dot" style="background-color: ${catColor};"></span><span class="card-tag">${escapeHtml(catAbbr)}</span></div>`
           }
           <div class="card-body">
             <h2 class="card-title">${escapeHtml(b.nombre_obra)}</h2>
@@ -640,6 +641,9 @@ function renderCategoryPage(slug, data, page, lang = 'es') {
       display: flex;
       align-items: center;
       justify-content: center;
+      gap: 6px;
+      overflow: hidden;
+      box-sizing: border-box;
     }
     .card-tag {
       font-family: var(--font-display);
@@ -648,6 +652,8 @@ function renderCategoryPage(slug, data, page, lang = 'es') {
       letter-spacing: .06em;
       color: var(--ink-dim);
       text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
     }
     .card-body {
       padding: var(--space-2);
@@ -1046,9 +1052,14 @@ function renderCategoryPage(slug, data, page, lang = 'es') {
       height: 68px;
       border-radius: var(--radius-sm);
       border: 1px solid var(--border-subtle);
-      border-bottom: none;
       flex-shrink: 0;
       object-fit: cover;
+      box-sizing: border-box;
+    }
+    .cards-grid.is-list-view .card-img-placeholder {
+      border-bottom: 1px solid var(--border-subtle);
+      gap: 5px;
+      padding: 0 4px;
     }
     .cards-grid.is-list-view .card-body {
       padding: 0;
@@ -1125,6 +1136,18 @@ function renderCategoryPage(slug, data, page, lang = 'es') {
       .cards-grid.is-list-view .card-img-placeholder {
         width: 54px;
         height: 54px;
+      }
+      .cards-grid.is-list-view .card-img-placeholder {
+        gap: 4px;
+        padding: 0 2px;
+      }
+      .cards-grid.is-list-view .card-img-placeholder .card-tag {
+        font-size: 9.5px;
+        letter-spacing: .03em;
+      }
+      .cards-grid.is-list-view .card-img-placeholder .cat-dot {
+        width: 6px;
+        height: 6px;
       }
       .cards-grid.is-list-view .card-title {
         font-size: 14px;

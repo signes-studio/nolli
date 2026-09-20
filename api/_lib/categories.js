@@ -1,6 +1,7 @@
 const CATEGORIES = {
   residencial: {
     label: { es: 'Residencial', en: 'Residential', ca: 'Residencial' },
+    abbr: { es: 'RES', en: 'RES', ca: 'RES' },
     class: 'residential',
     description: {
       es: 'Vivienda unifamiliar, vivienda colectiva, rascacielos residenciales y tipologías habitacionales contemporáneas e históricas catalogadas en nolli.',
@@ -10,6 +11,7 @@ const CATEGORIES = {
   },
   dotacional_equipamiento: {
     label: { es: 'Dotacional / Equipamiento', en: 'Civic / Institutional', ca: 'Dotacional / Equipament' },
+    abbr: { es: 'DOT', en: 'CIV', ca: 'DOT' },
     class: 'institutional',
     description: {
       es: 'Museos, centros culturales, bibliotecas, auditorios, escuelas, universidades y edificios cívicos e institucionales de referencia mundial.',
@@ -19,6 +21,7 @@ const CATEGORIES = {
   },
   industrial_logistico: {
     label: { es: 'Industrial / Logístico', en: 'Industrial / Logistics', ca: 'Industrial / Logístic' },
+    abbr: { es: 'IND', en: 'IND', ca: 'IND' },
     class: 'industrial',
     description: {
       es: 'Fábricas, almacenes, centrales energéticas, silos y patrimonio de arquitectura industrial moderna y contemporánea.',
@@ -28,6 +31,7 @@ const CATEGORIES = {
   },
   religioso_funerario: {
     label: { es: 'Religioso / Funerario', en: 'Religious / Funerary', ca: 'Religiós / Funerari' },
+    abbr: { es: 'REL', en: 'REL', ca: 'REL' },
     class: 'religious',
     description: {
       es: 'Templos, iglesias, catedrales, capillas, mezquitas, sinagogas, monasterios y arquitectura funeraria de gran valor patrimonial y espacial.',
@@ -37,6 +41,7 @@ const CATEGORIES = {
   },
   comercial_terciario: {
     label: { es: 'Comercial / Terciario', en: 'Commercial / Services', ca: 'Comercial / Terciari' },
+    abbr: { es: 'COM', en: 'COM', ca: 'COM' },
     class: 'commercial',
     description: {
       es: 'Edificios de oficinas, sedes corporativas, centros de negocios, pabellones comerciales y hoteles de autor.',
@@ -46,6 +51,7 @@ const CATEGORIES = {
   },
   espacio_publico_paisaje: {
     label: { es: 'Espacio Público / Paisaje', en: 'Public Space / Landscape', ca: 'Espai Públic / Paisatge' },
+    abbr: { es: 'PUB', en: 'PUB', ca: 'PUB' },
     class: 'public-space',
     description: {
       es: 'Plazas urbanas, parques, intervenciones paisajísticas, paseos marítimos, miradores y espacio público transformador.',
@@ -55,6 +61,7 @@ const CATEGORIES = {
   },
   infraestructura_urbanismo: {
     label: { es: 'Infraestructura / Urbanismo', en: 'Infrastructure / Urbanism', ca: 'Infraestructura / Urbanisme' },
+    abbr: { es: 'INF', en: 'INF', ca: 'INF' },
     class: 'infrastructure',
     description: {
       es: 'Puentes, pasarelas, estaciones de tren, terminales de transporte, aeropuertos y planes maestros urbanos.',
@@ -64,6 +71,7 @@ const CATEGORIES = {
   },
   otro: {
     label: { es: 'Otros / Singulares', en: 'Other / Unique', ca: 'Altres / Singulars' },
+    abbr: { es: 'OTR', en: 'OTH', ca: 'ALT' },
     class: 'other',
     description: {
       es: 'Pabellones temporales, instalaciones arquitectónicas efímeras, monumentos y tipologías singulares.',
@@ -86,6 +94,15 @@ function categoryLabel(category, lang = 'es') {
   return cat.label || 'Otros';
 }
 
+function categoryAbbr(category, lang = 'es') {
+  const cat = CATEGORIES[category];
+  if (!cat) return lang === 'en' ? 'OTH' : (lang === 'ca' ? 'ALT' : 'OTR');
+  if (typeof cat.abbr === 'object') {
+    return cat.abbr[lang] || cat.abbr.es || 'OTR';
+  }
+  return cat.abbr || 'OTR';
+}
+
 function categoryDescription(category, lang = 'es') {
   const cat = CATEGORIES[category];
   if (!cat || !cat.description) return '';
@@ -104,6 +121,7 @@ module.exports = {
   CATEGORIES,
   categoryClass,
   categoryLabel,
+  categoryAbbr,
   categoryDescription,
   isValidCategory,
   getCategorySlugs,
