@@ -805,5 +805,13 @@
   "topbar_brand_tagline": "/ guia col·lectiva d'arquitectura",
   "topbar_profile": "PERFIL PERSONAL",
   "topbar_profile_aria": "Obrir perfil personal",
-  "topbar_sr_title": "guia col·lectiva d'arquitectura: mapa interactiu d'obres d'arquitectura"
+  "topbar_sr_title": "guia col·lectiva d'arquitectura: mapa interactiu d'obres d'arquitectura",
+  "upload_status_avatar_ready": "FOTO LLISTA_",
+  "upload_status_avatar_uploading": "PUJANT FOTO_",
+  "upload_status_badge_optimized": "OPTIMITZADA",
+  "upload_status_badge_ready": "LLISTA",
+  "upload_status_error": "ERROR EN PUJAR_",
+  "upload_status_optimizing": "OPTIMITZANT IMATGE_",
+  "upload_status_success": "FOTOGRAFIA PUJADA_",
+  "upload_status_uploading": "PUJANT IMATGE_"
 }

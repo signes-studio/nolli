@@ -448,3 +448,107 @@ export function initTabsScrollIndicator(
   return update;
 }
 
+export interface UploadStatusOptions {
+  state?: 'idle' | 'uploading' | 'success' | 'error';
+  pct?: number;
+  title?: string;
+  badge?: string;
+  message?: string;
+}
+
+/**
+ * Actualiza el indicador visual de estado de subida con estética Neo-Bauhaus.
+ * Gestiona estados: idle (oculto), uploading (spinner + progreso), success (check + badge), error (alerta).
+ */
+export function setUploadStatusFeedback(
+  container: HTMLElement | null,
+  options: UploadStatusOptions = {}
+): void {
+  if (!container) return;
+  const { state = 'idle', pct = 0, title, badge, message } = options;
+
+  if (state === 'idle') {
+    container.innerHTML = '';
+    container.classList.add('hidden');
+    return;
+  }
+
+  container.classList.remove('hidden');
+
+  if (state === 'uploading') {
+    const clampedPct = Math.max(0, Math.min(100, Math.round(pct)));
+    const displayTitle = title || (clampedPct >= 100 ? 'OPTIMIZANDO IMAGEN_' : 'SUBIENDO IMAGEN_');
+
+    const existingCard = container.querySelector('.nolli-upload-card.is-uploading');
+    if (existingCard) {
+      const titleEl = existingCard.querySelector('.nolli-upload-card-title');
+      const pctEl = existingCard.querySelector('.nolli-upload-card-pct');
+      const barEl = existingCard.querySelector('.nolli-upload-progress-bar') as HTMLElement | null;
+      if (titleEl) titleEl.textContent = displayTitle;
+      if (pctEl) pctEl.textContent = `${clampedPct}%`;
+      if (barEl) barEl.style.width = `${clampedPct}%`;
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="nolli-upload-card is-uploading" role="status" aria-live="polite">
+        <div class="nolli-upload-card-row">
+          <div class="nolli-upload-card-meta">
+            <span class="nolli-upload-spinner" aria-hidden="true"></span>
+            <span class="nolli-upload-card-title">${displayTitle}</span>
+          </div>
+          <span class="nolli-upload-card-pct">${clampedPct}%</span>
+        </div>
+        <div class="nolli-upload-progress-track" aria-hidden="true">
+          <div class="nolli-upload-progress-bar" style="width: ${clampedPct}%;"></div>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  if (state === 'success') {
+    const displayTitle = title || 'FOTOGRAFÍA SUBIDA_';
+    const displayBadge = badge || 'OPTIMIZADA';
+    container.innerHTML = `
+      <div class="nolli-upload-card is-success" role="status" aria-live="polite">
+        <div class="nolli-upload-card-row">
+          <div class="nolli-upload-card-meta">
+            <span class="nolli-upload-icon-success" aria-hidden="true">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </span>
+            <span class="nolli-upload-card-title">${displayTitle}</span>
+          </div>
+          <span class="nolli-upload-badge-success">${displayBadge}</span>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  if (state === 'error') {
+    const displayTitle = title || 'ERROR AL SUBIR_';
+    const displayMessage = message || 'No se pudo transferir la fotografía.';
+    container.innerHTML = `
+      <div class="nolli-upload-card is-error" role="alert">
+        <div class="nolli-upload-card-row">
+          <div class="nolli-upload-card-meta">
+            <span class="nolli-upload-icon-error" aria-hidden="true">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+            </span>
+            <span class="nolli-upload-card-title">${displayTitle}</span>
+          </div>
+        </div>
+        <p class="nolli-upload-card-error-text">${displayMessage}</p>
+      </div>
+    `;
+  }
+}
+
+

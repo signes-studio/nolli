@@ -2880,3 +2880,227 @@ body.dark-mode .info-categories-grid span {
   display: inline-block;
 }
 
+/* =========================================================================
+   ESTADO DE SUBIDA Y FEEDBACK DE IMÁGENES (NEO-BAUHAUS)
+   ========================================================================= */
+.nolli-upload-feedback {
+  margin-top: 6px;
+  width: 100%;
+  box-sizing: border-box;
+  animation: uploadFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.2s ease;
+}
+
+.nolli-upload-feedback.hidden {
+  display: none !important;
+}
+
+@keyframes uploadFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.nolli-upload-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--bg-raised, #F7F5F0);
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.1));
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-sizing: border-box;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+body.dark-mode .nolli-upload-card {
+  background: var(--bg-raised, #1C1C18);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.nolli-upload-card-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.nolli-upload-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.nolli-upload-card-title {
+  font-family: 'League Spartan', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--fg, #141411);
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1;
+}
+
+body.dark-mode .nolli-upload-card-title {
+  color: var(--fg, #F8F1DF);
+}
+
+.nolli-upload-card-pct {
+  font-family: 'Inter', monospace, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent, #EA560D);
+  flex-shrink: 0;
+}
+
+/* Spinner Bauhaus */
+@keyframes uploadSpin {
+  to { transform: rotate(360deg); }
+}
+
+.nolli-upload-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(234, 86, 13, 0.25);
+  border-top-color: var(--accent, #EA560D);
+  border-radius: 50% !important;
+  animation: uploadSpin 0.7s linear infinite;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nolli-upload-spinner {
+    animation-duration: 2s;
+  }
+}
+
+/* Barra de progreso */
+.nolli-upload-progress-track {
+  width: 100%;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+body.dark-mode .nolli-upload-progress-track {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.nolli-upload-progress-bar {
+  height: 100%;
+  background: var(--accent, #EA560D);
+  border-radius: 999px;
+  transition: width 0.22s ease-out;
+}
+
+/* Estado de Éxito */
+.nolli-upload-card.is-success {
+  background: rgba(16, 185, 129, 0.06);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+body.dark-mode .nolli-upload-card.is-success {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.nolli-upload-card.is-success .nolli-upload-card-title {
+  color: #059669;
+}
+
+body.dark-mode .nolli-upload-card.is-success .nolli-upload-card-title {
+  color: #34D399;
+}
+
+.nolli-upload-badge-success {
+  font-family: 'Inter', sans-serif;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(16, 185, 129, 0.15);
+  color: #059669;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+body.dark-mode .nolli-upload-badge-success {
+  background: rgba(16, 185, 129, 0.22);
+  color: #34D399;
+}
+
+.nolli-upload-icon-success {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  color: #059669;
+  flex-shrink: 0;
+}
+
+body.dark-mode .nolli-upload-icon-success {
+  color: #34D399;
+}
+
+/* Estado de Error */
+.nolli-upload-card.is-error {
+  background: rgba(239, 68, 68, 0.06);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+body.dark-mode .nolli-upload-card.is-error {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+.nolli-upload-card.is-error .nolli-upload-card-title {
+  color: #DC2626;
+}
+
+body.dark-mode .nolli-upload-card.is-error .nolli-upload-card-title {
+  color: #F87171;
+}
+
+.nolli-upload-card-error-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 10.5px;
+  color: #DC2626;
+  line-height: 1.35;
+  margin: 0;
+}
+
+body.dark-mode .nolli-upload-card-error-text {
+  color: #F87171;
+}
+
+.nolli-upload-icon-error {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  color: #DC2626;
+  flex-shrink: 0;
+}
+
+body.dark-mode .nolli-upload-icon-error {
+  color: #F87171;
+}
+
+

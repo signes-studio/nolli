@@ -48,7 +48,7 @@ import {
   escapeHtml,
 } from './state.js';
 
-import { renderInChunks, initTabsScrollIndicator, showNeoToast } from './renderUtils.js';
+import { renderInChunks, initTabsScrollIndicator, showNeoToast, setUploadStatusFeedback } from './renderUtils.js';
 import { getOptimizedPhotoUrl } from './imageProxy.js';
 import { renderObraCard } from './workCard.js';
 import { t, initI18n, getUrlPrefix, applyI18nToDOM, setupLanguageSwitchers, getLanguage, switchLanguage } from './i18n.js';
@@ -1894,10 +1894,7 @@ function setupEditProfileModal() {
       if (inputAvatarUrl) inputAvatarUrl.value = currentAvatar;
       updateAvatarPreview(currentAvatar);
       const avatarStatus = document.getElementById('profile-avatar-upload-status');
-      if (avatarStatus) {
-        avatarStatus.textContent = '';
-        avatarStatus.classList.add('hidden');
-      }
+      setUploadStatusFeedback(avatarStatus, { state: 'idle' });
 
       if (editStatus) editStatus.classList.add('hidden');
       if (emailStatus) emailStatus.classList.add('hidden');
@@ -1980,10 +1977,7 @@ function setupEditProfileModal() {
     if (avatarUrlInput) avatarUrlInput.value = '';
     if (avatarFileInput) avatarFileInput.value = '';
     updateAvatarPreview('');
-    if (avatarStatus) {
-      avatarStatus.textContent = '';
-      avatarStatus.classList.add('hidden');
-    }
+    setUploadStatusFeedback(avatarStatus, { state: 'idle' });
   });
 
   avatarFileInput?.addEventListener('change', async (e) => {
@@ -1992,35 +1986,58 @@ function setupEditProfileModal() {
 
     const token = getSessionToken();
     if (!token) {
-      if (avatarStatus) {
-        avatarStatus.textContent = 'Debes iniciar sesión para actualizar tu foto.';
-        avatarStatus.classList.remove('hidden');
-      }
+      setUploadStatusFeedback(avatarStatus, {
+        state: 'error',
+        title: 'SESIÓN REQUERIDA_',
+        message: 'Debes iniciar sesión para actualizar tu foto.'
+      });
       return;
     }
 
-    if (avatarStatus) {
-      avatarStatus.textContent = 'Subiendo foto...';
-      avatarStatus.classList.remove('hidden');
-    }
+    let tempPreviewUrl = '';
+    try {
+      if (typeof URL !== 'undefined' && URL.createObjectURL) {
+        tempPreviewUrl = URL.createObjectURL(file);
+        updateAvatarPreview(tempPreviewUrl);
+      }
+    } catch {}
+
+    setUploadStatusFeedback(avatarStatus, {
+      state: 'uploading',
+      pct: 0,
+      title: t('upload_status_avatar_uploading')
+    });
 
     try {
       const publicUrl = await uploadAvatarFileWithR2(file, token, (pct) => {
-        if (avatarStatus) avatarStatus.textContent = `Subiendo foto... ${pct}%`;
+        setUploadStatusFeedback(avatarStatus, {
+          state: 'uploading',
+          pct,
+          title: pct >= 100 ? t('upload_status_optimizing') : t('upload_status_avatar_uploading')
+        });
       });
       if (publicUrl) {
         if (avatarUrlInput) avatarUrlInput.value = publicUrl;
         updateAvatarPreview(publicUrl);
-        if (avatarStatus) {
-          avatarStatus.textContent = 'Foto lista para guardar.';
-          avatarStatus.classList.remove('hidden');
-        }
+        setUploadStatusFeedback(avatarStatus, {
+          state: 'success',
+          title: t('upload_status_avatar_ready'),
+          badge: t('upload_status_badge_ready')
+        });
       }
     } catch (err) {
       console.error('Error subiendo foto de perfil:', err);
-      if (avatarStatus) {
-        avatarStatus.textContent = err.message || 'Error al subir la fotografía.';
-        avatarStatus.classList.remove('hidden');
+      if (tempPreviewUrl) {
+        updateAvatarPreview('');
+      }
+      setUploadStatusFeedback(avatarStatus, {
+        state: 'error',
+        title: t('upload_status_error'),
+        message: err.message || 'Error al subir la fotografía.'
+      });
+    } finally {
+      if (tempPreviewUrl) {
+        try { URL.revokeObjectURL(tempPreviewUrl); } catch {}
       }
     }
   });

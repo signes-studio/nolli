@@ -8,7 +8,7 @@ import { cerrarFiltros, generarFiltrosUI } from './filtersUI.js';
 import { fetchBuildings, saveBuildingStatus, reviewBuilding, deleteBuilding, updateBuilding, deletePrivateBuilding, createUserCollection, addUserCollectionItem, deleteUserCollectionItem, createUserPrivateLabel, deleteUserPrivateLabel, fetchBuildingVisitPhotos, createVisitPhoto, deleteVisitPhoto, updateVisitPhoto, uploadGenericPhotoWithR2, invalidateCatalogCache, fetchCurrentUser } from './api.js';
 import { abrirModalCrearLista } from './myPlacesUI.js';
 import { getOptimizedPhotoUrl } from './imageProxy.js';
-import { showNeoToast } from './renderUtils.js';
+import { showNeoToast, setUploadStatusFeedback } from './renderUtils.js';
 import { addFilterChip } from './filterEngine.js';
 import { t, getUrlPrefix } from './i18n.js';
 import { renderObraCard } from './workCard.js';
@@ -1310,10 +1310,7 @@ export function openSheetPhotoUploadModal(building) {
   if (captionInput) captionInput.value = '';
   if (previewWrap) previewWrap.classList.add('hidden');
   if (previewImg) previewImg.src = '';
-  if (statusEl) {
-    statusEl.textContent = '';
-    statusEl.classList.add('hidden');
-  }
+  setUploadStatusFeedback(statusEl, { state: 'idle' });
   if (errorEl) {
     errorEl.textContent = '';
     errorEl.classList.add('hidden');
@@ -1378,40 +1375,60 @@ function initSheetPhotoUploadModal() {
     if (fileInput) fileInput.value = '';
     if (urlInput) urlInput.value = '';
     updatePreview('');
-    if (statusEl) {
-      statusEl.textContent = '';
-      statusEl.classList.add('hidden');
-    }
+    setUploadStatusFeedback(statusEl, { state: 'idle' });
   });
 
   fileInput?.addEventListener('change', async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (statusEl) {
-      statusEl.textContent = 'Subiendo imagen...';
-      statusEl.classList.remove('hidden');
-    }
+
+    let tempPreviewUrl = '';
+    try {
+      if (typeof URL !== 'undefined' && URL.createObjectURL) {
+        tempPreviewUrl = URL.createObjectURL(file);
+        updatePreview(tempPreviewUrl);
+      }
+    } catch {}
+
+    setUploadStatusFeedback(statusEl, {
+      state: 'uploading',
+      pct: 0,
+      title: t('upload_status_uploading')
+    });
+
     try {
       const res = await uploadGenericPhotoWithR2(file, currentSheetPhotoBuilding?.id || 'sheet', state.sessionToken, (pct) => {
-        if (statusEl) statusEl.textContent = `Subiendo imagen... ${pct}%`;
+        setUploadStatusFeedback(statusEl, {
+          state: 'uploading',
+          pct,
+          title: pct >= 100 ? t('upload_status_optimizing') : t('upload_status_uploading')
+        });
       });
       const photoUrl = res?.publicUrl || res?.url;
       if (photoUrl) {
         if (urlInput) urlInput.value = photoUrl;
         updatePreview(photoUrl);
-        if (statusEl) {
-          if (photoUrl.startsWith('data:')) {
-            statusEl.textContent = '✓ Imagen procesada correctamente (modo sin conexión)';
-          } else {
-            statusEl.textContent = '✓ Imagen subida correctamente';
-          }
-        }
+        const isOffline = photoUrl.startsWith('data:');
+        setUploadStatusFeedback(statusEl, {
+          state: 'success',
+          title: isOffline ? 'IMAGEN PROCESADA_' : t('upload_status_success'),
+          badge: isOffline ? 'OFFLINE' : t('upload_status_badge_optimized')
+        });
       } else {
         throw new Error('No se recibió la URL de la imagen.');
       }
     } catch (err) {
-      if (statusEl) {
-        statusEl.textContent = 'Error al subir la imagen: ' + (err.message || 'Error');
+      if (tempPreviewUrl) {
+        updatePreview('');
+      }
+      setUploadStatusFeedback(statusEl, {
+        state: 'error',
+        title: t('upload_status_error'),
+        message: err.message || 'Error al subir la imagen'
+      });
+    } finally {
+      if (tempPreviewUrl) {
+        try { URL.revokeObjectURL(tempPreviewUrl); } catch {}
       }
     }
   });

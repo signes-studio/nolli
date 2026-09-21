@@ -805,5 +805,13 @@
   "topbar_brand_tagline": "/ collective architecture guide",
   "topbar_profile": "PERSONAL PROFILE",
   "topbar_profile_aria": "Open personal profile",
-  "topbar_sr_title": "collective architecture guide: interactive architecture map"
+  "topbar_sr_title": "collective architecture guide: interactive architecture map",
+  "upload_status_avatar_ready": "PHOTO READY_",
+  "upload_status_avatar_uploading": "UPLOADING PHOTO_",
+  "upload_status_badge_optimized": "OPTIMIZED",
+  "upload_status_badge_ready": "READY",
+  "upload_status_error": "UPLOAD ERROR_",
+  "upload_status_optimizing": "OPTIMIZING IMAGE_",
+  "upload_status_success": "PHOTO UPLOADED_",
+  "upload_status_uploading": "UPLOADING IMAGE_"
 }

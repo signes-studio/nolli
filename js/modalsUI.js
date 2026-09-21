@@ -6,7 +6,7 @@ import { state, separarArquitectos, normalizarCategoria, esRolAdmin, esRolEditor
 import { loginAdmin, registerUser, refreshUserSession, requestPasswordReset, updateUserPassword, sendMagicLink, updateUserEmail, verifyOtpToken, fetchUserRole, fetchCurrentUser, fetchCurrentProfile, fetchBuildingStatuses, upsertCurrentProfile, createBuildingReport, createBuilding, createPrivateBuilding, updateBuilding, updateUserPresence, invalidateCatalogCache, signInWithGoogle, uploadGenericPhotoWithR2 } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
-import { showNeoToast } from './renderUtils.js';
+import { showNeoToast, setUploadStatusFeedback } from './renderUtils.js';
 import { t } from './i18n.js';
 
 const ADMIN_SESSION_KEY = 'nolli_admin_session_token';
@@ -569,36 +569,59 @@ function initAddBuildingModal() {
     if (inputFotoUrl) inputFotoUrl.value = '';
     if (inputFotoFile) inputFotoFile.value = '';
     updateAddFotoPreview('');
-    if (statusFotoUpload) {
-      statusFotoUpload.textContent = '';
-      statusFotoUpload.classList.add('hidden');
-    }
+    setUploadStatusFeedback(statusFotoUpload, { state: 'idle' });
   });
 
   inputFotoFile?.addEventListener('change', async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (statusFotoUpload) {
-      statusFotoUpload.textContent = 'Subiendo imagen...';
-      statusFotoUpload.classList.remove('hidden');
-    }
+
+    let tempPreviewUrl = '';
+    try {
+      if (typeof URL !== 'undefined' && URL.createObjectURL) {
+        tempPreviewUrl = URL.createObjectURL(file);
+        updateAddFotoPreview(tempPreviewUrl);
+      }
+    } catch {}
+
+    setUploadStatusFeedback(statusFotoUpload, {
+      state: 'uploading',
+      pct: 0,
+      title: t('upload_status_uploading')
+    });
+
     try {
       const res = await uploadGenericPhotoWithR2(file, state.editingBuildingId || 'new', state.sessionToken, (pct) => {
-        if (statusFotoUpload) statusFotoUpload.textContent = `Subiendo imagen... ${pct}%`;
+        setUploadStatusFeedback(statusFotoUpload, {
+          state: 'uploading',
+          pct,
+          title: pct >= 100 ? t('upload_status_optimizing') : t('upload_status_uploading')
+        });
       });
       const photoUrl = res?.publicUrl || res?.url;
       if (photoUrl) {
         if (inputFotoUrl) inputFotoUrl.value = photoUrl;
         updateAddFotoPreview(photoUrl);
-        if (statusFotoUpload) {
-          statusFotoUpload.textContent = 'Imagen subida correctamente';
-        }
+        setUploadStatusFeedback(statusFotoUpload, {
+          state: 'success',
+          title: t('upload_status_success'),
+          badge: t('upload_status_badge_optimized')
+        });
       } else {
         throw new Error('No se recibió la URL de la imagen.');
       }
     } catch (err) {
-      if (statusFotoUpload) {
-        statusFotoUpload.textContent = 'Error al subir la imagen: ' + (err.message || 'Error');
+      if (tempPreviewUrl) {
+        updateAddFotoPreview('');
+      }
+      setUploadStatusFeedback(statusFotoUpload, {
+        state: 'error',
+        title: t('upload_status_error'),
+        message: err.message || 'Error al subir la imagen'
+      });
+    } finally {
+      if (tempPreviewUrl) {
+        try { URL.revokeObjectURL(tempPreviewUrl); } catch {}
       }
     }
   });
@@ -613,10 +636,7 @@ function initAddBuildingModal() {
     if (inputFotoUrl) inputFotoUrl.value = '';
     if (inputFotoCredito) inputFotoCredito.value = '';
     updateAddFotoPreview('');
-    if (statusFotoUpload) {
-      statusFotoUpload.textContent = '';
-      statusFotoUpload.classList.add('hidden');
-    }
+    setUploadStatusFeedback(statusFotoUpload, { state: 'idle' });
   };
 
   document.addEventListener('click', (e) => {
@@ -703,6 +723,7 @@ function initAddBuildingModal() {
     document.getElementById('add-categoria').value = normalizarCategoria(obra.categoria);
     document.getElementById('add-acceso').value = obra.estado_acceso || 'publico';
     actualizarOpcionesVisibilidad(obra.private ? 'private' : (obra.estado_revision === 'publicada' ? 'direct' : 'review'));
+    setUploadStatusFeedback(statusFotoUpload, { state: 'idle' });
     document.getElementById('add-error').classList.add('hidden');
     mAdd.classList.add('open');
   });
@@ -888,10 +909,7 @@ function handleMapLongPress(lngLat) {
   const prevEl = document.getElementById('add-foto-preview-wrap');
   if (prevEl) prevEl.classList.add('hidden');
   const statEl = document.getElementById('add-foto-upload-status');
-  if (statEl) {
-    statEl.textContent = '';
-    statEl.classList.add('hidden');
-  }
+  setUploadStatusFeedback(statEl, { state: 'idle' });
   document.getElementById('add-enlace').value = '';
   const pEl = document.getElementById('add-place');
   if (pEl) pEl.value = '';

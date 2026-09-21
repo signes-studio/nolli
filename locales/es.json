@@ -805,5 +805,13 @@
   "topbar_brand_tagline": "/ guía colectiva de arquitectura",
   "topbar_profile": "PERFIL PERSONAL",
   "topbar_profile_aria": "Abrir perfil personal",
-  "topbar_sr_title": "guía colectiva de arquitectura: mapa interactivo de obras de arquitectura"
+  "topbar_sr_title": "guía colectiva de arquitectura: mapa interactivo de obras de arquitectura",
+  "upload_status_avatar_ready": "FOTO LISTA_",
+  "upload_status_avatar_uploading": "SUBIENDO FOTO_",
+  "upload_status_badge_optimized": "OPTIMIZADA",
+  "upload_status_badge_ready": "LISTA",
+  "upload_status_error": "ERROR AL SUBIR_",
+  "upload_status_optimizing": "OPTIMIZANDO IMAGEN_",
+  "upload_status_success": "FOTOGRAFÍA SUBIDA_",
+  "upload_status_uploading": "SUBIENDO IMAGEN_"
 }
