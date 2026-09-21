@@ -2477,3 +2477,406 @@ body.dark-mode .place-suggestion-icon {
 body.dark-mode .place-type-badge {
   background: rgba(255, 255, 255, 0.08);
 }
+
+/* ---------- Botón de Información y Marco Legal (Neo-Bauhaus) ---------- */
+.map-info-legal-btn {
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  z-index: 35;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-panel, #F8F1DF);
+  border: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.12));
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  color: var(--fg-dim, #71716A);
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+}
+
+.map-info-legal-btn:hover,
+.map-info-legal-btn:focus-visible {
+  color: var(--accent, #EA560D);
+  border-color: var(--accent, #EA560D);
+  box-shadow: 0 4px 12px rgba(234, 86, 13, 0.22);
+  transform: scale(1.06);
+}
+
+.map-info-legal-btn:active {
+  transform: scale(0.95);
+}
+
+body.dark-mode .map-info-legal-btn {
+  background: var(--bg-panel, #1C1C1A);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: var(--fg-dim, #A09E96);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode .map-info-legal-btn:hover,
+body.dark-mode .map-info-legal-btn:focus-visible {
+  color: var(--accent, #EA560D);
+  border-color: var(--accent, #EA560D);
+  box-shadow: 0 4px 12px rgba(234, 86, 13, 0.35);
+}
+
+/* Ocultar botón cuando se abren paneles de detalle u hojas modales */
+body:has(#sheet.open) .map-info-legal-btn,
+body:has(.sheet.open) .map-info-legal-btn,
+body:has(.panel.open) .map-info-legal-btn,
+body:has(.modal-overlay.open) .map-info-legal-btn {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+@media (max-width: 768px) {
+  .map-info-legal-btn {
+    bottom: calc(64px + env(safe-area-inset-bottom)) !important;
+    left: 10px !important;
+  }
+}
+
+/* ---------- Modal de Información y Marco Legal ---------- */
+.info-legal-box {
+  max-width: 580px !important;
+  width: 100%;
+}
+
+.info-legal-brand {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--accent, #EA560D);
+  line-height: 1;
+}
+
+.info-legal-brand span {
+  color: var(--fg, #141411);
+}
+
+body.dark-mode .info-legal-brand span {
+  color: var(--fg, #F8F1DF);
+}
+
+.info-legal-divider {
+  color: var(--fg-dim, #71716A);
+  opacity: 0.5;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.info-legal-head-title {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--fg, #141411);
+  text-transform: uppercase;
+}
+
+.info-legal-tabs-wrap {
+  display: flex;
+  gap: 4px;
+  padding: 8px 12px;
+  background: var(--bg-raised, #ECE7D9);
+  border-bottom: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.08));
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.info-legal-tabs-wrap::-webkit-scrollbar {
+  display: none;
+}
+
+.info-legal-tab {
+  padding: 6px 14px;
+  border: 1px solid transparent;
+  border-radius: 6px !important;
+  background: transparent;
+  color: var(--fg-dim, #71716A);
+  font-family: 'Inter', sans-serif;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.info-legal-tab:hover {
+  color: var(--fg, #141411);
+  background: rgba(0, 0, 0, 0.04);
+}
+
+body.dark-mode .info-legal-tab:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.info-legal-tab.active {
+  background: var(--bg-panel, #F8F1DF);
+  color: var(--accent, #EA560D);
+  border-color: var(--border-subtle, rgba(0, 0, 0, 0.1));
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+body.dark-mode .info-legal-tab.active {
+  background: var(--bg-panel, #1C1C1A);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.info-legal-body {
+  padding: 16px 18px 20px;
+  overflow-y: auto;
+  max-height: min(65vh, 480px);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  color: var(--fg, #141411);
+}
+
+.info-legal-pane {
+  display: none;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.info-legal-pane.active {
+  display: flex;
+}
+
+.info-legal-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.info-legal-kicker {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--accent, #EA560D);
+  text-transform: uppercase;
+  font-family: 'Inter', sans-serif;
+  margin-bottom: 2px;
+}
+
+.info-legal-h3 {
+  font-family: 'League Spartan', sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--fg, #141411);
+  margin: 0 0 4px 0;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+}
+
+.info-legal-lead {
+  font-size: 12px;
+  color: var(--fg-dim, #71716A);
+  line-height: 1.45;
+  margin: 0 0 8px 0;
+}
+
+.info-legal-text {
+  font-size: 12px;
+  color: var(--fg, #141411);
+  line-height: 1.5;
+  margin: 0 0 6px 0;
+}
+
+.info-legal-card {
+  background: var(--bg-raised, #ECE7D9);
+  border: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.08));
+  border-radius: 8px !important;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+body.dark-mode .info-legal-card {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.info-legal-card-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--fg, #141411);
+  margin-bottom: 2px;
+}
+
+.info-legal-card-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.info-legal-badge {
+  display: inline-block;
+  font-family: 'League Spartan', sans-serif;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--accent, #EA560D);
+  background: rgba(234, 86, 13, 0.08);
+  border: 1px solid rgba(234, 86, 13, 0.22);
+  padding: 2px 7px;
+  border-radius: 4px;
+  align-self: flex-start;
+}
+
+.info-legal-meta {
+  font-size: 11px;
+  color: var(--fg-dim, #71716A);
+}
+
+.info-legal-link {
+  color: var(--accent, #EA560D);
+  text-decoration: underline;
+  font-weight: 600;
+  text-underline-offset: 2px;
+  transition: color 0.12s ease;
+}
+
+.info-legal-link:hover {
+  color: var(--fg, #141411);
+}
+
+.info-legal-list {
+  margin: 4px 0 8px 0;
+  padding-left: 18px;
+  font-size: 12px;
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-legal-list li {
+  color: var(--fg, #141411);
+}
+
+.info-legal-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.info-legal-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.info-legend-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.info-legend-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--bg-raised, #ECE7D9);
+  border: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.08));
+  border-radius: 8px !important;
+}
+
+body.dark-mode .info-legend-item {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.info-legend-icon-wrap {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--bg-panel, #F8F1DF);
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.1));
+}
+
+body.dark-mode .info-legend-icon-wrap {
+  background: var(--bg-panel, #1C1C1A);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.info-legend-info {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.info-legend-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+  font-size: 11px;
+}
+
+.info-legend-title-row strong {
+  font-family: 'League Spartan', sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  color: var(--fg, #141411);
+}
+
+.info-legend-info p {
+  margin: 0;
+  font-size: 11px;
+  color: var(--fg-dim, #71716A);
+  line-height: 1.35;
+}
+
+.info-categories-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important;
+  gap: 6px !important;
+  margin-top: 8px;
+}
+
+.info-categories-grid span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  background: var(--bg-raised, #ECE7D9);
+  border-radius: 6px !important;
+  border: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.08));
+  font-size: 10.5px;
+  color: var(--fg, #141411);
+}
+
+body.dark-mode .info-categories-grid span {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.info-categories-grid i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+}
+

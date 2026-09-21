@@ -267,71 +267,7 @@ h1, h2, h3, h4, h5, h6,
 @keyframes blink { 50% { opacity: 0; } }
 
 .radar-legend {
-  position: absolute;
-  bottom: 14px;
-  left: 48px;
-  z-index: 35;
-  background: var(--bg-panel);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-  color: var(--fg);
-  font-family: 'Inter', sans-serif;
-  font-size: 10px;
-  pointer-events: auto;
-  max-width: 240px;
-  overflow: hidden;
-}
-
-@media (max-width: 768px) {
-  .radar-legend {
-    display: none !important;
-  }
-}
-
-.legend-header-btn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  background: var(--bg-panel);
-  border: 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
-  text-align: left;
-}
-
-.radar-legend.collapsed .legend-header-btn { border-bottom: 0; }
-
-.legend-header-btn:hover {
-  color: var(--accent);
-}
-
-.legend-title {
-  color: var(--accent);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-}
-
-.legend-chevron {
-  font-size: 14px;
-  font-weight: bold;
-  color: var(--accent);
-  line-height: 1;
-}
-
-.radar-legend .legend-body {
-  display: grid;
-  gap: 8px;
-  padding: 10px 12px 12px;
-}
-
-/* Estado contraído */
-.radar-legend.collapsed .legend-body {
-  display: none;
+  display: none !important;
 }
 
 .legend-section {

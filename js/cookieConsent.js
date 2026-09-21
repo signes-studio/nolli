@@ -143,6 +143,7 @@
   }
 
   window.nolliHasConsent = hasConsent;
+  window.nolliOpenCookieConfig = openConfiguration;
   applyFontPreference();
   document.addEventListener('DOMContentLoaded', () => {
     addSettingsButton();

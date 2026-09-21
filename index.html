@@ -334,61 +334,14 @@
 
 
 
-  <!-- Leyenda técnica del radar (Desplegable) -->
-  <div id="map-legend" class="radar-legend collapsed" aria-label="Leyenda del mapa" data-i18n-aria="legend_title">
-    <button type="button" id="btn-legend-toggle" class="legend-header-btn" aria-expanded="false">
-      <span class="legend-title" data-i18n="legend_title">LEYENDA</span>
-      <span id="legend-chevron" class="legend-chevron">+</span>
-    </button>
-    
-    <div class="legend-body">
-      <div class="legend-section">
-        <span class="legend-subtitle" data-i18n="legend_hierarchy">JERARQUÍA</span>
-        <div class="legend-item legend-item--l0" title="El viaje se justifica solo para ver este edificio.">
-          <svg width="16" height="16" viewBox="0 0 24 24" class="legend-icon-svg legend-icon-svg--l0" aria-hidden="true">
-            <polygon points="12,2 22,12 12,22 2,12" fill="#EA560D" stroke="#F8F1DF" stroke-width="1.8"/>
-            <rect x="10.2" y="10.2" width="3.6" height="3.6" fill="#141411"/>
-          </svg>
-          <span class="legend-item-name legend-item-name--l0" data-i18n="legend_masterpiece">Obra Cumbre</span>
-          <span class="legend-tag-hito">NIVEL 1</span>
-        </div>
-        <div class="legend-item legend-item--l1" title="Parada obligatoria en cualquier ruta arquitectónica.">
-          <svg width="15" height="15" viewBox="0 0 24 24" class="legend-icon-svg legend-icon-svg--l1" aria-hidden="true">
-            <circle cx="12" cy="12" r="9.2" fill="#EA560D" stroke="#F8F1DF" stroke-width="1.8"/>
-            <circle cx="12" cy="12" r="2.4" fill="#141411"/>
-          </svg>
-          <span class="legend-item-name legend-item-name--l1" data-i18n="legend_high">Imprescindible</span>
-          <span class="legend-tag-sub">NIVEL 2</span>
-        </div>
-        <div class="legend-item legend-item--l2" title="Vale la pena desviarse unas calles para verla.">
-          <svg width="12" height="12" viewBox="0 0 24 24" class="legend-icon-svg legend-icon-svg--l2" aria-hidden="true">
-            <circle cx="12" cy="12" r="8.5" fill="#EA560D" stroke="#F8F1DF" stroke-width="1.6"/>
-          </svg>
-          <span class="legend-item-name legend-item-name--l2" data-i18n="legend_medium">Recomendada</span>
-        </div>
-        <div class="legend-item legend-item--l3" title="Está en el mapa, ideal si pasas por delante.">
-          <svg width="9" height="9" viewBox="0 0 24 24" class="legend-icon-svg legend-icon-svg--l3" aria-hidden="true">
-            <circle cx="12" cy="12" r="7.8" fill="#EA560D" stroke="#F8F1DF" stroke-width="1.4"/>
-          </svg>
-          <span class="legend-item-name legend-item-name--l3" data-i18n="legend_low">Documentada</span>
-        </div>
-      </div>
-
-      <div class="legend-section">
-        <span class="legend-subtitle" data-i18n="legend_categories">CATEGORÍAS</span>
-        <div class="legend-color-grid">
-          <span><i style="background: #EA560D;"></i> <span data-i18n="cat_residential">Residencial</span></span>
-          <span><i style="background: #F6A600;"></i> <span data-i18n="cat_civic_short">Dotacional / Equip.</span></span>
-          <span><i style="background: #163D62;"></i> <span data-i18n="cat_industrial">Industrial / Logístico</span></span>
-          <span><i style="background: #F6B9C5;"></i> <span data-i18n="cat_religious">Religioso / Funerario</span></span>
-          <span><i style="background: #007BC3;"></i> <span data-i18n="cat_commercial">Comercial / Terciario</span></span>
-          <span><i style="background: #007446;"></i> <span data-i18n="cat_public_space_short">Espacio Público</span></span>
-          <span><i style="background: #E02523;"></i> <span data-i18n="cat_infrastructure_short">Infraestructura</span></span>
-          <span><i style="background: #492900;"></i> <span data-i18n="cat_other">Otros</span></span>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- Botón de Información cartográfica, cookies y marco legal (Neo-Bauhaus) -->
+  <button type="button" id="btn-info-legal" class="map-info-legal-btn" aria-label="Información legal, mapas, cookies y simbología" title="Información y marco legal" data-i18n-title="info_legal_btn_title" data-i18n-aria="info_legal_btn_aria">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="16" x2="12" y2="12"></line>
+      <line x1="12" y1="8" x2="12.01" y2="8"></line>
+    </svg>
+  </button>
 
   <!-- FABs -->
   <div id="map-tools" class="absolute z-30 flex flex-col gap-2" style="right:14px; bottom:14px;">
@@ -1477,6 +1430,242 @@
           <button class="btn btn-auth-primary" id="btn-edit-sheet-photo-submit" type="button">GUARDAR CAMBIOS</button>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Información Cartográfica, Cookies y Marco Jurídico (Neo-Bauhaus) -->
+<div id="modal-info-legal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-info-legal-title">
+  <div class="modal-box info-legal-box">
+    <div class="modal-head">
+      <div class="flex items-center gap-2">
+        <span class="info-legal-brand font-display">nolli<span>.</span></span>
+        <span class="info-legal-divider" aria-hidden="true">/</span>
+        <span id="modal-info-legal-title" class="info-legal-head-title font-display" data-i18n="info_legal_modal_title">INFORMACIÓN Y MARCO LEGAL</span>
+      </div>
+      <button type="button" id="btn-info-legal-close" class="sheet-close-button" aria-label="Cerrar modal" data-i18n-aria="common_close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg>
+      </button>
+    </div>
+
+    <!-- Pestañas del modal -->
+    <div class="info-legal-tabs-wrap" role="tablist" aria-label="Secciones de información">
+      <button type="button" role="tab" class="info-legal-tab active" data-info-tab="maps" id="tab-info-maps" aria-selected="true" aria-controls="pane-info-maps">
+        <span data-i18n="info_legal_tab_maps">MAPAS</span>
+      </button>
+      <button type="button" role="tab" class="info-legal-tab" data-info-tab="cookies" id="tab-info-cookies" aria-selected="false" aria-controls="pane-info-cookies">
+        <span data-i18n="info_legal_tab_cookies">COOKIES</span>
+      </button>
+      <button type="button" role="tab" class="info-legal-tab" data-info-tab="legal" id="tab-info-legal" aria-selected="false" aria-controls="pane-info-legal">
+        <span data-i18n="info_legal_tab_legal">LEGAL</span>
+      </button>
+      <button type="button" role="tab" class="info-legal-tab" data-info-tab="legend" id="tab-info-legend" aria-selected="false" aria-controls="pane-info-legend">
+        <span data-i18n="info_legal_tab_legend">SIMBOLOGÍA</span>
+      </button>
+    </div>
+
+    <!-- Cuerpo del modal con paneles tabulados -->
+    <div class="modal-body info-legal-body">
+
+      <!-- Panel: MAPAS -->
+      <div id="pane-info-maps" class="info-legal-pane active" role="tabpanel" aria-labelledby="tab-info-maps">
+        <div class="info-legal-section">
+          <div class="info-legal-kicker">CARTOGRAFÍA // FUENTES Y ATRIBUCIÓN</div>
+          <h3 class="info-legal-h3">PROVEEDORES Y DATOS GEOGRÁFICOS</h3>
+          <p class="info-legal-text">La cartografía interactiva de Nolli utiliza tecnología vectorial de alto rendimiento combinada con datos abiertos y colaborativos mundiales:</p>
+          
+          <div class="info-legal-card">
+            <div class="info-legal-card-row">
+              <span class="info-legal-badge">MAPAS BASE</span>
+              <span class="info-legal-meta">&copy; <a href="https://www.mapbox.com/about/maps/" target="_blank" rel="noopener noreferrer" class="info-legal-link">Mapbox</a> &bull; &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" class="info-legal-link">OpenStreetMap contributors</a></span>
+            </div>
+            <div class="info-legal-card-row">
+              <span class="info-legal-badge">FEEDBACK</span>
+              <span class="info-legal-meta"><a href="https://www.mapbox.com/map-feedback/" target="_blank" rel="noopener noreferrer" class="info-legal-link">Mejorar este mapa (Mapbox Feedback) &nearr;</a></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-legal-section">
+          <div class="info-legal-kicker">CAPAS Y ESTILOS // NOLLI</div>
+          <h3 class="info-legal-h3">EXPERIENCIA CARTOGRÁFICA</h3>
+          <p class="info-legal-text">Nolli ofrece tres modos de visualización especialmente diseñados para la contemplación arquitectónica:</p>
+          <ul class="info-legal-list">
+            <li><strong>Modo Abstracción:</strong> Cartografía monocromática de figura-fondo inspirada en el plano de Roma de Giambattista Nolli (1748), maximizando el protagonismo de las obras construidas.</li>
+            <li><strong>Modo Satélite:</strong> Fotografía aérea y de satélite de alta resolución para estudiar la implantación urbana y paisajística.</li>
+            <li><strong>Modo Callejero:</strong> Red vial detallada y toponimia completa para orientación in situ en la ciudad.</li>
+          </ul>
+          <p class="info-legal-text">Las coordenadas de todas las obras están referenciadas en el sistema geodésico mundial WGS84 (EPSG:4326).</p>
+        </div>
+      </div>
+
+      <!-- Panel: COOKIES -->
+      <div id="pane-info-cookies" class="info-legal-pane" role="tabpanel" aria-labelledby="tab-info-cookies" hidden>
+        <div class="info-legal-section">
+          <div class="info-legal-kicker">POLÍTICA // COOKIES Y PRIVACIDAD TÉCNICA</div>
+          <h3 class="info-legal-h3">ALMACENAMIENTO LOCAL SIN RASTREO COMERCIAL</h3>
+          <p class="info-legal-text">En cumplimiento del artículo 22.2 de la LSSI-CE, Nolli <strong>no utiliza cookies propias publicitarias, de seguimiento comportamental ni de venta de datos a terceros</strong>.</p>
+          
+          <div class="info-legal-card">
+            <strong class="info-legal-card-title">¿Qué datos se guardan en tu navegador?</strong>
+            <p class="info-legal-text">Se emplean tecnologías de almacenamiento local del navegador (<code>localStorage</code> y <code>sessionStorage</code>) estrictamente funcionales:</p>
+            <ul class="info-legal-list">
+              <li><strong>Sesión de usuario:</strong> Token de autenticación cifrado para mantenerte conectado a tu perfil personal.</li>
+              <li><strong>Preferencias del mapa:</strong> Tu último estilo de mapa seleccionado (Abstracción, Satélite, Callejero) y tema de color (claro/oscuro).</li>
+              <li><strong>Filtros activos:</strong> Selección temporal de categorías e itinerarios mientras navegas.</li>
+            </ul>
+          </div>
+
+          <div class="info-legal-card">
+            <strong class="info-legal-card-title">Servicios externos de renderizado</strong>
+            <p class="info-legal-text">La carga de fuentes tipográficas web de Google Fonts y las teselas de Mapbox se rigen por sus respectivas políticas técnicas de prestación de servicio.</p>
+          </div>
+
+          <div class="info-legal-actions">
+            <button type="button" id="btn-info-cookie-settings" class="btn btn-auth-secondary" style="font-size:10px; padding:7px 12px;">
+              CONFIGURAR CONSENTIMIENTO
+            </button>
+            <a href="./legal.html#cookies" target="_blank" class="info-legal-link" style="font-size:11px; align-self:center;">
+              Ver política de cookies completa &nearr;
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel: LEGAL -->
+      <div id="pane-info-legal" class="info-legal-pane" role="tabpanel" aria-labelledby="tab-info-legal" hidden>
+        <div class="info-legal-section">
+          <div class="info-legal-kicker">MARCO JURÍDICO // CONDICIONES DE SERVICIO</div>
+          <h3 class="info-legal-h3">INFORMACIÓN LEGAL Y REGULATORIA</h3>
+          <p class="info-legal-lead">Cumplimiento con la Ley 34/2002 (LSSI-CE), el Reglamento General de Protección de Datos (RGPD UE 2016/679) y la Ley Orgánica 3/2018 (LOPDGDD).</p>
+
+          <!-- 01 Aviso Legal -->
+          <div class="info-legal-accordion">
+            <div class="info-legal-card">
+              <div class="info-legal-badge">01 / AVISO LEGAL</div>
+              <p class="info-legal-text"><strong>Titular del servicio:</strong> LUIS ALBERTO SIGNES SACRISTÁN (València, España).</p>
+              <p class="info-legal-text"><strong>Contacto:</strong> <a href="mailto:nolli@signes.studio" class="info-legal-link">nolli@signes.studio</a> &bull; <strong>Dominio:</strong> <a href="https://nollimap.app" target="_blank" class="info-legal-link">https://nollimap.app</a></p>
+              <p class="info-legal-text">Nolli es una plataforma digital interactiva para la divulgación, cartografía y catalogación de arquitectura moderna y contemporánea.</p>
+            </div>
+
+            <!-- 02 Privacidad -->
+            <div class="info-legal-card">
+              <div class="info-legal-badge">02 / PRIVACIDAD Y DATOS (RGPD)</div>
+              <p class="info-legal-text">Los datos personales recabados (correo, nick de usuario, colecciones personales) se tratan con la única finalidad de prestar el servicio y sincronizar tu espacio personal.</p>
+              <p class="info-legal-text"><strong>Google OAuth:</strong> Solo solicitamos permisos básicos de identidad (email, nombre, foto) para inicio de sesión. No accedemos a otros servicios ni cedemos datos a anunciantes.</p>
+              <p class="info-legal-text"><strong>Derechos ARCO:</strong> Puedes solicitar acceso, rectificación o cancelación de tus datos en <a href="mailto:nolli@signes.studio" class="info-legal-link">nolli@signes.studio</a>.</p>
+            </div>
+
+            <!-- 03 Términos de Uso -->
+            <div class="info-legal-card">
+              <div class="info-legal-badge">03 / TÉRMINOS DE USO</div>
+              <p class="info-legal-text">Queda prohibido el uso no autorizado, el scraping automatizado masivo que sature los servidores y la introducción de contenidos ilícitos.</p>
+              <p class="info-legal-text">Las aportaciones colaborativas otorgan a Nolli una licencia no exclusiva y gratuita para su catalogación y exhibición pública.</p>
+              <p class="info-legal-text">La información de las obras tiene carácter divulgativo; se aconseja verificar in situ los horarios y accesos con las entidades competentes.</p>
+            </div>
+
+            <!-- 04 Propiedad Intelectual -->
+            <div class="info-legal-card">
+              <div class="info-legal-badge">04 / PROPIEDAD INTELECTUAL</div>
+              <p class="info-legal-text">Conforme al art. 16 de la LSSI-CE, Nolli actúa con diligencia retirando cualquier contenido presuntamente infractor tras notificación motivada en <a href="mailto:nolli@signes.studio" class="info-legal-link">nolli@signes.studio</a>.</p>
+              <p class="info-legal-text">Las fotografías de obras permanentemente situadas en vías públicas pueden estar amparadas por la libertad de panorama (art. 35.2 TRLPI).</p>
+            </div>
+          </div>
+
+          <div class="info-legal-actions mt-3">
+            <a href="./legal.html" target="_blank" class="btn btn-auth-primary" style="text-decoration:none; text-align:center; font-size:10.5px; padding:9px 16px;">
+              CONSULTAR DOCUMENTO LEGAL ÍNTEGRO &nearr;
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel: SIMBOLOGÍA (LEYENDA) -->
+      <div id="pane-info-legend" class="info-legal-pane" role="tabpanel" aria-labelledby="tab-info-legend" hidden>
+        <div class="info-legal-section">
+          <div class="info-legal-kicker">GUÍA TÉCNICA // CHINCHETAS Y NIVELES</div>
+          <h3 class="info-legal-h3">JERARQUÍA DE LAS OBRAS</h3>
+          <p class="info-legal-text">La escala geométrica de las chinchetas clasifica el interés arquitectónico de cada edificio en la historia y la disciplina:</p>
+
+          <div class="info-legend-grid">
+            <div class="info-legend-item">
+              <div class="info-legend-icon-wrap">
+                <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+                  <polygon points="12,2 22,12 12,22 2,12" fill="#EA560D" stroke="#F8F1DF" stroke-width="1.8"/>
+                  <rect x="10.2" y="10.2" width="3.6" height="3.6" fill="#141411"/>
+                </svg>
+              </div>
+              <div class="info-legend-info">
+                <div class="info-legend-title-row">
+                  <strong>NIVEL 0 &mdash; OBRA MAESTRA</strong>
+                  <span class="legend-tag-hito">CUMBRE</span>
+                </div>
+                <p>El viaje se justifica solo para ver este edificio. Hito histórico y espacial de trascendencia mundial.</p>
+              </div>
+            </div>
+
+            <div class="info-legend-item">
+              <div class="info-legend-icon-wrap">
+                <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9.2" fill="#EA560D" stroke="#F8F1DF" stroke-width="1.8"/>
+                  <circle cx="12" cy="12" r="2.4" fill="#141411"/>
+                </svg>
+              </div>
+              <div class="info-legend-info">
+                <div class="info-legend-title-row">
+                  <strong>NIVEL 1 &mdash; IMPRESCINDIBLE</strong>
+                  <span class="legend-tag-sub">REFERENTE</span>
+                </div>
+                <p>Parada obligatoria en cualquier ruta arquitectónica. Ejemplaridad tipológica y constructiva.</p>
+              </div>
+            </div>
+
+            <div class="info-legend-item">
+              <div class="info-legend-icon-wrap">
+                <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="12" cy="12" r="8.5" fill="#EA560D" stroke="#F8F1DF" stroke-width="1.6"/>
+                </svg>
+              </div>
+              <div class="info-legend-info">
+                <div class="info-legend-title-row">
+                  <strong>NIVEL 2 &mdash; RECOMENDADA</strong>
+                </div>
+                <p>Vale la pena desviarse unas calles para verla. Aportación espacial o urbana notable.</p>
+              </div>
+            </div>
+
+            <div class="info-legend-item">
+              <div class="info-legend-icon-wrap">
+                <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="12" cy="12" r="7.8" fill="#EA560D" stroke="#F8F1DF" stroke-width="1.4"/>
+                </svg>
+              </div>
+              <div class="info-legend-info">
+                <div class="info-legend-title-row">
+                  <strong>NIVEL 3 &mdash; DOCUMENTADA</strong>
+                </div>
+                <p>Catalogada en el mapa, ideal si pasas por delante o para profundizar en el tejido local.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-legal-section">
+          <div class="info-legal-kicker">CÓDIGO CROMÁTICO // TIPOLOGÍAS</div>
+          <h3 class="info-legal-h3">CATEGORÍAS ARQUITECTÓNICAS</h3>
+          <div class="legend-color-grid info-categories-grid">
+            <span><i style="background: #EA560D;"></i> <span data-i18n="cat_residential">Residencial</span></span>
+            <span><i style="background: #F6A600;"></i> <span data-i18n="cat_civic_short">Dotacional / Equip.</span></span>
+            <span><i style="background: #163D62;"></i> <span data-i18n="cat_industrial">Industrial / Logístico</span></span>
+            <span><i style="background: #F6B9C5;"></i> <span data-i18n="cat_religious">Religioso / Funerario</span></span>
+            <span><i style="background: #007BC3;"></i> <span data-i18n="cat_commercial">Comercial / Terciario</span></span>
+            <span><i style="background: #007446;"></i> <span data-i18n="cat_public_space_short">Espacio Público</span></span>
+            <span><i style="background: #E02523;"></i> <span data-i18n="cat_infrastructure_short">Infraestructura</span></span>
+            <span><i style="background: #492900;"></i> <span data-i18n="cat_other">Otros</span></span>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>

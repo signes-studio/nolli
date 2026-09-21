@@ -87,6 +87,12 @@
 }
 .nolli-map-footer:hover, .nolli-map-footer:focus-within { opacity: 1; }
 
+/* Ocultar cookies y footer flotantes en la vista de mapa (unificados en el botón de información legal) */
+body:has(#map) .nolli-map-footer,
+body:has(#map) .nolli-cookie-settings {
+  display: none !important;
+}
+
 /* Ocultar cookies y legal cuando se abren paneles, herramientas, fichas o modales */
 body:has(#map-tools.tools-open) .nolli-cookie-settings,
 body:has(#map-tools.tools-open) .nolli-map-footer,

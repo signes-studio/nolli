@@ -118,12 +118,7 @@ export function cargarMapaMapbox() {
   });
   window.nolliMap = state.map;
 
-  // Atribución Mapbox y OpenStreetMap colapsada en icono de información (i) en la esquina inferior izquierda
-  try {
-    state.map.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-left');
-  } catch (err) {
-    console.warn('Error al inicializar AttributionControl compacto:', err);
-  }
+  // La atribución obligatoria de Mapbox y OpenStreetMap se gestiona en el modal unificado de información legal (botón ⓘ)
 
   state.map.on('error', (e) => {
     console.warn('Mapbox GL error:', e);
@@ -777,17 +772,6 @@ export function cargarMapaMapbox() {
 
   initHudReadout();
 
-  const legend = document.getElementById('map-legend');
-  const toggleBtn = document.getElementById('btn-legend-toggle');
-  const chevron = document.getElementById('legend-chevron');
-
-  if (toggleBtn && legend) {
-    toggleBtn.addEventListener('click', () => {
-      const isCollapsed = legend.classList.toggle('collapsed');
-      toggleBtn.setAttribute('aria-expanded', !isCollapsed);
-      if (chevron) chevron.textContent = isCollapsed ? '+' : '−';
-    });
-  }
 
   document.getElementById('btn-recenter')?.addEventListener('click', () => {
     state.map.flyTo({ center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM, bearing: 0, pitch: 0 });

@@ -943,6 +943,7 @@ export function initModalsUI() {
   initVerifyOtpModal();
   initAddBuildingModal();
   initReportModal();
+  initInfoLegalModal();
 }
 
 function initNewPasswordModal() {
@@ -1220,3 +1221,82 @@ function initReportModal() {
     }
   });
 }
+
+function initInfoLegalModal() {
+  const modal = document.getElementById('modal-info-legal');
+  const btnOpen = document.getElementById('btn-info-legal');
+  const btnClose = document.getElementById('btn-info-legal-close');
+  const tabs = modal?.querySelectorAll('.info-legal-tab');
+  const panes = modal?.querySelectorAll('.info-legal-pane');
+  const btnCookieSettings = document.getElementById('btn-info-cookie-settings');
+
+  if (!modal) return;
+
+  const open = () => {
+    modal.classList.add('open');
+    const activeTab = modal.querySelector('.info-legal-tab.active');
+    if (!activeTab && tabs?.length) {
+      switchTab(tabs[0].getAttribute('data-info-tab') || 'maps');
+    }
+  };
+
+  const close = () => {
+    modal.classList.remove('open');
+    btnOpen?.focus();
+  };
+
+  const switchTab = (tabId) => {
+    tabs?.forEach((t) => {
+      const isCurrent = t.getAttribute('data-info-tab') === tabId;
+      t.classList.toggle('active', isCurrent);
+      t.setAttribute('aria-selected', isCurrent ? 'true' : 'false');
+    });
+    panes?.forEach((p) => {
+      const isCurrent = p.id === `pane-info-${tabId}`;
+      p.classList.toggle('active', isCurrent);
+      if (isCurrent) {
+        p.removeAttribute('hidden');
+      } else {
+        p.setAttribute('hidden', '');
+      }
+    });
+  };
+
+  btnOpen?.addEventListener('click', (e) => {
+    e.preventDefault();
+    open();
+  });
+
+  btnClose?.addEventListener('click', (e) => {
+    e.preventDefault();
+    close();
+  });
+
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) close();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.classList.contains('open')) {
+      close();
+    }
+  });
+
+  tabs?.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      const targetTab = tab.getAttribute('data-info-tab');
+      if (targetTab) switchTab(targetTab);
+    });
+  });
+
+  btnCookieSettings?.addEventListener('click', () => {
+    close();
+    if (typeof window.nolliOpenCookieConfig === 'function') {
+      window.nolliOpenCookieConfig();
+    } else {
+      const cookieBtn = document.querySelector('.nolli-cookie-settings');
+      if (cookieBtn) cookieBtn.click();
+    }
+  });
+}
+
