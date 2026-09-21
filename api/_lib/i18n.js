@@ -368,7 +368,7 @@ function renderSiteFooter(lang = 'es', siteUrl = 'https://nollimap.app') {
 
   return `<footer class="site-footer">
     <div class="footer-brand">
-      <div class="footer-by"><span class="brand-nolli">nolli.</span> ${escapeHtml(lead)} <a href="https://signes.studio" target="_blank" rel="noopener noreferrer" class="brand-signes"><strong class="brand-signes-bold">SIGNES</strong><span class="brand-signes-thin">.STUDIO</span></a></div>
+      <div class="footer-by"><span class="brand-nolli">nolli.</span> ${escapeHtml(lead)} <a href="https://signes.studio/?ref=nolli&utm_source=nolli&utm_medium=referral" target="_blank" rel="noopener" class="brand-signes"><strong class="brand-signes-bold">SIGNES</strong><span class="brand-signes-thin">.STUDIO</span></a></div>
     </div>
     <div class="footer-links">
       <a href="${siteUrl}${prefix}/">${escapeHtml(mapText)}</a>

@@ -639,7 +639,7 @@
 
           <!-- PIE DE PÁGINA -->
           <footer class="footer">
-            <span class="footer-project-by"><span class="brand-nolli">nolli.</span> es un proyecto de <a href="https://signes.studio" target="_blank" rel="noopener noreferrer" class="brand-signes"><strong class="brand-signes-bold">SIGNES</strong><span class="brand-signes-thin">.STUDIO</span></a></span>
+            <span class="footer-project-by"><span class="brand-nolli">nolli.</span> es un proyecto de <a href="https://signes.studio/?ref=nolli&amp;utm_source=nolli&amp;utm_medium=referral" target="_blank" rel="noopener" class="brand-signes"><strong class="brand-signes-bold">SIGNES</strong><span class="brand-signes-thin">.STUDIO</span></a></span>
             <span class="footer-note">Protocolo Sitemaps XML 0.9 · Transformación XSLT</span>
           </footer>
         </div>

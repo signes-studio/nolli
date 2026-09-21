@@ -255,22 +255,41 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
       </button>
     </div>
 
-    <!-- Fotografía Principal en Banner Panorámico (Solo usuarios registrados) -->
-    ${building.foto_url && isValidHttpsUrl(building.foto_url) && state.sessionToken ? `
+    <!-- Fotografía Principal y Galería de Obra (Solo usuarios registrados) -->
+    ${state.sessionToken ? `
       <div class="sheet-gallery-wrap">
-        <button type="button" class="photo-thumb sheet-photo-banner" data-photo-url="${escapeHtml(building.foto_url)}" data-photo-credit="${escapeHtml(building.foto_credito || '')}" data-photo-caption="${escapeHtml(building.nombre_obra || '')}" aria-label="${t('sheet_photo_expand_aria')}">
-          <img class="sheet-photo" src="${escapeHtml(getOptimizedPhotoUrl(building.foto_url, 'sheet'))}" alt="Fotografía de ${escapeHtml(building.nombre_obra)}" loading="lazy" decoding="async"${openedFromUrl ? ' fetchpriority="high"' : ''}>
-          <span class="sheet-photo-credit"><i data-lucide="camera" width="11" height="11"></i> Foto: ${escapeHtml(building.foto_credito || 'Autor no especificado')}</span>
-          <span class="photo-zoom-badge"><i data-lucide="maximize-2" width="12" height="12"></i> ${t('sheet_photo_expand')}</span>
-        </button>
+        ${building.foto_url && isValidHttpsUrl(building.foto_url) ? `
+          <div class="sheet-photo-banner">
+            <button type="button" class="photo-thumb sheet-photo-clickable" data-photo-url="${escapeHtml(building.foto_url)}" data-photo-credit="${escapeHtml(building.foto_credito || '')}" data-photo-caption="${escapeHtml(building.nombre_obra || '')}" aria-label="${t('sheet_photo_expand_aria') || 'Ampliar fotografía de la obra'}">
+              <img class="sheet-photo" src="${escapeHtml(getOptimizedPhotoUrl(building.foto_url, 'sheet'))}" alt="Fotografía de ${escapeHtml(building.nombre_obra)}" loading="lazy" decoding="async"${openedFromUrl ? ' fetchpriority="high"' : ''}>
+              <span class="sheet-photo-credit"><i data-lucide="camera" width="11" height="11"></i> Foto: ${escapeHtml(building.foto_credito || 'Autor no especificado')}</span>
+              <span class="photo-zoom-badge"><i data-lucide="maximize-2" width="12" height="12"></i> ${t('sheet_photo_expand') || 'AMPLIAR'}</span>
+            </button>
+            <button type="button" class="sheet-photo-add-btn" data-open-upload-sheet-photo title="${t('sheet_add_photo_aria') || 'Añadir fotografía a esta obra'}" aria-label="${t('sheet_add_photo_aria') || 'Añadir fotografía a esta obra'}">
+              <i data-lucide="camera" width="12" height="12"></i>
+              <span>${t('sheet_add_photo') || 'Añadir foto'}</span>
+            </button>
+          </div>
+        ` : `
+          <div class="sheet-no-photo-banner" data-open-upload-sheet-photo role="button" tabindex="0" title="${t('sheet_add_photo_aria') || 'Añadir fotografía a esta obra'}" aria-label="${t('sheet_add_photo_aria') || 'Añadir fotografía a esta obra'}">
+            <div class="sheet-no-photo-inner">
+              <div class="sheet-no-photo-icon-box">
+                <i data-lucide="camera" width="18" height="18"></i>
+              </div>
+              <div class="sheet-no-photo-texts">
+                <span class="sheet-no-photo-tag">${t('sheet_no_photo_tag') || 'FOTOGRAFÍA NO DISPONIBLE'}</span>
+                <span class="sheet-no-photo-sub">${t('sheet_no_photo_sub') || 'Documenta esta obra aportando una fotografía'}</span>
+              </div>
+            </div>
+            <button type="button" class="sheet-no-photo-action-btn" data-open-upload-sheet-photo tabindex="-1">
+              <i data-lucide="plus" width="12" height="12"></i>
+              <span>${t('sheet_add_photo') || 'Añadir foto'}</span>
+            </button>
+          </div>
+        `}
+        <div id="sheet-community-photos-container" class="sheet-community-photos-strip"></div>
       </div>
-    ` : (state.sessionToken ? `
-      <div class="sheet-no-photo-wrap" style="padding: 10px 0 6px 0;">
-        <button type="button" class="btn btn-secondary w-full" data-open-upload-sheet-photo style="border-radius: 9999px; font-size: 11px; font-weight: 600; padding: 7px 14px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
-          <i data-lucide="camera" width="13" height="13"></i> + SUBIR FOTO DE LA OBRA
-        </button>
-      </div>
-    ` : '')}
+    ` : ''}
 
     <!-- Ficha Técnica Modular Limpia (Matriz Tipográfica) -->
     <div class="sheet-tech-section">
@@ -368,22 +387,6 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
       </div>
     ` : ''}
 
-    <!-- Sección de Fotos de la Comunidad y Subida -->
-    ${state.sessionToken ? `
-      <div class="sheet-photos-section mt-4 mb-3">
-        <div class="sheet-photos-header flex items-center justify-between pb-2 mb-2 border-b border-[var(--border)]">
-          <span class="text-xs font-semibold tracking-wider uppercase text-[var(--text-muted)] flex items-center gap-1.5">
-            <i data-lucide="images" width="13" height="13"></i> FOTOGRAFÍAS
-          </span>
-          <button type="button" class="btn-add-sheet-photo text-xs text-[var(--accent)] hover:underline flex items-center gap-1" data-open-upload-sheet-photo>
-            <i data-lucide="plus" width="12" height="12"></i> Añadir foto
-          </button>
-        </div>
-        <div id="sheet-community-photos-container" class="sheet-gallery-grid">
-          <div class="col-span-full text-center py-2 text-xs text-[var(--text-muted)]">Cargando fotos...</div>
-        </div>
-      </div>
-    ` : ''}
 
     <!-- Botones de Reporte de Incidencias Neo-Bauhaus -->
     <div class="sheet-reports-actions">
@@ -1227,19 +1230,17 @@ async function loadSheetCommunityPhotos(building) {
 
   try {
     const photos = await fetchBuildingVisitPhotos(building.id, state.sessionToken);
-    if (!photos || photos.length === 0) {
-      container.innerHTML = `
-        <div class="col-span-full text-center py-3 text-xs text-[var(--text-muted)]">
-          No hay más fotos todavía. ¡Sé el primero en compartir una!
-        </div>
-      `;
+    // Filtrar fotos que ya sean la portada principal
+    const extraPhotos = (photos || []).filter((p) => p.photo_url && p.photo_url !== building.foto_url);
+    if (!extraPhotos || extraPhotos.length === 0) {
+      container.innerHTML = '';
       return;
     }
 
     const canManageAll = esRolAdmin(state.userRole) || esRolEditor(state.userRole);
     const currentUserId = state.userId;
 
-    container.innerHTML = photos.map((p) => {
+    container.innerHTML = extraPhotos.map((p) => {
       const author = escapeHtml(p.metadata?.author || p.author_credit || 'Autor no especificado');
       const caption = escapeHtml(p.caption || '');
       const photoUrl = escapeHtml(p.photo_url || '');
@@ -1248,7 +1249,7 @@ async function loadSheetCommunityPhotos(building) {
       const canEditCard = canManageAll || (currentUserId && p.user_id === currentUserId);
 
       return `
-        <div class="sheet-photo-card" data-photo-id="${p.id}" data-photo-url="${photoUrl}" data-photo-credit="${author}" data-photo-caption="${caption}" data-photo-user-id="${p.user_id || ''}" data-is-main="${isMain ? 'true' : 'false'}" style="cursor: pointer;">
+        <div class="sheet-photo-card" data-photo-id="${p.id}" data-photo-url="${photoUrl}" data-photo-credit="${author}" data-photo-caption="${caption}" data-photo-user-id="${p.user_id || ''}" data-is-main="${isMain ? 'true' : 'false'}" style="cursor: pointer;" title="Foto: ${author}">
           <img src="${thumbUrl}" alt="${caption || 'Foto de ' + escapeHtml(building.nombre_obra)}" loading="lazy">
           <div class="sheet-photo-credit-badge">
             <span class="truncate">Foto: ${author}</span>
