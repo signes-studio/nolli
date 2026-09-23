@@ -150,6 +150,13 @@ async function cargarYMostrarObra(obraId) {
     } else {
       abrirFicha(obra, [0, 0], obra.featureId || obra.id, true);
     }
+
+    const editParam = params.get('edit') === 'true' || params.get('admin') === 'edit';
+    if (editParam) {
+      setTimeout(() => {
+        document.dispatchEvent(new CustomEvent('radar:edit-building', { detail: { obra } }));
+      }, 350);
+    }
   } else if (!isNaN(urlLng) && !isNaN(urlLat) && state.map) {
     state.map.flyTo({ center: [urlLng, urlLat], zoom: urlZoom });
   } else if (!obra) {
@@ -159,6 +166,8 @@ async function cargarYMostrarObra(obraId) {
     url.searchParams.delete('lat');
     url.searchParams.delete('lng');
     url.searchParams.delete('zoom');
+    url.searchParams.delete('edit');
+    url.searchParams.delete('admin');
     window.history.replaceState(null, '', url.pathname + (url.searchParams.toString() ? '?' + url.searchParams.toString() : '') + url.hash);
   }
 }

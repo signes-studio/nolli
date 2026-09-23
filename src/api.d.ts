@@ -39,6 +39,22 @@ export function uploadAvatarFileWithR2(
 ): Promise<string>;
 
 export function fetchCurrentUser(sessionToken: string): Promise<{ id: string; email?: string } | null>;
+export function fetchCurrentProfile(sessionToken: string): Promise<any>;
+export function fetchBuildingStatuses(
+  buildingIds?: (string | number)[],
+  sessionToken?: string | null
+): Promise<any[]>;
+export function saveBuildingStatus(
+  userId: string,
+  buildingId: string | number,
+  status: Record<string, unknown>,
+  sessionToken: string
+): Promise<unknown>;
+export function fetchUserCollections(sessionToken: string): Promise<any[]>;
+export function fetchUserCollectionItems(sessionToken: string): Promise<any[]>;
+export function createUserCollection(collectionData: Record<string, unknown>, sessionToken: string): Promise<any>;
+export function addUserCollectionItem(itemData: Record<string, unknown>, sessionToken: string): Promise<any>;
+export function deleteUserCollectionItem(collectionId: string | number, userId: string, buildingId: string | number, sessionToken: string): Promise<any>;
 export function getBuildingsCatalog(): Promise<unknown[]>;
 export function fetchBuildings(options?: Record<string, unknown>): Promise<unknown[]>;
 export function searchPlaces(query: string, language?: string): Promise<unknown>;

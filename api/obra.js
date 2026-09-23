@@ -942,12 +942,375 @@ function renderBuildingPage(building, lang = 'es', similarBuildings = []) {
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 12px;
     }
-    @media (max-width: 600px) {
-      .similar-works-grid {
-        grid-template-columns: 1fr;
-        gap: 10px;
-      }
+    /* Botones de Acción (Hero Buttons) */
+    .sheet-hero-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-sm);
+      background: var(--bg-card);
+      color: var(--ink);
+      font-family: var(--font-body);
+      font-size: 12.5px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.12s ease;
     }
+    .sheet-hero-btn:hover {
+      border-color: var(--brand);
+      color: var(--brand);
+      transform: translateY(-1px);
+    }
+    .sheet-hero-btn svg {
+      flex-shrink: 0;
+    }
+    .sheet-hero-btn.active.visited {
+      background: rgba(13, 104, 47, 0.1) !important;
+      color: #0D682F !important;
+      border-color: #0D682F !important;
+    }
+    .sheet-hero-btn.active.saved {
+      background: var(--ink) !important;
+      color: var(--bg) !important;
+      border-color: var(--ink) !important;
+    }
+    .sheet-hero-btn.active.saved svg {
+      fill: currentColor;
+    }
+    .sheet-fav-btn.active.favorite {
+      background: rgba(234, 86, 13, 0.1) !important;
+      color: var(--brand) !important;
+      border-color: var(--brand) !important;
+    }
+    .sheet-fav-btn.active.favorite svg {
+      fill: currentColor;
+    }
+    .btn-admin-action {
+      border-color: rgba(234, 86, 13, 0.4);
+      color: var(--brand);
+      background: rgba(234, 86, 13, 0.06);
+    }
+    .btn-admin-action:hover {
+      background: var(--brand);
+      color: #FFFFFF;
+    }
+
+    /* Modales y Capas de Superposición */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+      padding: 16px;
+    }
+    .modal-overlay.open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+    .modal-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 460px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-head {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--ink);
+    }
+    .modal-body {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .sheet-close-button {
+      background: none;
+      border: none;
+      color: var(--ink-dim);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.12s;
+    }
+    .sheet-close-button:hover {
+      color: var(--brand);
+    }
+    .personal-organizer-project {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--ink);
+    }
+    .personal-organizer-help {
+      font-size: 12px;
+      color: var(--ink-dim);
+      line-height: 1.4;
+    }
+    .personal-organizer-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .personal-organizer-count {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--ink-dim);
+      text-transform: uppercase;
+    }
+    .btn-new-list {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--ink);
+    }
+    .btn-new-list:hover {
+      border-color: var(--brand);
+      color: var(--brand);
+    }
+    .personal-organizer-options {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 240px;
+      overflow-y: auto;
+      padding: 2px;
+    }
+    .personal-organizer-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      color: var(--ink);
+      cursor: pointer;
+    }
+    .personal-organizer-option:hover {
+      border-color: var(--border);
+    }
+    .personal-organizer-option input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--brand);
+      cursor: pointer;
+    }
+    .personal-create-row {
+      display: flex;
+      gap: 8px;
+    }
+    .personal-create-row.hidden {
+      display: none;
+    }
+    .tech-input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg-elevated);
+      color: var(--ink);
+      font-family: var(--font-body);
+      font-size: 13px;
+    }
+    .tech-input:focus {
+      outline: none;
+      border-color: var(--brand);
+    }
+    .btn-accent {
+      background: var(--brand);
+      color: #FFFFFF;
+      border: none;
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: transform 0.12s, box-shadow 0.12s;
+    }
+    .btn-accent:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Modal Compartir Bottom Sheet */
+    #modal-share.modal-overlay {
+      align-items: flex-end;
+      padding: 0;
+    }
+    .share-bottom-sheet {
+      width: 100%;
+      max-width: 500px;
+      margin: 0 auto;
+      background: var(--bg-card);
+      border-top-left-radius: 16px;
+      border-top-right-radius: 16px;
+      border: 1px solid var(--border);
+      box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.25);
+      padding: 20px 20px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      transform: translateY(100%);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #modal-share.open .share-bottom-sheet {
+      transform: translateY(0);
+    }
+    .share-sheet-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .share-sheet-title {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+    }
+    .share-sheet-subtitle {
+      margin: 4px 0 0 0;
+      font-size: 12.5px;
+      color: var(--ink-dim);
+    }
+    .share-channels-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .share-channel-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 8px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--ink);
+      font-family: var(--font-display);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.12s ease;
+    }
+    .share-channel-btn:hover {
+      border-color: var(--brand);
+      color: var(--brand);
+      transform: translateY(-1px);
+    }
+    .share-primary-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 12px;
+      background: var(--ink);
+      color: var(--bg);
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.12s ease;
+    }
+    .share-primary-btn:hover {
+      background: var(--brand);
+      color: #FFFFFF;
+    }
+    .share-primary-btn.copied {
+      background: #0D682F !important;
+      color: #FFFFFF !important;
+    }
+
+    /* Toast Container */
+    .neo-toast-container {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 100000;
+      pointer-events: none;
+      max-width: 90vw;
+    }
+    .neo-toast {
+      pointer-events: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--ink);
+      color: var(--bg);
+      padding: 10px 18px;
+      border-radius: var(--radius-pill);
+      font-family: var(--font-body);
+      font-size: 12.5px;
+      font-weight: 600;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+      animation: neoToastIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    .neo-toast.fade-out {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    @keyframes neoToastIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
     .site-footer {
       margin-top: var(--space-8);
       padding: var(--space-4) 0;
@@ -1080,9 +1443,41 @@ function renderBuildingPage(building, lang = 'es', similarBuildings = []) {
 
           <div class="work-actions">
             <a class="btn-primary-map" href="${SITE_URL}${prefix}/?obra=${encodeURIComponent(building.id)}">
-              ${escapeHtml(getSSRText('view_on_map', lang))}
+              <span>${escapeHtml(getSSRText('view_on_map', lang))}</span>
               <span aria-hidden="true">&#8599;</span>
             </a>
+
+            ${(building.latitud != null && building.longitud != null) ? `
+              <a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(building.latitud)},${encodeURIComponent(building.longitud)}" target="_blank" rel="noopener noreferrer" class="sheet-hero-btn" title="${escapeHtml(getSSRText('action_directions', lang))}">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="18" x2="18" y2="6"></line><polyline points="9 6 18 6 18 15"></polyline></svg>
+                <span>${escapeHtml(getSSRText('action_directions', lang))}</span>
+              </a>
+            ` : ''}
+
+            <button type="button" class="sheet-hero-btn" data-status="visited" aria-label="${escapeHtml(getSSRText('action_visit', lang))}">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"></circle><polyline points="8 12 11 15 16 9"></polyline></svg>
+              <span>${escapeHtml(getSSRText('action_visit', lang))}</span>
+            </button>
+
+            <button type="button" class="sheet-hero-btn" data-save-collection aria-label="${escapeHtml(getSSRText('action_save', lang))}">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="3.5" width="13.5" height="13.5"></rect><path d="M3.5 7.5v13h13"></path><circle cx="13.5" cy="10" r="1.5" fill="currentColor"></circle></svg>
+              <span>${escapeHtml(getSSRText('action_save', lang))}</span>
+            </button>
+
+            <button type="button" class="sheet-hero-btn sheet-fav-btn" data-status="favorite" title="${escapeHtml(getSSRText('action_favorite', lang))}" aria-label="${escapeHtml(getSSRText('action_favorite', lang))}">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+              <span>${escapeHtml(getSSRText('action_favorite', lang))}</span>
+            </button>
+
+            <button type="button" class="sheet-hero-btn" data-share-action="open" aria-label="${escapeHtml(getSSRText('action_share', lang))}">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.5"></circle><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="19" r="2.5"></circle><line x1="8.5" y1="10.8" x2="15.5" y2="6.7"></line><line x1="8.5" y1="13.2" x2="15.5" y2="17.3"></line></svg>
+              <span>${escapeHtml(getSSRText('action_share', lang))}</span>
+            </button>
+
+            <button type="button" class="sheet-hero-btn btn-admin-action" data-edit-building style="display: none;" aria-label="${escapeHtml(getSSRText('action_edit', lang))}">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+              <span>${escapeHtml(getSSRText('action_edit', lang))}</span>
+            </button>
           </div>
         </div>
 
@@ -1110,6 +1505,93 @@ function renderBuildingPage(building, lang = 'es', similarBuildings = []) {
 
     ${renderSiteFooter(lang, SITE_URL)}
   </main>
+
+  <!-- Modal: Organizar en Listas / Colecciones -->
+  <div id="modal-personal-organizer" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="personal-organizer-title">
+    <div class="modal-box personal-organizer-box">
+      <div class="modal-head">
+        <span id="personal-organizer-title">Organizar Obra</span>
+        <button type="button" id="btn-personal-organizer-close" class="sheet-close-button" aria-label="Cerrar organizador">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg>
+        </button>
+      </div>
+      <div class="modal-body personal-organizer-body">
+        <p id="personal-organizer-project" class="personal-organizer-project"></p>
+        <div id="personal-organizer-help" class="personal-organizer-help">Selecciona las listas en las que deseas guardar este proyecto:</div>
+        
+        <div id="organizer-new-list-row" class="personal-organizer-header-row">
+          <span id="personal-organizer-count" class="personal-organizer-count">Tus Listas</span>
+          <button type="button" id="btn-organizer-new-list" class="btn-new-list">
+            + NUEVA LISTA
+          </button>
+        </div>
+
+        <div id="personal-organizer-options" class="personal-organizer-options"></div>
+        
+        <div id="personal-create-tag-row" class="personal-create-row hidden">
+          <input id="personal-new-name" class="tech-input" type="text" placeholder="Nombre de la nueva lista...">
+          <button type="button" id="btn-personal-create" class="btn-accent">CREAR</button>
+        </div>
+
+        <button type="button" id="btn-personal-organizer-save" class="btn-accent">GUARDAR SELECCIÓN</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Compartir Obra -->
+  <div id="modal-share" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-share-title">
+    <div class="share-bottom-sheet">
+      <div class="share-sheet-head">
+        <div>
+          <h3 id="modal-share-title" class="share-sheet-title">COMPARTIR OBRA</h3>
+          <p id="share-project-subtitle" class="share-sheet-subtitle">${escapeHtml(building.nombre_obra)}</p>
+        </div>
+        <button type="button" id="btn-share-close" class="sheet-close-button" aria-label="Cerrar compartir">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg>
+        </button>
+      </div>
+
+      <div class="share-channels-grid">
+        <button type="button" class="share-channel-btn" data-share-choice="whatsapp" aria-label="Compartir en WhatsApp">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+          <span>WHATSAPP</span>
+        </button>
+        <button type="button" class="share-channel-btn" data-share-choice="google" aria-label="Abrir en Google Maps">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"></circle><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"></path></svg>
+          <span>MAPS</span>
+        </button>
+        <button type="button" class="share-channel-btn" data-share-choice="native" aria-label="Compartir en otras aplicaciones">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.5"></circle><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="19" r="2.5"></circle><line x1="8.5" y1="10.8" x2="15.5" y2="6.7"></line><line x1="8.5" y1="13.2" x2="15.5" y2="17.3"></line></svg>
+          <span>MÁS</span>
+        </button>
+      </div>
+
+      <button type="button" id="btn-share-copy" class="share-primary-btn" data-share-choice="copy" aria-label="Copiar enlace de la obra">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12"></rect><path d="M5 15H3.5a1.5 1.5 0 0 1-1.5-1.5v-10A1.5 1.5 0 0 1 3.5 2h10A1.5 1.5 0 0 1 15 3.5V5"></path></svg>
+        <span id="share-copy-text">COPIAR ENLACE</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="neo-toast-container" class="neo-toast-container" aria-live="polite"></div>
+
+  <script id="building-data" type="application/json">
+    ${JSON.stringify({
+      id: String(building.id),
+      nombre_obra: String(building.nombre_obra || ''),
+      arquitecto: String(building.arquitecto || ''),
+      año_construccion: String(building.año_construccion || ''),
+      categoria: String(building.categoria || ''),
+      place: String(building.place || ''),
+      latitud: building.latitud != null ? Number(building.latitud) : null,
+      longitud: building.longitud != null ? Number(building.longitud) : null,
+      foto_url: String(building.foto_url || ''),
+      foto_credito: String(building.foto_credito || ''),
+      enlace_url: String(building.enlace_url || ''),
+      importancia: building.importancia != null ? Number(building.importancia) : 1,
+    }).replace(/</g, '\\u003c')}
+  </script>
+  <script type="module" src="/js/standaloneWorkSheet.js"></script>
 </body>
 </html>`;
 }
