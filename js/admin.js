@@ -32,11 +32,12 @@ import {
 } from './state.js';
 import { 
   STUDIO_RELATIONSHIPS as SEED_RELATIONSHIPS, 
-  normalizeArchitectKey 
+  normalizeArchitectKey,
+  reloadRelationships,
+  LOCAL_RELATIONSHIPS_KEY
 } from './architectRelationships.js';
 
 const SESSION_KEY = 'nolli_admin_session_token';
-const LOCAL_RELATIONSHIPS_KEY = 'nolli_admin_custom_relationships_v1';
 
 let visibleAdminConsoleArqsCount = 60;
 
@@ -1390,6 +1391,7 @@ function setupMacroToolsEvents() {
       if (rel && confirm(`¿Eliminar la relación de "${rel.studio}"?`)) {
         adminConsoleState.relationships = adminConsoleState.relationships.filter((r) => r.id !== relId);
         saveRelationships();
+        deleteRelationshipFromRemote(relId);
         renderRelationshipsTable();
         renderDashboardKPIs();
         updateBadges();
@@ -1458,17 +1460,66 @@ function setupMacroToolsEvents() {
   document.getElementById('btn-clear-local-caches')?.addEventListener('click', clearLocalCaches);
 }
 
-function loadRelationships() {
+async function loadRelationships() {
+  // 1. Intentar cargar desde Supabase si hay sesión administrativa
+  if (adminConsoleState.token) {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/architect_relationships?select=*&order=studio.asc`, {
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${adminConsoleState.token}`,
+        },
+      });
+      if (res.ok) {
+        const remoteList = await res.json();
+        if (Array.isArray(remoteList) && remoteList.length > 0) {
+          const map = new Map();
+          SEED_RELATIONSHIPS.forEach((r) => map.set(normalizeArchitectKey(r.id || r.studio), { ...r }));
+          remoteList.forEach((r) => {
+            const k = normalizeArchitectKey(r.id || r.studio);
+            map.set(k, {
+              id: r.id || k,
+              studio: r.studio,
+              members: Array.isArray(r.members) ? r.members : [],
+              aliases: Array.isArray(r.aliases) ? r.aliases : [],
+              memberAliases: r.member_aliases || r.memberAliases || {},
+            });
+          });
+          adminConsoleState.relationships = Array.from(map.values());
+          try {
+            localStorage.setItem(LOCAL_RELATIONSHIPS_KEY, JSON.stringify(adminConsoleState.relationships));
+          } catch {}
+          if (typeof reloadRelationships === 'function') reloadRelationships();
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn('Aviso al consultar architect_relationships en Supabase:', err);
+    }
+  }
+
+  // 2. Fallback a almacenamiento local y semillas
   try {
     const custom = localStorage.getItem(LOCAL_RELATIONSHIPS_KEY);
     if (custom) {
-      adminConsoleState.relationships = JSON.parse(custom);
-      return;
+      const parsed = JSON.parse(custom);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const map = new Map();
+        SEED_RELATIONSHIPS.forEach((r) => map.set(normalizeArchitectKey(r.id || r.studio), { ...r }));
+        parsed.forEach((r) => {
+          const k = normalizeArchitectKey(r.id || r.studio);
+          map.set(k, { ...r, id: r.id || k });
+        });
+        adminConsoleState.relationships = Array.from(map.values());
+        if (typeof reloadRelationships === 'function') reloadRelationships();
+        return;
+      }
     }
   } catch (e) {
     console.warn('Error leyendo relaciones de localStorage:', e);
   }
   adminConsoleState.relationships = JSON.parse(JSON.stringify(SEED_RELATIONSHIPS));
+  if (typeof reloadRelationships === 'function') reloadRelationships();
 }
 
 function saveRelationships() {
@@ -1476,6 +1527,51 @@ function saveRelationships() {
     localStorage.setItem(LOCAL_RELATIONSHIPS_KEY, JSON.stringify(adminConsoleState.relationships));
   } catch (e) {
     console.warn('Error guardando relaciones:', e);
+  }
+  // Sincronizar de inmediato el motor en memoria del cliente y notificar a la app
+  if (typeof reloadRelationships === 'function') {
+    reloadRelationships();
+  }
+  document.dispatchEvent(new CustomEvent('radar:relationships-changed'));
+}
+
+async function syncRelationshipToRemote(rel) {
+  if (!adminConsoleState.token || !rel) return;
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/architect_relationships`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${adminConsoleState.token}`,
+        'Content-Type': 'application/json',
+        Prefer: 'resolution=merge-duplicates',
+      },
+      body: JSON.stringify({
+        id: rel.id,
+        studio: rel.studio,
+        members: rel.members || [],
+        aliases: rel.aliases || [],
+        member_aliases: rel.memberAliases || {},
+        updated_at: new Date().toISOString(),
+      }),
+    });
+  } catch (e) {
+    console.warn('Aviso sincronizando relación con Supabase:', e);
+  }
+}
+
+async function deleteRelationshipFromRemote(relId) {
+  if (!adminConsoleState.token || !relId) return;
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/architect_relationships?id=eq.${encodeURIComponent(relId)}`, {
+      method: 'DELETE',
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${adminConsoleState.token}`,
+      },
+    });
+  } catch (e) {
+    console.warn('Aviso eliminando relación en Supabase:', e);
   }
 }
 
@@ -1710,19 +1806,34 @@ function renderChipsList(container, items = []) {
   `).join('') + `<input type="text" class="chip-add-input" placeholder="+ Escribir y pulsar Enter..." style="border:none; outline:none; background:transparent; font-size:12px; min-width:140px; padding:4px; color:var(--admin-fg);">`;
 
   const addInput = container.querySelector('.chip-add-input');
+  const commitPendingChip = () => {
+    const val = addInput.value.trim().replace(/,$/, '');
+    if (val) {
+      const parts = val.split(/[,;\n]+/).map((s) => s.trim()).filter(Boolean);
+      const current = Array.from(container.querySelectorAll('.input-chip')).map((chip) => chip.dataset.chipVal);
+      let changed = false;
+      parts.forEach((p) => {
+        if (!current.includes(p)) {
+          current.push(p);
+          changed = true;
+        }
+      });
+      if (changed) {
+        renderChipsList(container, current);
+      }
+    }
+  };
+
   addInput?.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault();
-      const val = addInput.value.trim().replace(/,$/, '');
-      if (val) {
-        const current = getChipsFromContainer(container);
-        if (!current.includes(val)) {
-          current.push(val);
-          renderChipsList(container, current);
-          container.querySelector('.chip-add-input')?.focus();
-        }
-      }
+      commitPendingChip();
+      container.querySelector('.chip-add-input')?.focus();
     }
+  });
+
+  addInput?.addEventListener('blur', () => {
+    commitPendingChip();
   });
 
   container.querySelectorAll('.chip-remove').forEach((btn) => {
@@ -1738,7 +1849,18 @@ function renderChipsList(container, items = []) {
 
 function getChipsFromContainer(container) {
   if (!container) return [];
-  return Array.from(container.querySelectorAll('.input-chip')).map((chip) => chip.dataset.chipVal);
+  const chips = Array.from(container.querySelectorAll('.input-chip')).map((chip) => chip.dataset.chipVal);
+  const pendingInput = container.querySelector('.chip-add-input');
+  if (pendingInput && pendingInput.value.trim()) {
+    const raw = pendingInput.value.trim();
+    const parts = raw.split(/[,;\n]+/).map((s) => s.trim()).filter(Boolean);
+    parts.forEach((p) => {
+      if (!chips.includes(p)) {
+        chips.push(p);
+      }
+    });
+  }
+  return chips;
 }
 
 function saveRelationshipModal() {
@@ -1752,36 +1874,42 @@ function saveRelationshipModal() {
   }
 
   const id = normalizeArchitectKey(studioName);
+  let savedRel = null;
 
   if (adminConsoleState.editingRelationshipId) {
     const idx = adminConsoleState.relationships.findIndex((r) => r.id === adminConsoleState.editingRelationshipId);
     if (idx !== -1) {
-      adminConsoleState.relationships[idx] = {
+      savedRel = {
         ...adminConsoleState.relationships[idx],
         studio: studioName,
         members,
         aliases,
       };
+      adminConsoleState.relationships[idx] = savedRel;
     }
   } else {
     if (adminConsoleState.relationships.some((r) => r.id === id)) {
       showAdminToast('Ya existe un estudio con ese identificador.', 'error');
       return;
     }
-    adminConsoleState.relationships.push({
+    savedRel = {
       id,
       studio: studioName,
       members,
       aliases,
-    });
+    };
+    adminConsoleState.relationships.push(savedRel);
   }
 
   saveRelationships();
+  if (savedRel) {
+    syncRelationshipToRemote(savedRel);
+  }
   renderRelationshipsTable();
   renderDashboardKPIs();
   updateBadges();
   closeRelationshipModal();
-  showAdminToast(`Relación "${studioName}" guardada en el proyecto.`, 'success');
+  showAdminToast(`Relación "${studioName}" guardada y aplicada directamente.`, 'success');
 
   const simInput = document.getElementById('sim-architect-input');
   if (simInput && simInput.value) {

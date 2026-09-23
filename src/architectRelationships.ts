@@ -29,7 +29,21 @@ export function normalizeArchitectKey(text: string): string {
 /**
  * Registro semilla de colectivos, estudios y asociaciones de arquitectura.
  */
-export const STUDIO_RELATIONSHIPS: StudioRelationship[] = [
+export const SEED_STUDIO_RELATIONSHIPS: StudioRelationship[] = [
+  {
+    id: 'team4',
+    studio: 'Team 4',
+    members: ['Norman Foster', 'Richard Rogers', 'Su Rogers', 'Wendy Cheesman'],
+    aliases: [
+      'Team 4',
+      'Team IV',
+      'Team 4 Architects',
+    ],
+    memberAliases: {
+      'Norman Foster': ['Sir Norman Foster', 'Lord Norman Foster'],
+      'Richard Rogers': ['Lord Richard Rogers', 'Richard Rogers Partnership'],
+    },
+  },
   {
     id: 'vam10',
     studio: 'VAM10',
@@ -280,6 +294,80 @@ export const STUDIO_RELATIONSHIPS: StudioRelationship[] = [
     ],
   },
 ];
+
+/**
+ * Clave de almacenamiento local para relaciones dinámicas añadidas o editadas por administradores.
+ */
+export const LOCAL_RELATIONSHIPS_KEY = 'nolli_admin_custom_relationships_v1';
+
+/**
+ * Conjunto activo en memoria de relaciones arquitecto-estudio.
+ * Inicializado con el registro semilla y actualizado en caliente con las relaciones locales/remotas.
+ */
+export const STUDIO_RELATIONSHIPS: StudioRelationship[] = [...SEED_STUDIO_RELATIONSHIPS];
+
+/**
+ * Carga y unifica las relaciones personalizadas (guardadas en localStorage o remotas)
+ * con el catálogo semilla base, resolviendo duplicados por slug canónico.
+ */
+export function reloadRelationships(): StudioRelationship[] {
+  if (typeof window === 'undefined') return STUDIO_RELATIONSHIPS;
+
+  try {
+    const raw = localStorage.getItem(LOCAL_RELATIONSHIPS_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const map = new Map<string, StudioRelationship>();
+
+        // 1. Cargar semillas
+        SEED_STUDIO_RELATIONSHIPS.forEach((rel) => {
+          const key = normalizeArchitectKey(rel.id || rel.studio);
+          map.set(key, { ...rel });
+        });
+
+        // 2. Sobrescribir o añadir relaciones personalizadas del administrador
+        parsed.forEach((rel: StudioRelationship) => {
+          if (rel && (rel.studio || rel.id)) {
+            const key = normalizeArchitectKey(rel.id || rel.studio);
+            map.set(key, { ...rel, id: rel.id || key });
+          }
+        });
+
+        STUDIO_RELATIONSHIPS.length = 0;
+        STUDIO_RELATIONSHIPS.push(...map.values());
+        return STUDIO_RELATIONSHIPS;
+      }
+    }
+  } catch (err) {
+    console.warn('[architectRelationships] Error cargando relaciones locales:', err);
+  }
+
+  // Fallback si no hay datos en localStorage
+  if (STUDIO_RELATIONSHIPS.length === 0) {
+    STUDIO_RELATIONSHIPS.push(...SEED_STUDIO_RELATIONSHIPS);
+  }
+  return STUDIO_RELATIONSHIPS;
+}
+
+// Inicialización automática y reactiva en entorno navegador
+if (typeof window !== 'undefined') {
+  reloadRelationships();
+
+  // Sincronización entre diferentes pestañas del navegador
+  window.addEventListener('storage', (e) => {
+    if (e.key === LOCAL_RELATIONSHIPS_KEY) {
+      reloadRelationships();
+      document.dispatchEvent(new CustomEvent('radar:relationships-changed'));
+    }
+  });
+
+  // Sincronización en la misma ventana (ej: guardado desde admin.html)
+  document.addEventListener('radar:relationships-changed', () => {
+    reloadRelationships();
+  });
+}
+
 
 /**
  * Busca si un nombre o slug corresponde a un estudio registrado (por ID, nombre o alias).

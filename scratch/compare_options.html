@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/panels.css">
+<link rel="stylesheet" href="../css/components.css">
+<style>
+  body { background: #EAE6DF; padding: 24px; font-family: 'Inter', sans-serif; display: flex; gap: 24px; align-items: flex-start; }
+  .sheet { position: relative !important; top: auto !important; left: auto !important; bottom: auto !important; width: 380px; background: #FAF6EE; border: 1.5px solid #141411; border-radius: 12px; box-shadow: 0 12px 36px rgba(0,0,0,0.08); overflow: hidden; display: flex !important; flex-direction: column; }
+  .sheet-head { padding: 14px 14px 10px; border-bottom: 1px solid rgba(0,0,0,0.08); }
+  .sheet-cat { font-family: 'League Spartan', sans-serif; font-weight: 800; font-size: 10.5px; color: #EA560D; letter-spacing: 0.08em; text-transform: uppercase; }
+  .sheet-title { font-size: 18px; font-weight: 700; margin: 3px 0 2px; color: #141411; }
+  .sheet-sub { font-size: 11.5px; color: #71716D; }
+  
+  /* DISEÑO A: Barra superior integrada justo arriba de la foto */
+  .gallery-header-a { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .gallery-title-a { font-family: 'League Spartan', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; color: #71716D; display: flex; align-items: center; gap: 6px; }
+  .add-photo-btn-a { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; font-size: 11px; font-weight: 600; font-family: 'Inter', sans-serif; background: #FFFFFF; color: #141411; border: 1px solid #141411; border-radius: 6px; cursor: pointer; transition: all 0.15s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .add-photo-btn-a:hover { background: #EA560D; color: #fff; border-color: #EA560D; }
+  
+  .banner-a { position: relative; width: 100%; height: 180px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(0,0,0,0.12); background: #222; }
+  .banner-a img { width: 100%; height: 180px; object-fit: cover; display: block; }
+  .photo-meta-credit { position: absolute; bottom: 8px; left: 8px; background: rgba(20,20,17,0.78); backdrop-filter: blur(4px); color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 4px; }
+  .photo-meta-zoom { position: absolute; bottom: 8px; right: 8px; background: rgba(20,20,17,0.78); backdrop-filter: blur(4px); color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 4px; }
+
+  /* DISEÑO B: Botón Neo-Bauhaus superpuesto arriba a la derecha de la foto */
+  .banner-b { position: relative; width: 100%; height: 180px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(0,0,0,0.12); background: #222; }
+  .banner-b img { width: 100%; height: 180px; object-fit: cover; display: block; }
+  .add-photo-btn-b { position: absolute; top: 8px; right: 8px; z-index: 3; display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; font-size: 11px; font-weight: 700; font-family: 'Inter', sans-serif; background: #FAF6EE; color: #141411; border: 1.5px solid #141411; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.25); cursor: pointer; }
+</style>
+</head>
+<body>
+  <!-- Tarjeta OPCIÓN A: Header Arriba con Botón Integrado -->
+  <div class="sheet open">
+    <div class="sheet-head">
+      <div class="sheet-cat">№ FICHA DE OBRA // OPCIÓN A (BARRA SUPERIOR)</div>
+      <div class="sheet-title">Torre de Madrid</div>
+      <div class="sheet-sub">Julián y José María Otamendi · 1957 · Madrid</div>
+    </div>
+    <div style="padding: 12px 14px;">
+      <div class="gallery-header-a">
+        <span class="gallery-title-a">📷 FOTOGRAFÍA</span>
+        <button type="button" class="add-photo-btn-a">+ Añadir foto</button>
+      </div>
+      <div class="banner-a">
+        <img src="https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600" alt="Torre de Madrid">
+        <span class="photo-meta-credit">Foto: Santi</span>
+        <span class="photo-meta-zoom">AMPLIAR</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tarjeta OPCIÓN B: Botón Neo-Bauhaus En Esquina Superior -->
+  <div class="sheet open">
+    <div class="sheet-head">
+      <div class="sheet-cat">№ FICHA DE OBRA // OPCIÓN B (CORNER BADGE)</div>
+      <div class="sheet-title">Torre de Madrid</div>
+      <div class="sheet-sub">Julián y José María Otamendi · 1957 · Madrid</div>
+    </div>
+    <div style="padding: 12px 14px;">
+      <div class="banner-b">
+        <button type="button" class="add-photo-btn-b">📷 + Añadir foto</button>
+        <img src="https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600" alt="Torre de Madrid">
+        <span class="photo-meta-credit">Foto: Santi</span>
+        <span class="photo-meta-zoom">AMPLIAR</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

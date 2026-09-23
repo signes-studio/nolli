@@ -258,16 +258,22 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
     <!-- Fotografía Principal y Galería de Obra (Solo usuarios registrados) -->
     ${state.sessionToken ? `
       <div class="sheet-gallery-wrap">
+        <div class="sheet-gallery-header">
+          <span class="sheet-gallery-title">
+            <i data-lucide="camera" width="13" height="13"></i>
+            <span>${t('sheet_photo_section_title') || 'FOTOGRAFÍA'}</span>
+          </span>
+          <button type="button" class="sheet-gallery-add-btn" data-open-upload-sheet-photo title="${t('sheet_add_photo_aria') || 'Añadir fotografía a esta obra'}" aria-label="${t('sheet_add_photo_aria') || 'Añadir fotografía a esta obra'}">
+            <i data-lucide="plus" width="12" height="12"></i>
+            <span>${t('sheet_add_photo') || 'Añadir foto'}</span>
+          </button>
+        </div>
         ${building.foto_url && isValidHttpsUrl(building.foto_url) ? `
           <div class="sheet-photo-banner">
-            <button type="button" class="photo-thumb sheet-photo-clickable" data-photo-url="${escapeHtml(building.foto_url)}" data-photo-credit="${escapeHtml(building.foto_credito || '')}" data-photo-caption="${escapeHtml(building.nombre_obra || '')}" aria-label="${t('sheet_photo_expand_aria') || 'Ampliar fotografía de la obra'}">
+            <button type="button" class="sheet-photo-clickable" data-photo-url="${escapeHtml(building.foto_url)}" data-photo-credit="${escapeHtml(building.foto_credito || '')}" data-photo-caption="${escapeHtml(building.nombre_obra || '')}" aria-label="${t('sheet_photo_expand_aria') || 'Ampliar fotografía de la obra'}">
               <img class="sheet-photo" src="${escapeHtml(getOptimizedPhotoUrl(building.foto_url, 'sheet'))}" alt="Fotografía de ${escapeHtml(building.nombre_obra)}" loading="lazy" decoding="async"${openedFromUrl ? ' fetchpriority="high"' : ''}>
               <span class="sheet-photo-credit"><i data-lucide="camera" width="11" height="11"></i> Foto: ${escapeHtml(building.foto_credito || 'Autor no especificado')}</span>
               <span class="photo-zoom-badge"><i data-lucide="maximize-2" width="12" height="12"></i> ${t('sheet_photo_expand') || 'AMPLIAR'}</span>
-            </button>
-            <button type="button" class="sheet-photo-add-btn" data-open-upload-sheet-photo title="${t('sheet_add_photo_aria') || 'Añadir fotografía a esta obra'}" aria-label="${t('sheet_add_photo_aria') || 'Añadir fotografía a esta obra'}">
-              <i data-lucide="camera" width="12" height="12"></i>
-              <span>${t('sheet_add_photo') || 'Añadir foto'}</span>
             </button>
           </div>
         ` : `

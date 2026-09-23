@@ -16,6 +16,20 @@ function normalizeArchitectKey(text) {
 
 const STUDIO_RELATIONSHIPS = [
   {
+    id: 'team4',
+    studio: 'Team 4',
+    members: ['Norman Foster', 'Richard Rogers', 'Su Rogers', 'Wendy Cheesman'],
+    aliases: [
+      'Team 4',
+      'Team IV',
+      'Team 4 Architects',
+    ],
+    memberAliases: {
+      'Norman Foster': ['Sir Norman Foster', 'Lord Norman Foster'],
+      'Richard Rogers': ['Lord Richard Rogers', 'Richard Rogers Partnership'],
+    },
+  },
+  {
     id: 'vam10',
     studio: 'VAM10',
     members: ['Miguel del Rey', 'Antonio Gallud'],

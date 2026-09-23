@@ -13,61 +13,116 @@ const html = `<!DOCTYPE html>
 <link rel="stylesheet" href="../css/panels.css">
 <link rel="stylesheet" href="../css/components.css">
 <style>
-  body { background: #E5E5E5; padding: 20px; font-family: 'Inter', sans-serif; display: flex; gap: 20px; }
-  .sheet { position: relative; width: 400px; background: var(--bg-panel); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; display: block; }
+  body { background: #EAE6DF; padding: 24px; font-family: 'Inter', sans-serif; display: flex; gap: 20px; align-items: flex-start; }
+  .sheet { position: relative !important; top: auto !important; left: auto !important; bottom: auto !important; width: 360px; background: var(--bg-panel, #FAF6EE); border: 1.5px solid var(--border-strong, #141411); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); overflow: hidden; display: flex !important; flex-direction: column; }
+  .sheet-hero-actions { display: flex; gap: 6px; padding: 0 14px 12px; }
+  .sheet-hero-btn { display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 6px 10px; border-radius: 6px; font-size: 11.5px; font-weight: 600; font-family: 'Inter', sans-serif; border: 1px solid var(--border, #141411); background: var(--bg-raised, #fff); color: var(--text, #141411); cursor: pointer; flex: 1; }
+  .sheet-hero-btn.btn-primary { background: var(--text, #141411); color: var(--bg, #FAF6EE); }
 </style>
 </head>
 <body>
-  <div class="sheet" id="sheet-with-photo">
+  <!-- 1. Ficha con Foto (Modo Claro) -->
+  <div class="sheet open" id="sheet-with-photo">
     <div style="padding: 16px 14px 10px;">
-      <div style="font-family: 'League Spartan', sans-serif; font-weight: 800; font-size: 11px; color: var(--accent);">№ FICHA DE OBRA</div>
-      <h2 style="font-size: 20px; margin: 4px 0 2px;">Torre de Madrid</h2>
-      <div style="font-size: 12px; color: var(--fg-dim);">Julián y José María Otamendi · 1957 · Madrid</div>
+      <div style="font-family: 'League Spartan', sans-serif; font-weight: 800; font-size: 11px; color: var(--accent, #EA560D); letter-spacing: 0.08em;">№ FICHA DE OBRA</div>
+      <h2 style="font-size: 19px; font-weight: 700; margin: 4px 0 2px; color: #141411;">Torre de Madrid</h2>
+      <div style="font-size: 12px; color: #71716D;">Julián y José María Otamendi · 1957 · Madrid</div>
     </div>
-    <div class="sheet-hero-actions" style="padding: 0 14px 12px;">
+    <div class="sheet-hero-actions">
       <button class="sheet-hero-btn btn-primary"><span>Cómo llegar</span></button>
       <button class="sheet-hero-btn"><span>Visitar</span></button>
       <button class="sheet-hero-btn"><span>Guardar</span></button>
       <button class="sheet-hero-btn"><span>Compartir</span></button>
     </div>
     <div class="sheet-gallery-wrap">
+      <div class="sheet-gallery-header">
+        <span class="sheet-gallery-title">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path><circle cx="12" cy="13" r="3"></circle></svg>
+          <span>FOTOGRAFÍA</span>
+        </span>
+        <button type="button" class="sheet-gallery-add-btn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          <span>Añadir foto</span>
+        </button>
+      </div>
       <div class="sheet-photo-banner">
-        <button type="button" class="photo-thumb sheet-photo-clickable" data-photo-url="test.jpg">
+        <button type="button" class="sheet-photo-clickable">
           <img class="sheet-photo" src="https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600" alt="Torre de Madrid">
           <span class="sheet-photo-credit">Foto: Santi</span>
           <span class="photo-zoom-badge">AMPLIAR</span>
-        </button>
-        <button type="button" class="sheet-photo-add-btn">
-          <span>Añadir foto</span>
         </button>
       </div>
       <div id="sheet-community-photos-container" class="sheet-community-photos-strip"></div>
     </div>
   </div>
 
-  <div class="sheet" id="sheet-no-photo">
+  <!-- 2. Ficha sin Foto (Modo Claro) -->
+  <div class="sheet open" id="sheet-no-photo">
     <div style="padding: 16px 14px 10px;">
-      <div style="font-family: 'League Spartan', sans-serif; font-weight: 800; font-size: 11px; color: var(--accent);">№ FICHA DE OBRA</div>
-      <h2 style="font-size: 20px; margin: 4px 0 2px;">Edificio España</h2>
-      <div style="font-size: 12px; color: var(--fg-dim);">Julián y José María Otamendi · 1953 · Madrid</div>
+      <div style="font-family: 'League Spartan', sans-serif; font-weight: 800; font-size: 11px; color: var(--accent, #EA560D); letter-spacing: 0.08em;">№ FICHA DE OBRA</div>
+      <h2 style="font-size: 19px; font-weight: 700; margin: 4px 0 2px; color: #141411;">Edificio España</h2>
+      <div style="font-size: 12px; color: #71716D;">Julián y José María Otamendi · 1953 · Madrid</div>
     </div>
-    <div class="sheet-hero-actions" style="padding: 0 14px 12px;">
+    <div class="sheet-hero-actions">
       <button class="sheet-hero-btn btn-primary"><span>Cómo llegar</span></button>
       <button class="sheet-hero-btn"><span>Visitar</span></button>
       <button class="sheet-hero-btn"><span>Guardar</span></button>
       <button class="sheet-hero-btn"><span>Compartir</span></button>
     </div>
     <div class="sheet-gallery-wrap">
-      <div class="sheet-no-photo-banner">
+      <div class="sheet-gallery-header">
+        <span class="sheet-gallery-title">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path><circle cx="12" cy="13" r="3"></circle></svg>
+          <span>FOTOGRAFÍA</span>
+        </span>
+        <button type="button" class="sheet-gallery-add-btn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          <span>Añadir foto</span>
+        </button>
+      </div>
+      <div class="sheet-no-photo-banner" role="button" tabindex="0">
         <div class="sheet-no-photo-inner">
-          <div class="sheet-no-photo-icon-box">📷</div>
+          <div class="sheet-no-photo-icon-box">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path><circle cx="12" cy="13" r="3"></circle></svg>
+          </div>
           <div class="sheet-no-photo-texts">
             <span class="sheet-no-photo-tag">FOTOGRAFÍA NO DISPONIBLE</span>
             <span class="sheet-no-photo-sub">Documenta esta obra aportando una fotografía</span>
           </div>
         </div>
-        <button type="button" class="sheet-no-photo-action-btn">
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Ficha con Foto (Modo Oscuro) -->
+  <div class="sheet open dark-mode" id="sheet-dark" style="background:#141411; border-color:rgba(255,255,255,0.18);">
+    <div style="padding: 16px 14px 10px;">
+      <div style="font-family: 'League Spartan', sans-serif; font-weight: 800; font-size: 11px; color: var(--accent, #EA560D); letter-spacing: 0.08em;">№ FICHA DE OBRA // DARK</div>
+      <h2 style="font-size: 19px; font-weight: 700; margin: 4px 0 2px; color: #FAF6EE;">Torre de Madrid</h2>
+      <div style="font-size: 12px; color: #9E9E98;">Julián y José María Otamendi · 1957 · Madrid</div>
+    </div>
+    <div class="sheet-hero-actions">
+      <button class="sheet-hero-btn" style="background:#FAF6EE; color:#141411;"><span>Cómo llegar</span></button>
+      <button class="sheet-hero-btn" style="background:#1F1F1C; color:#FAF6EE; border-color:rgba(255,255,255,0.15);"><span>Visitar</span></button>
+      <button class="sheet-hero-btn" style="background:#1F1F1C; color:#FAF6EE; border-color:rgba(255,255,255,0.15);"><span>Guardar</span></button>
+      <button class="sheet-hero-btn" style="background:#1F1F1C; color:#FAF6EE; border-color:rgba(255,255,255,0.15);"><span>Compartir</span></button>
+    </div>
+    <div class="sheet-gallery-wrap" style="border-color:rgba(255,255,255,0.1);">
+      <div class="sheet-gallery-header">
+        <span class="sheet-gallery-title" style="color:#9E9E98;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path><circle cx="12" cy="13" r="3"></circle></svg>
+          <span>FOTOGRAFÍA</span>
+        </span>
+        <button type="button" class="sheet-gallery-add-btn" style="background:#1F1F1C; color:#FAF6EE; border-color:rgba(255,255,255,0.25);">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
           <span>Añadir foto</span>
+        </button>
+      </div>
+      <div class="sheet-photo-banner" style="border-color:rgba(255,255,255,0.15);">
+        <button type="button" class="sheet-photo-clickable">
+          <img class="sheet-photo" src="https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600" alt="Torre de Madrid">
+          <span class="sheet-photo-credit">Foto: Santi</span>
+          <span class="photo-zoom-badge">AMPLIAR</span>
         </button>
       </div>
     </div>
@@ -79,6 +134,5 @@ fs.writeFileSync('scratch/test_sheet.html', html);
 const edge = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
 const outPath = 'C:\\Users\\luiss\\.gemini\\antigravity\\brain\\506685e5-6c15-406c-a7e3-5846c38301c6\\sheet_preview.png';
 const fileUrl = 'file:///' + path.resolve('scratch/test_sheet.html').replace(/\\/g, '/');
-execSync(`"${edge}" --headless --screenshot="${outPath}" --window-size=950,550 "${fileUrl}"`);
-console.log('Fixed screenshot taken!');
-
+execSync(`"${edge}" --headless --hide-scrollbars --run-all-compositor-stages-before-draw --virtual-time-budget=2500 --screenshot="${outPath}" --window-size=1200,480 "${fileUrl}"`);
+console.log('Sheet preview screenshot taken!');

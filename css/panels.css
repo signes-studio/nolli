@@ -204,100 +204,141 @@ body.dark-mode .sheet-fav-btn:hover {
   fill: currentColor;
 }
 .sheet-gallery-wrap {
-  padding: 10px 14px;
+  padding: 10px 14px 12px;
   border-bottom: 1px solid var(--border);
 }
+.sheet-gallery-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  width: 100%;
+  max-width: 420px;
+}
+.sheet-gallery-title {
+  font-family: 'League Spartan', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--fg-dim, #71716D);
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.sheet-gallery-title i,
+.sheet-gallery-title svg {
+  color: var(--accent, #EA560D);
+}
+.sheet-gallery-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text, #141411);
+  background: var(--bg-card, #FFFFFF);
+  border: 1.5px solid var(--text, #141411);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+.sheet-gallery-add-btn:hover {
+  background: var(--accent, #EA560D);
+  color: #ffffff;
+  border-color: var(--accent, #EA560D);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(234, 86, 13, 0.25);
+}
+.sheet-gallery-add-btn:active {
+  transform: translateY(0);
+}
+body.dark-mode .sheet-gallery-add-btn {
+  background: var(--bg-raised, #1F1F1C);
+  color: var(--text, #FAF6EE);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+body.dark-mode .sheet-gallery-add-btn:hover {
+  background: var(--accent, #EA560D);
+  color: #ffffff;
+  border-color: var(--accent, #EA560D);
+}
+
 .sheet-photo-banner {
   position: relative;
   width: 100%;
   max-width: 420px;
-  height: 180px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  height: 190px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
   display: block;
   overflow: hidden;
   background: var(--bg-raised);
 }
 .sheet-photo-clickable {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border: none;
-  padding: 0;
-  margin: 0;
-  background: transparent;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
   cursor: zoom-in;
   position: relative;
   border-radius: inherit;
   overflow: hidden;
   text-align: left;
 }
-.sheet-photo-add-btn {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 4;
-  background: rgba(18, 18, 18, 0.74);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 9999px;
-  color: #ffffff;
-  font-family: 'Inter', sans-serif;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  padding: 4px 11px;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  cursor: pointer;
-  transition: all 0.15s ease;
-  line-height: 1.4;
+.sheet-photo {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+  transition: transform 0.3s ease;
 }
-.sheet-photo-add-btn:hover {
-  background: var(--accent, #EA560D);
-  border-color: var(--accent, #EA560D);
-  color: #ffffff;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(234, 86, 13, 0.4);
+.sheet-photo-banner:hover .sheet-photo {
+  transform: scale(1.02);
 }
 .photo-zoom-badge {
   position: absolute;
   bottom: 8px;
   right: 8px;
-  background: rgba(18, 18, 18, 0.72);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 9999px;
+  background: rgba(20, 20, 17, 0.78);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
   color: #fff;
-  font-family: 'Inter', sans-serif;
+  font-family: 'League Spartan', sans-serif;
   font-size: 10px;
-  font-weight: 500;
-  padding: 3px 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
   display: flex;
   align-items: center;
   gap: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   z-index: 2;
 }
 .sheet-photo-credit {
   position: absolute;
   bottom: 8px;
   left: 8px;
-  background: rgba(18, 18, 18, 0.72);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 9999px;
+  background: rgba(20, 20, 17, 0.78);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
   color: #fff;
   font-family: 'Inter', sans-serif;
   font-size: 10px;
   font-weight: 500;
-  padding: 3px 10px;
+  padding: 3px 8px;
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -305,7 +346,7 @@ body.dark-mode .sheet-fav-btn:hover {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   pointer-events: none;
   z-index: 2;
 }

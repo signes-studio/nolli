@@ -30,7 +30,8 @@ import {
 } from './state.js';
 import { 
   STUDIO_RELATIONSHIPS as SEED_RELATIONSHIPS, 
-  normalizeArchitectKey 
+  normalizeArchitectKey,
+  reloadRelationships 
 } from './architectRelationships.js';
 
 const SESSION_KEY = 'nolli_admin_session_token';
@@ -255,6 +256,10 @@ function saveRelationships() {
   } catch (e) {
     console.warn('Error guardando relaciones:', e);
   }
+  if (typeof reloadRelationships === 'function') {
+    reloadRelationships();
+  }
+  document.dispatchEvent(new CustomEvent('radar:relationships-changed'));
 }
 
 // =========================================================================
