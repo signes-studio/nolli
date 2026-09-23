@@ -41,7 +41,7 @@ DROP POLICY IF EXISTS "Service role manages building embeddings" ON public.build
 CREATE POLICY "Service role manages building embeddings" ON public.building_embeddings
   FOR ALL TO service_role USING (true) WITH CHECK (true);
 
--- 4. Función de búsqueda híbrida por similitud semántica con boost de categoría
+-- 4. Función de búsqueda híbrida por similitud semántica con aceleración HNSW en 2 etapas
 CREATE OR REPLACE FUNCTION match_similar_buildings(
   target_building_id TEXT,
   match_count INT DEFAULT 12,
@@ -64,29 +64,36 @@ SECURITY DEFINER
 SET search_path = public, extensions
 AS $$
 DECLARE
-  target_embedding vector(1536);
-  target_category TEXT;
-  target_architect TEXT;
+  target_emb vector(1536);
+  target_cat TEXT;
 BEGIN
-  -- Obtener el embedding y metadatos de la obra de referencia
-  SELECT be.embedding, b.categoria, b.arquitecto
-  INTO target_embedding, target_category, target_architect
+  -- 1. Obtener el embedding y metadatos de la obra de referencia (PK lookup instantáneo)
+  SELECT be.embedding, b.categoria
+  INTO target_emb, target_cat
   FROM public.building_embeddings be
   JOIN public."Buildings" b ON b.id = be.building_id
   WHERE be.building_id = target_building_id;
 
-  IF target_embedding IS NULL THEN
+  IF target_emb IS NULL THEN
     RETURN;
   END IF;
 
+  -- 2. ETAPA 1: Búsqueda vectorial ultrarrápida usando el índice HNSW (vector_cosine_ops, ~5-10ms).
+  --    Limitamos a los 50 vecinos más próximos en espacio vectorial sin JOINs previos masivos.
+  --    ETAPA 2: JOIN por clave primaria solo sobre esos 50 candidatos y aplicación del boost categorial.
   RETURN QUERY
+  WITH top_candidates AS (
+    SELECT be.building_id, (be.embedding <=> target_emb) AS distance
+    FROM public.building_embeddings be
+    WHERE be.building_id != target_building_id
+    ORDER BY be.embedding <=> target_emb ASC
+    LIMIT 50
+  )
   SELECT
     b.id,
     (
-      -- Similitud coseno: 1 - distancia coseno
-      (1 - (be.embedding <=> target_embedding)) +
-      -- Boost moderado si comparten categoría tipológica
-      CASE WHEN b.categoria IS NOT NULL AND b.categoria = target_category THEN same_category_boost ELSE 0 END
+      (1 - tc.distance) +
+      CASE WHEN b.categoria IS NOT NULL AND b.categoria = target_cat THEN same_category_boost ELSE 0 END
     )::FLOAT AS similarity,
     b.categoria,
     b.arquitecto,
@@ -95,12 +102,12 @@ BEGIN
     b.place,
     b.foto_url,
     b.importancia
-  FROM public.building_embeddings be
-  JOIN public."Buildings" b ON b.id = be.building_id
-  WHERE be.building_id != target_building_id
-    AND (b.estado_revision = 'publicada' OR b.estado_revision IS NULL)
+  FROM top_candidates tc
+  JOIN public."Buildings" b ON b.id = tc.building_id
+  WHERE (b.estado_revision = 'publicada' OR b.estado_revision IS NULL)
   ORDER BY similarity DESC
   LIMIT match_count;
 END;
 $$;
+
 

@@ -123,30 +123,59 @@ async function fetchDiscoverySections(building) {
   if (primaryArchitect) {
     const rawSlug = slugify(primaryArchitect);
     architectSlug = (ARCHITECT_ALIASES && ARCHITECT_ALIASES[rawSlug]) || rawSlug;
-    const archRegex = slugToRegex(primaryArchitect);
+  }
 
-    const sp1 = new URLSearchParams();
-    sp1.append('select', fields);
-    sp1.append('id', `neq.${currentId}`);
-    sp1.append('arquitecto', `imatch.${archRegex}`);
-    sp1.append('or', '(estado_revision.eq.publicada,estado_revision.is.null)');
-    sp1.append('order', 'año_construccion.desc.nullslast,id.asc');
+  // 1 y 2. EJECUCIÓN PARALELA (Promise.all)
+  // Disparamos concurrentemente la consulta del arquitecto y la similitud vectorial
+  // para reducir el tiempo de respuesta del servidor (TTFB) a la mitad.
+  const [res1, rpcRes] = await Promise.all([
+    // Tarea 1: Obras del mismo arquitecto
+    (async () => {
+      if (!primaryArchitect) return { data: [], total: 0 };
+      const archRegex = slugToRegex(primaryArchitect);
 
-    const res1 = await querySupabase(sp1, {
-      Prefer: 'count=exact',
-      Range: '0-5',
-    });
+      const sp1 = new URLSearchParams();
+      sp1.append('select', fields);
+      sp1.append('id', `neq.${currentId}`);
+      sp1.append('arquitecto', `imatch.${archRegex}`);
+      sp1.append('or', '(estado_revision.eq.publicada,estado_revision.is.null)');
+      sp1.append('order', 'año_construccion.desc.nullslast,id.asc');
 
-    const otherWorks = Array.isArray(res1.data) ? res1.data : [];
-    const otherTotal = res1.total || otherWorks.length;
-    totalArchitectWorks = otherTotal + 1; // Sumando la obra actual en catálogo
-
-    if (otherWorks.length > 0) {
-      architectWorks = otherWorks.slice(0, 6);
-      architectWorks.forEach((w) => {
-        if (w && w.id) excludedIds.add(String(w.id).trim());
+      return querySupabase(sp1, {
+        Prefer: 'count=exact',
+        Range: '0-5',
       });
-    }
+    })(),
+
+    // Tarea 2: Búsqueda vectorial semántica (pgvector) acelerada por índice HNSW
+    // NOTA DE RENDIMIENTO: Lee vectores ya calculados en PostgreSQL (0 llamadas externas a OpenAI/Voyage).
+    fetch(`${supabaseUrl}/rest/v1/rpc/match_similar_buildings`, {
+      method: 'POST',
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        target_building_id: currentId,
+        match_count: 24,
+        same_category_boost: 0.05,
+      }),
+    }).catch((err) => {
+      console.warn('[Obra SSR] Error al consultar similitud semántica vectorial:', err?.message || err);
+      return null;
+    }),
+  ]);
+
+  // Procesar resultados de Tarea 1 (Arquitecto)
+  const otherWorks = Array.isArray(res1?.data) ? res1.data : [];
+  const otherTotal = res1?.total || otherWorks.length;
+  totalArchitectWorks = otherTotal + 1; // Sumando la obra actual en catálogo
+
+  if (otherWorks.length > 0) {
+    architectWorks = otherWorks.slice(0, 6);
+    architectWorks.forEach((w) => {
+      if (w && w.id) excludedIds.add(String(w.id).trim());
+    });
   }
 
   // 2. SECCIÓN "OBRAS RELACIONADAS" (excluye explícitamente al arquitecto actual):
@@ -171,72 +200,54 @@ async function fetchDiscoverySections(building) {
     }
   }
 
-  // 2.1 Búsqueda vectorial semántica (pgvector) con embeddings precalculados en DB
-  // NOTA CRÍTICA DE RENDIMIENTO: Lee vectores ya almacenados en PostgreSQL via RPC.
-  // NUNCA realiza llamadas a APIs externas (OpenAI/Voyage) en el camino de lectura de fichas.
-  try {
-    const rpcRes = await fetch(`${supabaseUrl}/rest/v1/rpc/match_similar_buildings`, {
-      method: 'POST',
-      headers: {
-        ...headers,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        target_building_id: currentId,
-        match_count: 24, // Traer suficientes candidatos para filtrar arquitecto y aplicar re-ranking
-        same_category_boost: 0.05,
-      }),
-    });
+  // Procesar resultados de Tarea 2 (Vectorial HNSW)
+  if (rpcRes && rpcRes.ok) {
+    const candidates = await rpcRes.json().catch(() => []);
+    if (Array.isArray(candidates) && candidates.length > 0) {
+      // Encontrar qué rutas curatoriales oficiales aplican a la obra de referencia
+      const currentRoutes = CURATED_ROUTES.filter((r) => buildingMatchesRoute(building, r)).map((r) => r.id);
+      const scoredCandidates = [];
 
-    if (rpcRes.ok) {
-      const candidates = await rpcRes.json().catch(() => []);
-      if (Array.isArray(candidates) && candidates.length > 0) {
-        // Encontrar qué rutas curatoriales oficiales aplican a la obra de referencia
-        const currentRoutes = CURATED_ROUTES.filter((r) => buildingMatchesRoute(building, r)).map((r) => r.id);
-        const scoredCandidates = [];
+      for (const item of candidates) {
+        if (!item || !item.id) continue;
+        const idStr = String(item.id).trim();
+        if (excludedIds.has(idStr)) continue;
 
-        for (const item of candidates) {
-          if (!item || !item.id) continue;
-          const idStr = String(item.id).trim();
-          if (excludedIds.has(idStr)) continue;
-
-          // Excluir obras del mismo arquitecto principal (tienen su propia sección dedicada)
-          if (primaryArchitect && item.arquitecto) {
-            const { arquitectos: itemArchs } = parseArchitectsAndInterventions(item.arquitecto);
-            const itemPrimary = itemArchs.find((name) => !isIgnoredArchitect(name));
-            if (itemPrimary && slugify(itemPrimary) === slugify(primaryArchitect)) {
-              continue;
-            }
+        // Excluir obras del mismo arquitecto principal (tienen su propia sección dedicada)
+        if (primaryArchitect && item.arquitecto) {
+          const { arquitectos: itemArchs } = parseArchitectsAndInterventions(item.arquitecto);
+          const itemPrimary = itemArchs.find((name) => !isIgnoredArchitect(name));
+          if (itemPrimary && slugify(itemPrimary) === slugify(primaryArchitect)) {
+            continue;
           }
-
-          let score = Number(item.similarity) || 0;
-
-          // Boost si comparten alguna colección curada
-          if (currentRoutes.length > 0) {
-            const sharesRoute = currentRoutes.some((routeId) => {
-              const route = CURATED_ROUTES.find((r) => r.id === routeId);
-              return route && buildingMatchesRoute(item, route);
-            });
-            if (sharesRoute) {
-              score += 0.08;
-            }
-          }
-
-          scoredCandidates.push({ item, score });
         }
 
-        // Ordenar por afinidad global descendente
-        scoredCandidates.sort((a, b) => b.score - a.score);
+        let score = Number(item.similarity) || 0;
 
-        for (const { item } of scoredCandidates) {
-          addRelated([item]);
-          if (relatedMap.size >= 6) break;
+        // Boost si comparten alguna colección curada
+        if (currentRoutes.length > 0) {
+          const sharesRoute = currentRoutes.some((routeId) => {
+            const route = CURATED_ROUTES.find((r) => r.id === routeId);
+            return route && buildingMatchesRoute(item, route);
+          });
+          if (sharesRoute) {
+            score += 0.08;
+          }
         }
+
+        scoredCandidates.push({ item, score });
+      }
+
+      // Ordenar por afinidad global descendente
+      scoredCandidates.sort((a, b) => b.score - a.score);
+
+      for (const { item } of scoredCandidates) {
+        addRelated([item]);
+        if (relatedMap.size >= 6) break;
       }
     }
-  } catch (err) {
-    console.warn('[Obra SSR] Error al consultar similitud semántica vectorial, aplicando fallback:', err?.message || err);
   }
+
 
   // 2.2 Fallback silencioso a lógica estructurada si no se alcanzaron al menos 3 resultados
   // (ej. obra de reciente creación cuyo embedding aún no se generó, o fallo en RPC)
@@ -2001,8 +2012,8 @@ module.exports = async (request, response) => {
     }
 
     response.setHeader('Content-Type', 'text/html; charset=utf-8');
-    // Cache Edge CDN: 24 horas fresca (86400s), hasta 7 días sirviendo stale mientras revalida en background
-    response.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
+    // Cache Edge CDN y navegador: 1h en cliente (3600s), 24h en CDN (86400s), 7d stale-while-revalidate
+    response.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800');
     // Tags granulares para invalidación selectiva por ID de obra sin purgar todo el catálogo
     const cacheTag = `building-${id},obra-${id},catalog`;
     response.setHeader('Vercel-Cache-Tag', cacheTag);
