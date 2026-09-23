@@ -126,6 +126,10 @@ const SSR_TEXTS = {
     clear_filters: 'Limpiar filtros',
     no_results_filtered: 'No se encontraron obras con los filtros aplicados.',
     similar_works: 'Proyectos similares',
+    more_works_by_architect: 'Más obras de {nombre}',
+    view_all_architect_works: 'Ver las {count} obras de {nombre} →',
+    related_works: 'Obras relacionadas',
+    coming_from: 'Viniendo de:',
   },
   en: {
     tagline: '/ collective architecture guide',
@@ -217,6 +221,10 @@ const SSR_TEXTS = {
     clear_filters: 'Clear filters',
     no_results_filtered: 'No works found matching the applied filters.',
     similar_works: 'Similar projects',
+    more_works_by_architect: 'More works by {nombre}',
+    view_all_architect_works: 'View all {count} works by {nombre} →',
+    related_works: 'Related works',
+    coming_from: 'Coming from:',
   },
   ca: {
     tagline: "/ guia col·lectiva d'arquitectura",
@@ -308,6 +316,10 @@ const SSR_TEXTS = {
     clear_filters: 'Netejar filtres',
     no_results_filtered: "No s'han trobat obres amb els filtres aplicats.",
     similar_works: 'Projectes similars',
+    more_works_by_architect: 'Més obres de {nombre}',
+    view_all_architect_works: 'Veure les {count} obres de {nombre} →',
+    related_works: 'Obres relacionades',
+    coming_from: 'Venint de:',
   },
 };
 

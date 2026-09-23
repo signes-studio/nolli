@@ -67,10 +67,20 @@ async function fetchPublicBuilding(id) {
   return buildings[0] || null;
 }
 
-async function fetchSimilarBuildings(building) {
-  if (!building || !building.id) return [];
+async function fetchDiscoverySections(building) {
+  if (!building || !building.id) {
+    return {
+      architectData: { primaryArchitect: '', slug: '', totalWorks: 0, works: [] },
+      relatedWorks: [],
+    };
+  }
   const { supabaseUrl, serviceRoleKey: supabaseKey } = getSupabaseConfig();
-  if (!supabaseUrl || !supabaseKey) return [];
+  if (!supabaseUrl || !supabaseKey) {
+    return {
+      architectData: { primaryArchitect: '', slug: '', totalWorks: 0, works: [] },
+      relatedWorks: [],
+    };
+  }
 
   const currentId = String(building.id).trim();
   const fields = 'id,nombre_obra,arquitecto,año_construccion,categoria,place,foto_url,latitud,longitud,importancia';
@@ -79,59 +89,98 @@ async function fetchSimilarBuildings(building) {
     Authorization: `Bearer ${supabaseKey}`,
   };
 
-  const similarMap = new Map();
+  async function querySupabase(params, extraHeaders = {}) {
+    try {
+      const res = await fetch(`${supabaseUrl}/rest/v1/Buildings?${params.toString()}`, {
+        headers: { ...headers, ...extraHeaders },
+      });
+      if (!res.ok) return { data: [], total: 0 };
+      const data = await res.json().catch(() => []);
+      let total = data.length;
+      const contentRange = res.headers.get('content-range');
+      if (contentRange && contentRange.includes('/')) {
+        const totalPart = contentRange.split('/')[1];
+        if (totalPart && totalPart !== '*') {
+          total = parseInt(totalPart, 10) || total;
+        }
+      }
+      return { data, total };
+    } catch {
+      return { data: [], total: 0 };
+    }
+  }
 
-  function addBuildings(items) {
+  // 1. SECCIÓN "MÁS OBRAS DE [ARQUITECTO]":
+  const { arquitectos: cleanArchitects } = parseArchitectsAndInterventions(building.arquitecto);
+  const primaryArchitect = cleanArchitects.find((name) => !isIgnoredArchitect(name)) || '';
+
+  let architectWorks = [];
+  let totalArchitectWorks = 0;
+  let architectSlug = '';
+  const excludedIds = new Set([currentId]);
+
+  if (primaryArchitect) {
+    const rawSlug = slugify(primaryArchitect);
+    architectSlug = (ARCHITECT_ALIASES && ARCHITECT_ALIASES[rawSlug]) || rawSlug;
+    const archRegex = slugToRegex(primaryArchitect);
+
+    const sp1 = new URLSearchParams();
+    sp1.append('select', fields);
+    sp1.append('id', `neq.${currentId}`);
+    sp1.append('arquitecto', `imatch.${archRegex}`);
+    sp1.append('or', '(estado_revision.eq.publicada,estado_revision.is.null)');
+    sp1.append('order', 'año_construccion.desc.nullslast,id.asc');
+
+    const res1 = await querySupabase(sp1, {
+      Prefer: 'count=exact',
+      Range: '0-5',
+    });
+
+    const otherWorks = Array.isArray(res1.data) ? res1.data : [];
+    const otherTotal = res1.total || otherWorks.length;
+    totalArchitectWorks = otherTotal + 1; // Sumando la obra actual en catálogo
+
+    if (otherWorks.length > 0) {
+      architectWorks = otherWorks.slice(0, 6);
+      architectWorks.forEach((w) => {
+        if (w && w.id) excludedIds.add(String(w.id).trim());
+      });
+    }
+  }
+
+  // 2. SECCIÓN "OBRAS RELACIONADAS" (excluye explícitamente al arquitecto actual):
+  const relatedMap = new Map();
+
+  function addRelated(items) {
     if (!Array.isArray(items)) return;
     for (const item of items) {
       if (!item || !item.id) continue;
       const idStr = String(item.id).trim();
-      if (idStr === currentId) continue;
-      if (!similarMap.has(idStr)) {
-        similarMap.set(idStr, item);
+      if (excludedIds.has(idStr)) continue;
+      if (primaryArchitect && item.arquitecto) {
+        const { arquitectos: itemArchs } = parseArchitectsAndInterventions(item.arquitecto);
+        const itemPrimary = itemArchs.find((name) => !isIgnoredArchitect(name));
+        if (itemPrimary && slugify(itemPrimary) === slugify(primaryArchitect)) {
+          continue;
+        }
+      }
+      if (!relatedMap.has(idStr)) {
+        relatedMap.set(idStr, item);
       }
     }
   }
 
-  async function querySupabase(params) {
-    try {
-      const res = await fetch(`${supabaseUrl}/rest/v1/Buildings?${params.toString()}`, { headers });
-      if (!res.ok) return [];
-      return await res.json().catch(() => []);
-    } catch {
-      return [];
-    }
-  }
-
-  // 1. Prioridad 1: Mismo arquitecto
-  const { arquitectos: cleanArchitects } = parseArchitectsAndInterventions(building.arquitecto);
-  const primaryArchitect = cleanArchitects.find((name) => !isIgnoredArchitect(name));
-
-  if (primaryArchitect) {
-    const regex = slugToRegex(primaryArchitect);
-    const sp1 = new URLSearchParams();
-    sp1.append('select', fields);
-    sp1.append('id', `neq.${currentId}`);
-    sp1.append('arquitecto', `imatch.${regex}`);
-    sp1.append('or', '(estado_revision.eq.publicada,estado_revision.is.null)');
-    sp1.append('order', 'importancia.asc,año_construccion.desc.nullslast');
-    sp1.append('limit', '6');
-
-    const res1 = await querySupabase(sp1);
-    addBuildings(res1);
-  }
-
-  if (similarMap.size >= 3) {
-    return Array.from(similarMap.values()).slice(0, 6);
-  }
-
-  // 2. Prioridad 2: Misma categoría + década (año_construccion ±10 años)
+  // Prioridad 1: Misma categoría + década (año_construccion ±10 años)
   if (building.categoria) {
     const sp2 = new URLSearchParams();
     sp2.append('select', fields);
     sp2.append('id', `neq.${currentId}`);
     sp2.append('categoria', `eq.${building.categoria}`);
     sp2.append('or', '(estado_revision.eq.publicada,estado_revision.is.null)');
+    if (primaryArchitect) {
+      const archRegex = slugToRegex(primaryArchitect);
+      sp2.append('arquitecto', `not.imatch.${archRegex}`);
+    }
 
     const year = parseInt(building.año_construccion, 10);
     if (!Number.isNaN(year) && year > 0) {
@@ -139,32 +188,49 @@ async function fetchSimilarBuildings(building) {
       sp2.append('año_construccion', `lte.${year + 10}`);
     }
     sp2.append('order', 'importancia.asc,id.asc');
-    sp2.append('limit', '6');
+    sp2.append('limit', '8');
 
     const res2 = await querySupabase(sp2);
-    addBuildings(res2);
+    addRelated(res2.data);
   }
 
-  if (similarMap.size >= 3) {
-    return Array.from(similarMap.values()).slice(0, 6);
+  // Si no llega a 3 resultados, complementar con Prioridad 2: Misma ciudad / place
+  if (relatedMap.size < 3) {
+    const city = extractCityName(building.place);
+    if (city) {
+      const sp3 = new URLSearchParams();
+      sp3.append('select', fields);
+      sp3.append('id', `neq.${currentId}`);
+      sp3.append('place', `ilike.*${city}*`);
+      sp3.append('or', '(estado_revision.eq.publicada,estado_revision.is.null)');
+      if (primaryArchitect) {
+        const archRegex = slugToRegex(primaryArchitect);
+        sp3.append('arquitecto', `not.imatch.${archRegex}`);
+      }
+      sp3.append('order', 'importancia.asc,año_construccion.desc.nullslast');
+      sp3.append('limit', '8');
+
+      const res3 = await querySupabase(sp3);
+      addRelated(res3.data);
+    }
   }
 
-  // 3. Prioridad 3: Misma ciudad / place
-  const city = extractCityName(building.place);
-  if (city) {
-    const sp3 = new URLSearchParams();
-    sp3.append('select', fields);
-    sp3.append('id', `neq.${currentId}`);
-    sp3.append('place', `ilike.*${city}*`);
-    sp3.append('or', '(estado_revision.eq.publicada,estado_revision.is.null)');
-    sp3.append('order', 'importancia.asc,año_construccion.desc.nullslast');
-    sp3.append('limit', '6');
+  const relatedWorks = Array.from(relatedMap.values()).slice(0, 6);
 
-    const res3 = await querySupabase(sp3);
-    addBuildings(res3);
-  }
+  return {
+    architectData: {
+      primaryArchitect,
+      slug: architectSlug,
+      totalWorks: totalArchitectWorks,
+      works: architectWorks,
+    },
+    relatedWorks,
+  };
+}
 
-  return Array.from(similarMap.values()).slice(0, 6);
+async function fetchSimilarBuildings(building) {
+  const discovery = await fetchDiscoverySections(building);
+  return discovery.relatedWorks;
 }
 
 function renderObraCardHtml(b, lang = 'es') {
@@ -212,8 +278,10 @@ function renderObraCardHtml(b, lang = 'es') {
   `;
 }
 
-function renderBuildingPage(building, lang = 'es', similarBuildings = []) {
+function renderBuildingPage(building, lang = 'es', discoveryData = {}) {
   const prefix = getLangPrefix(lang);
+  const architectData = (discoveryData && discoveryData.architectData) || { primaryArchitect: '', slug: '', totalWorks: 0, works: [] };
+  const relatedWorks = Array.isArray(discoveryData) ? discoveryData : ((discoveryData && discoveryData.relatedWorks) || []);
   const canonicalUrl = `${SITE_URL}/obra/${encodeURIComponent(building.id)}`;
   const title = `${building.nombre_obra} | nolli.`;
   const description = buildingDescription(building) || getSSRText('default_work_desc', lang);
@@ -942,6 +1010,65 @@ function renderBuildingPage(building, lang = 'es', similarBuildings = []) {
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 12px;
     }
+    .see-all-link {
+      font-family: var(--font-display);
+      font-size: 11.5px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      color: var(--brand);
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: color 0.12s ease, transform 0.12s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .see-all-link:hover {
+      color: var(--accent-hover);
+      transform: translateX(2px);
+    }
+    .session-trail {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 11.5px;
+      font-family: var(--font-body);
+      color: var(--ink-dim);
+      margin-bottom: var(--space-2);
+      padding: 7px 12px;
+      background: var(--bg-row-alt);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+    }
+    .session-trail-label {
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 10px;
+      color: var(--ink-dim);
+    }
+    .session-trail-link {
+      color: var(--ink);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.12s ease;
+    }
+    .session-trail-link:hover {
+      color: var(--brand);
+      text-decoration: underline;
+    }
+    .session-trail-sep {
+      color: var(--border);
+      font-size: 10px;
+      user-select: none;
+    }
+    .work-card.is-soft-navigating {
+      opacity: 0.45;
+      pointer-events: none;
+      transition: opacity 0.15s ease;
+    }
     /* Botones de Acción (Hero Buttons) */
     .sheet-hero-btn {
       display: inline-flex;
@@ -1410,6 +1537,8 @@ function renderBuildingPage(building, lang = 'es', similarBuildings = []) {
       </ol>
     </nav>
 
+    <div id="session-trail" class="session-trail" style="display: none;" aria-label="Historial de navegación"></div>
+
     <article class="work-card">
       <div class="work-header">
         <div class="badges-row">
@@ -1491,13 +1620,31 @@ function renderBuildingPage(building, lang = 'es', similarBuildings = []) {
         ` : ''}
       </div>
 
-      ${similarBuildings && similarBuildings.length > 0 ? `
-        <section class="similar-works-section" aria-labelledby="similar-works-title">
+      ${(architectData && architectData.works && architectData.works.length > 0) ? `
+        <section class="similar-works-section architect-works-section" aria-labelledby="architect-works-title">
           <div class="similar-works-header">
-            <h2 id="similar-works-title" class="similar-works-title">${escapeHtml(getSSRText('similar_works', lang))}</h2>
+            <h2 id="architect-works-title" class="similar-works-title">
+              ${escapeHtml(getSSRText('more_works_by_architect', lang, { nombre: architectData.primaryArchitect }))}
+            </h2>
+            ${architectData.totalWorks > 6 ? `
+              <a href="${SITE_URL}${prefix}/arquitecto/${encodeURIComponent(architectData.slug)}" class="see-all-link">
+                ${escapeHtml(getSSRText('view_all_architect_works', lang, { count: architectData.totalWorks, nombre: architectData.primaryArchitect }))}
+              </a>
+            ` : ''}
           </div>
           <div class="similar-works-grid">
-            ${similarBuildings.map((sim) => renderObraCardHtml(sim, lang)).join('')}
+            ${architectData.works.map((w) => renderObraCardHtml(w, lang)).join('')}
+          </div>
+        </section>
+      ` : ''}
+
+      ${(relatedWorks && relatedWorks.length > 0) ? `
+        <section class="similar-works-section related-works-section" aria-labelledby="related-works-title">
+          <div class="similar-works-header">
+            <h2 id="related-works-title" class="similar-works-title">${escapeHtml(getSSRText('related_works', lang))}</h2>
+          </div>
+          <div class="similar-works-grid">
+            ${relatedWorks.map((sim) => renderObraCardHtml(sim, lang)).join('')}
           </div>
         </section>
       ` : ''}
@@ -1788,8 +1935,8 @@ module.exports = async (request, response) => {
     const cacheTag = `building-${id},obra-${id},catalog`;
     response.setHeader('Vercel-Cache-Tag', cacheTag);
     response.setHeader('Cache-Tag', cacheTag);
-    const similarBuildings = await fetchSimilarBuildings(building);
-    return response.status(200).send(renderBuildingPage(building, lang, similarBuildings));
+    const discoveryData = await fetchDiscoverySections(building);
+    return response.status(200).send(renderBuildingPage(building, lang, discoveryData));
   } catch (error) {
     console.error('No se pudo generar la página de obra:', error);
     response.setHeader('Content-Type', 'text/plain; charset=utf-8');
@@ -1800,5 +1947,6 @@ module.exports = async (request, response) => {
 
 module.exports.renderBuildingPage = renderBuildingPage;
 module.exports.renderNotFoundPage = renderNotFoundPage;
+module.exports.fetchDiscoverySections = fetchDiscoverySections;
 module.exports.fetchSimilarBuildings = fetchSimilarBuildings;
 module.exports.renderObraCardHtml = renderObraCardHtml;
