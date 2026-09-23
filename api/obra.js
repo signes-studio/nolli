@@ -4,6 +4,7 @@ const { slugify, slugToRegex, extractCityName, isIgnoredArchitect, ARCHITECT_ALI
 const { createRateLimiter } = require('./_lib/rateLimiter.js');
 const { getSupabaseConfig } = require('./_lib/supabaseEnv.js');
 const { getImportanceInfo } = require('./_lib/importance.js');
+const { CURATED_ROUTES, buildingMatchesRoute } = require('./_lib/embeddings.js');
 
 const checkRateLimit = createRateLimiter({ windowMs: 60 * 1000, maxRequests: 60 });
 
@@ -170,48 +171,119 @@ async function fetchDiscoverySections(building) {
     }
   }
 
-  // Prioridad 1: Misma categoría + década (año_construccion ±10 años)
-  if (building.categoria) {
-    const sp2 = new URLSearchParams();
-    sp2.append('select', fields);
-    sp2.append('id', `neq.${currentId}`);
-    sp2.append('categoria', `eq.${building.categoria}`);
-    sp2.append('or', '(estado_revision.eq.publicada,estado_revision.is.null)');
-    if (primaryArchitect) {
-      const archRegex = slugToRegex(primaryArchitect);
-      sp2.append('arquitecto', `not.imatch.${archRegex}`);
-    }
+  // 2.1 Búsqueda vectorial semántica (pgvector) con embeddings precalculados en DB
+  // NOTA CRÍTICA DE RENDIMIENTO: Lee vectores ya almacenados en PostgreSQL via RPC.
+  // NUNCA realiza llamadas a APIs externas (OpenAI/Voyage) en el camino de lectura de fichas.
+  try {
+    const rpcRes = await fetch(`${supabaseUrl}/rest/v1/rpc/match_similar_buildings`, {
+      method: 'POST',
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        target_building_id: currentId,
+        match_count: 24, // Traer suficientes candidatos para filtrar arquitecto y aplicar re-ranking
+        same_category_boost: 0.05,
+      }),
+    });
 
-    const year = parseInt(building.año_construccion, 10);
-    if (!Number.isNaN(year) && year > 0) {
-      sp2.append('año_construccion', `gte.${year - 10}`);
-      sp2.append('año_construccion', `lte.${year + 10}`);
-    }
-    sp2.append('order', 'importancia.asc,id.asc');
-    sp2.append('limit', '8');
+    if (rpcRes.ok) {
+      const candidates = await rpcRes.json().catch(() => []);
+      if (Array.isArray(candidates) && candidates.length > 0) {
+        // Encontrar qué rutas curatoriales oficiales aplican a la obra de referencia
+        const currentRoutes = CURATED_ROUTES.filter((r) => buildingMatchesRoute(building, r)).map((r) => r.id);
+        const scoredCandidates = [];
 
-    const res2 = await querySupabase(sp2);
-    addRelated(res2.data);
+        for (const item of candidates) {
+          if (!item || !item.id) continue;
+          const idStr = String(item.id).trim();
+          if (excludedIds.has(idStr)) continue;
+
+          // Excluir obras del mismo arquitecto principal (tienen su propia sección dedicada)
+          if (primaryArchitect && item.arquitecto) {
+            const { arquitectos: itemArchs } = parseArchitectsAndInterventions(item.arquitecto);
+            const itemPrimary = itemArchs.find((name) => !isIgnoredArchitect(name));
+            if (itemPrimary && slugify(itemPrimary) === slugify(primaryArchitect)) {
+              continue;
+            }
+          }
+
+          let score = Number(item.similarity) || 0;
+
+          // Boost si comparten alguna colección curada
+          if (currentRoutes.length > 0) {
+            const sharesRoute = currentRoutes.some((routeId) => {
+              const route = CURATED_ROUTES.find((r) => r.id === routeId);
+              return route && buildingMatchesRoute(item, route);
+            });
+            if (sharesRoute) {
+              score += 0.08;
+            }
+          }
+
+          scoredCandidates.push({ item, score });
+        }
+
+        // Ordenar por afinidad global descendente
+        scoredCandidates.sort((a, b) => b.score - a.score);
+
+        for (const { item } of scoredCandidates) {
+          addRelated([item]);
+          if (relatedMap.size >= 6) break;
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('[Obra SSR] Error al consultar similitud semántica vectorial, aplicando fallback:', err?.message || err);
   }
 
-  // Si no llega a 3 resultados, complementar con Prioridad 2: Misma ciudad / place
+  // 2.2 Fallback silencioso a lógica estructurada si no se alcanzaron al menos 3 resultados
+  // (ej. obra de reciente creación cuyo embedding aún no se generó, o fallo en RPC)
   if (relatedMap.size < 3) {
-    const city = extractCityName(building.place);
-    if (city) {
-      const sp3 = new URLSearchParams();
-      sp3.append('select', fields);
-      sp3.append('id', `neq.${currentId}`);
-      sp3.append('place', `ilike.*${city}*`);
-      sp3.append('or', '(estado_revision.eq.publicada,estado_revision.is.null)');
+    // Prioridad 1: Misma categoría + década (año_construccion ±10 años)
+    if (building.categoria) {
+      const sp2 = new URLSearchParams();
+      sp2.append('select', fields);
+      sp2.append('id', `neq.${currentId}`);
+      sp2.append('categoria', `eq.${building.categoria}`);
+      sp2.append('or', '(estado_revision.eq.publicada,estado_revision.is.null)');
       if (primaryArchitect) {
         const archRegex = slugToRegex(primaryArchitect);
-        sp3.append('arquitecto', `not.imatch.${archRegex}`);
+        sp2.append('arquitecto', `not.imatch.${archRegex}`);
       }
-      sp3.append('order', 'importancia.asc,año_construccion.desc.nullslast');
-      sp3.append('limit', '8');
 
-      const res3 = await querySupabase(sp3);
-      addRelated(res3.data);
+      const year = parseInt(building.año_construccion, 10);
+      if (!Number.isNaN(year) && year > 0) {
+        sp2.append('año_construccion', `gte.${year - 10}`);
+        sp2.append('año_construccion', `lte.${year + 10}`);
+      }
+      sp2.append('order', 'importancia.asc,id.asc');
+      sp2.append('limit', '8');
+
+      const res2 = await querySupabase(sp2);
+      addRelated(res2.data);
+    }
+
+    // Si aún no llega a 3 resultados, complementar con Prioridad 2: Misma ciudad / place
+    if (relatedMap.size < 3) {
+      const city = extractCityName(building.place);
+      if (city) {
+        const sp3 = new URLSearchParams();
+        sp3.append('select', fields);
+        sp3.append('id', `neq.${currentId}`);
+        sp3.append('place', `ilike.*${city}*`);
+        sp3.append('or', '(estado_revision.eq.publicada,estado_revision.is.null)');
+        if (primaryArchitect) {
+          const archRegex = slugToRegex(primaryArchitect);
+          sp3.append('arquitecto', `not.imatch.${archRegex}`);
+        }
+        sp3.append('order', 'importancia.asc,año_construccion.desc.nullslast');
+        sp3.append('limit', '8');
+
+        const res3 = await querySupabase(sp3);
+        addRelated(res3.data);
+      }
     }
   }
 
