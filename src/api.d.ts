@@ -55,7 +55,7 @@ export function fetchUserCollectionItems(sessionToken: string): Promise<any[]>;
 export function createUserCollection(collectionData: Record<string, unknown>, sessionToken: string): Promise<any>;
 export function addUserCollectionItem(itemData: Record<string, unknown>, sessionToken: string): Promise<any>;
 export function deleteUserCollectionItem(collectionId: string | number, userId: string, buildingId: string | number, sessionToken: string): Promise<any>;
-export function getBuildingsCatalog(): Promise<unknown[]>;
+export function getBuildingsCatalog(forceRefresh?: boolean): Promise<unknown[]>;
 export function fetchBuildings(options?: Record<string, unknown>): Promise<unknown[]>;
 export function searchPlaces(query: string, language?: string): Promise<unknown>;
 

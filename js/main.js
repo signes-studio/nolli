@@ -43,7 +43,7 @@ window.nolliCargarPanelBajoDemanda = cargarPanelBajoDemanda;
 window.nolliPanelModules = panelModules;
 window.nolliState = state;
 
-async function cargarEdificiosVisibles() {
+async function cargarEdificiosVisibles(forceRefresh = false) {
   const requestId = ++publicLoadRequest;
   publicLoadController?.abort();
   publicLoadController = new AbortController();
@@ -53,7 +53,9 @@ async function cargarEdificiosVisibles() {
     const habiaFiltroDeArquitectos = arquitectosAnteriores.size > 0
       && arquitectosActivosAnteriores.size < arquitectosAnteriores.size;
 
-    const catalogo = state.BUILDING_CATALOG.length ? state.BUILDING_CATALOG : await getBuildingsCatalog();
+    const catalogo = (!forceRefresh && state.BUILDING_CATALOG.length)
+      ? state.BUILDING_CATALOG
+      : await getBuildingsCatalog(forceRefresh);
     const rawCatalogo = Array.isArray(catalogo) ? catalogo : [];
     state.BUILDING_CATALOG = rawCatalogo.map((fila) => ({ ...fila, categoria: normalizarCategoria(fila.categoria) }));
     state.ARQUITECTOS = [...new Set(state.BUILDING_CATALOG.flatMap((fila) => separarArquitectos(fila.arquitecto)))];
@@ -429,6 +431,28 @@ try { initModalsUI(); } catch (err) { console.warn('Init ModalsUI:', err); }
 try { initSearchUI(); } catch (err) { console.warn('Init SearchUI:', err); }
 try { initMobileBottomNav(); } catch (err) { console.warn('Init MobileBottomNav:', err); }
 try { initFilterEngine(); } catch (err) { console.warn('Init FilterEngine:', err); }
+
+// 3. Sincronización reactiva y revalidación automática de catálogo
+const recargarCatalogoActualizado = () => {
+  cargarEdificiosVisibles(true).catch(() => {});
+};
+window.addEventListener('nolli:catalog-updated', recargarCatalogoActualizado);
+document.addEventListener('radar:catalog-updated', recargarCatalogoActualizado);
+document.addEventListener('radar:catalog-invalidated', recargarCatalogoActualizado);
+
+// Revalidar en segundo plano al reactivar pestaña o app PWA si han pasado > 5 minutos
+let ultimaSincronizacionVisibilidad = Date.now();
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    const ahora = Date.now();
+    if (ahora - ultimaSincronizacionVisibilidad > 5 * 60 * 1000) {
+      ultimaSincronizacionVisibilidad = ahora;
+      cargarEdificiosVisibles(true).catch((err) => {
+        console.warn('Revalidación de catálogo al reactivar pestaña:', err);
+      });
+    }
+  }
+});
 
 const adminPanelButton = document.getElementById('btn-admin-panel');
 adminPanelButton?.addEventListener('click', async (event) => {

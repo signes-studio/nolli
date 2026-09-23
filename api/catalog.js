@@ -3,7 +3,7 @@ const { getSupabaseConfig } = require('./_lib/supabaseEnv.js');
 // Rate limiting in-memory map (por IP en el container edge)
 const rateLimitMap = new Map();
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000; // 10 minutos
-const RATE_LIMIT_MAX_REQUESTS = 20; // Máximo 20 peticiones por ventana de 10 min
+const RATE_LIMIT_MAX_REQUESTS = 60; // 60 peticiones por ventana de 10 min para revalidaciones fluidas
 
 function checkRateLimit(ip) {
   const now = Date.now();
@@ -101,8 +101,8 @@ module.exports = async function handler(req, res) {
     // Etiquetas para invalidación/purga granular en Vercel Edge y Cloudflare CDN
     res.setHeader('Vercel-Cache-Tag', 'catalog');
     res.setHeader('Cache-Tag', 'catalog');
-    // Cabecera Edge CDN compartida a nivel mundial: 1 hora fresca (s-maxage=3600), 2 horas revalidación
-    res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=7200');
+    // Cabecera Edge CDN compartida a nivel mundial: 5 minutos fresca (s-maxage=300), 10 minutos revalidación
+    res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
     return res.status(200).json(allBuildings);
   } catch (error) {
     console.error('Error al generar catálogo en edge:', error);

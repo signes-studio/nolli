@@ -538,9 +538,14 @@ function initMobileIdentityWidget(toggleMobilePanel) {
 let cacheObrasMobileSearch = null;
 let mobileSearchPromise = null;
 
-document.addEventListener('radar:catalog-invalidated', () => {
+function invalidarCacheMobileSearch() {
   cacheObrasMobileSearch = null;
-});
+  mobileSearchPromise = null;
+}
+
+document.addEventListener('radar:catalog-invalidated', invalidarCacheMobileSearch);
+document.addEventListener('radar:catalog-updated', invalidarCacheMobileSearch);
+window.addEventListener('nolli:catalog-updated', invalidarCacheMobileSearch);
 
 async function cargarTodasObrasMobile() {
   if (cacheObrasMobileSearch && cacheObrasMobileSearch.length > 0) {

@@ -106,10 +106,17 @@ export function initSearchUI() {
     }
   });
 
+  const limpiarCacheSearch = () => {
+    cacheObrasGlobales = null;
+  };
+
   document.addEventListener('radar:data-ready', () => {
     cacheObrasGlobales = null;
     actualizarOpciones();
   });
+  document.addEventListener('radar:catalog-invalidated', limpiarCacheSearch);
+  document.addEventListener('radar:catalog-updated', limpiarCacheSearch);
+  window.addEventListener('nolli:catalog-updated', limpiarCacheSearch);
 }
 
 async function buscarUbicaciones(query) {
