@@ -1,6 +1,6 @@
 const { categoryClass, categoryLabel } = require('./_lib/categories.js');
 const { detectServerLanguage, getLangPrefix, getSSRText, getHreflangTags, getOgLocaleTags, renderSiteFooter } = require('./_lib/i18n.js');
-const { slugify, isIgnoredArchitect, ARCHITECT_ALIASES, cleanArchitectName, parseArchitectsAndInterventions } = require('./_lib/slugs.js');
+const { slugify, slugToRegex, extractCityName, isIgnoredArchitect, ARCHITECT_ALIASES, cleanArchitectName, parseArchitectsAndInterventions } = require('./_lib/slugs.js');
 const { createRateLimiter } = require('./_lib/rateLimiter.js');
 const { getSupabaseConfig } = require('./_lib/supabaseEnv.js');
 const { getImportanceInfo } = require('./_lib/importance.js');
@@ -8,6 +8,17 @@ const { getImportanceInfo } = require('./_lib/importance.js');
 const checkRateLimit = createRateLimiter({ windowMs: 60 * 1000, maxRequests: 60 });
 
 const SITE_URL = 'https://nollimap.app';
+
+const CATEGORY_COLORS = {
+  residencial: '#EA560D',
+  dotacional_equipamiento: '#F6A600',
+  industrial_logistico: '#163D62',
+  religioso_funerario: '#F6B9C5',
+  comercial_terciario: '#007BC3',
+  espacio_publico_paisaje: '#007446',
+  infraestructura_urbanismo: '#E02523',
+  otro: '#492900',
+};
 
 function escapeHtml(value) {
   return String(value || '')
@@ -56,7 +67,152 @@ async function fetchPublicBuilding(id) {
   return buildings[0] || null;
 }
 
-function renderBuildingPage(building, lang = 'es') {
+async function fetchSimilarBuildings(building) {
+  if (!building || !building.id) return [];
+  const { supabaseUrl, serviceRoleKey: supabaseKey } = getSupabaseConfig();
+  if (!supabaseUrl || !supabaseKey) return [];
+
+  const currentId = String(building.id).trim();
+  const fields = 'id,nombre_obra,arquitecto,año_construccion,categoria,place,foto_url,latitud,longitud,importancia';
+  const headers = {
+    apikey: supabaseKey,
+    Authorization: `Bearer ${supabaseKey}`,
+  };
+
+  const similarMap = new Map();
+
+  function addBuildings(items) {
+    if (!Array.isArray(items)) return;
+    for (const item of items) {
+      if (!item || !item.id) continue;
+      const idStr = String(item.id).trim();
+      if (idStr === currentId) continue;
+      if (!similarMap.has(idStr)) {
+        similarMap.set(idStr, item);
+      }
+    }
+  }
+
+  async function querySupabase(params) {
+    try {
+      const res = await fetch(`${supabaseUrl}/rest/v1/Buildings?${params.toString()}`, { headers });
+      if (!res.ok) return [];
+      return await res.json().catch(() => []);
+    } catch {
+      return [];
+    }
+  }
+
+  // 1. Prioridad 1: Mismo arquitecto
+  const { arquitectos: cleanArchitects } = parseArchitectsAndInterventions(building.arquitecto);
+  const primaryArchitect = cleanArchitects.find((name) => !isIgnoredArchitect(name));
+
+  if (primaryArchitect) {
+    const regex = slugToRegex(primaryArchitect);
+    const sp1 = new URLSearchParams();
+    sp1.append('select', fields);
+    sp1.append('id', `neq.${currentId}`);
+    sp1.append('arquitecto', `imatch.${regex}`);
+    sp1.append('or', '(estado_revision.eq.publicada,estado_revision.is.null)');
+    sp1.append('order', 'importancia.asc,año_construccion.desc.nullslast');
+    sp1.append('limit', '6');
+
+    const res1 = await querySupabase(sp1);
+    addBuildings(res1);
+  }
+
+  if (similarMap.size >= 3) {
+    return Array.from(similarMap.values()).slice(0, 6);
+  }
+
+  // 2. Prioridad 2: Misma categoría + década (año_construccion ±10 años)
+  if (building.categoria) {
+    const sp2 = new URLSearchParams();
+    sp2.append('select', fields);
+    sp2.append('id', `neq.${currentId}`);
+    sp2.append('categoria', `eq.${building.categoria}`);
+    sp2.append('or', '(estado_revision.eq.publicada,estado_revision.is.null)');
+
+    const year = parseInt(building.año_construccion, 10);
+    if (!Number.isNaN(year) && year > 0) {
+      sp2.append('año_construccion', `gte.${year - 10}`);
+      sp2.append('año_construccion', `lte.${year + 10}`);
+    }
+    sp2.append('order', 'importancia.asc,id.asc');
+    sp2.append('limit', '6');
+
+    const res2 = await querySupabase(sp2);
+    addBuildings(res2);
+  }
+
+  if (similarMap.size >= 3) {
+    return Array.from(similarMap.values()).slice(0, 6);
+  }
+
+  // 3. Prioridad 3: Misma ciudad / place
+  const city = extractCityName(building.place);
+  if (city) {
+    const sp3 = new URLSearchParams();
+    sp3.append('select', fields);
+    sp3.append('id', `neq.${currentId}`);
+    sp3.append('place', `ilike.*${city}*`);
+    sp3.append('or', '(estado_revision.eq.publicada,estado_revision.is.null)');
+    sp3.append('order', 'importancia.asc,año_construccion.desc.nullslast');
+    sp3.append('limit', '6');
+
+    const res3 = await querySupabase(sp3);
+    addBuildings(res3);
+  }
+
+  return Array.from(similarMap.values()).slice(0, 6);
+}
+
+function renderObraCardHtml(b, lang = 'es') {
+  const prefix = getLangPrefix(lang);
+  const catSlug = b.categoria || 'otro';
+  const catColor = CATEGORY_COLORS[catSlug] || CATEGORY_COLORS.otro;
+  const catText = categoryLabel(b.categoria, lang);
+  const optThumb = b.foto_url ? getOptimizedUrl(b.foto_url, 360) : '';
+
+  const rawImportance = b.importancia != null ? Number(b.importancia) : NaN;
+  const hasImp = Number.isFinite(rawImportance) && rawImportance >= 0 && rawImportance <= 3;
+  const impLevel = hasImp ? Math.min(3, Math.max(0, Math.round(rawImportance))) : 3;
+  const filledSquares = 4 - impLevel;
+  const impInfo = getImportanceInfo(b.importancia, lang);
+  const isHito = hasImp && impLevel === 0;
+
+  const metaParts = [b.arquitecto, b.año_construccion, b.place].filter(Boolean).join(' · ');
+
+  return `
+    <a href="${SITE_URL}${prefix}/obra/${encodeURIComponent(b.id)}" class="obra-card obra-card--similar" data-id="${escapeHtml(b.id)}" aria-label="Ver ${escapeHtml(b.nombre_obra)}">
+      ${optThumb ? `
+        <div class="obra-card__thumb">
+          <img src="${escapeHtml(optThumb)}" alt="${escapeHtml(b.nombre_obra)}" loading="lazy" decoding="async" onerror="this.parentElement.style.display='none'">
+        </div>
+      ` : ''}
+      <div class="obra-card__body">
+        <div class="obra-card__topline">
+          <div class="obra-card__tags">
+            <span class="obra-card__category" style="--obra-category:${catColor};">
+              <span class="obra-card__cat-pip" style="background:${catColor};"></span>
+              <span>${escapeHtml(catText)}</span>
+            </span>
+            ${hasImp ? `
+              <span class="obra-card__importance-meter" title="${escapeHtml(impInfo.desc)}" aria-label="${escapeHtml(impInfo.desc)}" role="img">
+                ${[1, 2, 3, 4].map((w) => `<span class="obra-card__importance-sq ${w <= filledSquares ? 'is-filled' : ''}"></span>`).join('')}
+              </span>
+            ` : ''}
+            ${isHito ? '<span class="obra-card__badge-hito">HITO</span>' : ''}
+          </div>
+        </div>
+        <h3 class="obra-card__title">${escapeHtml(b.nombre_obra)}</h3>
+        ${metaParts ? `<p class="obra-card__meta">${escapeHtml(metaParts)}</p>` : ''}
+      </div>
+    </a>
+  `;
+}
+
+function renderBuildingPage(building, lang = 'es', similarBuildings = []) {
   const prefix = getLangPrefix(lang);
   const canonicalUrl = `${SITE_URL}/obra/${encodeURIComponent(building.id)}`;
   const title = `${building.nombre_obra} | nolli.`;
@@ -625,6 +781,173 @@ function renderBuildingPage(building, lang = 'es') {
     .tech-value a:hover {
       text-decoration: underline;
     }
+    /* Tarjeta de Obra Unificada (.obra-card) */
+    .obra-card {
+      display: flex;
+      gap: 12px;
+      align-items: stretch;
+      width: 100%;
+      padding: 10px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      border-radius: var(--radius-sm);
+      color: var(--ink);
+      text-align: left;
+      cursor: pointer;
+      box-sizing: border-box;
+      text-decoration: none;
+      position: relative;
+      transition: border-color 0.12s ease, background-color 0.12s ease, transform 0.1s ease, box-shadow 0.12s ease;
+    }
+    .obra-card:hover,
+    .obra-card:focus-visible {
+      border-color: var(--brand);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+      outline: none;
+    }
+    .obra-card:active {
+      transform: scale(0.99);
+    }
+    .obra-card__thumb {
+      width: 76px;
+      min-width: 76px;
+      height: 76px;
+      overflow: hidden;
+      background: var(--bg-elevated);
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+    .obra-card__thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .obra-card__body {
+      min-width: 0;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      justify-content: center;
+    }
+    .obra-card__topline {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+    }
+    .obra-card__tags {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+      flex-wrap: nowrap;
+    }
+    .obra-card__category {
+      color: var(--ink);
+      font-family: var(--font-body);
+      font-size: 10.5px;
+      font-weight: 600;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+    .obra-card__cat-pip {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .obra-card__importance-meter {
+      display: inline-flex;
+      align-items: center;
+      gap: 2.5px;
+      flex-shrink: 0;
+    }
+    .obra-card__importance-sq {
+      display: inline-block;
+      width: 5px;
+      height: 5px;
+      box-sizing: border-box;
+      border: 1px solid var(--border);
+      background: transparent;
+      border-radius: 1px;
+    }
+    .obra-card__importance-sq.is-filled {
+      background: var(--ink);
+    }
+    .obra-card__badge-hito {
+      font-family: var(--font-body);
+      font-size: 8.5px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      background: var(--brand);
+      color: #FFFFFF;
+      padding: 1.5px 5px;
+      border-radius: 3px;
+      line-height: 1;
+    }
+    .obra-card__title {
+      margin: 0;
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.25;
+      color: var(--ink);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      letter-spacing: -0.01em;
+    }
+    .obra-card__meta {
+      margin: 0;
+      color: var(--ink-dim);
+      font-family: var(--font-body);
+      font-size: 11.5px;
+      font-weight: 400;
+      line-height: 1.35;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    /* Sección de Proyectos Similares */
+    .similar-works-section {
+      margin-top: var(--space-6);
+      padding-top: var(--space-4);
+      border-top: 1px solid var(--border);
+    }
+    .similar-works-header {
+      margin-bottom: var(--space-3);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .similar-works-title {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      text-transform: uppercase;
+    }
+    .similar-works-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 12px;
+    }
+    @media (max-width: 600px) {
+      .similar-works-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+    }
     .site-footer {
       margin-top: var(--space-8);
       padding: var(--space-4) 0;
@@ -772,6 +1095,17 @@ function renderBuildingPage(building, lang = 'es') {
           </div>
         ` : ''}
       </div>
+
+      ${similarBuildings && similarBuildings.length > 0 ? `
+        <section class="similar-works-section" aria-labelledby="similar-works-title">
+          <div class="similar-works-header">
+            <h2 id="similar-works-title" class="similar-works-title">${escapeHtml(getSSRText('similar_works', lang))}</h2>
+          </div>
+          <div class="similar-works-grid">
+            ${similarBuildings.map((sim) => renderObraCardHtml(sim, lang)).join('')}
+          </div>
+        </section>
+      ` : ''}
     </article>
 
     ${renderSiteFooter(lang, SITE_URL)}
@@ -972,7 +1306,8 @@ module.exports = async (request, response) => {
     const cacheTag = `building-${id},obra-${id},catalog`;
     response.setHeader('Vercel-Cache-Tag', cacheTag);
     response.setHeader('Cache-Tag', cacheTag);
-    return response.status(200).send(renderBuildingPage(building, lang));
+    const similarBuildings = await fetchSimilarBuildings(building);
+    return response.status(200).send(renderBuildingPage(building, lang, similarBuildings));
   } catch (error) {
     console.error('No se pudo generar la página de obra:', error);
     response.setHeader('Content-Type', 'text/plain; charset=utf-8');
@@ -983,3 +1318,5 @@ module.exports = async (request, response) => {
 
 module.exports.renderBuildingPage = renderBuildingPage;
 module.exports.renderNotFoundPage = renderNotFoundPage;
+module.exports.fetchSimilarBuildings = fetchSimilarBuildings;
+module.exports.renderObraCardHtml = renderObraCardHtml;
