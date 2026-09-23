@@ -577,7 +577,7 @@ function renderHero() {
   const verifiedBadge = document.getElementById('profile-verified-badge');
   if (verifiedBadge) {
     verifiedBadge.classList.toggle('hidden', !db.is_verified_pro);
-    if (db.verified_pro_title) verifiedBadge.textContent = `✓ ${db.verified_pro_title.toUpperCase()}`;
+    if (db.verified_pro_title) verifiedBadge.textContent = db.verified_pro_title.toUpperCase();
   }
 
   const schoolBadge = document.getElementById('profile-school-badge');
@@ -982,16 +982,16 @@ async function renderNetworkFeed() {
                       ${escapeHtml(name[0].toUpperCase())}
                     </div>
                     <div>
-                      <strong style="font-size: 12px; display: block;">${escapeHtml(name)} ${s.is_verified_pro ? '<span style="color:var(--accent); font-size:10px;">✓ pro</span>' : ''}</strong>
+                      <strong style="font-size: 12px; display: block;">${escapeHtml(name)} ${s.is_verified_pro ? '<span style="color:var(--accent); font-size:10px; font-weight:600;">[pro]</span>' : ''}</strong>
                       <span style="font-size: 10px; color: var(--fg-dim);">${escapeHtml(nick)}${school}</span>
                     </div>
                   </div>
                   <div style="display: flex; gap: 8px;">
                     <button type="button" class="btn-accept-friend filter-action" data-friendship-id="${req.friendshipId}" style="padding: 6px 12px; font-size: 10px; font-weight: 500; text-transform: lowercase; border-radius: 6px; background: var(--fg); color: var(--bg); border: 1px solid rgba(0, 0, 0, 0.1); cursor: pointer;">
-                      ✓ aceptar
+                      aceptar
                     </button>
                     <button type="button" class="btn-decline-friend filter-action" data-friendship-id="${req.friendshipId}" style="padding: 6px 12px; font-size: 10px; font-weight: 500; text-transform: lowercase; border-radius: 6px; background: var(--bg-raised); color: var(--fg); border: 1px solid rgba(0, 0, 0, 0.1); cursor: pointer;">
-                      ✕ rechazar
+                      rechazar
                     </button>
                   </div>
                 </div>
@@ -1012,7 +1012,7 @@ async function renderNetworkFeed() {
     if (!friends.length) {
       html += `
         <div class="profile-feed-empty" style="padding: 24px; text-align: center; border: 1px dashed var(--border); border-radius: 8px; font-size: 11px;">
-          Aún no tienes amigos en Nolli.<br>
+          Aún no tienes amigos en nolli.<br>
           <span style="font-size: 10px; color: var(--fg-dim); margin-top: 6px; display: block;">
             Visita perfiles públicos para enviar solicitudes de amistad y conectar con otros arquitectos.
           </span>
@@ -1033,7 +1033,7 @@ async function renderNetworkFeed() {
                     ${escapeHtml(name[0].toUpperCase())}
                   </div>
                   <div>
-                    <strong style="font-size: 12px; display: block;">${escapeHtml(name)} ${f.is_verified_pro ? '<span style="color:var(--accent); font-size:10px;">✓ pro</span>' : ''}</strong>
+                    <strong style="font-size: 12px; display: block;">${escapeHtml(name)} ${f.is_verified_pro ? '<span style="color:var(--accent); font-size:10px; font-weight:600;">[pro]</span>' : ''}</strong>
                     <span style="font-size: 10px; color: var(--fg-dim);">${escapeHtml(nick)}${school}${location ? ` · ${escapeHtml(location)}` : ''}</span>
                   </div>
                 </div>
@@ -1306,8 +1306,8 @@ function renderCollectionsFeed() {
             <a href="./#list=${encodeURIComponent(col.id)}" class="profile-col-action-btn" title="${escapeHtml(t('profile_view_on_map_title', null, 'Ver en el mapa'))}" aria-label="Ver en el mapa">
               <i data-lucide="map" width="14" height="14"></i>
             </a>
-            <button type="button" class="profile-col-action-btn btn-delete" data-unfollow-col="${col.id}" title="${escapeHtml(t('profile_unfollow_title', null, 'Dejar de seguir'))}" aria-label="Dejar de seguir">
-              ✕
+            <button type="button" class="profile-col-action-btn btn-delete" data-unfollow-col="${col.id}" title="${escapeHtml(t('profile_unfollow_title', null, 'Dejar de seguir'))}" aria-label="Dejar de seguir" style="display:inline-flex; align-items:center; justify-content:center;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
           </div>
         </article>

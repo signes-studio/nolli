@@ -635,7 +635,7 @@ function renderFormSelectedWorksList() {
         <div class="selected-work-btns">
           <button type="button" class="btn-icon-small btn-move-up" data-index="${index}" title="Subir parada" ${index === 0 ? 'disabled style="opacity:0.3;cursor:default;"' : ''}>▲</button>
           <button type="button" class="btn-icon-small btn-move-down" data-index="${index}" title="Bajar parada" ${index === list.length - 1 ? 'disabled style="opacity:0.3;cursor:default;"' : ''}>▼</button>
-          <button type="button" class="btn-icon-small btn-remove-work" data-index="${index}" title="Quitar obra del itinerario" style="color: var(--admin-red); font-weight: 800;">✕</button>
+          <button type="button" class="btn-icon-small btn-remove-work" data-index="${index}" title="Quitar obra del itinerario" style="color: var(--admin-red); font-weight: 800; display: inline-flex; align-items: center; justify-content: center;" aria-label="Quitar obra"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
         </div>
       </div>
     `;

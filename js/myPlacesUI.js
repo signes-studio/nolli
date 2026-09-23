@@ -402,7 +402,7 @@ export function abrirModalCrearLista() {
       <div style="background:var(--bg-panel, #F8F1DF); border:2px solid var(--border-strong, #111111); box-shadow:4px 4px 0px #111111; padding:18px; width:100%; max-width:340px; display:grid; gap:12px; font-family: 'Inter', sans-serif; font-size:11px;">
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid var(--border-strong); padding-bottom:6px;">
           <strong style="color:var(--accent); font-family:'League Spartan',sans-serif; font-size:14px;">${t('places_new_list', null, 'NUEVA LISTA')}</strong>
-          <button type="button" class="filter-action" data-close-modal style="cursor:pointer;" aria-label="Cerrar modal">✕</button>
+          <button type="button" class="filter-action" data-close-modal style="cursor:pointer; display:inline-flex; align-items:center; justify-content:center; padding:2px;" aria-label="Cerrar modal"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
         </div>
         <div style="display:grid; grid-template-columns: 50px 1fr; gap:6px;">
           <input id="modal-emoji-input" class="tech-input" type="text" placeholder="Icono" maxlength="4" style="text-align:center;" title="Icono / Emoji">
@@ -550,7 +550,7 @@ function abrirModalEditarLista(collectionId) {
       <div style="background:var(--bg-panel, #F8F1DF); border:2px solid var(--border-strong, #111111); box-shadow:4px 4px 0px #111111; padding:18px; width:100%; max-width:340px; display:grid; gap:12px; font-family: 'Inter', sans-serif; font-size:11px;">
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid var(--border-strong); padding-bottom:6px;">
           <strong style="color:var(--accent); font-family:'League Spartan',sans-serif; font-size:14px;">EDITAR LISTA</strong>
-          <button type="button" class="filter-action" data-close-modal style="cursor:pointer;">✕</button>
+          <button type="button" class="filter-action" data-close-modal style="cursor:pointer; display:inline-flex; align-items:center; justify-content:center; padding:2px;" aria-label="Cerrar modal"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
         </div>
         <div style="display:grid; grid-template-columns: 50px 1fr; gap:6px;">
           <input id="modal-edit-emoji" class="tech-input" type="text" value="${escapeHtml(collection.icon || '')}" placeholder="Icono" maxlength="4" style="text-align:center;">
@@ -818,7 +818,7 @@ function renderCollections() {
     const rows = collectionItems.map((item) => {
       const obra = state.OBRAS.find((candidate) => String(candidate.id) === String(item.building_id));
       if (!obra) return '';
-      const removeBtn = `<button type="button" class="btn-remove-collection" data-collection-id="${collection.id}" data-remove-from-collection="${obra.id}" title="${escapeHtml(t('profile_remove_from_list_title', null, 'Quitar de la lista'))}" aria-label="${escapeHtml(t('profile_remove_from_list_title', null, 'Quitar de la lista'))}">✕</button>`;
+      const removeBtn = `<button type="button" class="btn-remove-collection" data-collection-id="${collection.id}" data-remove-from-collection="${obra.id}" title="${escapeHtml(t('profile_remove_from_list_title', null, 'Quitar de la lista'))}" aria-label="${escapeHtml(t('profile_remove_from_list_title', null, 'Quitar de la lista'))}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>`;
       return renderObraCard(obra, {
         variant: 'collection-item',
         className: 'my-collection-item-card my-place-item in-collection',
@@ -870,7 +870,7 @@ function renderCollections() {
   const followedCards = (state.userFollowedCollections || []).map((followItem) => {
     const col = followItem.user_collections || followItem;
     if (!col) return '';
-    const creatorName = col.profiles?.nick ? `@${col.profiles.nick}` : (col.profiles?.first_name ? `@${col.profiles.first_name}` : 'Comunidad Nolli');
+    const creatorName = col.profiles?.nick ? `@${col.profiles.nick}` : (col.profiles?.first_name ? `@${col.profiles.first_name}` : 'Comunidad nolli.');
     const emoji = col.icon || '';
     const title = col.name || 'Lista pública';
 
@@ -888,8 +888,8 @@ function renderCollections() {
             <button type="button" class="collection-tool-btn" data-view-collection-map="${col.id}" title="${t('collection_view_map')}" style="color:var(--accent); border-color:var(--accent);">
               <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" x2="9" y1="3" y2="18"/><line x1="15" x2="15" y1="6" y2="21"/></svg>
             </button>
-            <button type="button" class="collection-tool-btn btn-delete" data-unfollow-collection="${col.id}" title="${t('collection_unfollow_title')}" aria-label="${t('collection_unfollow_title')}">
-              ✕
+            <button type="button" class="collection-tool-btn btn-delete" data-unfollow-collection="${col.id}" title="${t('collection_unfollow_title')}" aria-label="${t('collection_unfollow_title')}" style="display:inline-flex; align-items:center; justify-content:center;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
           </div>
         </div>

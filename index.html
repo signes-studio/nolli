@@ -454,7 +454,7 @@
         <div class="admin-search-wrapper">
           <svg class="admin-search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           <input id="admin-search" class="admin-search-input" type="search" placeholder="BUSCAR POR NOMBRE, ARQUITECTO, CIUDAD, AÑO, ID..." aria-label="Buscar proyecto" autocomplete="off" spellcheck="false">
-          <button type="button" id="btn-admin-clear-search" class="admin-clear-search-btn hidden" title="Limpiar búsqueda" aria-label="Limpiar búsqueda">✕</button>
+          <button type="button" id="btn-admin-clear-search" class="admin-clear-search-btn hidden" title="Limpiar búsqueda" aria-label="Limpiar búsqueda"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
         </div>
         
         <div class="admin-filters-grid" id="admin-filters-grid">
@@ -488,11 +488,11 @@
             <label class="admin-filter-label" for="admin-audit-filter">AUDITORÍA</label>
             <select id="admin-audit-filter" class="admin-select" aria-label="Auditoría de integridad">
               <option value="">COMPLETA</option>
-              <option value="sin-foto">⚠️ SIN FOTOGRAFÍA</option>
-              <option value="con-foto">✓ CON FOTOGRAFÍA</option>
-              <option value="sin-arquitecto">⚠️ SIN ARQUITECTO</option>
-              <option value="sin-ano">⚠️ SIN AÑO</option>
-              <option value="sin-coords">⚠️ SIN COORDENADAS</option>
+              <option value="sin-foto">[sin fotografía]</option>
+              <option value="con-foto">[con fotografía]</option>
+              <option value="sin-arquitecto">[sin arquitecto]</option>
+              <option value="sin-ano">[sin año]</option>
+              <option value="sin-coords">[sin coordenadas]</option>
             </select>
           </div>
           <div class="admin-filter-field">
@@ -596,7 +596,7 @@
       <div id="admin-invite-user-form" class="admin-invite-user-form hidden" style="padding: 12px; background: var(--bg-raised); border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; margin: 8px 0;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
           <strong style="font-size:11px; letter-spacing:0.05em;" data-i18n="admin_invite_user_title">INVITAR NUEVO USUARIO</strong>
-          <button type="button" id="btn-admin-cancel-invite" style="background:none; border:none; cursor:pointer; color:var(--fg-dim); font-size:13px;" aria-label="Cancelar">✕</button>
+          <button type="button" id="btn-admin-cancel-invite" style="background:none; border:none; cursor:pointer; color:var(--fg-dim); display:inline-flex; align-items:center; justify-content:center; padding:2px;" aria-label="Cancelar"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
         </div>
         <p style="font-size:11px; color:var(--fg-dim); margin-bottom:8px;" data-i18n="admin_invite_user_desc">Envía un enlace de activación por correo para que se una a <span class="brand-nolli">nolli.</span> con perfil registrado.</p>
         <div style="display:flex; gap:8px;">
@@ -1472,7 +1472,7 @@
         <div class="info-legal-section">
           <div class="info-legal-kicker">CARTOGRAFÍA // FUENTES Y ATRIBUCIÓN</div>
           <h3 class="info-legal-h3">PROVEEDORES Y DATOS GEOGRÁFICOS</h3>
-          <p class="info-legal-text">La cartografía interactiva de Nolli utiliza tecnología vectorial de alto rendimiento combinada con datos abiertos y colaborativos mundiales:</p>
+          <p class="info-legal-text">La cartografía interactiva de <span class="brand-nolli">nolli.</span> utiliza tecnología vectorial de alto rendimiento combinada con datos abiertos y colaborativos mundiales:</p>
           
           <div class="info-legal-card">
             <div class="info-legal-card-row">
@@ -1487,9 +1487,9 @@
         </div>
 
         <div class="info-legal-section">
-          <div class="info-legal-kicker">CAPAS Y ESTILOS // NOLLI</div>
+          <div class="info-legal-kicker">CAPAS Y ESTILOS // nolli.</div>
           <h3 class="info-legal-h3">EXPERIENCIA CARTOGRÁFICA</h3>
-          <p class="info-legal-text">Nolli ofrece tres modos de visualización especialmente diseñados para la contemplación arquitectónica:</p>
+          <p class="info-legal-text"><span class="brand-nolli">nolli.</span> ofrece tres modos de visualización especialmente diseñados para la contemplación arquitectónica:</p>
           <ul class="info-legal-list">
             <li><strong>Modo Abstracción:</strong> Cartografía monocromática de figura-fondo inspirada en el plano de Roma de Giambattista Nolli (1748), maximizando el protagonismo de las obras construidas.</li>
             <li><strong>Modo Satélite:</strong> Fotografía aérea y de satélite de alta resolución para estudiar la implantación urbana y paisajística.</li>
@@ -1504,7 +1504,7 @@
         <div class="info-legal-section">
           <div class="info-legal-kicker">POLÍTICA // COOKIES Y PRIVACIDAD TÉCNICA</div>
           <h3 class="info-legal-h3">ALMACENAMIENTO LOCAL SIN RASTREO COMERCIAL</h3>
-          <p class="info-legal-text">En cumplimiento del artículo 22.2 de la LSSI-CE, Nolli <strong>no utiliza cookies propias publicitarias, de seguimiento comportamental ni de venta de datos a terceros</strong>.</p>
+          <p class="info-legal-text">En cumplimiento del artículo 22.2 de la LSSI-CE, <span class="brand-nolli">nolli.</span> <strong>no utiliza cookies propias publicitarias, de seguimiento comportamental ni de venta de datos a terceros</strong>.</p>
           
           <div class="info-legal-card">
             <strong class="info-legal-card-title">¿Qué datos se guardan en tu navegador?</strong>
@@ -1545,7 +1545,7 @@
               <div class="info-legal-badge">01 / AVISO LEGAL</div>
               <p class="info-legal-text"><strong>Titular del servicio:</strong> LUIS ALBERTO SIGNES SACRISTÁN (València, España).</p>
               <p class="info-legal-text"><strong>Contacto:</strong> <a href="mailto:nolli@signes.studio" class="info-legal-link">nolli@signes.studio</a> &bull; <strong>Dominio:</strong> <a href="https://nollimap.app" target="_blank" class="info-legal-link">https://nollimap.app</a></p>
-              <p class="info-legal-text">Nolli es una plataforma digital interactiva para la divulgación, cartografía y catalogación de arquitectura moderna y contemporánea.</p>
+              <p class="info-legal-text"><span class="brand-nolli">nolli.</span> es una plataforma digital interactiva para la divulgación, cartografía y catalogación de arquitectura moderna y contemporánea.</p>
             </div>
 
             <!-- 02 Privacidad -->
@@ -1560,14 +1560,14 @@
             <div class="info-legal-card">
               <div class="info-legal-badge">03 / TÉRMINOS DE USO</div>
               <p class="info-legal-text">Queda prohibido el uso no autorizado, el scraping automatizado masivo que sature los servidores y la introducción de contenidos ilícitos.</p>
-              <p class="info-legal-text">Las aportaciones colaborativas otorgan a Nolli una licencia no exclusiva y gratuita para su catalogación y exhibición pública.</p>
+              <p class="info-legal-text">Las aportaciones colaborativas otorgan a <span class="brand-nolli">nolli.</span> una licencia no exclusiva y gratuita para su catalogación y exhibición pública.</p>
               <p class="info-legal-text">La información de las obras tiene carácter divulgativo; se aconseja verificar in situ los horarios y accesos con las entidades competentes.</p>
             </div>
 
             <!-- 04 Propiedad Intelectual -->
             <div class="info-legal-card">
               <div class="info-legal-badge">04 / PROPIEDAD INTELECTUAL</div>
-              <p class="info-legal-text">Conforme al art. 16 de la LSSI-CE, Nolli actúa con diligencia retirando cualquier contenido presuntamente infractor tras notificación motivada en <a href="mailto:nolli@signes.studio" class="info-legal-link">nolli@signes.studio</a>.</p>
+              <p class="info-legal-text">Conforme al art. 16 de la LSSI-CE, <span class="brand-nolli">nolli.</span> actúa con diligencia retirando cualquier contenido presuntamente infractor tras notificación motivada en <a href="mailto:nolli@signes.studio" class="info-legal-link">nolli@signes.studio</a>.</p>
               <p class="info-legal-text">Las fotografías de obras permanentemente situadas en vías públicas pueden estar amparadas por la libertad de panorama (art. 35.2 TRLPI).</p>
             </div>
           </div>

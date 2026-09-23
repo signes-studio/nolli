@@ -2049,11 +2049,11 @@ function renderIntegrityAudit(filterType = 'all', searchQuery = '') {
             ${escapeHtml(b.nombre_obra || 'Sin título')}
           </a>
         </td>
-        <td>${escapeHtml(b.arquitecto || '⚠️ SIN AUTOR')}</td>
+        <td>${escapeHtml(b.arquitecto || 'SIN AUTOR')}</td>
         <td>${escapeHtml(b.place || b.ciudad || '—')}</td>
         <td>${statusBadge}</td>
         <td>
-          ${hasPhoto ? '<span style="color:var(--admin-green); font-weight:700;">✓ R2</span>' : '<span style="color:var(--admin-red); font-weight:700;">⚠️ Sin foto</span>'}
+          ${hasPhoto ? '<span style="color:var(--admin-green); font-weight:700;">R2</span>' : '<span style="color:var(--admin-red); font-weight:700;">SIN FOTO</span>'}
         </td>
         <td style="text-align:right;">
           <button type="button" class="btn-action-icon" data-work-edit="${b.id}" title="Editar ficha completa">

@@ -1549,7 +1549,7 @@ export async function handleDeletePhoto(photoId, building, photoUrl, onComplete 
 
   try {
     await deleteVisitPhoto(photoId, state.sessionToken);
-    showNeoToast('✓ Fotografía eliminada correctamente.');
+    showNeoToast('Fotografía eliminada correctamente.');
 
     // Si la foto eliminada era la foto principal de la ficha abierta
     const targetBuilding = building || currentOpenBuilding || getSelectedBuilding();
@@ -1593,7 +1593,7 @@ export async function handleSetPhotoAsMain(photoId, building, photoUrl, author) 
   try {
     const finalAuthor = author || targetBuilding.nombre_obra;
     await updateVisitPhoto(photoId, { setAsMain: true, author: finalAuthor }, state.sessionToken);
-    showNeoToast('✓ Establecida como foto principal de la ficha.');
+    showNeoToast('Establecida como foto principal de la ficha.');
 
     targetBuilding.foto_url = photoUrl;
     targetBuilding.foto_credito = finalAuthor || 'Comunidad';
@@ -1700,7 +1700,7 @@ function initEditPhotoModal() {
         setAsMain,
       }, state.sessionToken);
 
-      showNeoToast('✓ Fotografía actualizada correctamente.');
+      showNeoToast('Fotografía actualizada correctamente.');
 
       const targetBuilding = currentEditPhoto.building || currentOpenBuilding || getSelectedBuilding();
       if (setAsMain && targetBuilding) {

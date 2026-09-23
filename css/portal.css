@@ -256,6 +256,20 @@ body.dark-mode .portal-header {
   .portal-menu-btn { display: inline-flex; }
 }
 
+@media (max-width: 640px) {
+  .portal-nav-cta { display: none !important; }
+  .portal-filter-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 12px 14px !important;
+    gap: 12px !important;
+  }
+  .portal-search-wrap {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+}
+
 /* =========================================================================
    DRAWER MÓVIL ACCESIBLE REDONDEADO
    ========================================================================= */
@@ -589,7 +603,7 @@ body.dark-mode .portal-header {
   margin-bottom: 48px;
 }
 
-@media (max-width: 500px) {
+@media (max-width: 768px) {
   .portal-grid-3, .portal-grid-2 {
     grid-template-columns: 1fr;
   }
