@@ -818,7 +818,27 @@ function bindSettingsListActions() {
     };
   }
 
-  // 5. Cerrar sesión
+  // 5. Buscar actualizaciones de la app
+  const rowUpdate = document.getElementById('row-app-update');
+  if (rowUpdate) {
+    rowUpdate.onclick = async () => {
+      const icon = document.getElementById('row-update-icon');
+      const val = document.getElementById('row-app-version');
+      if (icon) icon.style.animation = 'spin 1s linear infinite';
+      if (val) val.textContent = 'Actualizando...';
+      try {
+        if (typeof window.nolliForceAppUpdate === 'function') {
+          await window.nolliForceAppUpdate();
+        } else {
+          window.location.reload();
+        }
+      } catch {
+        window.location.reload();
+      }
+    };
+  }
+
+  // 6. Cerrar sesión
   const rowLogout = document.getElementById('row-logout');
   if (rowLogout) {
     rowLogout.onclick = logout;

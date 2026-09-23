@@ -1672,8 +1672,6 @@
 
 <!-- Lógica de la aplicación: módulo ES6, se ejecuta en modo defer nativo -->
 <script type="module" src="/js/main.js"></script>
-<script>
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
-</script>
+<script type="module" src="/js/pwaUpdate.js"></script>
 </body>
 </html>

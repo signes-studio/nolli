@@ -694,13 +694,6 @@
   </main>
 
   <script src="js/portalNav.js" defer></script>
-  <script>
-    // Registro opcional de Service Worker para capacidades PWA y caché estática
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').catch(() => {});
-      });
-    }
-  </script>
+  <script type="module" src="/js/pwaUpdate.js"></script>
 </body>
 </html>

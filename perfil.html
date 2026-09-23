@@ -249,7 +249,15 @@
             <span class="neo-list-row-chevron"><i data-lucide="chevron-right" width="16" height="16"></i></span>
           </a>
 
-          <!-- 6. Apoyar en Ko-fi -->
+          <!-- 6. Buscar actualizaciones de la app -->
+          <button type="button" class="neo-list-row" id="row-app-update">
+            <span class="neo-list-row-icon"><i data-lucide="refresh-cw" width="16" height="16" id="row-update-icon"></i></span>
+            <span class="neo-list-row-label">Buscar actualizaciones</span>
+            <span class="neo-list-row-value" id="row-app-version">Comprobar</span>
+            <span class="neo-list-row-chevron"><i data-lucide="chevron-right" width="16" height="16"></i></span>
+          </button>
+
+          <!-- 7. Apoyar en Ko-fi -->
           <a href="https://ko-fi.com/nollimap" target="_blank" rel="noopener noreferrer" class="neo-list-row" id="row-kofi">
             <span class="neo-list-row-icon"><i data-lucide="coffee" width="16" height="16"></i></span>
             <span class="neo-list-row-label" data-i18n="profile_support_cta">Apoyar a <span class="brand-nolli">nolli.</span> en Ko-fi</span>
@@ -688,8 +696,6 @@
 
   <script type="module" src="./js/profile.js"></script>
   
-  <script>
-    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
-  </script>
+  <script type="module" src="/js/pwaUpdate.js"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nolli-shell-0e236171';
+const CACHE_NAME = 'nolli-shell-2dd0ede4';
 const CATALOG_FRESHNESS_MINUTES = 5;
 const CATALOG_CACHE_TTL_MS = CATALOG_FRESHNESS_MINUTES * 60 * 1000;
 const APP_SHELL = [
@@ -47,6 +47,7 @@ const APP_SHELL = [
   './js/storage.js',
   './js/state.js',
   './js/workCard.js',
+  './js/pwaUpdate.js',
   './js/i18n.js',
   './locales/es.json',
   './locales/en.json',
@@ -63,7 +64,23 @@ const APP_SHELL = [
 ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return Promise.all(
+        APP_SHELL.map((url) => {
+          // Forzar descarga fresca de red sin caché HTTP de disco
+          const req = new Request(url, { cache: 'reload' });
+          return fetch(req)
+            .then((res) => {
+              if (res.ok) return cache.put(req, res);
+            })
+            .catch((err) => {
+              console.warn(`[SW] Pre-cache omitido para ${url}:`, err.message);
+            });
+        })
+      );
+    })
+  );
   self.skipWaiting();
 });
 
@@ -71,8 +88,26 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => Promise.all(
       cacheNames.filter((cacheName) => cacheName !== CACHE_NAME).map((cacheName) => caches.delete(cacheName)),
-    )).then(() => self.clients.claim()),
+    )).then(() => self.clients.claim()).then(async () => {
+      try {
+        const clients = await self.clients.matchAll({ type: 'window' });
+        for (const client of clients) {
+          client.postMessage({ type: 'SW_ACTIVATED', cacheName: CACHE_NAME });
+        }
+      } catch {}
+    }),
   );
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+  if (event.data?.type === 'CLEAR_ALL_CACHES') {
+    event.waitUntil(
+      caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
+    );
+  }
 });
 
 self.addEventListener('fetch', (event) => {

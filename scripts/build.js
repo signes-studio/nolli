@@ -103,6 +103,7 @@ const criticalFiles = [
   path.join(ROOT_DIR, 'js', 'sheetUI.js'),
   path.join(ROOT_DIR, 'js', 'renderUtils.js'),
   path.join(ROOT_DIR, 'js', 'imageProxy.js'),
+  path.join(ROOT_DIR, 'js', 'pwaUpdate.js'),
 ];
 
 const md5 = crypto.createHash('md5');
