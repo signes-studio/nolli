@@ -2,6 +2,7 @@ const { purgeBuildingCdnCache } = require('./_lib/cdnPurge.js');
 const { slugify, extractCityName } = require('./_lib/slugs.js');
 const { createRateLimiter } = require('./_lib/rateLimiter.js');
 const { getSupabaseConfig } = require('./_lib/supabaseEnv.js');
+const { upsertBuildingEmbedding } = require('./_lib/embeddings.js');
 
 const checkRateLimit = createRateLimiter({ windowMs: 60 * 1000, maxRequests: 60 });
 
@@ -306,6 +307,16 @@ module.exports = async function handler(req, res) {
           citySlug: cleanPayload.place ? slugify(extractCityName(cleanPayload.place)) : null,
         });
       }
+
+      // Regenerar embedding semántico para la nueva obra de forma resiliente
+      if (newBuilding && (cleanPayload.estado_revision === 'publicada' || !cleanPayload.estado_revision)) {
+        try {
+          await upsertBuildingEmbedding(newBuilding);
+        } catch (embErr) {
+          console.error('[Embeddings] Fallo no bloqueante al generar embedding en creación:', embErr?.message || embErr);
+        }
+      }
+
       return res.status(201).json(inserted);
     }
 
@@ -374,6 +385,24 @@ module.exports = async function handler(req, res) {
         categorySlug: cleanPayload.categoria ? String(cleanPayload.categoria).toLowerCase() : null,
         citySlug: cleanPayload.place ? slugify(extractCityName(cleanPayload.place)) : null,
       });
+
+      // Regenerar embedding si cambiaron campos relevantes para la semántica
+      const updatedBuilding = updated[0];
+      const hasSemanticChange =
+        cleanPayload.nombre_obra !== undefined ||
+        cleanPayload.arquitecto !== undefined ||
+        cleanPayload.categoria !== undefined ||
+        cleanPayload.año_construccion !== undefined ||
+        cleanPayload.place !== undefined;
+
+      if (updatedBuilding && hasSemanticChange) {
+        try {
+          await upsertBuildingEmbedding(updatedBuilding);
+        } catch (embErr) {
+          console.error('[Embeddings] Fallo no bloqueante al regenerar embedding en edición:', embErr?.message || embErr);
+        }
+      }
+
       return res.status(200).json(updated);
     }
 
