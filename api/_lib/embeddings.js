@@ -418,6 +418,7 @@ async function upsertBuildingEmbedding(building, options = {}) {
 module.exports = {
   getEmbeddingConfig,
   buildBuildingEmbeddingText,
+  callEmbeddingApi,
   generateBuildingEmbedding,
   generateBatchEmbeddings,
   upsertBuildingEmbedding,
