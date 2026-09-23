@@ -210,3 +210,4 @@ if (typeof window !== 'undefined') {
   window.nolliForceAppUpdate = forceAppUpdate;
   window.nolliCheckForUpdate = checkForUpdate;
 }
+
