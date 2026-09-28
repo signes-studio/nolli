@@ -24,7 +24,7 @@ export interface AppState {
   activeItinerary: Record<string, unknown> | null;
   activeFilterChips: string[];
   locationMarker: unknown | null;
-  userLocation: [number, number] | null;
+  userLocation: [number, number] | { lng: number; lat: number } | null;
   activeDecada: string;
   activeVisitable: string;
   activeCategorias: Set<BuildingCategory>;
@@ -39,6 +39,6 @@ export interface AppState {
   userFollowedCollections: Array<Record<string, unknown>>;
   userPrivateLabels: Array<Record<string, unknown>>;
   isManualLocation?: boolean;
-  manualLocationName?: string;
+  manualLocationName?: string | null;
 }
 

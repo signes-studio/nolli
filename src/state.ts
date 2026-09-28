@@ -21,6 +21,34 @@ declare global {
   }
 }
 
+function getSavedInitialLocation(): { lng: number; lat: number } | null {
+  if (typeof localStorage === 'undefined') return null;
+  try {
+    const saved = localStorage.getItem('nolli_last_location');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      const lng = Number(parsed.lng ?? parsed.center?.[0]);
+      const lat = Number(parsed.lat ?? parsed.center?.[1]);
+      if (Number.isFinite(lng) && Number.isFinite(lat)) {
+        return { lng, lat };
+      }
+    }
+  } catch {}
+  return null;
+}
+
+function getSavedInitialLocationName(): string | null {
+  if (typeof localStorage === 'undefined') return null;
+  try {
+    const saved = localStorage.getItem('nolli_last_location');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed.cityName) return String(parsed.cityName);
+    }
+  } catch {}
+  return null;
+}
+
 export const state: AppState = {
   OBRAS: [],
   BUILDING_CATALOG: [],
@@ -38,9 +66,10 @@ export const state: AppState = {
   activeItinerary: null,
   activeFilterChips: [],
   locationMarker: null,
-  userLocation: null,
+  userLocation: getSavedInitialLocation(),
   activeDecada: '',
   activeVisitable: '',
+  manualLocationName: getSavedInitialLocationName(),
   activeCategorias: new Set<BuildingCategory>([
     'residencial',
     'dotacional_equipamiento',

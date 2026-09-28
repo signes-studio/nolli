@@ -7,6 +7,7 @@ import { fetchBuildingsInRadius, fetchBuildings, getBuildingsCatalog, fetchItine
 import { getOptimizedPhotoUrl } from './imageProxy.js';
 import { CURATED_ROUTES, matchWorksForRoute } from './itinerariesConfig.js';
 import { t } from './i18n.js';
+import { DEFAULT_CENTER, resolverCoordenadasCiudad } from './config.js';
 import { renderObraCard } from './workCard.js';
 import { abrirBuscadorConModo } from './mobileBottomNav.js';
 
@@ -215,8 +216,33 @@ function getRadarCenter() {
   ) {
     return [state.userLocation.lng, state.userLocation.lat];
   }
-  // Fallback a Valencia cuando no hay geolocalización disponible
-  return [-0.3763, 39.4699];
+
+  // Consultar última ubicación guardada del dispositivo / usuario
+  try {
+    const saved = localStorage.getItem('nolli_last_location');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      const lng = Number(parsed.lng ?? parsed.center?.[0]);
+      const lat = Number(parsed.lat ?? parsed.center?.[1]);
+      if (Number.isFinite(lng) && Number.isFinite(lat)) {
+        return [lng, lat];
+      }
+    }
+  } catch (e) {}
+
+  // Consultar ciudad del perfil
+  try {
+    const cachedProfile = localStorage.getItem('nolli_cached_db_profile') || localStorage.getItem('nolli_cached_user');
+    if (cachedProfile) {
+      const parsed = JSON.parse(cachedProfile);
+      const city = parsed.city || parsed.user_metadata?.city;
+      const coords = resolverCoordenadasCiudad(city);
+      if (coords) return coords;
+    }
+  } catch (e) {}
+
+  // Fallback a centro por defecto
+  return DEFAULT_CENTER;
 }
 
 export function solicitarUbicacionGPS() {
@@ -264,7 +290,8 @@ export function actualizarEstadoGPSUI() {
       badge.style.background = 'var(--accent, rgb(234, 86, 13))';
       badge.style.borderColor = 'var(--accent, rgb(234, 86, 13))';
     } else {
-      badge.textContent = 'UBICACIÓN: VALENCIA';
+      const cityLabel = (state.manualLocationName || 'VALENCIA').toUpperCase();
+      badge.textContent = `UBICACIÓN: ${cityLabel}`;
       badge.style.color = 'var(--fg-dim, rgb(107, 107, 107))';
       badge.style.background = 'var(--bg-raised, rgb(240, 233, 210))';
       badge.style.borderColor = 'var(--border-strong, rgb(20, 20, 17))';
@@ -296,10 +323,11 @@ export function actualizarEstadoGPSUI() {
           </div>
         `;
       } else {
+        const cityLabel = (state.manualLocationName || 'valencia').toLowerCase();
         notice.innerHTML = `
           <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
             <span style="font-weight: 600; font-family: 'Inter', sans-serif; font-size: 12px; color: var(--fg); text-transform: lowercase;">sin acceso a gps</span>
-            <span style="font-size: 10px; font-weight: 500; color: var(--accent, rgb(234, 86, 13)); text-transform: lowercase;">valencia</span>
+            <span style="font-size: 10px; font-weight: 500; color: var(--accent, rgb(234, 86, 13)); text-transform: lowercase;">${escapeHtml(cityLabel)}</span>
           </div>
           <p style="margin: 0; font-size: 11px; color: var(--fg-dim); line-height: 1.4;">Para calcular obras a tu alrededor, activa el GPS o busca otra ciudad en el mapa.</p>
           <div style="display: flex; gap: 8px;">

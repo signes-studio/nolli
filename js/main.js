@@ -8,7 +8,7 @@ import { state, separarArquitectos, normalizarCategoria, normalizarImportancia, 
 import { fetchBuildings, fetchBuildingFacets, fetchUserPendingBuildings, fetchPendingBuildings, fetchPrivateBuildings, fetchAllPrivateBuildings, getBuildingsCatalog, invalidateCatalogCache } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
-import { cargarMapaMapbox } from './mapController.js';
+import { cargarMapaMapbox, iniciarLocalizacionAutomatica } from './mapController.js';
 import { initModalsUI } from './modalsUI.js';
 import { initSearchUI, abrirBusquedaConQuery } from './searchUI.js';
 import { initMobileBottomNav } from './mobileBottomNav.js';
@@ -273,6 +273,7 @@ async function inicializarRadar() {
   try {
     await esperarMapbox();
     cargarMapaMapbox();
+    iniciarLocalizacionAutomatica();
 
     let mapReadyTriggered = false;
     const onMapReady = async () => {

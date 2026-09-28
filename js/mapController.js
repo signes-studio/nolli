@@ -3,7 +3,16 @@
    ========================================================================= */
 
 import { state, CATEGORY_META } from './state.js';
-import { MAPBOX_TOKEN, MAP_STYLES, DEFAULT_CENTER, DEFAULT_ZOOM } from './config.js';
+import {
+  MAPBOX_TOKEN,
+  MAP_STYLES,
+  DEFAULT_CENTER,
+  DEFAULT_ZOOM,
+  KNOWN_CITIES,
+  resolverCoordenadasCiudad,
+  obtenerCiudadCercana,
+  calcularDistanciaKm
+} from './config.js';
 import { buildIcon, drawTargetIcon, drawPrivateSquareIcon, drawSearchLupaIcon, drawExploreCompassIcon, buildEmojiIcon } from './icons.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { abrirFicha, cerrarFicha } from './sheetUI.js';
@@ -61,6 +70,101 @@ export function actualizarVisibilidadIconosLista() {
   });
 }
 
+/** Guarda la última ubicación o vista del usuario/dispositivo de forma persistente */
+export function guardarUltimaUbicacion(lng, lat, zoom = 14, source = 'gps', cityName = null) {
+  if (!Number.isFinite(lng) || !Number.isFinite(lat)) return;
+  try {
+    const detectedCity = cityName || state.manualLocationName || obtenerCiudadCercana(lng, lat) || null;
+    const data = {
+      lng,
+      lat,
+      zoom: Number.isFinite(zoom) ? zoom : 14,
+      source,
+      cityName: detectedCity,
+      timestamp: Date.now()
+    };
+    localStorage.setItem('nolli_last_location', JSON.stringify(data));
+  } catch (e) {}
+}
+
+/**
+ * Resuelve el centro y zoom inicial del mapa según jerarquía inteligente:
+ * 1. Parámetros de URL (?lat=...&lng=... o /obra/:id)
+ * 2. Última ubicación guardada del dispositivo/usuario (GPS o exploración previa)
+ * 3. Ciudad del perfil del usuario (resolución 0ms vía diccionario de ciudades)
+ * 4. Fallback por defecto a Valencia
+ */
+export function obtenerCentroInicialMapa() {
+  if (typeof window !== 'undefined') {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const urlLat = parseFloat(params.get('lat'));
+      const urlLng = parseFloat(params.get('lng'));
+      const urlZoom = parseFloat(params.get('zoom'));
+      if (Number.isFinite(urlLat) && Number.isFinite(urlLng)) {
+        return {
+          center: [urlLng, urlLat],
+          zoom: Number.isFinite(urlZoom) ? urlZoom : 16,
+          isCustom: true,
+          source: 'url'
+        };
+      }
+    } catch (e) {}
+  }
+
+  if (typeof localStorage !== 'undefined') {
+    try {
+      const savedLoc = localStorage.getItem('nolli_last_location');
+      if (savedLoc) {
+        const parsed = JSON.parse(savedLoc);
+        const lng = Number(parsed.lng ?? parsed.center?.[0]);
+        const lat = Number(parsed.lat ?? parsed.center?.[1]);
+        if (Number.isFinite(lng) && Number.isFinite(lat)) {
+          if (parsed.cityName && !state.manualLocationName) {
+            state.manualLocationName = parsed.cityName;
+          }
+          if (parsed.source === 'gps') {
+            state.userLocation = { lng, lat };
+          }
+          return {
+            center: [lng, lat],
+            zoom: Number.isFinite(parsed.zoom) ? parsed.zoom : (parsed.source === 'gps' ? 14 : DEFAULT_ZOOM),
+            isCustom: true,
+            source: parsed.source || 'storage'
+          };
+        }
+      }
+    } catch (e) {}
+
+    try {
+      const cachedProfile = localStorage.getItem('nolli_cached_db_profile') || localStorage.getItem('nolli_cached_user');
+      if (cachedProfile) {
+        const parsed = JSON.parse(cachedProfile);
+        const userCity = parsed.city || parsed.user_metadata?.city;
+        if (userCity) {
+          const cityCoords = resolverCoordenadasCiudad(userCity);
+          if (cityCoords) {
+            state.manualLocationName = userCity;
+            return {
+              center: cityCoords,
+              zoom: 13.5,
+              isCustom: true,
+              source: 'profile_city'
+            };
+          }
+        }
+      }
+    } catch (e) {}
+  }
+
+  return {
+    center: DEFAULT_CENTER,
+    zoom: DEFAULT_ZOOM,
+    isCustom: false,
+    source: 'default'
+  };
+}
+
 /** Crea el mapa, añade la capa de obras y arranca el HUD de coordenadas. */
 export function cargarMapaMapbox() {
   if (typeof mapboxgl === 'undefined') {
@@ -92,11 +196,12 @@ export function cargarMapaMapbox() {
 
   const isMobile = window.innerWidth <= 768;
   const initialStyle = MAP_STYLES[state.mapStyle] || MAP_STYLES.abstract;
+  const initialPos = obtenerCentroInicialMapa();
   state.map = new mapboxgl.Map({
     container: 'map',
     style: initialStyle,
-    center: DEFAULT_CENTER,
-    zoom: DEFAULT_ZOOM,
+    center: initialPos.center,
+    zoom: initialPos.zoom,
     attributionControl: false,
     fadeDuration: 0, // Cero delay de transición/fade para carga instantánea
     maxTileCacheSize: 300, // Caché extendida de teselas en memoria RAM
@@ -117,6 +222,21 @@ export function cargarMapaMapbox() {
     }
   });
   window.nolliMap = state.map;
+
+  // Persistencia de la última vista explorada con debounce (para reabrir donde el usuario estuvo)
+  let debounceSaveView = null;
+  state.map.on('moveend', () => {
+    clearTimeout(debounceSaveView);
+    debounceSaveView = setTimeout(() => {
+      if (!state.map) return;
+      if (window.location.pathname.includes('/obra/')) return;
+      const center = state.map.getCenter();
+      const zoom = state.map.getZoom();
+      if (center && Number.isFinite(center.lng) && Number.isFinite(center.lat)) {
+        guardarUltimaUbicacion(center.lng, center.lat, zoom, 'explored');
+      }
+    }, 1500);
+  });
 
   // La atribución obligatoria de Mapbox y OpenStreetMap se gestiona en el modal unificado de información legal (botón ⓘ)
 
@@ -774,7 +894,10 @@ export function cargarMapaMapbox() {
 
 
   document.getElementById('btn-recenter')?.addEventListener('click', () => {
-    state.map.flyTo({ center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM, bearing: 0, pitch: 0 });
+    const target = state.userLocation
+      ? (Array.isArray(state.userLocation) ? state.userLocation : [state.userLocation.lng, state.userLocation.lat])
+      : (obtenerCentroInicialMapa().center || DEFAULT_CENTER);
+    state.map.flyTo({ center: target, zoom: 14.5, bearing: 0, pitch: 0 });
   });
   document.getElementById('btn-location')?.addEventListener('click', localizarDispositivo);
   document.getElementById('btn-add-project')?.addEventListener('click', activarModoAñadir);
@@ -940,8 +1063,8 @@ function initMapStyleSelector() {
   });
 }
 
-export function actualizarMarcadorUbicacion(coordinates) {
-  if (!coordinates || !state.map) return;
+export function actualizarMarcadorUbicacion(coordinates, guardar = true) {
+  if (!coordinates) return;
   const lngLat = Array.isArray(coordinates)
     ? coordinates
     : [coordinates.lng, coordinates.lat];
@@ -949,7 +1072,18 @@ export function actualizarMarcadorUbicacion(coordinates) {
   if (!Number.isFinite(lngLat[0]) || !Number.isFinite(lngLat[1])) return;
 
   state.userLocation = { lng: lngLat[0], lat: lngLat[1] };
+
+  if (guardar) {
+    const nearbyCity = obtenerCiudadCercana(lngLat[0], lngLat[1]);
+    if (nearbyCity && !state.manualLocationName) {
+      state.manualLocationName = nearbyCity;
+    }
+    guardarUltimaUbicacion(lngLat[0], lngLat[1], 14.5, 'gps', nearbyCity);
+  }
+
   document.dispatchEvent(new CustomEvent('radar:user-location-updated', { detail: { lng: lngLat[0], lat: lngLat[1] } }));
+
+  if (!state.map) return;
 
   if (!state.locationMarker) {
     const markerElement = document.createElement('div');
@@ -1062,7 +1196,7 @@ export function solicitarUbicacionUsuario() {
   const onSuccess = (position) => {
     finalizar();
     const coordinates = [position.coords.longitude, position.coords.latitude];
-    actualizarMarcadorUbicacion(coordinates);
+    actualizarMarcadorUbicacion(coordinates, true);
     if (state.map) {
       const zoomActual = (typeof state.map.getZoom === 'function') ? state.map.getZoom() : 14;
       state.map.flyTo({
@@ -1101,6 +1235,110 @@ export function solicitarUbicacionUsuario() {
 
 export function localizarDispositivo() {
   solicitarUbicacionUsuario();
+}
+
+let localizacionAutomaticaIniciada = false;
+
+/**
+ * Localización automática proactiva al abrir la app:
+ * Comprueba permisos de geolocalización o solicita posición en móviles/PWA
+ * para centrar la aplicación directamente en la ciudad donde se encuentra el dispositivo.
+ */
+export async function iniciarLocalizacionAutomatica() {
+  if (typeof window === 'undefined' || localizacionAutomaticaIniciada) return;
+  localizacionAutomaticaIniciada = true;
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const tieneUrlCoordenadas = Number.isFinite(parseFloat(urlParams.get('lat'))) && Number.isFinite(parseFloat(urlParams.get('lng')));
+  const tieneUrlObra = window.location.pathname.includes('/obra/');
+  const omitirDesplazamientoMapa = tieneUrlCoordenadas || tieneUrlObra;
+
+  // Si el navegador soporta navigator.permissions
+  if (navigator.permissions && typeof navigator.permissions.query === 'function') {
+    try {
+      const perm = await navigator.permissions.query({ name: 'geolocation' });
+      
+      const responderAPermiso = (estado) => {
+        if (estado === 'granted') {
+          solicitarGeolocalizacionSilenciosa(omitirDesplazamientoMapa);
+        } else if (estado === 'prompt') {
+          // Si el usuario está en móvil o PWA, solicitar suavemente
+          const esMovilOPWA = window.innerWidth <= 768 || window.matchMedia('(display-mode: standalone)').matches || Boolean(navigator.standalone);
+          if (esMovilOPWA) {
+            solicitarGeolocalizacionSilenciosa(omitirDesplazamientoMapa);
+          }
+        }
+      };
+
+      responderAPermiso(perm.state);
+      perm.onchange = () => {
+        responderAPermiso(perm.state);
+      };
+      return;
+    } catch (e) {
+      // Ignorar fallos de permissions.query en navegadores antiguos
+    }
+  }
+
+  // Fallback si no hay Permissions API pero sí Geolocation
+  if (navigator.geolocation) {
+    const esMovilOPWA = typeof window !== 'undefined' && (window.innerWidth <= 768 || window.matchMedia('(display-mode: standalone)').matches || Boolean(navigator.standalone));
+    if (esMovilOPWA) {
+      solicitarGeolocalizacionSilenciosa(omitirDesplazamientoMapa);
+    }
+  }
+}
+
+/**
+ * Solicita geolocalización en 2 etapas:
+ * 1. Etapa rápida (low accuracy, <200ms) para detectar de inmediato la ciudad (Alicante, etc.) y centrar el mapa.
+ * 2. Etapa de alta precisión en segundo plano para posicionar el marcador exacto en la calle/edificio.
+ */
+export function solicitarGeolocalizacionSilenciosa(skipMapFly = false) {
+  if (!navigator.geolocation) return;
+
+  // Fase 1: Coordenadas rápidas de baja precisión
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const coords = [pos.coords.longitude, pos.coords.latitude];
+      const accuracy = pos.coords.accuracy || 1000;
+      
+      actualizarMarcadorUbicacion(coords, true);
+
+      if (!skipMapFly && state.map) {
+        const currentCenter = state.map.getCenter();
+        const distKm = calcularDistanciaKm(currentCenter.lat, currentCenter.lng, coords[1], coords[0]);
+        // Si estamos a más de 400m de donde abrió el mapa (ej. abrió en Valencia y está en Alicante), volar a su ubicación real
+        if (distKm > 0.4) {
+          state.map.flyTo({
+            center: coords,
+            zoom: 14.5,
+            duration: 1100,
+            essential: true
+          });
+        }
+      }
+
+      // Fase 2: Si la precisión fue aproximada (>100m), afinar silenciosamente con GPS satélite
+      if (accuracy > 100) {
+        try {
+          navigator.geolocation.getCurrentPosition(
+            (highPos) => {
+              const highCoords = [highPos.coords.longitude, highPos.coords.latitude];
+              actualizarMarcadorUbicacion(highCoords, true);
+            },
+            () => {},
+            { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+          );
+        } catch (e) {}
+      }
+    },
+    (err) => {
+      // Modo silencioso: jamás mostrar toasts de error intrusivos en el arranque inicial
+      console.log('[Nolli Geo] Localización proactiva no disponible:', err?.message || err);
+    },
+    { enableHighAccuracy: false, timeout: 6000, maximumAge: 300000 }
+  );
 }
 
 function initHudReadout() {
