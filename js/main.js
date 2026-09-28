@@ -53,9 +53,7 @@ async function cargarEdificiosVisibles(forceRefresh = false) {
     const habiaFiltroDeArquitectos = arquitectosAnteriores.size > 0
       && arquitectosActivosAnteriores.size < arquitectosAnteriores.size;
 
-    const catalogo = (!forceRefresh && state.BUILDING_CATALOG.length)
-      ? state.BUILDING_CATALOG
-      : await getBuildingsCatalog(forceRefresh);
+    const catalogo = await getBuildingsCatalog(forceRefresh);
     const rawCatalogo = Array.isArray(catalogo) ? catalogo : [];
     state.BUILDING_CATALOG = rawCatalogo.map((fila) => ({ ...fila, categoria: normalizarCategoria(fila.categoria) }));
     state.ARQUITECTOS = [...new Set(state.BUILDING_CATALOG.flatMap((fila) => separarArquitectos(fila.arquitecto)))];
@@ -434,12 +432,39 @@ try { initMobileBottomNav(); } catch (err) { console.warn('Init MobileBottomNav:
 try { initFilterEngine(); } catch (err) { console.warn('Init FilterEngine:', err); }
 
 // 3. Sincronización reactiva y revalidación automática de catálogo
+let isReloadingCatalog = false;
+let lastCatalogReloadTs = 0;
+
+// Cuando el catálogo ya ha sido descargado y actualizado en memoria por api.js
 const recargarCatalogoActualizado = () => {
-  cargarEdificiosVisibles(true).catch(() => {});
+  const now = Date.now();
+  if (isReloadingCatalog || (now - lastCatalogReloadTs < 5000)) return;
+  isReloadingCatalog = true;
+  lastCatalogReloadTs = now;
+  // IMPORTANTE: forceRefresh = false para usar los datos ya descargados en memoria en api.js
+  // y evitar un bucle infinito recursivo con getBuildingsCatalog(true) -> Out of Memory
+  cargarEdificiosVisibles(false).catch((err) => {
+    console.warn('Aviso de recarga reactiva de catálogo:', err);
+  }).finally(() => {
+    setTimeout(() => { isReloadingCatalog = false; }, 2000);
+  });
 };
-window.addEventListener('nolli:catalog-updated', recargarCatalogoActualizado);
+
+// Cuando un administrador modifica/elimina una obra y se invalida la caché
+const recargarPorInvalidacion = () => {
+  const now = Date.now();
+  if (isReloadingCatalog || (now - lastCatalogReloadTs < 5000)) return;
+  isReloadingCatalog = true;
+  lastCatalogReloadTs = now;
+  cargarEdificiosVisibles(true).catch((err) => {
+    console.warn('Aviso de recarga por invalidación:', err);
+  }).finally(() => {
+    setTimeout(() => { isReloadingCatalog = false; }, 2000);
+  });
+};
+
 document.addEventListener('radar:catalog-updated', recargarCatalogoActualizado);
-document.addEventListener('radar:catalog-invalidated', recargarCatalogoActualizado);
+document.addEventListener('radar:catalog-invalidated', recargarPorInvalidacion);
 
 // Revalidar en segundo plano al reactivar pestaña o app PWA si han pasado > 5 minutos
 let ultimaSincronizacionVisibilidad = Date.now();
@@ -448,9 +473,7 @@ document.addEventListener('visibilitychange', () => {
     const ahora = Date.now();
     if (ahora - ultimaSincronizacionVisibilidad > 5 * 60 * 1000) {
       ultimaSincronizacionVisibilidad = ahora;
-      cargarEdificiosVisibles(true).catch((err) => {
-        console.warn('Revalidación de catálogo al reactivar pestaña:', err);
-      });
+      recargarPorInvalidacion();
     }
   }
 });

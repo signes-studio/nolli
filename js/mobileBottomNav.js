@@ -545,7 +545,6 @@ function invalidarCacheMobileSearch() {
 
 document.addEventListener('radar:catalog-invalidated', invalidarCacheMobileSearch);
 document.addEventListener('radar:catalog-updated', invalidarCacheMobileSearch);
-window.addEventListener('nolli:catalog-updated', invalidarCacheMobileSearch);
 
 async function cargarTodasObrasMobile() {
   if (cacheObrasMobileSearch && cacheObrasMobileSearch.length > 0) {

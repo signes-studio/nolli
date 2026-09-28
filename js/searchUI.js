@@ -116,7 +116,6 @@ export function initSearchUI() {
   });
   document.addEventListener('radar:catalog-invalidated', limpiarCacheSearch);
   document.addEventListener('radar:catalog-updated', limpiarCacheSearch);
-  window.addEventListener('nolli:catalog-updated', limpiarCacheSearch);
 }
 
 async function buscarUbicaciones(query) {
@@ -366,11 +365,18 @@ function normalizarTexto(value) {
 }
 
 function distanciaEnKm(origen, destino) {
+  if (!origen || !destino) return 0;
+  const oLat = typeof origen.lat === 'number' ? origen.lat : origen[1];
+  const oLng = typeof origen.lng === 'number' ? origen.lng : origen[0];
+  const dLat = typeof destino.lat === 'number' ? destino.lat : destino[1];
+  const dLng = typeof destino.lng === 'number' ? destino.lng : destino[0];
+  if (!Number.isFinite(oLat) || !Number.isFinite(oLng) || !Number.isFinite(dLat) || !Number.isFinite(dLng)) return 0;
+
   const radioTierra = 6371;
-  const lat1 = origen.lat * Math.PI / 180;
-  const lat2 = destino[1] * Math.PI / 180;
-  const deltaLat = (destino[1] - origen.lat) * Math.PI / 180;
-  const deltaLng = (destino[0] - origen.lng) * Math.PI / 180;
+  const lat1 = oLat * Math.PI / 180;
+  const lat2 = dLat * Math.PI / 180;
+  const deltaLat = (dLat - oLat) * Math.PI / 180;
+  const deltaLng = (dLng - oLng) * Math.PI / 180;
   const a = Math.sin(deltaLat / 2) ** 2
     + Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLng / 2) ** 2;
   return radioTierra * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));

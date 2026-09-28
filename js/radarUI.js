@@ -306,6 +306,14 @@ export function actualizarEstadoGPSUI() {
         notice = document.createElement('div');
         notice.id = 'radar-gps-notice';
         notice.style.cssText = 'padding: 12px 14px; background: var(--bg-raised, rgb(240, 233, 210)); border: 1px solid rgba(0, 0, 0, 0.08); font-size: 11px; display: flex; flex-direction: column; gap: 8px; border-radius: 8px !important; margin-bottom: 12px;';
+        notice.addEventListener('click', (e) => {
+          if (e.target.closest('#btn-radar-request-gps')) {
+            solicitarUbicacionGPS();
+          } else if (e.target.closest('#btn-radar-go-search')) {
+            document.getElementById('radar-panel')?.classList.remove('open');
+            abrirBuscadorConModo('places', { fromRadar: true });
+          }
+        });
         container.prepend(notice);
       }
 
@@ -336,15 +344,6 @@ export function actualizarEstadoGPSUI() {
           </div>
         `;
       }
-
-      document.getElementById('btn-radar-request-gps')?.addEventListener('click', () => {
-        solicitarUbicacionGPS();
-      });
-
-      document.getElementById('btn-radar-go-search')?.addEventListener('click', () => {
-        document.getElementById('radar-panel')?.classList.remove('open');
-        abrirBuscadorConModo('places', { fromRadar: true });
-      });
     } else if (notice) {
       notice.remove();
     }
@@ -352,6 +351,7 @@ export function actualizarEstadoGPSUI() {
 }
 
 function iniciarGeolocalizacionEnSegundoPlano() {
+  if (state.isManualLocation) return;
   if (!navigator.geolocation || locationWatchId != null) return;
   locationWatchId = navigator.geolocation.watchPosition(
     (pos) => {
@@ -817,7 +817,7 @@ export function initRadarUI() {
     });
   }
 
-  if (state.userLocation) iniciarGeolocalizacionEnSegundoPlano();
+  if (state.userLocation && !state.isManualLocation) iniciarGeolocalizacionEnSegundoPlano();
   document.addEventListener('radar:user-location-updated', () => {
     iniciarGeolocalizacionEnSegundoPlano();
     if (panel && panel.classList.contains('open')) {
