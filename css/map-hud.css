@@ -14,15 +14,6 @@
   user-select: none !important;
   -webkit-user-select: none !important;
   overscroll-behavior: none !important;
-  -webkit-tap-highlight-color: transparent !important;
-}
-
-#map canvas,
-.mapboxgl-canvas {
-  transform: translateZ(0);
-  will-change: transform;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
 }
 
 /* Controles de atribución/branding para Mapbox y MapLibre colapsados en icono (i) */
