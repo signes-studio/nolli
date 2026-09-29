@@ -255,13 +255,15 @@ export function limpiarNombreArquitecto(nombre: string | null | undefined): stri
  */
 export function parsearArquitectosEIntervenciones(valor: string | null | undefined): {
   arquitectos: string[];
+  arquitectosOriginales: string[];
   intervenciones: BuildingIntervention[];
 } {
   const arquitectos: string[] = [];
+  const arquitectosOriginales: string[] = [];
   const intervenciones: BuildingIntervention[] = [];
 
   if (!valor) {
-    return { arquitectos, intervenciones };
+    return { arquitectos, arquitectosOriginales, intervenciones };
   }
 
   const items = String(valor)
@@ -269,12 +271,15 @@ export function parsearArquitectosEIntervenciones(valor: string | null | undefin
     .map((item) => item.trim())
     .filter(Boolean);
 
+  const parsedItems: { name: string; anio: string | null; isIntervention: boolean }[] = [];
+
   for (const item of items) {
     const match = item.match(/\((?:intervenci[oó]n|reforma|ampliaci[oó]n|restauraci[oó]n|a[ñn]o)?\s*:?\s*(\d{4}(?:\s*[-/–]\s*\d{4})?)\s*\)/i);
     if (match && match[1]) {
       const anio = match[1].trim();
       const limpio = limpiarNombreArquitecto(item);
       if (limpio) {
+        parsedItems.push({ name: limpio, anio, isIntervention: true });
         arquitectos.push(limpio);
         intervenciones.push({
           arquitecto: limpio,
@@ -283,11 +288,30 @@ export function parsearArquitectosEIntervenciones(valor: string | null | undefin
         });
       }
     } else {
+      parsedItems.push({ name: item, anio: null, isIntervention: false });
       arquitectos.push(item);
     }
   }
 
-  return { arquitectos, intervenciones };
+  // Los arquitectos originales son aquellos sin indicación de intervención entre paréntesis
+  const sinIntervencion = parsedItems.filter((item) => !item.isIntervention).map((item) => item.name);
+  if (sinIntervencion.length > 0) {
+    arquitectosOriginales.push(...sinIntervencion);
+  } else if (intervenciones.length > 1) {
+    // Si todos tienen año (ej. "Nicola Bigaglia (1902); Vasco Morais Palmeiro (1940)"),
+    // el año más antiguo corresponde a la obra original
+    const ordenados = [...parsedItems].sort((a, b) => parseInt(a.anio || '9999', 10) - parseInt(b.anio || '9999', 10));
+    const primero = ordenados[0];
+    if (primero) {
+      arquitectosOriginales.push(primero.name);
+      const idx = intervenciones.findIndex((inv) => inv.arquitecto === primero.name && inv.año === primero.anio);
+      if (idx !== -1) {
+        intervenciones.splice(idx, 1);
+      }
+    }
+  }
+
+  return { arquitectos, arquitectosOriginales, intervenciones };
 }
 
 /**
@@ -295,6 +319,13 @@ export function parsearArquitectosEIntervenciones(valor: string | null | undefin
  */
 export function separarArquitectos(valor: string | null | undefined): string[] {
   return parsearArquitectosEIntervenciones(valor).arquitectos;
+}
+
+/**
+ * Extrae la lista de arquitectos originales (excluyendo intervenciones)
+ */
+export function separarArquitectosOriginales(valor: string | null | undefined): string[] {
+  return parsearArquitectosEIntervenciones(valor).arquitectosOriginales;
 }
 
 /**
@@ -528,6 +559,9 @@ export function transformarEdificio(fila: Partial<Building> | null, index: numbe
   const arquitectosArray = Array.isArray(fila.arquitectos)
     ? fila.arquitectos.map(limpiarNombreArquitecto).filter(Boolean)
     : parsed.arquitectos;
+  const arquitectosOriginales = Array.isArray(fila.arquitectosOriginales) && fila.arquitectosOriginales.length > 0
+    ? fila.arquitectosOriginales.map(limpiarNombreArquitecto).filter(Boolean)
+    : parsed.arquitectosOriginales;
   const intervenciones = parsed.intervenciones.length > 0
     ? parsed.intervenciones
     : (Array.isArray(fila.arquitectos) ? extraerIntervenciones(fila.arquitectos) : []);
@@ -543,6 +577,7 @@ export function transformarEdificio(fila: Partial<Building> | null, index: numbe
     enlace_url: fila.enlace_url || null,
     arquitecto: fila.arquitecto || '',
     arquitectos: arquitectosArray,
+    arquitectosOriginales,
     intervenciones,
     año_construccion: extraerAnioDefensivo(fila.año_construccion),
     importancia: normalizarImportancia(fila.importancia),
