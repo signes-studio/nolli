@@ -451,13 +451,6 @@ function renderBuildingPage(building, lang = 'es', discoveryData = {}) {
       ...(building.foto_credito ? { creditText: building.foto_credito } : {}),
       ...(building.foto_licencia ? { license: building.foto_licencia } : {}),
     },
-    ...(building.latitud && building.longitud ? {
-      geo: {
-        '@type': 'GeoCoordinates',
-        latitude: building.latitud,
-        longitude: building.longitud,
-      },
-    } : {}),
     ...(building.arquitecto || building.año_construccion ? {
       subjectOf: {
         '@type': 'CreativeWork',
@@ -1647,8 +1640,8 @@ function renderBuildingPage(building, lang = 'es', discoveryData = {}) {
               <span aria-hidden="true">&#8599;</span>
             </a>
 
-            ${(building.latitud != null && building.longitud != null) ? `
-              <a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(building.latitud)},${encodeURIComponent(building.longitud)}" target="_blank" rel="noopener noreferrer" class="sheet-hero-btn" title="${escapeHtml(getSSRText('action_directions', lang))}">
+            ${(building.nombre_obra) ? `
+              <a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent([building.nombre_obra, building.place].filter(Boolean).join(', '))}" target="_blank" rel="noopener noreferrer" class="sheet-hero-btn" title="${escapeHtml(getSSRText('action_directions', lang))}">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="18" x2="18" y2="6"></line><polyline points="9 6 18 6 18 15"></polyline></svg>
                 <span>${escapeHtml(getSSRText('action_directions', lang))}</span>
               </a>
@@ -1801,8 +1794,6 @@ function renderBuildingPage(building, lang = 'es', discoveryData = {}) {
       año_construccion: String(building.año_construccion || ''),
       categoria: String(building.categoria || ''),
       place: String(building.place || ''),
-      latitud: building.latitud != null ? Number(building.latitud) : null,
-      longitud: building.longitud != null ? Number(building.longitud) : null,
       foto_url: String(building.foto_url || ''),
       foto_credito: String(building.foto_credito || ''),
       enlace_url: String(building.enlace_url || ''),
