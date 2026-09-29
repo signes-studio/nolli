@@ -271,10 +271,12 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
             <i data-lucide="camera" width="13" height="13"></i>
             <span>${t('sheet_photo_section_title') || 'FOTOGRAFÍA'}</span>
           </span>
-          <button type="button" class="sheet-gallery-add-btn" data-open-upload-sheet-photo title="${t('sheet_add_photo_aria') || 'Añadir fotografía a esta obra'}" aria-label="${t('sheet_add_photo_aria') || 'Añadir fotografía a esta obra'}">
-            <i data-lucide="plus" width="12" height="12"></i>
-            <span>${t('sheet_add_photo') || 'Añadir foto'}</span>
-          </button>
+          ${building.foto_url && isValidHttpsUrl(building.foto_url) ? `
+            <button type="button" class="sheet-gallery-add-btn" data-open-upload-sheet-photo title="${t('sheet_add_photo_aria') || 'Añadir fotografía a esta obra'}" aria-label="${t('sheet_add_photo_aria') || 'Añadir fotografía a esta obra'}">
+              <i data-lucide="plus" width="12" height="12"></i>
+              <span>${t('sheet_add_photo') || 'Añadir foto'}</span>
+            </button>
+          ` : ''}
         </div>
         ${building.foto_url && isValidHttpsUrl(building.foto_url) ? `
           <div class="sheet-photo-banner">

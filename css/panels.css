@@ -472,7 +472,6 @@ body.dark-mode .sheet-no-photo-action-btn {
   object-fit: cover;
   display: block;
 }
-}
 .sheet-photos-section {
   padding: 12px 14px;
   border-bottom: 1px solid var(--border);
@@ -1235,6 +1234,214 @@ body.dark-mode .personal-notes .save-personal-status {
     pointer-events: auto !important;
     opacity: 1 !important;
     transition-delay: 0s !important;
+  }
+}
+
+/* ---------- 5. Ficha Técnica de Obra en Desktop (Compacta Centrada) ---------- */
+@media (min-width: 769px) {
+  #sheet {
+    position: fixed !important;
+    left: 50% !important;
+    right: auto !important;
+    bottom: 0 !important;
+    transform: translate3d(-50%, 100%, 0) !important;
+    -webkit-transform: translate3d(-50%, 100%, 0) !important;
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    contain: layout paint;
+    width: min(520px, calc(100vw - 32px)) !important;
+    max-width: 520px !important;
+    height: auto !important;
+    max-height: min(78vh, 720px) !important;
+    background: var(--bg-panel) !important;
+    border: 1px solid var(--border) !important;
+    border-bottom: none !important;
+    border-radius: 14px 14px 0 0 !important;
+    box-shadow: 0 -8px 36px rgba(0, 0, 0, 0.16) !important;
+    z-index: 45 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    opacity: 0 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.18s ease, visibility 0s linear 0.24s !important;
+  }
+
+  #sheet.open {
+    transform: translate3d(-50%, 0, 0) !important;
+    -webkit-transform: translate3d(-50%, 0, 0) !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    opacity: 1 !important;
+    transition-delay: 0s !important;
+  }
+
+  body.dark-mode #sheet {
+    background: #171715 !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 -8px 36px rgba(0, 0, 0, 0.5) !important;
+  }
+
+  #sheet .sheet-drag-handle {
+    display: none !important;
+  }
+
+  #sheet .sheet-header {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 10 !important;
+    background: var(--bg-raised) !important;
+    padding: 8px 14px !important;
+    min-height: 42px !important;
+  }
+
+  body.dark-mode #sheet .sheet-header {
+    background: #1c1c19 !important;
+  }
+
+  #sheet #sheet-title {
+    font-size: 21px !important;
+    line-height: 1.2 !important;
+    padding: 12px 14px 4px !important;
+    letter-spacing: -0.01em !important;
+  }
+
+  #sheet .sheet-meta-subtitle {
+    padding: 0 14px 8px !important;
+    font-size: 11px !important;
+  }
+
+  #sheet .sheet-hero-actions {
+    padding: 4px 14px 10px !important;
+    gap: 6px !important;
+  }
+
+  #sheet .sheet-hero-btn {
+    padding: 5px 9px !important;
+    font-size: 10.5px !important;
+    border-radius: 5px !important;
+    min-height: 30px !important;
+  }
+
+  #sheet .sheet-hero-btn svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  #sheet .sheet-gallery-wrap {
+    padding: 8px 14px 12px !important;
+  }
+
+  #sheet .sheet-gallery-header {
+    max-width: 100% !important;
+    margin-bottom: 6px !important;
+  }
+
+  #sheet .sheet-photo-banner {
+    max-width: 100% !important;
+    height: 180px !important;
+    border-radius: 8px !important;
+  }
+
+  #sheet .sheet-no-photo-banner {
+    max-width: 100% !important;
+    min-height: 70px !important;
+    padding: 10px 12px !important;
+    border-radius: 8px !important;
+  }
+
+  /* Tarjeta técnica compacta y modular en desktop */
+  #sheet .sheet-tech-section {
+    margin: 0 14px 12px !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 8px !important;
+    background: var(--bg-panel) !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04) !important;
+    overflow: hidden !important;
+  }
+
+  body.dark-mode #sheet .sheet-tech-section {
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  #sheet .tech-grid-2col {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    border-bottom: 1px solid var(--border) !important;
+  }
+
+  #sheet .tech-col {
+    padding: 7px 12px !important;
+    border-right: 1px solid var(--border) !important;
+    gap: 2px !important;
+  }
+
+  #sheet .tech-col:last-child {
+    border-right: none !important;
+  }
+
+  #sheet .tech-row {
+    padding: 7px 12px !important;
+    border-bottom: 1px solid var(--border) !important;
+    font-size: 11px !important;
+  }
+
+  #sheet .tech-row:last-child {
+    border-bottom: none !important;
+  }
+
+  #sheet .tech-label {
+    font-size: 10px !important;
+    font-weight: 600 !important;
+  }
+
+  #sheet .tech-value {
+    font-size: 11.5px !important;
+  }
+
+  /* Tarjeta de notas y cuaderno personal compacta en desktop */
+  #sheet .personal-notes {
+    margin: 0 14px 14px !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 8px !important;
+    background: var(--bg-panel) !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04) !important;
+    overflow: hidden !important;
+  }
+
+  body.dark-mode #sheet .personal-notes {
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  #sheet .personal-notes-header {
+    padding: 7px 12px !important;
+  }
+
+  #sheet .personal-rating-row,
+  #sheet .personal-note-row {
+    padding: 7px 12px !important;
+  }
+
+  #sheet .personal-note-editor {
+    padding: 8px 12px 10px !important;
+  }
+
+  #sheet .personal-note-editor textarea {
+    min-height: 56px !important;
+    padding: 6px 8px !important;
+    font-size: 11px !important;
+  }
+
+  /* Tarjeta de administración compacta en desktop */
+  #sheet .sheet-admin-block {
+    margin: 0 14px 14px !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    padding: 8px 12px !important;
   }
 }
 .architect-suggestions { max-height: 180px; overflow-y: auto; border: 1px solid var(--border); background: var(--bg-raised); }
