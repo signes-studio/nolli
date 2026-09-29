@@ -155,6 +155,13 @@ export function cerrarFicha() {
   if (window.location.pathname.includes('/obra/')) {
     window.history.pushState(null, '', basePath);
   }
+
+  if (window.innerWidth > 768 && state.map) {
+    state.map.easeTo({
+      padding: { top: 0, bottom: 0, left: 0, right: 0 },
+      duration: 300,
+    });
+  }
 }
 
 let currentOpenBuilding = null;
@@ -458,8 +465,9 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
   sheet.classList.add('open');
   cerrarFiltros();
 
-  // En móvil, centrar el mapa en la mitad superior para no tapar el marcador
-  if (window.innerWidth <= 768 && state.map && coords) {
+  // En móvil, centrar el mapa en la mitad superior; en escritorio, centrar a la derecha del panel lateral (estilo Google Maps)
+  const hasCoords = coords && (coords[0] !== 0 || coords[1] !== 0);
+  if (window.innerWidth <= 768 && state.map && hasCoords) {
     state.map.easeTo({
       center: coords,
       padding: { top: 60, bottom: Math.round(window.innerHeight * 0.45), left: 0, right: 0 },
@@ -470,6 +478,15 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
       document.getElementById(id)?.classList.remove('open');
     });
     document.getElementById('panel-backdrop')?.classList.add('active');
+  } else if (window.innerWidth > 768 && state.map && hasCoords) {
+    state.map.easeTo({
+      center: coords,
+      padding: { top: 60, bottom: 20, left: 410, right: 0 },
+      duration: 350,
+    });
+    ['filter-panel', 'search-panel', 'my-places-panel', 'map-style-panel', 'admin-panel', 'explore-panel', 'radar-panel'].forEach((id) => {
+      document.getElementById(id)?.classList.remove('open');
+    });
   }
 
   const notes = document.getElementById('building-notes');

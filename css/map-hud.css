@@ -1009,6 +1009,10 @@ body.dark-mode .topbar-btn-profile:hover {
       left: 14px !important;
       z-index: 20 !important;
       pointer-events: none !important;
+      transition: left 0.26s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+    body:has(#sheet.open) .mapboxgl-ctrl-bottom-left {
+      left: 424px !important;
     }
     .mapboxgl-ctrl-bottom-left .mapboxgl-ctrl {
       pointer-events: auto !important;

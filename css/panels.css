@@ -1237,40 +1237,47 @@ body.dark-mode .personal-notes .save-personal-status {
   }
 }
 
-/* ---------- 5. Ficha Técnica de Obra en Desktop (Compacta Centrada) ---------- */
+/* ---------- 5. Ficha Técnica de Obra en Desktop (Panel Lateral Izquierdo estilo Google Maps) ---------- */
 @media (min-width: 769px) {
   #sheet {
     position: fixed !important;
-    left: 50% !important;
+    left: 0 !important;
     right: auto !important;
+    top: 48px !important;
     bottom: 0 !important;
-    transform: translate3d(-50%, 100%, 0) !important;
-    -webkit-transform: translate3d(-50%, 100%, 0) !important;
+    transform: translate3d(-100%, 0, 0) !important;
+    -webkit-transform: translate3d(-100%, 0, 0) !important;
     will-change: transform, opacity;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
     contain: layout paint;
-    width: min(520px, calc(100vw - 32px)) !important;
-    max-width: 520px !important;
-    height: auto !important;
-    max-height: min(78vh, 720px) !important;
+    width: min(410px, calc(100vw - 32px)) !important;
+    max-width: 410px !important;
+    height: calc(100vh - 48px) !important;
+    height: calc(100dvh - 48px) !important;
+    max-height: calc(100dvh - 48px) !important;
     background: var(--bg-panel) !important;
-    border: 1px solid var(--border) !important;
+    border-right: 1px solid var(--border) !important;
+    border-top: none !important;
+    border-left: none !important;
     border-bottom: none !important;
-    border-radius: 14px 14px 0 0 !important;
-    box-shadow: 0 -8px 36px rgba(0, 0, 0, 0.16) !important;
+    border-radius: 0 !important;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.08) !important;
     z-index: 45 !important;
     visibility: hidden !important;
     pointer-events: none !important;
     opacity: 0 !important;
     overflow-y: auto !important;
+    overflow-x: hidden !important;
     -webkit-overflow-scrolling: touch !important;
-    transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.18s ease, visibility 0s linear 0.24s !important;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+    transition: transform 0.26s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease, visibility 0s linear 0.26s !important;
   }
 
   #sheet.open {
-    transform: translate3d(-50%, 0, 0) !important;
-    -webkit-transform: translate3d(-50%, 0, 0) !important;
+    transform: translate3d(0, 0, 0) !important;
+    -webkit-transform: translate3d(0, 0, 0) !important;
     visibility: visible !important;
     pointer-events: auto !important;
     opacity: 1 !important;
@@ -1279,8 +1286,8 @@ body.dark-mode .personal-notes .save-personal-status {
 
   body.dark-mode #sheet {
     background: #171715 !important;
-    border-color: rgba(255, 255, 255, 0.1) !important;
-    box-shadow: 0 -8px 36px rgba(0, 0, 0, 0.5) !important;
+    border-right-color: rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 4px 0 32px rgba(0, 0, 0, 0.45) !important;
   }
 
   #sheet .sheet-drag-handle {
@@ -1292,36 +1299,63 @@ body.dark-mode .personal-notes .save-personal-status {
     top: 0 !important;
     z-index: 10 !important;
     background: var(--bg-raised) !important;
-    padding: 8px 14px !important;
-    min-height: 42px !important;
+    padding: 9px 14px !important;
+    min-height: 44px !important;
+    border-bottom: 1px solid var(--border) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
   }
 
   body.dark-mode #sheet .sheet-header {
     background: #1c1c19 !important;
+    border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+  }
+
+  #sheet .sheet-close-button {
+    min-width: 32px !important;
+    min-height: 32px !important;
+    border-radius: 6px !important;
+    transition: background 0.12s ease, color 0.12s ease;
+  }
+
+  #sheet .sheet-close-button:hover {
+    background: rgba(0, 0, 0, 0.06) !important;
+    color: var(--accent) !important;
+  }
+
+  body.dark-mode #sheet .sheet-close-button:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
   }
 
   #sheet #sheet-title {
     font-size: 21px !important;
-    line-height: 1.2 !important;
-    padding: 12px 14px 4px !important;
-    letter-spacing: -0.01em !important;
+    line-height: 1.22 !important;
+    padding: 14px 14px 6px !important;
+    letter-spacing: -0.015em !important;
+    color: var(--fg) !important;
   }
 
   #sheet .sheet-meta-subtitle {
-    padding: 0 14px 8px !important;
-    font-size: 11px !important;
+    padding: 0 14px 10px !important;
+    font-size: 11.5px !important;
+    line-height: 1.4 !important;
   }
 
   #sheet .sheet-hero-actions {
-    padding: 4px 14px 10px !important;
+    padding: 6px 14px 12px !important;
     gap: 6px !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    border-bottom: 1px solid var(--border) !important;
+    overflow-x: visible !important;
   }
 
   #sheet .sheet-hero-btn {
-    padding: 5px 9px !important;
-    font-size: 10.5px !important;
-    border-radius: 5px !important;
-    min-height: 30px !important;
+    padding: 6px 10px !important;
+    font-size: 11px !important;
+    border-radius: 6px !important;
+    min-height: 32px !important;
   }
 
   #sheet .sheet-hero-btn svg {
@@ -1330,30 +1364,33 @@ body.dark-mode .personal-notes .save-personal-status {
   }
 
   #sheet .sheet-gallery-wrap {
-    padding: 8px 14px 12px !important;
+    padding: 10px 14px 12px !important;
+    border-bottom: 1px solid var(--border) !important;
   }
 
   #sheet .sheet-gallery-header {
     max-width: 100% !important;
-    margin-bottom: 6px !important;
+    margin-bottom: 8px !important;
   }
 
   #sheet .sheet-photo-banner {
     max-width: 100% !important;
-    height: 180px !important;
+    width: 100% !important;
+    height: 190px !important;
     border-radius: 8px !important;
   }
 
   #sheet .sheet-no-photo-banner {
     max-width: 100% !important;
-    min-height: 70px !important;
+    width: 100% !important;
+    min-height: 72px !important;
     padding: 10px 12px !important;
     border-radius: 8px !important;
   }
 
   /* Tarjeta técnica compacta y modular en desktop */
   #sheet .sheet-tech-section {
-    margin: 0 14px 12px !important;
+    margin: 12px 14px !important;
     border: 1px solid var(--border) !important;
     border-radius: 8px !important;
     background: var(--bg-panel) !important;
@@ -1373,7 +1410,7 @@ body.dark-mode .personal-notes .save-personal-status {
   }
 
   #sheet .tech-col {
-    padding: 7px 12px !important;
+    padding: 8px 12px !important;
     border-right: 1px solid var(--border) !important;
     gap: 2px !important;
   }
@@ -1383,7 +1420,7 @@ body.dark-mode .personal-notes .save-personal-status {
   }
 
   #sheet .tech-row {
-    padding: 7px 12px !important;
+    padding: 8px 12px !important;
     border-bottom: 1px solid var(--border) !important;
     font-size: 11px !important;
   }
@@ -1417,12 +1454,12 @@ body.dark-mode .personal-notes .save-personal-status {
   }
 
   #sheet .personal-notes-header {
-    padding: 7px 12px !important;
+    padding: 8px 12px !important;
   }
 
   #sheet .personal-rating-row,
   #sheet .personal-note-row {
-    padding: 7px 12px !important;
+    padding: 8px 12px !important;
   }
 
   #sheet .personal-note-editor {
@@ -1442,6 +1479,22 @@ body.dark-mode .personal-notes .save-personal-status {
     border-radius: 8px !important;
     overflow: hidden !important;
     padding: 8px 12px !important;
+  }
+
+  /* Desplazamiento dinámico de controles y chips de mapa cuando la ficha lateral está abierta */
+  body:has(#sheet.open) .active-filter-chips-bar,
+  body:has(#sheet.open) .itinerary-filter-badge {
+    left: 426px !important;
+    max-width: calc(100vw - 442px) !important;
+  }
+
+  body:has(#sheet.open) .filter-empty-banner {
+    left: 426px !important;
+  }
+
+  body:has(#sheet.open) .mapboxgl-ctrl-bottom-left,
+  body:has(#sheet.open) .maplibregl-ctrl-bottom-left {
+    left: 424px !important;
   }
 }
 .architect-suggestions { max-height: 180px; overflow-y: auto; border: 1px solid var(--border); background: var(--bg-raised); }
@@ -5266,6 +5319,7 @@ body.dark-mode .report-type-pill {
     top: 68px;
     left: 16px;
     max-width: calc(100vw - 32px);
+    transition: left 0.26s cubic-bezier(0.16, 1, 0.3, 1), max-width 0.26s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.22s ease, transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.22s ease !important;
   }
 }
 
@@ -5454,6 +5508,7 @@ body.dark-mode .itinerary-badge-close:hover {
     top: 112px;
     left: 16px;
     max-width: 380px;
+    transition: left 0.26s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease !important;
   }
 }
 
