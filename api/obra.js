@@ -374,14 +374,17 @@ function renderBuildingPage(building, lang = 'es', discoveryData = {}) {
   const isIndexable = lang === 'es';
 
   let architectHtml = '';
-  let interventionsHtml = '';
   let interventionsSubtitleHtml = '';
   const validArchitects = [];
 
-  const { arquitectos: cleanArchitects, intervenciones } = parseArchitectsAndInterventions(building.arquitecto);
+  const { arquitectos: cleanArchitects, arquitectosOriginales, intervenciones } = parseArchitectsAndInterventions(building.arquitecto);
 
-  if (cleanArchitects.length > 0) {
-    const renderedParts = cleanArchitects.map((name) => {
+  const displayOriginalArchitects = (Array.isArray(arquitectosOriginales) && arquitectosOriginales.length > 0)
+    ? arquitectosOriginales
+    : [];
+
+  if (displayOriginalArchitects.length > 0) {
+    const renderedParts = displayOriginalArchitects.map((name) => {
       if (isIgnoredArchitect(name)) {
         return escapeHtml(name);
       }
@@ -397,15 +400,6 @@ function renderBuildingPage(building, lang = 'es', discoveryData = {}) {
   }
 
   if (intervenciones.length > 0) {
-    interventionsHtml = intervenciones.map((inv) => {
-      const rawSlug = slugify(inv.arquitecto);
-      const slug = (ARCHITECT_ALIASES && ARCHITECT_ALIASES[rawSlug]) || rawSlug;
-      const link = (slug && !isIgnoredArchitect(slug))
-        ? `<a class="architect-link" href="${SITE_URL}${prefix}/arquitecto/${encodeURIComponent(slug)}">${escapeHtml(inv.arquitecto)}</a>`
-        : escapeHtml(inv.arquitecto);
-      return `Intervención en ${escapeHtml(inv.año)} por ${link}`;
-    }).join('<br>');
-
     interventionsSubtitleHtml = intervenciones.map((inv) => {
       const rawSlug = slugify(inv.arquitecto);
       const slug = (ARCHITECT_ALIASES && ARCHITECT_ALIASES[rawSlug]) || rawSlug;
@@ -419,12 +413,6 @@ function renderBuildingPage(building, lang = 'es', discoveryData = {}) {
   const impInfo = getImportanceInfo(building.importancia, lang);
 
   const detailsList = [
-    cleanArchitects.length > 0 && { label: getSSRText('label_architecture', lang), value: architectHtml, isHtml: true },
-    intervenciones.length > 0 && {
-      label: intervenciones.length === 1 ? getSSRText('label_intervention', lang) : getSSRText('label_interventions', lang),
-      value: interventionsHtml,
-      isHtml: true,
-    },
     building.año_construccion && { label: getSSRText('label_year', lang), value: escapeHtml(building.año_construccion) },
     {
       label: getSSRText('label_importance', lang),
