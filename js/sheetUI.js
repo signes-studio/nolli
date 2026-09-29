@@ -299,6 +299,22 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
 
     <!-- Ficha Técnica Modular Limpia (Matriz Tipográfica) -->
     <div class="sheet-tech-section">
+      <div class="tech-row">
+        <span class="tech-label">${t('sheet_architecture')}</span>
+        <span class="tech-value tech-value-accent">${architects}</span>
+      </div>
+
+      ${rawIntervenciones.length > 0 ? `
+        <div class="tech-row tech-row-intervention">
+          <span class="tech-label">${rawIntervenciones.length === 1 ? (t('sheet_intervention') || 'intervención') : (t('sheet_interventions') || 'intervenciones')}</span>
+          <span class="tech-value tech-value-accent">
+            ${rawIntervenciones.map((inv) => `
+              <span class="intervention-entry">${t('sheet_intervention_in', { year: escapeHtml(inv.año) }) || `Intervención en ${escapeHtml(inv.año)}`} por <button type="button" class="architect-filter" data-arq="${escapeHtml(inv.arquitecto)}">${escapeHtml(inv.arquitecto)}</button></span>
+            `).join('<br>')}
+          </span>
+        </div>
+      ` : ''}
+
       <div class="tech-grid-2col">
         <div class="tech-col">
           <span class="tech-label">${t('sheet_year')}</span>

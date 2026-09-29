@@ -54,7 +54,6 @@ export interface Building {
   enlace_url?: string | null;
   arquitecto: string | null;
   arquitectos?: string[] | string | null;
-  arquitectosOriginales?: string[];
   intervenciones?: BuildingIntervention[];
   año_construccion: number | string | null;
   importancia: BuildingImportance | number | null;
@@ -90,7 +89,6 @@ export interface RawBuildingRow {
   enlace_url: string | null;
   arquitecto: string | null;
   arquitectos?: string[] | string | null;
-  arquitectosOriginales?: string[];
   intervenciones?: BuildingIntervention[];
   año_construccion: number | string | null;
   importancia: number | null;
