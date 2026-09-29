@@ -638,9 +638,8 @@ export async function initStandaloneWorkSheet(): Promise<void> {
         if (choice === 'whatsapp') {
           window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text + ' ' + url)}`, '_blank');
         } else if (choice === 'google') {
-          if (currentBuilding.latitud != null && currentBuilding.longitud != null) {
-            window.open(`https://www.google.com/maps/search/?api=1&query=${currentBuilding.latitud},${currentBuilding.longitud}`, '_blank');
-          }
+          const query = [currentBuilding.nombre_obra, currentBuilding.place].filter(Boolean).join(' ');
+          window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`, '_blank');
         } else if (choice === 'native') {
           if (navigator.share) {
             navigator.share({ title: currentBuilding.nombre_obra, text, url }).catch(() => {});
