@@ -203,20 +203,16 @@ const ARCHITECT_SEPARATOR_REGEX = /[;,]|\s*[\/|]\s*|\s+[-–—]\s+/;
  */
 function parseArchitectsAndInterventions(raw) {
   const arquitectos = [];
-  const arquitectosOriginales = [];
   const intervenciones = [];
-  if (!raw) return { arquitectos, arquitectosOriginales, intervenciones };
+  if (!raw) return { arquitectos, intervenciones };
 
   const parts = String(raw).split(ARCHITECT_SEPARATOR_REGEX).map((p) => p.trim()).filter(Boolean);
-  const parsedItems = [];
-
   for (const part of parts) {
     const match = part.match(/\((?:intervenci[oó]n|reforma|ampliaci[oó]n|restauraci[oó]n|a[ñn]o)?\s*:?\s*(\d{4}(?:\s*[-/–]\s*\d{4})?)\s*\)/i);
     if (match) {
       const year = match[1].trim();
       const cleanName = cleanArchitectName(part);
       if (cleanName) {
-        parsedItems.push({ name: cleanName, year, isIntervention: true });
         arquitectos.push(cleanName);
         intervenciones.push({
           arquitecto: cleanName,
@@ -225,30 +221,10 @@ function parseArchitectsAndInterventions(raw) {
         });
       }
     } else {
-      parsedItems.push({ name: part, year: null, isIntervention: false });
       arquitectos.push(part);
     }
   }
-
-  // Los arquitectos originales son aquellos sin indicación de intervención entre paréntesis
-  const sinIntervencion = parsedItems.filter((item) => !item.isIntervention).map((item) => item.name);
-  if (sinIntervencion.length > 0) {
-    arquitectosOriginales.push(...sinIntervencion);
-  } else if (intervenciones.length > 1) {
-    // Si todos tienen año (ej. "Nicola Bigaglia (1902); Vasco Morais Palmeiro (1940)"),
-    // el año más antiguo corresponde a la obra original
-    const ordenados = [...parsedItems].sort((a, b) => parseInt(a.year || '9999', 10) - parseInt(b.year || '9999', 10));
-    const primero = ordenados[0];
-    if (primero) {
-      arquitectosOriginales.push(primero.name);
-      const idx = intervenciones.findIndex((inv) => inv.arquitecto === primero.name && inv.año === primero.year);
-      if (idx !== -1) {
-        intervenciones.splice(idx, 1);
-      }
-    }
-  }
-
-  return { arquitectos, arquitectosOriginales, intervenciones };
+  return { arquitectos, intervenciones };
 }
 
 module.exports = {

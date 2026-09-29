@@ -2,7 +2,7 @@
    SHEETUI.JS - Ficha tecnica y acciones personales de una obra
    ========================================================================= */
 
-import { state, separarArquitectos, separarArquitectosOriginales, limpiarNombreArquitecto, extraerIntervenciones, normalizarCategoria, normalizarImportancia, formatCategoria, esRolAdmin, esRolEditor, guardarZonaPersonalLocal, CATEGORY_META } from './state.js';
+import { state, separarArquitectos, limpiarNombreArquitecto, extraerIntervenciones, normalizarCategoria, normalizarImportancia, formatCategoria, esRolAdmin, esRolEditor, guardarZonaPersonalLocal, CATEGORY_META } from './state.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { cerrarFiltros, generarFiltrosUI } from './filtersUI.js';
 import { fetchBuildings, saveBuildingStatus, reviewBuilding, deleteBuilding, updateBuilding, deletePrivateBuilding, createUserCollection, addUserCollectionItem, deleteUserCollectionItem, createUserPrivateLabel, deleteUserPrivateLabel, fetchBuildingVisitPhotos, createVisitPhoto, deleteVisitPhoto, updateVisitPhoto, uploadGenericPhotoWithR2, invalidateCatalogCache, fetchCurrentUser } from './api.js';
@@ -186,13 +186,9 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
     ? building.intervenciones
     : extraerIntervenciones(building.arquitecto || building.arquitectos);
 
-  // En la cabecera y fila de arquitectura solo deben figurar los arquitectos originales;
-  // los que han intervenido salen únicamente en su bloque de intervención posterior.
-  const rawOriginals = Array.isArray(building.arquitectosOriginales)
-    ? building.arquitectosOriginales
-    : separarArquitectosOriginales(building.arquitecto);
-
-  const architectsList = rawOriginals.map(limpiarNombreArquitecto).filter(Boolean);
+  const architectsList = Array.isArray(building.arquitectos)
+    ? building.arquitectos.map(limpiarNombreArquitecto).filter(Boolean)
+    : separarArquitectos(building.arquitecto);
 
   const architects = architectsList
     .map((architect) => `<button type="button" class="architect-filter" data-arq="${escapeHtml(architect)}">${escapeHtml(architect)}</button>`).join(', ');
@@ -221,9 +217,9 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
     <!-- Subtítulo de autor y año -->
     <div class="sheet-meta-subtitle">
       <div class="sheet-meta-primary">
-        ${architects ? `<span class="sheet-meta-architects">${architects}</span>` : ''}
-        ${building.año_construccion ? `<span class="sheet-meta-year">${architects ? '· ' : ''}${escapeHtml(building.año_construccion)}</span>` : ''}
-        ${building.ciudad ? `<span class="sheet-meta-city">${(architects || building.año_construccion) ? '· ' : ''}${escapeHtml(building.ciudad)}</span>` : ''}
+        <span class="sheet-meta-architects">${architects}</span>
+        ${building.año_construccion ? `<span class="sheet-meta-year">· ${escapeHtml(building.año_construccion)}</span>` : ''}
+        ${building.ciudad ? `<span class="sheet-meta-city">· ${escapeHtml(building.ciudad)}</span>` : ''}
       </div>
       ${rawIntervenciones.length > 0 ? `
         <div class="sheet-meta-interventions">
@@ -305,7 +301,7 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
     <div class="sheet-tech-section">
       <div class="tech-row">
         <span class="tech-label">${t('sheet_architecture')}</span>
-        <span class="tech-value tech-value-accent">${architects || '-'}</span>
+        <span class="tech-value tech-value-accent">${architects}</span>
       </div>
 
       ${rawIntervenciones.length > 0 ? `

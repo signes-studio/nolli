@@ -378,14 +378,10 @@ function renderBuildingPage(building, lang = 'es', discoveryData = {}) {
   let interventionsSubtitleHtml = '';
   const validArchitects = [];
 
-  const { arquitectos: cleanArchitects, arquitectosOriginales, intervenciones } = parseArchitectsAndInterventions(building.arquitecto);
+  const { arquitectos: cleanArchitects, intervenciones } = parseArchitectsAndInterventions(building.arquitecto);
 
-  const displayOriginalArchitects = (Array.isArray(arquitectosOriginales) && arquitectosOriginales.length > 0)
-    ? arquitectosOriginales
-    : [];
-
-  if (displayOriginalArchitects.length > 0) {
-    const renderedParts = displayOriginalArchitects.map((name) => {
+  if (cleanArchitects.length > 0) {
+    const renderedParts = cleanArchitects.map((name) => {
       if (isIgnoredArchitect(name)) {
         return escapeHtml(name);
       }
@@ -423,7 +419,7 @@ function renderBuildingPage(building, lang = 'es', discoveryData = {}) {
   const impInfo = getImportanceInfo(building.importancia, lang);
 
   const detailsList = [
-    displayOriginalArchitects.length > 0 && { label: getSSRText('label_architecture', lang), value: architectHtml, isHtml: true },
+    cleanArchitects.length > 0 && { label: getSSRText('label_architecture', lang), value: architectHtml, isHtml: true },
     intervenciones.length > 0 && {
       label: intervenciones.length === 1 ? getSSRText('label_intervention', lang) : getSSRText('label_interventions', lang),
       value: interventionsHtml,
