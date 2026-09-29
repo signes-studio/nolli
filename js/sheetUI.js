@@ -206,6 +206,10 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
   const catColor = CATEGORY_META[catKey]?.color || '#EA560D';
   const canDeletePrivate = Boolean(selected?.private && state.userId && String(selected.user_id) === String(state.userId));
   const isPending = adminActive && building.estado_revision === 'pendiente';
+  const userStatus = state.buildingStatuses?.get(String(selected?.id || building.id)) || {};
+  const currentRating = Number(userStatus.valoracion || getStatus('valoracion') || 0);
+  const userNote = userStatus.notas || '';
+  const hasNote = Boolean(userNote && userNote.trim());
 
   document.getElementById('sheet-title').textContent = building.nombre_obra;
 
@@ -336,13 +340,43 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
     <!-- Cuaderno Privado (Valoración y Notas) -->
     ${state.sessionToken ? `
       <div class="personal-notes">
-        <div class="personal-notes-head">${t('sheet_my_rating_notes')}</div>
-        <div class="rating-stars">${[1, 2, 3, 4, 5].map((value) => `<button type="button" class="rating-star ${getStatus('valoracion') >= value ? 'active' : ''}" data-rating="${value}" aria-label="Valorar ${value} de 5">&#9733;</button>`).join('')}</div>
-        <button type="button" class="btn note-toggle" data-note-toggle>${t('sheet_add_private_note')}</button>
-        <div class="personal-note-editor" data-note-editor>
-          <label for="building-notes">${t('sheet_private_note_label')}</label>
-          <textarea id="building-notes" class="tech-input" rows="3" placeholder="${t('sheet_private_note_placeholder')}"></textarea>
-          <button type="button" class="btn save-personal-status" data-save-personal>${t('sheet_save_note')}</button>
+        <div class="personal-notes-header">
+          <div class="personal-notes-title-wrap">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="personal-notes-icon"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+            <span class="personal-notes-head">${t('sheet_my_rating_notes') || 'mi valoración y notas'}</span>
+          </div>
+          <span class="personal-notes-private-tag">privado</span>
+        </div>
+
+        <div class="personal-rating-row">
+          <span class="tech-label">${t('sheet_rating_title') || 'tu valoración'}</span>
+          <div class="rating-stars" role="radiogroup" aria-label="${t('sheet_rating_title') || 'Valoración'}">
+            ${[1, 2, 3, 4, 5].map((value) => `
+              <button type="button" class="rating-star ${currentRating >= value ? 'active' : ''}" data-rating="${value}" aria-label="Valorar ${value} de 5" title="${value} de 5">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              </button>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="personal-note-section">
+          <div class="personal-note-row">
+            <span class="tech-label">${t('sheet_private_note_label') || 'nota personal'}</span>
+            <button type="button" class="btn note-toggle ${hasNote ? 'has-note' : ''}" data-note-toggle>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+              <span>${hasNote ? (t('sheet_edit_note') || 'editar nota') : (t('sheet_add_private_note') || 'añadir nota')}</span>
+            </button>
+          </div>
+          <div class="personal-note-editor ${hasNote ? 'open' : ''}" data-note-editor>
+            <textarea id="building-notes" class="tech-input" rows="3" placeholder="${t('sheet_notes_placeholder') || t('sheet_private_note_placeholder') || 'Escribe tus observaciones arquitectónicas o notas de la visita...'}">${escapeHtml(userNote)}</textarea>
+            <div class="personal-note-footer">
+              <span class="personal-note-hint">Solo visible en tu cuenta</span>
+              <button type="button" class="btn save-personal-status" data-save-personal>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>${t('sheet_save_note') || 'Guardar nota'}</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     ` : ''}
@@ -782,10 +816,22 @@ async function saveNote(button) {
   try {
     await saveBuildingStatus(state.userId, building.id, next, state.sessionToken);
     button.textContent = t('sheet_saved');
+    const noteToggle = editor?.closest('.personal-notes')?.querySelector('[data-note-toggle]');
+    if (noteToggle) {
+      const toggleSpan = noteToggle.querySelector('span') || noteToggle;
+      toggleSpan.textContent = nota ? (t('sheet_edit_note') || 'editar nota') : (t('sheet_add_private_note') || 'añadir nota');
+      noteToggle.classList.toggle('has-note', Boolean(nota));
+    }
     document.dispatchEvent(new CustomEvent('radar:user-status-changed', { detail: { buildingId: key, status: 'notas', value: nota } }));
   } catch (error) {
     console.error('Error al guardar nota:', error);
     button.textContent = t('sheet_saved_note_local');
+    const noteToggle = editor?.closest('.personal-notes')?.querySelector('[data-note-toggle]');
+    if (noteToggle) {
+      const toggleSpan = noteToggle.querySelector('span') || noteToggle;
+      toggleSpan.textContent = nota ? (t('sheet_edit_note') || 'editar nota') : (t('sheet_add_private_note') || 'añadir nota');
+      noteToggle.classList.toggle('has-note', Boolean(nota));
+    }
     document.dispatchEvent(new CustomEvent('radar:user-status-changed', { detail: { buildingId: key, status: 'notas', value: nota } }));
   } finally {
     setTimeout(() => {
@@ -1041,7 +1087,22 @@ document.addEventListener('click', (event) => {
   if (target.closest('[data-move-building]')) { const building = getSelectedBuilding(); if (building) iniciarModoMoverObra(building); return; }
   if (target.closest('[data-review-building]')) { reviewBuildingFromSheet(target.closest('[data-review-building]').dataset.reviewBuilding); return; }
   const noteToggle = target.closest('[data-note-toggle]');
-  if (noteToggle) { noteToggle.nextElementSibling.classList.toggle('open'); noteToggle.textContent = noteToggle.nextElementSibling.classList.contains('open') ? t('sheet_hide_note') : t('sheet_add_private_note'); return; }
+  if (noteToggle) {
+    const editor = noteToggle.closest('.personal-notes')?.querySelector('[data-note-editor]') || noteToggle.nextElementSibling;
+    if (editor) {
+      editor.classList.toggle('open');
+      const isOpen = editor.classList.contains('open');
+      const hasText = Boolean(document.getElementById('building-notes')?.value?.trim());
+      const labelSpan = noteToggle.querySelector('span');
+      const labelText = isOpen ? (t('sheet_hide_note') || 'ocultar nota') : (hasText ? (t('sheet_edit_note') || 'editar nota') : (t('sheet_add_private_note') || 'añadir nota'));
+      if (labelSpan) {
+        labelSpan.textContent = labelText;
+      } else {
+        noteToggle.textContent = labelText;
+      }
+    }
+    return;
+  }
   const rating = target.closest('[data-rating]');
   if (rating) { saveStatus('valoracion', Number(rating.dataset.rating)); rating.parentElement.querySelectorAll('[data-rating]').forEach((star) => star.classList.toggle('active', Number(star.dataset.rating) <= Number(rating.dataset.rating))); return; }
   const status = target.closest('[data-status]');

@@ -724,6 +724,7 @@
   "sheet_directions": "DIRECTIONS",
   "sheet_drag_aria": "Drag to close details",
   "sheet_edit_building": "EDIT WORK",
+  "sheet_edit_note": "EDIT NOTE",
   "sheet_fav_add": "Add to favorites",
   "sheet_fav_remove": "Remove from favorites",
   "sheet_header_tag": "WORK FILE",
