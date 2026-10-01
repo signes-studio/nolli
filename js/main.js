@@ -466,14 +466,14 @@ const recargarPorInvalidacion = () => {
 document.addEventListener('radar:catalog-updated', recargarCatalogoActualizado);
 document.addEventListener('radar:catalog-invalidated', recargarPorInvalidacion);
 
-// Revalidar en segundo plano al reactivar pestaña o app PWA si han pasado > 5 minutos
+// Revalidar en segundo plano al reactivar pestaña o app PWA si han pasado > 60 minutos
 let ultimaSincronizacionVisibilidad = Date.now();
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') {
     const ahora = Date.now();
-    if (ahora - ultimaSincronizacionVisibilidad > 5 * 60 * 1000) {
+    if (ahora - ultimaSincronizacionVisibilidad > 60 * 60 * 1000) {
       ultimaSincronizacionVisibilidad = ahora;
-      recargarPorInvalidacion();
+      recargarCatalogoActualizado();
     }
   }
 });

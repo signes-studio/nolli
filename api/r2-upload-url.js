@@ -223,63 +223,11 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // A) Si se envía imagen en base64/dataUrl (respaldo transparente del servidor)
-    if (rawData && typeof rawData === 'string') {
-      try {
-        const matches = rawData.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
-        const resolvedMime = (matches ? matches[1] : cleanContentType).toLowerCase().trim();
-        const base64Data = matches ? matches[2] : rawData;
-        const buffer = Buffer.from(base64Data, 'base64');
-        const ext = resolvedMime.split('/')[1] || 'webp';
-        const timestamp = Date.now();
-        const randomSuffix = crypto.randomBytes(4).toString('hex');
-
-        let folderPrefix = buildingId ? `visits/${buildingId}` : `visits/general`;
-        let objectKey = `${folderPrefix}/${user.id}/${timestamp}_${randomSuffix}.${ext}`;
-
-        if (uploadType === 'avatar') {
-          folderPrefix = `avatars/${user.id}`;
-          objectKey = `${folderPrefix}/${timestamp}_${randomSuffix}_avatar.${ext}`;
-        } else if (uploadType === 'building') {
-          folderPrefix = buildingId ? `buildings/${buildingId}` : `buildings/new/${user.id}`;
-          objectKey = `${folderPrefix}/${timestamp}_${randomSuffix}.${ext}`;
-        }
-
-        const s3 = new S3Client({
-          region: 'auto',
-          endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
-          credentials: { accessKeyId, secretAccessKey },
-          forcePathStyle: true,
-          requestChecksumCalculation: 'WHEN_REQUIRED',
-          responseChecksumValidation: 'WHEN_REQUIRED',
-        });
-
-        await s3.send(new PutObjectCommand({
-          Bucket: bucketName,
-          Key: objectKey,
-          Body: buffer,
-          ContentType: resolvedMime,
-        }));
-
-        const publicUrl = `${publicDomain}/${objectKey}`;
-
-        return res.status(200).json({
-          success: true,
-          configured: true,
-          publicUrl,
-          url: publicUrl,
-          key: objectKey,
-          photoType: photoType || 'standard',
-          userId: user.id,
-          uploadMethod: 'server_direct',
-        });
-      } catch (directErr) {
-        console.error('Error en subida directa servidor a R2:', directErr);
-        return res.status(500).json({
-          error: 'Error al subir fotografía a Cloudflare R2 vía servidor.',
-          details: directErr.message,
-        });
-      }
+    // A) Blindaje anti-transferencia: Las fotos deben subirse directamente a Cloudflare R2 vía URL prefirmada PUT
+    if (rawData) {
+      return res.status(400).json({
+        error: 'Infracción de transferencia: Las imágenes deben subirse directamente a Cloudflare R2 mediante URL prefirmada PUT. No se admite el envío de binarios ni base64 al servidor.',
+      });
     }
 
     if (!filename || typeof filename !== 'string') {

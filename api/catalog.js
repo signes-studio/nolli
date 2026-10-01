@@ -101,8 +101,8 @@ module.exports = async function handler(req, res) {
     // Etiquetas para invalidación/purga granular en Vercel Edge y Cloudflare CDN
     res.setHeader('Vercel-Cache-Tag', 'catalog');
     res.setHeader('Cache-Tag', 'catalog');
-    // Cabecera Edge CDN compartida a nivel mundial: 5 minutos fresca (s-maxage=300), 10 minutos revalidación
-    res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+    // Cabecera Edge CDN compartida a nivel mundial: 6 horas fresca (s-maxage=21600), 24 horas revalidación
+    res.setHeader('Cache-Control', 'public, s-maxage=21600, stale-while-revalidate=86400');
     return res.status(200).json(allBuildings);
   } catch (error) {
     console.error('Error al generar catálogo en edge:', error);

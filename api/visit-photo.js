@@ -194,6 +194,13 @@ module.exports = async function handler(req, res) {
         });
       }
 
+      // Blindaje anti-transferencia: Las fotos deben subirse directamente a Cloudflare R2 vía URL prefirmada
+      if (cleanPhotoUrl.startsWith('data:image/') || cleanPhotoUrl.startsWith('data:')) {
+        return res.status(400).json({
+          error: 'Infracción de transferencia: Las imágenes deben subirse directamente a Cloudflare R2 mediante URL prefirmada. No se permite el envío de datos binarios o base64 al servidor.',
+        });
+      }
+
       // C) Asegurar que el perfil existe en public.profiles para cumplir la Foreign Key
       if (hasServiceRoleKey) {
         try {
@@ -215,60 +222,12 @@ module.exports = async function handler(req, res) {
         }
       }
 
-      // D) Si nos llega una data URL en base64, subirla directamente a Cloudflare R2 desde el servidor
-      // para que NUNCA se guarde un string base64 en la base de datos
-      let finalPhotoUrl = cleanPhotoUrl;
-      let finalThumbnailUrl = thumbnail_url ? String(thumbnail_url).trim() : null;
-
-      if (cleanPhotoUrl.startsWith('data:image/')) {
-        const accountId = (process.env.R2_ACCOUNT_ID || '').trim().replace(/^https?:\/\//, '').replace(/\/$/, '');
-        const accessKeyId = (process.env.R2_ACCESS_KEY_ID || '').trim();
-        const secretAccessKey = (process.env.R2_SECRET_ACCESS_KEY || '').trim();
-        const bucketName = (process.env.R2_BUCKET_NAME || 'nolli-photos').trim();
-        const publicDomain = ((process.env.R2_PUBLIC_DOMAIN || 'https://photos.nollimap.app').trim()).replace(/\/$/, '');
-
-        if (accountId && accessKeyId && secretAccessKey) {
-          try {
-            const matches = cleanPhotoUrl.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
-            const mimeType = (matches ? matches[1] : 'image/webp').toLowerCase();
-            const base64Data = matches ? matches[2] : cleanPhotoUrl.split(',')[1];
-            const buffer = Buffer.from(base64Data, 'base64');
-            const ext = mimeType.split('/')[1] || 'webp';
-
-            const crypto = require('crypto');
-            const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
-            const s3 = new S3Client({
-              region: 'auto',
-              endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
-              credentials: { accessKeyId, secretAccessKey },
-              forcePathStyle: true,
-              requestChecksumCalculation: 'WHEN_REQUIRED',
-              responseChecksumValidation: 'WHEN_REQUIRED',
-            });
-
-            const randomSuffix = crypto.randomBytes(4).toString('hex');
-            const objectKey = `visits/${building_id}/${user.id}/${Date.now()}_${randomSuffix}.${ext}`;
-
-            await s3.send(new PutObjectCommand({
-              Bucket: bucketName,
-              Key: objectKey,
-              Body: buffer,
-              ContentType: mimeType,
-            }));
-
-            finalPhotoUrl = `${publicDomain}/${objectKey}`;
-            finalThumbnailUrl = `https://wsrv.nl/?url=${encodeURIComponent(finalPhotoUrl)}&w=640&output=webp&q=82`;
-            console.log(`[visit-photo] Base64 subido a R2 con éxito: ${finalPhotoUrl}`);
-          } catch (r2Err) {
-            console.error('[visit-photo] Error al transferir base64 a R2:', r2Err);
-          }
-        }
-      }
-
-      // E) Construir registro para visit_photos
+      // D) URLs finales de foto y miniatura (previamente subidas directamente a Cloudflare R2)
+      const finalPhotoUrl = cleanPhotoUrl;
+      const finalThumbnailUrl = thumbnail_url ? String(thumbnail_url).trim() : null;
       const safeThumbnail = finalThumbnailUrl
         ? finalThumbnailUrl
-        : (finalPhotoUrl.startsWith('data:') ? finalPhotoUrl : `https://wsrv.nl/?url=${encodeURIComponent(finalPhotoUrl)}&w=640&output=webp&q=82`);
+        : `https://wsrv.nl/?url=${encodeURIComponent(finalPhotoUrl)}&w=640&output=webp&q=82`;
 
       const validPhotoTypes = ['standard', 'analysis_sketch', 'analysis_diagram', 'analysis_detail'];
       const validVisibility = ['public', 'friends', 'private'];

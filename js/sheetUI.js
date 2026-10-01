@@ -1520,6 +1520,15 @@ function initSheetPhotoUploadModal() {
       return;
     }
 
+    if (photoUrl.startsWith('data:image/') || photoUrl.startsWith('data:')) {
+      if (errorEl) {
+        errorEl.textContent = 'No se permiten imágenes en base64. Sube el archivo para procesarlo a través de Cloudflare R2.';
+        errorEl.classList.remove('hidden');
+      }
+      showNeoToast('No se permiten imágenes en formato base64.');
+      return;
+    }
+
     if (!author) {
       if (errorEl) {
         errorEl.textContent = 'Debes indicar el autor o crédito de la fotografía para poder subirla.';
