@@ -145,7 +145,9 @@ async function cargarYMostrarObra(obraId) {
       ? obra.coordenadas
       : (!isNaN(urlLng) && !isNaN(urlLat) ? [urlLng, urlLat] : null);
     if (coords) {
-      state.map.flyTo({ center: coords, zoom: Math.max(state.map.getZoom(), urlZoom) });
+      if (state.map.getZoom() < 15) {
+        state.map.jumpTo({ zoom: Math.max(state.map.getZoom(), urlZoom) });
+      }
       abrirFicha(obra, coords, obra.featureId || obra.id, true);
     } else {
       abrirFicha(obra, [0, 0], obra.featureId || obra.id, true);

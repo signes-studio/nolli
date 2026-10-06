@@ -152,8 +152,21 @@ export function cerrarFicha() {
 
   const prefix = getUrlPrefix();
   const basePath = prefix ? `${prefix}/` : '/';
-  if (window.location.pathname.includes('/obra/')) {
-    window.history.pushState(null, '', basePath);
+  const currentUrl = new URL(window.location.href);
+  let urlModificada = false;
+
+  if (currentUrl.pathname.includes('/obra/')) {
+    currentUrl.pathname = basePath;
+    urlModificada = true;
+  }
+  if (currentUrl.searchParams.has('obra')) {
+    currentUrl.searchParams.delete('obra');
+    urlModificada = true;
+  }
+
+  if (urlModificada) {
+    const targetUrl = currentUrl.pathname + (currentUrl.search ? currentUrl.search : '') + (currentUrl.hash || '');
+    window.history.pushState(null, '', targetUrl);
   }
 
   if (window.innerWidth > 768 && state.map) {
@@ -179,12 +192,22 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
   if (selected) selected.selected = true;
   actualizarFuenteMapa();
 
-  // Actualizar URL limpia [prefix]/obra/[ID] usando History API sin recargar
+  // Mantener al usuario dentro de la SPA del mapa usando ?obra=[ID] con History API
   const cleanId = String(building.id || targetId);
   const prefix = getUrlPrefix();
-  const targetPath = `${prefix}/obra/${encodeURIComponent(cleanId)}`;
-  if (!window.location.pathname.includes('/obra/') || decodeURIComponent(window.location.pathname.replace(/^.*\/obra\//, '')) !== cleanId) {
-    window.history.pushState({ obraId: cleanId }, '', targetPath);
+  const basePath = prefix ? `${prefix}/` : '/';
+
+  const currentUrl = new URL(window.location.href);
+  const currentObraParam = currentUrl.searchParams.get('obra');
+  const enRutaObra = currentUrl.pathname.includes('/obra/');
+
+  if (enRutaObra || currentObraParam !== cleanId) {
+    if (enRutaObra) {
+      currentUrl.pathname = basePath;
+    }
+    currentUrl.searchParams.set('obra', cleanId);
+    const targetUrl = currentUrl.pathname + (currentUrl.search ? currentUrl.search : '') + (currentUrl.hash || '');
+    window.history.pushState({ obraId: cleanId }, '', targetUrl);
   }
 
   const coords = coordinates || selected.coordenadas || building.coordenadas || [0, 0];

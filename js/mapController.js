@@ -223,20 +223,26 @@ export function cargarMapaMapbox() {
   });
   window.nolliMap = state.map;
 
-  // Persistencia de la última vista explorada con debounce (para reabrir donde el usuario estuvo)
-  let debounceSaveView = null;
-  state.map.on('moveend', () => {
-    clearTimeout(debounceSaveView);
-    debounceSaveView = setTimeout(() => {
-      if (!state.map) return;
-      if (window.location.pathname.includes('/obra/')) return;
+  // Persistencia de la última vista explorada con debounce y descarga de página (para reabrir donde el usuario estuvo)
+  const guardarPosicionActual = () => {
+    if (!state.map) return;
+    try {
       const center = state.map.getCenter();
       const zoom = state.map.getZoom();
       if (center && Number.isFinite(center.lng) && Number.isFinite(center.lat)) {
         guardarUltimaUbicacion(center.lng, center.lat, zoom, 'explored');
       }
-    }, 1500);
+    } catch (e) {}
+  };
+
+  let debounceSaveView = null;
+  state.map.on('moveend', () => {
+    clearTimeout(debounceSaveView);
+    debounceSaveView = setTimeout(guardarPosicionActual, 600);
   });
+
+  window.addEventListener('beforeunload', guardarPosicionActual, { passive: true });
+  window.addEventListener('pagehide', guardarPosicionActual, { passive: true });
 
   // La atribución obligatoria de Mapbox y OpenStreetMap se gestiona en el modal unificado de información legal (botón ⓘ)
 
@@ -1265,8 +1271,9 @@ export async function iniciarLocalizacionAutomatica() {
 
   const urlParams = new URLSearchParams(window.location.search);
   const tieneUrlCoordenadas = Number.isFinite(parseFloat(urlParams.get('lat'))) && Number.isFinite(parseFloat(urlParams.get('lng')));
-  const tieneUrlObra = window.location.pathname.includes('/obra/');
-  const omitirDesplazamientoMapa = tieneUrlCoordenadas || tieneUrlObra;
+  const tieneUrlObra = urlParams.has('obra') || window.location.pathname.includes('/obra/');
+  const tieneUbicacionGuardada = Boolean(localStorage.getItem('nolli_last_location'));
+  const omitirDesplazamientoMapa = tieneUrlCoordenadas || tieneUrlObra || tieneUbicacionGuardada;
 
   // Si el navegador soporta navigator.permissions
   if (navigator.permissions && typeof navigator.permissions.query === 'function') {
@@ -1306,11 +1313,16 @@ export async function iniciarLocalizacionAutomatica() {
 
 /**
  * Solicita geolocalización en 2 etapas:
- * 1. Etapa rápida (low accuracy, <200ms) para detectar de inmediato la ciudad (Alicante, etc.) y centrar el mapa.
+ * 1. Etapa rápida (low accuracy, <200ms) para detectar de inmediato la ciudad y posicionar el marcador.
  * 2. Etapa de alta precisión en segundo plano para posicionar el marcador exacto en la calle/edificio.
  */
 export function solicitarGeolocalizacionSilenciosa(skipMapFly = false) {
   if (!navigator.geolocation) return;
+
+  const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const tieneUrlParams = Boolean(urlParams && (urlParams.has('obra') || (urlParams.has('lat') && urlParams.has('lng')) || (typeof window !== 'undefined' && window.location.pathname.includes('/obra/'))));
+  const tieneGuardada = typeof localStorage !== 'undefined' && Boolean(localStorage.getItem('nolli_last_location'));
+  const noDebeVolar = skipMapFly || tieneUrlParams || tieneGuardada;
 
   // Fase 1: Coordenadas rápidas de baja precisión
   navigator.geolocation.getCurrentPosition(
@@ -1318,12 +1330,14 @@ export function solicitarGeolocalizacionSilenciosa(skipMapFly = false) {
       const coords = [pos.coords.longitude, pos.coords.latitude];
       const accuracy = pos.coords.accuracy || 1000;
       
-      actualizarMarcadorUbicacion(coords, true);
+      // Actualizar marcador azul y state.userLocation para cálculo de distancias,
+      // pero NUNCA sobreescribir la posición explorada guardada en localStorage
+      actualizarMarcadorUbicacion(coords, false);
 
-      if (!skipMapFly && state.map) {
+      if (!noDebeVolar && state.map) {
         const currentCenter = state.map.getCenter();
         const distKm = calcularDistanciaKm(currentCenter.lat, currentCenter.lng, coords[1], coords[0]);
-        // Si estamos a más de 400m de donde abrió el mapa (ej. abrió en Valencia y está en Alicante), volar a su ubicación real
+        // Solo en primera sesión limpia absoluta (sin ubicación previa ni obra): volar a la ubicación del usuario
         if (distKm > 0.4) {
           state.map.flyTo({
             center: coords,
@@ -1340,7 +1354,7 @@ export function solicitarGeolocalizacionSilenciosa(skipMapFly = false) {
           navigator.geolocation.getCurrentPosition(
             (highPos) => {
               const highCoords = [highPos.coords.longitude, highPos.coords.latitude];
-              actualizarMarcadorUbicacion(highCoords, true);
+              actualizarMarcadorUbicacion(highCoords, false);
             },
             () => {},
             { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
