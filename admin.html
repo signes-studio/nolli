@@ -648,24 +648,24 @@
             <input type="text" id="edit-nombre" class="admin-input" required>
           </div>
 
-          <div>
+          <div class="admin-form-full">
             <label for="edit-arquitecto" class="admin-form-label">Arquitecto(s):</label>
             <input type="text" id="edit-arquitecto" class="admin-input" required>
             <span class="admin-hint" style="font-size:10px; color:var(--admin-text-dim, #888); display:block; margin-top:2px;">Intervenciones en edificios históricos: añade el año entre paréntesis, ej: Vetges tú (2008)</span>
           </div>
 
-          <div>
+          <div class="admin-form-full">
             <label class="admin-form-label">Año / Época de Construcción:</label>
-            <div style="display: grid; grid-template-columns: 140px 1fr; gap: 8px;">
+            <div class="admin-ano-controls-grid">
               <select id="edit-ano-precision" class="admin-input" title="Precisión del año">
                 <option value="exacto">Exacto</option>
                 <option value="decada">Década</option>
                 <option value="siglo">Siglo</option>
               </select>
-              <div id="wrap-edit-ano-inputs">
-                <input type="number" id="edit-ano" class="admin-input" min="0" max="2100" placeholder="Ej. 1973">
-                <select id="edit-ano-decada" class="admin-input hidden"></select>
-                <select id="edit-ano-siglo" class="admin-input hidden"></select>
+              <div id="wrap-edit-ano-inputs" style="min-width: 0;">
+                <input type="number" id="edit-ano" class="admin-input" min="0" max="2100" placeholder="Ej. 1973" style="width: 100%;">
+                <select id="edit-ano-decada" class="admin-input hidden" style="width: 100%;"></select>
+                <select id="edit-ano-siglo" class="admin-input hidden" style="width: 100%;"></select>
               </div>
             </div>
           </div>

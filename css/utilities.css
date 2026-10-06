@@ -44,6 +44,9 @@
 .cursor-pointer { cursor: pointer; }
 .transition-colors { transition-property: color, background-color, border-color; transition-duration: 150ms; }
 .text-red-500 { color: #ef4444; }
+.text-zinc-500 { color: #71717a; }
 .text-dim { color: var(--fg-dim); }
+.min-w-0 { min-width: 0; }
+.mt-0\.5 { margin-top: 0.125rem; }
 .panel-loading-status { padding: 10px 14px; font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 700; color: var(--accent); }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0; }

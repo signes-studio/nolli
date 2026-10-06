@@ -1118,6 +1118,13 @@ body.dark-mode .admin-importance-tag.imp-3 {
   grid-column: 1 / -1;
 }
 
+.admin-ano-controls-grid {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 8px;
+  align-items: center;
+}
+
 .admin-form-label {
   display: block;
   font-family: 'Inter', sans-serif;
@@ -1322,6 +1329,10 @@ body.dark-mode .admin-importance-tag.imp-3 {
 
   .admin-work-actions .admin-btn {
     flex: 1 1 100%;
+  }
+
+  .admin-ano-controls-grid {
+    grid-template-columns: 1fr;
   }
 }
 

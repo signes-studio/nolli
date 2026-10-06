@@ -843,6 +843,34 @@ body.dark-mode .modal-head {
   max-height: min(92vh, calc(100dvh - 24px));
 }
 
+#modal-add-building #wrap-add-ano-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+}
+
+#modal-add-building #add-ano-precision {
+  flex: 0 0 125px;
+  width: 125px;
+  min-width: 125px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+#modal-add-building #wrap-add-ano-inputs {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+}
+
+#modal-add-building #wrap-add-ano-inputs .tech-input {
+  width: 100%;
+}
+
 @media (max-width: 768px) {
   #modal-add-building.modal-overlay,
   #modal-upload-sheet-photo.modal-overlay {
@@ -926,6 +954,15 @@ body.dark-mode .modal-head {
     min-height: 42px !important;
   }
 
+  /* Selector de precisión adaptado a ergonomía táctil en móvil */
+  #modal-add-building #add-ano-precision {
+    flex: 0 0 120px !important;
+    width: 120px !important;
+    min-width: 120px !important;
+    font-size: 13px !important;
+    min-height: 42px !important;
+  }
+
   /* Truncado elegante de textos largos en desplegables móviles */
   #modal-add-building select.tech-input {
     max-width: 100% !important;
@@ -982,6 +1019,20 @@ body.dark-mode .modal-head {
   #modal-add-building #wrap-add-cat-acceso {
     flex-direction: column !important;
     gap: 10px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  /* En pantallas móviles ultra-estrechas, apilar precisión y selector de año */
+  #modal-add-building #wrap-add-ano-controls {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  #modal-add-building #add-ano-precision {
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    min-width: 100% !important;
   }
 }
 

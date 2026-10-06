@@ -1229,25 +1229,24 @@
         <input type="text" id="add-place" class="tech-input" placeholder="p.ej. Barcelona, España" data-i18n-placeholder="add_placeholder_place">
       </div>
 
-      <div class="flex gap-2" id="wrap-add-arq-ano">
-        <div class="flex-1">
-          <label for="add-arquitecto" class="tech-label" data-i18n="add_label_architect">ARQUITECTO / AUTOR_</label>
-          <input type="text" id="add-arquitecto" class="tech-input" placeholder="p.ej. Mies van der Rohe o Vetges tú (2008)" data-i18n-placeholder="add_placeholder_architect">
-          <span class="text-[10px] text-zinc-500 block mt-0.5">Intervenciones en edificios históricos: añade el año entre paréntesis, ej: Vetges tú (2008)</span>
-        </div>
-        <div class="w-full sm:w-1/2">
-          <label class="tech-label" data-i18n="add_label_year">AÑO / ÉPOCA_</label>
-          <div class="flex gap-1.5">
-            <select id="add-ano-precision" class="tech-input w-24 text-[11px]" title="Precisión del año">
-              <option value="exacto">EXACTO</option>
-              <option value="decada">DÉCADA</option>
-              <option value="siglo">SIGLO</option>
-            </select>
-            <div class="flex-1" id="wrap-add-ano-inputs">
-              <input type="number" id="add-ano" class="tech-input" placeholder="1929">
-              <select id="add-ano-decada" class="tech-input hidden"></select>
-              <select id="add-ano-siglo" class="tech-input hidden"></select>
-            </div>
+      <div id="wrap-add-arquitecto">
+        <label for="add-arquitecto" class="tech-label" data-i18n="add_label_architect">ARQUITECTO / AUTOR_</label>
+        <input type="text" id="add-arquitecto" class="tech-input" placeholder="p.ej. Mies van der Rohe o Vetges tú (2008)" data-i18n-placeholder="add_placeholder_architect">
+        <span class="text-[10px] text-zinc-500 block mt-0.5">Intervenciones en edificios históricos: añade el año entre paréntesis, ej: Vetges tú (2008)</span>
+      </div>
+
+      <div id="wrap-add-ano-group">
+        <label class="tech-label" data-i18n="add_label_year">AÑO / ÉPOCA DE CONSTRUCCIÓN_</label>
+        <div id="wrap-add-ano-controls">
+          <select id="add-ano-precision" class="tech-input" title="Precisión del año">
+            <option value="exacto">EXACTO</option>
+            <option value="decada">DÉCADA</option>
+            <option value="siglo">SIGLO</option>
+          </select>
+          <div id="wrap-add-ano-inputs">
+            <input type="number" id="add-ano" class="tech-input" placeholder="p.ej. 1929" min="0" max="2100">
+            <select id="add-ano-decada" class="tech-input hidden"></select>
+            <select id="add-ano-siglo" class="tech-input hidden"></select>
           </div>
         </div>
       </div>
