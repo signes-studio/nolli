@@ -439,6 +439,128 @@ export function drawPrivateSquareIcon(ctx, color, importance, s, options = {}) {
 }
 
 /**
+ * Dibuja el símbolo geométrico distintivo para obras pendientes de revisión:
+ * Triángulo equilátero redondeado en Ámbar Bauhaus (#F6A600) con reloj técnico interior
+ * y pip perimetral con el color de la categoría arquitectónica.
+ * Claramente distinguible de círculos (publicadas), diamantes (hitos) y cuadrados (privadas).
+ */
+export function drawPendingIcon(ctx, color, importance, s, options = {}) {
+  const cx = s / 2;
+  const cy = s / 2;
+  const isDark = Boolean(options.isDark);
+  const isSelected = Boolean(options.isSelected);
+
+  // Escala según nivel de importancia
+  let side;
+  if (importance === 0) {
+    side = 42;
+  } else if (importance === 1) {
+    side = 38;
+  } else if (importance === 2) {
+    side = 34;
+  } else {
+    side = 30;
+  }
+
+  const h = side * (Math.sqrt(3) / 2);
+  const rTop = (2 / 3) * h;
+  const rBottom = (1 / 3) * h;
+  const radius = 3.5;
+
+  // Centro vertical ajustado para equilibrio óptico dentro del canvas 64x64
+  const triCenterY = cy + 1;
+
+  const x1 = cx;
+  const y1 = triCenterY - rTop;
+  const x2 = cx + side / 2;
+  const y2 = triCenterY + rBottom;
+  const x3 = cx - side / 2;
+  const y3 = triCenterY + rBottom;
+
+  ctx.save();
+
+  // 1. Halo arquitectónico exterior de contraste (alta visibilidad sobre satélite, mapa claro u oscuro)
+  const haloPadding = 3.5;
+  const sideHalo = side + haloPadding * 2;
+  const hHalo = sideHalo * (Math.sqrt(3) / 2);
+  const rTopH = (2 / 3) * hHalo;
+  const rBottomH = (1 / 3) * hHalo;
+
+  ctx.beginPath();
+  ctx.moveTo(cx, triCenterY - rTopH + (radius + 1.5) * 1.5);
+  ctx.arcTo(cx, triCenterY - rTopH, cx + sideHalo / 2, triCenterY + rBottomH, radius + 1.5);
+  ctx.arcTo(cx + sideHalo / 2, triCenterY + rBottomH, cx - sideHalo / 2, triCenterY + rBottomH, radius + 1.5);
+  ctx.arcTo(cx - sideHalo / 2, triCenterY + rBottomH, cx, triCenterY - rTopH, radius + 1.5);
+  ctx.closePath();
+  ctx.fillStyle = isSelected ? (isDark ? '#FFFFFF' : '#141411') : (isDark ? 'rgba(20, 20, 17, 0.96)' : 'rgba(248, 241, 223, 0.96)');
+  ctx.fill();
+
+  // 2. Cuerpo triangular en Ámbar Bauhaus (#F6A600)
+  ctx.beginPath();
+  ctx.moveTo(x1, y1 + radius * 1.5);
+  ctx.arcTo(x1, y1, x2, y2, radius);
+  ctx.arcTo(x2, y2, x3, y3, radius);
+  ctx.arcTo(x3, y3, x1, y1, radius);
+  ctx.closePath();
+
+  ctx.fillStyle = isSelected ? (isDark ? '#FFFFFF' : '#141411') : '#F6A600';
+  ctx.fill();
+
+  ctx.lineWidth = isSelected ? 2.4 : 1.8;
+  ctx.strokeStyle = isSelected ? '#F6A600' : (isDark ? '#141411' : '#22221E');
+  ctx.stroke();
+
+  // 3. Esfera de Reloj Técnico Central (símbolo universal de pendiente / tiempo / revisión)
+  const clockY = triCenterY + 1.2;
+  const clockR = side * 0.22;
+
+  ctx.beginPath();
+  ctx.arc(cx, clockY, clockR, 0, Math.PI * 2);
+  ctx.fillStyle = isSelected ? (isDark ? '#141411' : '#FFFFFF') : '#FFFFFF';
+  ctx.fill();
+  ctx.lineWidth = 1.3;
+  ctx.strokeStyle = isDark && isSelected ? '#FFFFFF' : '#141411';
+  ctx.stroke();
+
+  // Agujas del reloj (marcando las 12:15 para máxima claridad geométrica ortogonal)
+  const needleStroke = isDark && isSelected ? '#FFFFFF' : '#141411';
+  ctx.strokeStyle = needleStroke;
+  ctx.lineWidth = 1.5;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  ctx.beginPath();
+  // Aguja minutera / horaria vertical (12:00)
+  ctx.moveTo(cx, clockY);
+  ctx.lineTo(cx, clockY - clockR * 0.62);
+  // Aguja horizontal (3:00)
+  ctx.moveTo(cx, clockY);
+  ctx.lineTo(cx + clockR * 0.60, clockY);
+  ctx.stroke();
+
+  // Pivote central
+  ctx.beginPath();
+  ctx.arc(cx, clockY, 1.2, 0, Math.PI * 2);
+  ctx.fillStyle = needleStroke;
+  ctx.fill();
+
+  // 4. Pip / punto de categoría en la base del triángulo
+  const yBase = triCenterY + rBottom;
+  const pipY = clockY + clockR + (yBase - (clockY + clockR)) * 0.52;
+  const pipR = Math.max(1.8, Math.min(2.8, side * 0.075));
+
+  ctx.beginPath();
+  ctx.arc(cx, pipY, pipR, 0, Math.PI * 2);
+  ctx.fillStyle = color || '#EA560D';
+  ctx.fill();
+  ctx.lineWidth = 0.8;
+  ctx.strokeStyle = isDark && isSelected ? '#FFFFFF' : '#141411';
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+/**
  * Dibuja iconos de lupa para resultados de búsqueda
  */
 export function drawSearchLupaIcon(ctx, color, importance, s, options = {}) {

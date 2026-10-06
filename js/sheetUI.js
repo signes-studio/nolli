@@ -235,7 +235,7 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
   const catKey = building.categoria || 'otro';
   const catColor = CATEGORY_META[catKey]?.color || '#EA560D';
   const canDeletePrivate = Boolean(selected?.private && state.userId && String(selected.user_id) === String(state.userId));
-  const isPending = adminActive && building.estado_revision === 'pendiente';
+  const isPending = building.estado_revision === 'pendiente';
   const userStatus = state.buildingStatuses?.get(String(selected?.id || building.id)) || {};
   const currentRating = Number(userStatus.valoracion || getStatus('valoracion') || 0);
   const userNote = userStatus.notas || '';
@@ -255,6 +255,7 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
     <!-- Subtítulo de autor y año -->
     <div class="sheet-meta-subtitle">
       <div class="sheet-meta-primary">
+        ${isPending ? `<span class="sheet-pending-pill"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> PENDIENTE DE REVISIÓN</span> ` : ''}
         <span class="sheet-meta-architects">${architects}</span>
         ${building.año_construccion ? `<span class="sheet-meta-year">· ${escapeHtml(formatearAño(building.año_construccion, building.año_precision))}</span>` : ''}
         ${building.ciudad ? `<span class="sheet-meta-city">· ${escapeHtml(building.ciudad)}</span>` : ''}

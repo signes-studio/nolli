@@ -2,7 +2,7 @@
    MAPDATA.TS — Sincroniza OBRAS (state) con la fuente GeoJSON de Mapbox
    ========================================================================= */
 
-import { state, esRolAdmin, separarArquitectos } from './state.js';
+import { state, esRolAdmin, esRolEditor, separarArquitectos } from './state.js';
 import { obraCumpleFiltrosActivos } from './filterEngine.js';
 import type { Building, BuildingGeoJSONFeature } from './types/index.js';
 
@@ -86,7 +86,10 @@ export function actualizarFuenteMapa(): void {
           return false;
         }
         if ((obra as InternalBuildingFields).private) return true;
-        if (esRolAdmin(state.userRole) && state.adminMode) {
+        if ((esRolAdmin(state.userRole) || esRolEditor(state.userRole)) && state.adminMode) {
+          return obra.estado_revision !== 'rechazada';
+        }
+        if (state.selectedFeatureId && (String(obra.id) === String(state.selectedFeatureId) || String((obra as InternalBuildingFields).featureId) === String(state.selectedFeatureId))) {
           return obra.estado_revision !== 'rechazada';
         }
         return obra.estado_revision !== 'pendiente' && obra.estado_revision !== 'rechazada';

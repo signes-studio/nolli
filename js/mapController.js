@@ -13,7 +13,7 @@ import {
   obtenerCiudadCercana,
   calcularDistanciaKm
 } from './config.js';
-import { buildIcon, drawTargetIcon, drawPrivateSquareIcon, drawSearchLupaIcon, drawExploreCompassIcon, buildEmojiIcon } from './icons.js';
+import { buildIcon, drawTargetIcon, drawPrivateSquareIcon, drawPendingIcon, drawSearchLupaIcon, drawExploreCompassIcon, buildEmojiIcon } from './icons.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { abrirFicha, cerrarFicha } from './sheetUI.js';
 import { showNeoToast } from './renderUtils.js';
@@ -65,7 +65,7 @@ export function actualizarVisibilidadIconosLista() {
   [0, 1, 2, 3].forEach((importance) => {
     const baseMinZoom = listaActiva ? 0 : ICON_LAYER_MINZOOMS[importance];
     [`obras-l${importance}`, `obras-l${importance}-visited`, `obras-l${importance}-selected`, `obras-l${importance}-explore`, `obras-l${importance}-explore-selected`, `obras-l${importance}-pending`, `obras-l${importance}-private`].forEach((layerId) => {
-      ajustarZoomCapa(layerId, baseMinZoom);
+      ajustarZoomCapa(layerId, layerId.includes('-pending') ? 0 : baseMinZoom);
     });
   });
 }
@@ -369,7 +369,8 @@ export function cargarMapaMapbox() {
           addOrUpdateImage(`${prefix}-visited`, buildIcon(drawTargetIcon, color, importance, 64, { isVisited: true, isDark }));
           addOrUpdateImage(`${prefix}-favorite`, buildIcon(drawTargetIcon, color, importance, 64, { isFavorite: true, isDark }));
           addOrUpdateImage(`${prefix}-visited-favorite`, buildIcon(drawTargetIcon, color, importance, 64, { isVisited: true, isFavorite: true, isDark }));
-          addOrUpdateImage(`${prefix}-pending`, buildIcon(drawTargetIcon, color, importance, 64, { isPending: true, isDark }));
+          addOrUpdateImage(`${prefix}-pending`, buildIcon(drawPendingIcon, color, importance, 64, { isPending: true, isDark }));
+          addOrUpdateImage(`${prefix}-pending-selected`, buildIcon(drawPendingIcon, color, importance, 64, { isPending: true, isSelected: true, isDark }));
           addOrUpdateImage(`${prefix}-private`, buildIcon(drawPrivateSquareIcon, color, importance, 64, { isDark }));
           addOrUpdateImage(`${prefix}-selected`, buildIcon(drawTargetIcon, selectedColor, importance, 64, { isSelected: true, isDark }));
 
@@ -739,27 +740,36 @@ export function cargarMapaMapbox() {
         },
       });
 
-      // Capa pendiente
+      // Capa pendiente (símbolo distintivo: triángulo ámbar con reloj, siempre visible y con máxima prioridad visual)
       state.map.addLayer({
         id: `obras-l${importance}-pending`,
         type: 'symbol',
         source: sourceId,
-        minzoom,
+        minzoom: 0,
         filter: ['all', baseFilter, ['==', ['get', 'estado_revision'], 'pendiente'], ['!=', ['get', 'is_search'], 1], ['!=', ['get', 'is_explore'], 1]],
         layout: {
           'icon-image': [
             'case',
             ['has', 'collection_emoji'], ['concat', 'collection-emoji-', ['get', 'collection_id']],
-            ['concat', `icon-l${importance}-`, catExpr, '-pending']
+            ['case',
+              ['==', ['get', 'selected'], 1],
+              ['concat', `icon-l${importance}-`, catExpr, '-pending-selected'],
+              ['concat', `icon-l${importance}-`, catExpr, '-pending']
+            ]
           ],
           'icon-size': [
             'case',
             ['has', 'collection_emoji'], 0.75,
+            ['==', ['get', 'selected'], 1], iconSize * 1.3,
             iconSize
           ],
-          'symbol-sort-key': sortKeyExpr,
-          'icon-allow-overlap': permitirSolapamiento,
-          'icon-ignore-placement': permitirSolapamiento,
+          'symbol-sort-key': [
+            'case',
+            ['==', ['get', 'selected'], 1], 100,
+            90 - importance
+          ],
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
           'icon-optional': false,
           ...textLayout,
         },

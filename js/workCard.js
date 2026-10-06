@@ -9,6 +9,7 @@ import{CATEGORY_META as g,escapeHtml as r,formatCategoria as z,normalizarCategor
           </span>
           ${t?`<span class="obra-card__importance-meter" title="${r(b)}" aria-label="${r(b)}" role="img">${[1,2,3,4].map(w=>`<span class="obra-card__importance-sq ${w<=I?"is-filled":""}"></span>`).join("")}</span>`:""}
           ${t&&d===0?'<span class="obra-card__badge-hito">HITO</span>':""}
+          ${a?.estado_revision==='pendiente'?'<span class="obra-card__badge-pending"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> PENDIENTE</span>':""}
         </div>
         ${l?`<span class="obra-card__distance">${r(l)}</span>`:""}
       </div>
