@@ -5,6 +5,7 @@
 const { categoryLabel } = require('./categories.js');
 const { cleanArchitectName } = require('./slugs.js');
 const { getSupabaseConfig } = require('./supabaseEnv.js');
+const { formatearAño } = require('./dates.js');
 
 /**
  * Rutas curatoriales oficiales de Nolli para enriquecer el contexto semántico
@@ -235,10 +236,19 @@ function buildBuildingEmbeddingText(building, customRoutes = null) {
     }
   }
 
-  // 4. Año de construcción
+  // 4. Año de construcción y época temporal
   const anio = String(building.año_construccion || '').trim();
   if (anio) {
-    parts.push(`Año: ${anio}`);
+    const precision = String(building.año_precision || building.ano_precision || 'exacto').trim().toLowerCase();
+    if (precision === 'siglo') {
+      const formattedSiglo = formatearAño(anio, 'siglo');
+      parts.push(`Año: ${anio} (${formattedSiglo})`);
+    } else if (precision === 'decada') {
+      const formattedDecada = formatearAño(anio, 'decada');
+      parts.push(`Año: ${anio} (${formattedDecada})`);
+    } else {
+      parts.push(`Año: ${anio}`);
+    }
   }
 
   // 5. Ubicación geográfica
