@@ -8,6 +8,7 @@ const { slugify, extractCityName, isIgnoredArchitect, escapeHtml, getOptimizedUr
 const { createRateLimiter } = require('./_lib/rateLimiter.js');
 const { getSupabaseConfig } = require('./_lib/supabaseEnv.js');
 const { getImportanceInfo } = require('./_lib/importance.js');
+const { formatearAño } = require('./_lib/dates.js');
 
 const checkRateLimit = createRateLimiter({ windowMs: 60 * 1000, maxRequests: 60 });
 
@@ -33,7 +34,7 @@ async function fetchCategoryData(slug, page) {
 
   // 1. Consulta paginada para las tarjetas de la página actual
   const pageParams = new URLSearchParams({
-    select: 'id,nombre_obra,arquitecto,año_construccion,place,foto_url,categoria,latitud,longitud,importancia',
+    select: 'id,nombre_obra,arquitecto,año_construccion,año_precision,place,foto_url,categoria,latitud,longitud,importancia',
     categoria: `eq.${slug}`,
     or: '(estado_revision.eq.publicada,estado_revision.is.null)',
     order: 'año_construccion.desc.nullslast,id.asc',
@@ -161,7 +162,7 @@ function renderCategoryPage(slug, data, page, lang = 'es') {
     const catColor = CATEGORY_COLORS[catSlug] || CATEGORY_COLORS.otro;
     const impInfo = getImportanceInfo(b.importancia, lang);
     const yearVal = parseInt(b.año_construccion, 10) || 0;
-    const yearText = yearVal > 0 ? String(yearVal) : (b.año_construccion ? String(b.año_construccion) : '');
+    const yearText = formatearAño(b.año_construccion, b.año_precision);
     const cityName = extractCityName(b.place || '');
     const metaParts = [b.arquitecto, b.place, yearText].filter(Boolean).join(' · ');
     const searchTokens = `${b.nombre_obra || ''} ${b.arquitecto || ''} ${b.place || ''} ${cityName} ${yearText} ${catLabel} ${catSlug} ${impInfo.label} nivel ${impInfo.level}`.toLowerCase();
@@ -251,7 +252,7 @@ function renderCategoryPage(slug, data, page, lang = 'es') {
         const itemObj = {
           '@type': ['Place', 'LandmarksOrHistoricalBuildings'],
           name: b.nombre_obra,
-          description: `Obra de arquitectura ${categoriaText}${b.arquitecto ? ` proyectada por ${b.arquitecto}` : ''}${b.place ? ` en ${b.place}` : ''}${b.año_construccion ? ` (${b.año_construccion})` : ''}.`,
+          description: `Obra de arquitectura ${categoriaText}${b.arquitecto ? ` proyectada por ${b.arquitecto}` : ''}${b.place ? ` en ${b.place}` : ''}${b.año_construccion ? ` (${formatearAño(b.año_construccion, b.año_precision)})` : ''}.`,
           url: `${SITE_URL}${prefix}/obra/${encodeURIComponent(b.id)}`,
         };
         if (b.foto_url) {

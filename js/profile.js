@@ -46,6 +46,7 @@ import {
   aplicarPreferenciasMapaColecciones,
   transformarEdificio,
   escapeHtml,
+  formatearAño,
 } from './state.js';
 
 import { renderInChunks, initTabsScrollIndicator, showNeoToast, setUploadStatusFeedback } from './renderUtils.js';
@@ -1368,7 +1369,8 @@ function renderNotesFeed() {
     const noteText = status.notas || '';
     const photo = getOptimizedPhotoUrl(obra.foto_miniatura || obra.foto_url || '', { width: 160 });
     const title = obra.nombre_obra || 'Obra';
-    const year = obra.año_construccion ? ` · ${obra.año_construccion}` : '';
+    const yearFormatted = formatearAño(obra.año_construccion, obra.año_precision);
+    const year = yearFormatted ? ` · ${yearFormatted}` : '';
     const architect = obra.arquitecto || obra.arquitectos || '';
 
     return `

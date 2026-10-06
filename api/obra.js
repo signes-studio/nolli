@@ -4,6 +4,7 @@ const { slugify, slugToRegex, extractCityName, isIgnoredArchitect, ARCHITECT_ALI
 const { createRateLimiter } = require('./_lib/rateLimiter.js');
 const { getSupabaseConfig } = require('./_lib/supabaseEnv.js');
 const { getImportanceInfo } = require('./_lib/importance.js');
+const { formatearAño } = require('./_lib/dates.js');
 const { CURATED_ROUTES, buildingMatchesRoute } = require('./_lib/embeddings.js');
 
 const checkRateLimit = createRateLimiter({ windowMs: 60 * 1000, maxRequests: 60 });
@@ -50,7 +51,7 @@ function getOptimizedUrl(fotoUrl, width = 1200) {
 async function fetchPublicBuilding(id) {
   const { supabaseUrl, serviceRoleKey: supabaseKey } = getSupabaseConfig();
 
-  const fields = 'id,nombre_obra,arquitecto,año_construccion,categoria,place,foto_url,foto_credito,foto_licencia,enlace_url,latitud,longitud,estado_revision,importancia';
+  const fields = 'id,nombre_obra,arquitecto,año_construccion,año_precision,categoria,place,foto_url,foto_credito,foto_licencia,enlace_url,latitud,longitud,estado_revision,importancia';
   const params = new URLSearchParams({
     select: fields,
     id: `eq.${id}`,
@@ -84,7 +85,7 @@ async function fetchDiscoverySections(building) {
   }
 
   const currentId = String(building.id).trim();
-  const fields = 'id,nombre_obra,arquitecto,año_construccion,categoria,place,foto_url,latitud,longitud,importancia';
+  const fields = 'id,nombre_obra,arquitecto,año_construccion,año_precision,categoria,place,foto_url,latitud,longitud,importancia';
   const headers = {
     apikey: supabaseKey,
     Authorization: `Bearer ${supabaseKey}`,
@@ -330,7 +331,7 @@ function renderObraCardHtml(b, lang = 'es') {
   const impInfo = getImportanceInfo(b.importancia, lang);
   const isHito = hasImp && impLevel === 0;
 
-  const metaParts = [b.arquitecto, b.año_construccion, b.place].filter(Boolean).join(' · ');
+  const metaParts = [b.arquitecto, formatearAño(b.año_construccion, b.año_precision), b.place].filter(Boolean).join(' · ');
 
   return `
     <a href="${SITE_URL}${prefix}/obra/${encodeURIComponent(b.id)}" class="obra-card obra-card--similar" data-id="${escapeHtml(b.id)}" aria-label="Ver ${escapeHtml(b.nombre_obra)}">
@@ -413,7 +414,7 @@ function renderBuildingPage(building, lang = 'es', discoveryData = {}) {
   const impInfo = getImportanceInfo(building.importancia, lang);
 
   const detailsList = [
-    building.año_construccion && { label: getSSRText('label_year', lang), value: escapeHtml(building.año_construccion) },
+    building.año_construccion && { label: getSSRText('label_year', lang), value: escapeHtml(formatearAño(building.año_construccion, building.año_precision)) },
     {
       label: getSSRText('label_importance', lang),
       value: `<span class="badge-importance ${impInfo.badgeClass}" title="${escapeHtml(impInfo.desc)}">${impInfo.iconSvg}<span>${escapeHtml(impInfo.label)}</span></span>`,
@@ -1792,6 +1793,7 @@ function renderBuildingPage(building, lang = 'es', discoveryData = {}) {
       nombre_obra: String(building.nombre_obra || ''),
       arquitecto: String(building.arquitecto || ''),
       año_construccion: String(building.año_construccion || ''),
+      año_precision: String(building.año_precision || 'exacto'),
       categoria: String(building.categoria || ''),
       place: String(building.place || ''),
       foto_url: String(building.foto_url || ''),

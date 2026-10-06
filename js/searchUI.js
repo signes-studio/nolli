@@ -1,4 +1,4 @@
-import { state, separarArquitectos, transformarEdificio, normalizarCategoria, formatCategoria, CATEGORY_META, escapeHtml, upsertBuilding } from './state.js';
+import { state, separarArquitectos, transformarEdificio, normalizarCategoria, formatCategoria, formatearAño, CATEGORY_META, escapeHtml, upsertBuilding } from './state.js';
 import { abrirFicha } from './sheetUI.js';
 import { searchPlaces, getBuildingsCatalog } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
@@ -179,6 +179,7 @@ async function obtenerObrasGlobales() {
       arquitecto: fila.arquitecto,
       arquitectos: separarArquitectos(fila.arquitecto),
       año_construccion: fila.año_construccion,
+      año_precision: fila.año_precision || 'exacto',
       importancia: fila.importancia,
       categoria: fila.categoria,
       ciudad: fila.place || fila.ciudad || null,
@@ -557,8 +558,9 @@ export async function activarFiltroBusquedaEnMapa(queryText, providedMatches = n
       const style = normalize(obra.estilo);
       const cat = normalize(obra.categoria);
       const tags = normalize(Array.isArray(obra.tags) ? obra.tags.join(' ') : obra.tags);
-      const year = String(obra.año_construccion || '');
-      return name.includes(qNorm) || arq.includes(qNorm) || city.includes(qNorm) || style.includes(qNorm) || cat.includes(qNorm) || tags.includes(qNorm) || year.includes(qNorm);
+      const yearRaw = String(obra.año_construccion || '');
+      const yearFormatted = normalize(formatearAño(obra.año_construccion, obra.año_precision));
+      return name.includes(qNorm) || arq.includes(qNorm) || city.includes(qNorm) || style.includes(qNorm) || cat.includes(qNorm) || tags.includes(qNorm) || yearRaw.includes(qNorm) || yearFormatted.includes(qNorm);
     });
   }
 

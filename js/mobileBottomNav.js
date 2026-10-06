@@ -7,7 +7,7 @@
    - Aceleración por hardware a 60 FPS estables
    ========================================================================= */
 
-import { state, esRolAdmin, separarArquitectos, normalizarCategoria, normalizarImportancia, formatCategoria, CATEGORY_COLORS, CATEGORY_META, escapeHtml } from './state.js';
+import { state, esRolAdmin, separarArquitectos, normalizarCategoria, normalizarImportancia, formatCategoria, formatearAño, CATEGORY_COLORS, CATEGORY_META, escapeHtml } from './state.js';
 import { getBuildingsCatalog, searchPlaces } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { activarFiltroBusquedaEnMapa } from './searchUI.js';
@@ -567,6 +567,7 @@ async function cargarTodasObrasMobile() {
           arquitectos: Array.isArray(fila.arquitectos) ? fila.arquitectos : separarArquitectos(fila.arquitecto),
           año_construccion: fila.año_construccion,
           ano_construccion: fila.año_construccion,
+          año_precision: fila.año_precision || 'exacto',
           importancia: normalizarImportancia(fila.importancia),
           categoria: normalizarCategoria(fila.categoria),
           ciudad: fila.place || fila.ciudad || null,
@@ -903,8 +904,9 @@ function initMobileSearchWidget() {
           const style = normalize(obra.estilo);
           const cat = normalize(obra.categoria);
           const tags = normalize(Array.isArray(obra.tags) ? obra.tags.join(' ') : (obra.tags || ''));
-          const year = String(obra.año_construccion || obra.ano_construccion || '');
-          obra._searchHaystack = `${name} ${arq} ${city} ${style} ${cat} ${tags} ${year}`;
+          const yearRaw = String(obra.año_construccion || obra.ano_construccion || '');
+          const yearFormatted = normalize(formatearAño(obra.año_construccion || obra.ano_construccion, obra.año_precision || obra.ano_precision));
+          obra._searchHaystack = `${name} ${arq} ${city} ${style} ${cat} ${tags} ${yearRaw} ${yearFormatted}`;
         }
         return obra._searchHaystack.includes(q) || tokens.every((token) => obra._searchHaystack.includes(token));
       });

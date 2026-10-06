@@ -28,7 +28,8 @@ import {
   separarArquitectos, 
   limpiarNombreArquitecto,
   extraerIntervenciones,
-  formatearImportancia 
+  formatearImportancia,
+  formatearAño 
 } from './state.js';
 import { 
   STUDIO_RELATIONSHIPS as SEED_RELATIONSHIPS, 
@@ -402,7 +403,8 @@ function renderModulePending() {
     const safeId = escapeHtml(obra.id);
     const title = escapeHtml(obra.nombre_obra || 'Sin título');
     const architect = escapeHtml(obra.arquitecto || 'Arquitecto no especificado');
-    const year = obra.año_construccion ? ` · ${escapeHtml(obra.año_construccion)}` : '';
+    const yearFormatted = formatearAño(obra.año_construccion, obra.año_precision);
+    const year = yearFormatted ? ` · ${escapeHtml(yearFormatted)}` : '';
     const category = formatCategoria(obra.categoria);
     const place = obra.place ? escapeHtml(obra.place) : 'Ubicación registrada';
     const isPending = obra.estado_revision === 'pendiente';
@@ -641,7 +643,8 @@ function renderModuleArchitects() {
             ${item.works.map((obra) => {
               const safeId = escapeHtml(obra.id);
               const title = escapeHtml(obra.nombre_obra || 'Sin título');
-              const year = obra.año_construccion ? escapeHtml(obra.año_construccion) : null;
+              const yearFormatted = formatearAño(obra.año_construccion, obra.año_precision);
+              const year = yearFormatted ? escapeHtml(yearFormatted) : null;
               const category = formatCategoria(obra.categoria);
               const place = obra.place ? escapeHtml(obra.place) : 'Ubicación registrada';
               const photo = obra.foto_url || obra.foto_miniatura || '';

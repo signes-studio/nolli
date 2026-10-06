@@ -15,6 +15,7 @@ export interface BuildingFeatureProperties {
   nombre_obra: string;
   arquitecto: string;
   año_construccion: number | string;
+  año_precision?: string;
   importancia: BuildingImportance | number;
   categoria: BuildingCategory | string;
   estado_acceso: BuildingAccessState | string;

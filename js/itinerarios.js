@@ -14,7 +14,7 @@ import {
   deleteItinerary,
   LOCAL_ITINERARIES_KEY,
 } from './api.js';
-import { escapeHtml, normalizarCategoria, CATEGORY_META } from './state.js';
+import { escapeHtml, normalizarCategoria, CATEGORY_META, formatearAño } from './state.js';
 import { CURATED_ROUTES, matchWorksForRoute } from './itinerariesConfig.js';
 
 const SESSION_KEY = 'nolli_admin_session_token';
@@ -276,7 +276,7 @@ function renderItinerariesList() {
     const sampleWorks = workIds.slice(0, 8).map((id) => {
       const obra = itineraryAdminState.catalogMap.get(String(id));
       if (!obra) return `<span class="itinerary-work-chip">#${id}</span>`;
-      return `<span class="itinerary-work-chip" title="${escapeHtml(obra.arquitecto || '')}">${escapeHtml(obra.nombre_obra || 'Sin nombre')} (${obra.año_construccion || 's/f'})</span>`;
+      return `<span class="itinerary-work-chip" title="${escapeHtml(obra.arquitecto || '')}">${escapeHtml(obra.nombre_obra || 'Sin nombre')} (${formatearAño(obra.año_construccion, obra.año_precision) || 's/f'})</span>`;
     });
 
     return `
@@ -568,7 +568,7 @@ function handleSearchBuildingsToSelect(e) {
           <div style="display: flex; align-items: center; gap: 6px;">
             <span style="width: 8px; height: 8px; background: ${catColor}; border: 1px solid #111; display: inline-block;"></span>
             <strong style="font-size: 13px;">${escapeHtml(obra.nombre_obra || 'Sin título')}</strong>
-            <span style="font-size: 11px; color: var(--admin-fg-dim);">(${obra.año_construccion || 's/f'})</span>
+            <span style="font-size: 11px; color: var(--admin-fg-dim);">(${formatearAño(obra.año_construccion, obra.año_precision) || 's/f'})</span>
           </div>
           <div style="font-size: 11px; color: var(--admin-fg-dim); font-family: 'Inter', sans-serif; margin-top: 2px;">
             ${escapeHtml(obra.arquitecto || obra.arquitectos || 'Autor desconocido')} • ${escapeHtml(obra.place || obra.ciudad || 'VLC')} • ID: ${escapeHtml(obra.id)}
@@ -625,7 +625,7 @@ function renderFormSelectedWorksList() {
         <div class="selected-work-info">
           <div class="selected-work-title">
             <span style="width: 8px; height: 8px; background: ${catColor}; border: 1px solid #111; display: inline-block; margin-right: 4px;"></span>
-            ${escapeHtml(obra.nombre_obra || 'Sin título')} <span style="font-weight: 400; color: var(--admin-fg-dim);">(${obra.año_construccion || 's/f'})</span>
+            ${escapeHtml(obra.nombre_obra || 'Sin título')} <span style="font-weight: 400; color: var(--admin-fg-dim);">(${formatearAño(obra.año_construccion, obra.año_precision) || 's/f'})</span>
           </div>
           <div class="selected-work-sub">
             ${escapeHtml(obra.arquitecto || 'Autor desconocido')} • ${escapeHtml(obra.place || obra.ciudad || 'VLC')}

@@ -23,6 +23,7 @@ interface BuildingData {
   nombre_obra: string;
   arquitecto?: string;
   año_construccion?: string;
+  año_precision?: string;
   categoria?: string;
   place?: string;
   latitud?: number | null;

@@ -8,6 +8,7 @@ import type {
   BuildingCategory,
   BuildingAccessState,
   BuildingImportance,
+  AñoPrecision,
   AppState,
   PublicProfileRow,
   UserCollectionRow,
@@ -367,6 +368,88 @@ export function extraerAnioDefensivo(valor: unknown): string | null {
   return match ? match[0] : null;
 }
 
+export function aRomano(num: number): string {
+  if (num <= 0 || !Number.isFinite(num)) return String(num);
+  const romanLookup: [number, string][] = [
+    [1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'],
+    [100, 'C'], [90, 'XC'], [50, 'L'], [40, 'XL'],
+    [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I'],
+  ];
+  let res = '';
+  let n = num;
+  for (const [val, sym] of romanLookup) {
+    while (n >= val) {
+      res += sym;
+      n -= val;
+    }
+  }
+  return res || String(num);
+}
+
+export function romanoANumero(romano: unknown): number {
+  if (!romano) return 0;
+  const str = String(romano).toUpperCase().replace(/[^IVXLCDM]/g, '');
+  const romanValues: Record<string, number> = { I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000 };
+  let total = 0;
+  let prev = 0;
+  for (let i = str.length - 1; i >= 0; i--) {
+    const char = str.charAt(i);
+    const curr = romanValues[char] || 0;
+    if (curr < prev) {
+      total -= curr;
+    } else {
+      total += curr;
+      prev = curr;
+    }
+  }
+  return total;
+}
+
+export function calcularSigloDeAnio(anio: unknown): number {
+  const y = parseInt(String(anio || ''), 10);
+  if (!Number.isFinite(y) || y === 0) return 0;
+  if (y > 0) return Math.floor((y - 1) / 100) + 1;
+  return -(Math.floor((Math.abs(y) - 1) / 100) + 1);
+}
+
+export function anioCentralDeSiglo(siglo: number): number {
+  const s = parseInt(String(siglo || ''), 10);
+  if (!s || !Number.isFinite(s)) return 0;
+  if (s > 0) return (s - 1) * 100 + 50;
+  return -((Math.abs(s) - 1) * 100 + 50);
+}
+
+export function redondearADecada(anio: unknown): number {
+  const y = parseInt(String(anio || ''), 10);
+  if (!Number.isFinite(y)) return 0;
+  return Math.floor(y / 10) * 10;
+}
+
+export function formatearAño(añoConstruccion: unknown, añoPrecision?: unknown): string {
+  if (añoConstruccion === null || añoConstruccion === undefined || añoConstruccion === '') return '';
+  const str = String(añoConstruccion).trim();
+  if (!str) return '';
+  const num = parseInt(str, 10);
+  if (!Number.isFinite(num)) return str;
+
+  const precision = String(añoPrecision || 'exacto').trim().toLowerCase();
+  if (precision === 'decada') {
+    const decada = redondearADecada(num);
+    return decada < 0 ? `Años ${Math.abs(decada)} a.C.` : `Años ${decada}`;
+  }
+
+  if (precision === 'siglo') {
+    const siglo = calcularSigloDeAnio(num);
+    if (siglo === 0) return str;
+    const romano = aRomano(Math.abs(siglo));
+    return siglo < 0 ? `Siglo ${romano} a.C.` : `Siglo ${romano}`;
+  }
+
+  return String(num);
+}
+
+export const formatearAnio = formatearAño;
+
 export const CATEGORY_COLORS: Record<BuildingCategory, string> = {
   residencial: '#EA560D',
   dotacional_equipamiento: '#F6A600',
@@ -580,6 +663,7 @@ export function transformarEdificio(fila: Partial<Building> | null, index: numbe
     arquitectosOriginales,
     intervenciones,
     año_construccion: extraerAnioDefensivo(fila.año_construccion),
+    año_precision: ((fila.año_precision || (fila as unknown as { ano_precision?: string }).ano_precision || 'exacto') as AñoPrecision),
     importancia: normalizarImportancia(fila.importancia),
     categoria: normalizarCategoria(fila.categoria),
     place: fila.place || (fila as unknown as { ciudad?: string }).ciudad || null,

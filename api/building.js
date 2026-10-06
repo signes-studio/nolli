@@ -93,6 +93,11 @@ function sanitizeBuildingPayload(data, isUpdate = false) {
     payload.año_construccion = data.año_construccion != null ? String(data.año_construccion).trim() : null;
   }
 
+  if (data.año_precision !== undefined || data.ano_precision !== undefined) {
+    const rawPrec = String(data.año_precision ?? data.ano_precision ?? '').trim().toLowerCase();
+    payload.año_precision = ['exacto', 'decada', 'siglo'].includes(rawPrec) ? rawPrec : 'exacto';
+  }
+
   if (data.categoria !== undefined) payload.categoria = String(data.categoria || 'otro').trim();
   if (data.estado_acceso !== undefined) payload.estado_acceso = String(data.estado_acceso || 'publico').trim();
   if (data.estado_revision !== undefined) payload.estado_revision = String(data.estado_revision || 'publicada').trim();
@@ -193,7 +198,7 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: 'Debes proporcionar al menos un ID de obra (parámetro ?id= o ?ids=).' });
     }
 
-    const fields = 'id,nombre_obra,foto_url,foto_credito,foto_licencia,foto_fuente_url,enlace_url,arquitecto,año_construccion,importancia,categoria,estado_acceso,visitable,añadido_por,estado_revision,longitud,latitud,place,created_at,updated_at';
+    const fields = 'id,nombre_obra,foto_url,foto_credito,foto_licencia,foto_fuente_url,enlace_url,arquitecto,año_construccion,año_precision,importancia,categoria,estado_acceso,visitable,añadido_por,estado_revision,longitud,latitud,place,created_at,updated_at';
     const params = new URLSearchParams({
       select: fields,
       id: `in.(${ids.map(encodeURIComponent).join(',')})`,
@@ -393,6 +398,7 @@ module.exports = async function handler(req, res) {
         cleanPayload.arquitecto !== undefined ||
         cleanPayload.categoria !== undefined ||
         cleanPayload.año_construccion !== undefined ||
+        cleanPayload.año_precision !== undefined ||
         cleanPayload.place !== undefined;
 
       if (updatedBuilding && hasSemanticChange) {

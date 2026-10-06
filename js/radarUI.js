@@ -498,6 +498,7 @@ export async function renderRadarUI() {
       arquitecto: fila.arquitecto,
       arquitectos: Array.isArray(fila.arquitectos) ? fila.arquitectos.join(', ') : (fila.arquitecto || ''),
       año_construccion: fila.año_construccion,
+      año_precision: fila.año_precision || 'exacto',
       importancia: normalizarImportancia(fila.importancia),
       categoria: normalizarCategoria(fila.categoria),
       ciudad: fila.place || fila.ciudad || null,

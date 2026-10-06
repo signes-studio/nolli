@@ -29,6 +29,8 @@ export type BuildingReviewStatus =
 
 export type BuildingImportance = 0 | 1 | 2 | 3;
 
+export type AñoPrecision = 'exacto' | 'decada' | 'siglo';
+
 /** Coordenadas geográficas estándar [longitud, latitud] compatibles con Mapbox GL / GeoJSON */
 export type LngLatCoordinates = [longitude: number, latitude: number];
 
@@ -57,6 +59,7 @@ export interface Building {
   arquitectosOriginales?: string[];
   intervenciones?: BuildingIntervention[];
   año_construccion: number | string | null;
+  año_precision?: AñoPrecision | string | null;
   importancia: BuildingImportance | number | null;
   categoria: BuildingCategory | string;
   estado_acceso: BuildingAccessState | string;
@@ -93,6 +96,7 @@ export interface RawBuildingRow {
   arquitectosOriginales?: string[];
   intervenciones?: BuildingIntervention[];
   año_construccion: number | string | null;
+  año_precision?: AñoPrecision | string | null;
   importancia: number | null;
   categoria: string;
   estado_acceso: string;

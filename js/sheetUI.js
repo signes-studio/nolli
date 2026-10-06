@@ -2,7 +2,7 @@
    SHEETUI.JS - Ficha tecnica y acciones personales de una obra
    ========================================================================= */
 
-import { state, separarArquitectos, separarArquitectosOriginales, limpiarNombreArquitecto, extraerIntervenciones, normalizarCategoria, normalizarImportancia, formatCategoria, esRolAdmin, esRolEditor, guardarZonaPersonalLocal, CATEGORY_META } from './state.js';
+import { state, separarArquitectos, separarArquitectosOriginales, limpiarNombreArquitecto, extraerIntervenciones, normalizarCategoria, normalizarImportancia, formatCategoria, formatearAño, esRolAdmin, esRolEditor, guardarZonaPersonalLocal, CATEGORY_META } from './state.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { cerrarFiltros, generarFiltrosUI } from './filtersUI.js';
 import { fetchBuildings, saveBuildingStatus, reviewBuilding, deleteBuilding, updateBuilding, deletePrivateBuilding, createUserCollection, addUserCollectionItem, deleteUserCollectionItem, createUserPrivateLabel, deleteUserPrivateLabel, fetchBuildingVisitPhotos, createVisitPhoto, deleteVisitPhoto, updateVisitPhoto, uploadGenericPhotoWithR2, invalidateCatalogCache, fetchCurrentUser } from './api.js';
@@ -233,7 +233,7 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
     <div class="sheet-meta-subtitle">
       <div class="sheet-meta-primary">
         <span class="sheet-meta-architects">${architects}</span>
-        ${building.año_construccion ? `<span class="sheet-meta-year">· ${escapeHtml(building.año_construccion)}</span>` : ''}
+        ${building.año_construccion ? `<span class="sheet-meta-year">· ${escapeHtml(formatearAño(building.año_construccion, building.año_precision))}</span>` : ''}
         ${building.ciudad ? `<span class="sheet-meta-city">· ${escapeHtml(building.ciudad)}</span>` : ''}
       </div>
       ${rawIntervenciones.length > 0 ? `
@@ -319,7 +319,7 @@ export function abrirFicha(building, coordinates, featureId = building?.id || bu
       <div class="tech-grid-2col">
         <div class="tech-col">
           <span class="tech-label">${t('sheet_year')}</span>
-          <span class="tech-value">${building.año_construccion || '-'}</span>
+          <span class="tech-value">${building.año_construccion ? escapeHtml(formatearAño(building.año_construccion, building.año_precision)) : '-'}</span>
         </div>
         <div class="tech-col">
           <span class="tech-label">${t('sheet_category')}</span>

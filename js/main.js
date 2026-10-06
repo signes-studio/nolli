@@ -370,6 +370,7 @@ async function cargarContenidoPrivado() {
     arquitecto: fila.arquitecto,
     arquitectos: separarArquitectos(fila.arquitecto),
     año_construccion: fila.año_construccion,
+    año_precision: fila.año_precision || 'exacto',
     importancia: normalizarImportancia(fila.importancia),
     categoria: normalizarCategoria(fila.categoria),
     ciudad: fila.ciudad || null,

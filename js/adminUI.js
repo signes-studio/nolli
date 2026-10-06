@@ -3,7 +3,7 @@
    Arquitectura Serverless Blindada + Frontend Vanilla Neo-Bauhaus
    ========================================================================= */
 
-import { state, separarArquitectos, esRolAdmin, escapeHtml, formatearImportancia, transformarEdificio, dedupeBuildings, CATEGORY_META, formatCategoria, normalizarCategoria } from './state.js';
+import { state, separarArquitectos, esRolAdmin, escapeHtml, formatearImportancia, transformarEdificio, dedupeBuildings, CATEGORY_META, formatCategoria, normalizarCategoria, formatearAño } from './state.js';
 import { getOptimizedPhotoUrl } from './imageProxy.js';
 import { 
   deleteBuilding, 
@@ -985,7 +985,8 @@ async function renderList() {
       const isRejected = obra.estado_revision === 'rechazada';
       const isPrivate = Boolean(obra.is_personal || obra.is_private || obra.source === 'personal' || obra.origin_source === 'user');
       const isActive = String(obra.id) === String(activeAdminObraId);
-      const year = obra.año_construccion || obra.year ? escapeHtml(String(obra.año_construccion || obra.year)) : '';
+      const yearFormatted = formatearAño(obra.año_construccion || obra.year, obra.año_precision || obra.ano_precision);
+      const year = yearFormatted ? escapeHtml(yearFormatted) : '';
       const knownCity = obra.ciudad || obra.place || obra.municipio || '';
       const impBadge = formatAdminImpBadge(obra.importancia);
 
@@ -1267,7 +1268,8 @@ async function renderArchitects() {
           ${item.works.map((obra) => {
             const safeId = escapeHtml(obra.id);
             const title = escapeHtml(obra.nombre_obra || 'Sin título');
-            const year = obra.año_construccion ? escapeHtml(obra.año_construccion) : null;
+            const yearFormatted = formatearAño(obra.año_construccion, obra.año_precision);
+            const year = yearFormatted ? escapeHtml(yearFormatted) : null;
             const place = obra.place ? escapeHtml(obra.place) : '';
             const isPending = obra.estado_revision === 'pendiente';
             const impBadge = formatAdminImpBadge(obra.importancia);

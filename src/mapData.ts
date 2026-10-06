@@ -189,6 +189,7 @@ export function actualizarFuenteMapa(): void {
             texto_etiqueta: textoEtiqueta,
             arquitecto: arqNombre,
             año_construccion: obra.año_construccion || '',
+            año_precision: (obra.año_precision as string) || 'exacto',
             importancia: obra.importancia ?? 1,
             categoria: obra.categoria,
             estado_acceso: obra.estado_acceso || 'privado',
