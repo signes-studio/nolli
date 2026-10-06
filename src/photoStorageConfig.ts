@@ -37,29 +37,147 @@ export interface PhotoUploadTicket {
 }
 
 /**
+ * Decodifica el payload JWT para comprobar la expiración del token
+ */
+function parseJwtPayload(token: string): { exp?: number; sub?: string } | null {
+  try {
+    const base64Url = token.split('.')[1];
+    if (!base64Url) return null;
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Obtiene el refresh token guardado en el almacenamiento del navegador
+ */
+function getStoredRefreshToken(): string | null {
+  try {
+    const raw =
+      (typeof localStorage !== 'undefined' && localStorage.getItem('nolli_admin_session_token')) ||
+      (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('nolli_admin_session_token'));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed.refresh_token || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Renueva la sesión de Supabase Auth usando el refresh_token almacenado
+ */
+export async function refreshAuthSession(): Promise<string | null> {
+  const refreshToken = getStoredRefreshToken();
+  if (!refreshToken) return null;
+
+  try {
+    const { refreshUserSession } = await import('./api.js');
+    const newSession = await refreshUserSession(refreshToken);
+    if (newSession && newSession.access_token) {
+      try {
+        const { state } = await import('./state.js');
+        state.sessionToken = newSession.access_token;
+      } catch {}
+
+      try {
+        const key = 'nolli_admin_session_token';
+        if (typeof localStorage !== 'undefined' && localStorage.getItem(key)) {
+          localStorage.setItem(key, JSON.stringify(newSession));
+        } else if (typeof sessionStorage !== 'undefined') {
+          sessionStorage.setItem(key, JSON.stringify(newSession));
+        }
+      } catch {}
+
+      return newSession.access_token;
+    }
+  } catch (err) {
+    console.warn('[PhotoStorage] Error al renovar la sesión:', err);
+  }
+  return null;
+}
+
+/**
+ * Obtiene un token de sesión válido, renovándolo automáticamente si ha expirado o está próximo a expirar.
+ */
+export async function getValidSessionToken(providedToken?: string | null): Promise<string | null> {
+  let token = providedToken;
+  if (!token) {
+    try {
+      const { state } = await import('./state.js');
+      token = state.sessionToken;
+    } catch {}
+  }
+  if (!token) {
+    try {
+      const raw =
+        (typeof localStorage !== 'undefined' && localStorage.getItem('nolli_admin_session_token')) ||
+        (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('nolli_admin_session_token'));
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        token = parsed.access_token || raw;
+      }
+    } catch {}
+  }
+
+  if (!token) return null;
+
+  // Comprobar si el token está expirado o próximo a expirar (< 60s)
+  const payload = parseJwtPayload(token);
+  if (payload && typeof payload.exp === 'number') {
+    const nowSec = Math.floor(Date.now() / 1000);
+    if (payload.exp - nowSec < 60) {
+      const refreshed = await refreshAuthSession();
+      if (refreshed) return refreshed;
+    }
+  }
+
+  return token;
+}
+
+/**
  * Solicita una URL prefirmada PUT a Cloudflare R2 al endpoint serverless de Nolli.
  */
 export async function requestPhotoUploadUrl(
   params: PhotoUploadParams,
-  sessionToken: string | null | undefined
+  sessionToken?: string | null,
+  isRetry: boolean = false
 ): Promise<PhotoUploadTicket> {
-  if (!sessionToken) {
+  const validToken = await getValidSessionToken(sessionToken);
+  if (!validToken) {
     throw new Error('Debes iniciar sesión para subir fotografías.');
   }
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 7000);
+  // 25s timeout para tolerar arranques en frío de funciones serverless (Vercel)
+  const timer = setTimeout(() => controller.abort(), 25000);
 
   try {
     const response = await fetch('/api/r2-upload-url', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${sessionToken}`,
+        'Authorization': `Bearer ${validToken}`,
       },
       body: JSON.stringify(params),
       signal: controller.signal,
     });
+
+    if (response.status === 401 && !isRetry) {
+      clearTimeout(timer);
+      const refreshed = await refreshAuthSession();
+      if (refreshed) {
+        return requestPhotoUploadUrl(params, refreshed, true);
+      }
+    }
 
     if (!response.ok) {
       const err = (await response.json().catch(() => ({}))) as { message?: string; error?: string };
@@ -67,6 +185,11 @@ export async function requestPhotoUploadUrl(
     }
 
     return (await response.json()) as PhotoUploadTicket;
+  } catch (error: any) {
+    if (error?.name === 'AbortError') {
+      throw new Error('El servidor tardó demasiado en responder al preparar la subida. Comprueba tu conexión e inténtalo de nuevo.');
+    }
+    throw error;
   } finally {
     clearTimeout(timer);
   }
@@ -89,7 +212,7 @@ export function uploadPhotoFileToR2(
     }
 
     const xhr = new XMLHttpRequest();
-    xhr.timeout = 12000; // 12s máx para evitar congelamiento de UI
+    xhr.timeout = 90000; // 90s para redes móviles y fotografías de alta resolución
     xhr.open('PUT', uploadUrl, true);
     const finalType = (file.type || 'image/jpeg').toLowerCase().trim();
     xhr.setRequestHeader('Content-Type', finalType);
@@ -107,12 +230,12 @@ export function uploadPhotoFileToR2(
       if (xhr.status >= 200 && xhr.status < 300) {
         resolve(true);
       } else {
-        reject(new Error(`Error al transferir la imagen: HTTP ${xhr.status}`));
+        reject(new Error(`Error al transferir la imagen a R2: HTTP ${xhr.status}`));
       }
     };
 
     xhr.onerror = () => reject(new Error('Error de conexión al transferir la imagen. Comprueba tu conexión a internet.'));
-    xhr.ontimeout = () => reject(new Error('Tiempo de espera agotado al transferir la imagen.'));
+    xhr.ontimeout = () => reject(new Error('Tiempo de espera agotado al transferir la imagen (más de 90 segundos). Comprueba tu cobertura móvil.'));
 
     xhr.send(file);
   });
@@ -266,7 +389,8 @@ export async function uploadVisitPhotoWithR2(
   } = uploadData || {};
 
   if (!file) throw new Error('Archivo de imagen requerido.');
-  if (!sessionToken) throw new Error('Usuario no autenticado.');
+  const validToken = await getValidSessionToken(sessionToken);
+  if (!validToken) throw new Error('Usuario no autenticado.');
 
   let photoUrl = '';
   let thumbnailUrl = '';
@@ -286,7 +410,7 @@ export async function uploadVisitPhotoWithR2(
     buildingId,
     visitId,
     photoType,
-  }, sessionToken);
+  }, validToken);
 
   if (!ticket.uploadUrl || !ticket.publicUrl) {
     throw new Error('No se pudo obtener la autorización de subida para Cloudflare R2.');
@@ -301,7 +425,7 @@ export async function uploadVisitPhotoWithR2(
   // 4. Registro en PostgreSQL (tabla visit_photos)
   // Dynamic import para desacoplar de la capa api.js
   const { createVisitPhoto, fetchCurrentUser } = await import('./api.js');
-  const user = await fetchCurrentUser(sessionToken);
+  const user = await fetchCurrentUser(validToken);
   
   const record = await createVisitPhoto({
     visit_id: visitId,
@@ -320,7 +444,7 @@ export async function uploadVisitPhotoWithR2(
       mime_type: file.type,
       storage_type: 'cloudflare_r2',
     },
-  }, sessionToken);
+  }, validToken);
 
   return record;
 }
@@ -362,11 +486,12 @@ export function getPhotoThumbnailUrl(originalUrl: string | null | undefined, wid
 export async function uploadGenericPhotoWithR2(
   file: File,
   buildingId: string | number | null = null,
-  sessionToken: string | null | undefined,
+  sessionToken?: string | null,
   onProgress: ProgressCallback | null = null
 ): Promise<{ publicUrl: string; url: string; key: string }> {
   if (!file) throw new Error('Archivo de imagen requerido.');
-  if (!sessionToken) throw new Error('Debes iniciar sesión para subir fotografías.');
+  const validToken = await getValidSessionToken(sessionToken);
+  if (!validToken) throw new Error('Debes iniciar sesión para subir fotografías.');
 
   // 1. Optimización previa de imagen en el cliente (estándar 2048px, similar a Instagram/LinkedIn)
   const optimized = await optimizeImageFileForUpload(file, 2048, 0.86);
@@ -380,7 +505,7 @@ export async function uploadGenericPhotoWithR2(
     contentType: uploadContentType,
     buildingId: buildingId || 'new',
     uploadType: 'building',
-  }, sessionToken);
+  }, validToken);
 
   if (!ticket.uploadUrl || !ticket.publicUrl) {
     throw new Error('No se pudo obtener la autorización de subida para Cloudflare R2.');
@@ -465,18 +590,19 @@ export async function compressImageToDataUrl(file: File, maxDim: number = 160, q
  */
 export async function uploadAvatarFileWithR2(
   file: File,
-  sessionToken: string | null | undefined,
+  sessionToken?: string | null,
   onProgress: ProgressCallback | null = null
 ): Promise<string> {
   if (!file) throw new Error('Archivo de imagen requerido.');
-  if (!sessionToken) throw new Error('Debes iniciar sesión para actualizar tu foto de perfil.');
+  const validToken = await getValidSessionToken(sessionToken);
+  if (!validToken) throw new Error('Debes iniciar sesión para actualizar tu foto de perfil.');
 
   // 1. Obtener ticket de subida a R2
   const ticket = await requestPhotoUploadUrl({
     filename: file.name,
     contentType: file.type || 'image/jpeg',
     uploadType: 'avatar',
-  }, sessionToken);
+  }, validToken);
 
   if (!ticket.uploadUrl || !ticket.publicUrl) {
     throw new Error('No se pudo obtener la autorización de subida para el avatar en Cloudflare R2.');

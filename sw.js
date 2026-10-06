@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nolli-shell-f8d9ccf3';
+const CACHE_NAME = 'nolli-shell-f2317d3e';
 const CATALOG_FRESHNESS_MINUTES = 60;
 const CATALOG_CACHE_TTL_MS = CATALOG_FRESHNESS_MINUTES * 60 * 1000;
 const APP_SHELL = [
@@ -24,6 +24,7 @@ const APP_SHELL = [
   './js/itinerarios.js',
   './js/itinerariesConfig.js',
   './js/api.js',
+  './js/photoStorageConfig.js',
   './js/adminUI.js',
   './js/config.js',
   './js/exploreUI.js',

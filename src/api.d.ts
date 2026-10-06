@@ -58,5 +58,10 @@ export function deleteUserCollectionItem(collectionId: string | number, userId: 
 export function getBuildingsCatalog(forceRefresh?: boolean): Promise<unknown[]>;
 export function fetchBuildings(options?: Record<string, unknown>): Promise<unknown[]>;
 export function searchPlaces(query: string, language?: string): Promise<unknown>;
+export function refreshUserSession(refreshToken: string): Promise<{
+  access_token: string;
+  refresh_token: string;
+  [key: string]: unknown;
+}>;
 
 

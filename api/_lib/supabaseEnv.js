@@ -5,6 +5,7 @@
  */
 
 const FALLBACK_SUPABASE_URL = 'https://ldtfvpjigzvcagtciipn.supabase.co';
+const FALLBACK_SUPABASE_ANON_KEY = 'sb_publishable_kYQ7Fa8nBsrkp1f8C4AuAg_4-5uBFm0';
 
 function getSupabaseConfig() {
   const supabaseUrl = process.env.SUPABASE_URL 
@@ -19,9 +20,17 @@ function getSupabaseConfig() {
     || (process.env.SUPABASE_KEY && !process.env.SUPABASE_KEY.startsWith('sb_publishable_') ? process.env.SUPABASE_KEY : '')
     || '';
 
+  // Clave API válida para validar tokens de usuario en Supabase Auth /auth/v1/user
+  const apiKey = serviceRoleKey
+    || process.env.SUPABASE_ANON_KEY
+    || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    || (process.env.SUPABASE_KEY ? process.env.SUPABASE_KEY : '')
+    || FALLBACK_SUPABASE_ANON_KEY;
+
   return {
     supabaseUrl,
     serviceRoleKey,
+    apiKey,
     hasServiceRoleKey: Boolean(serviceRoleKey && serviceRoleKey.length > 20),
   };
 }
@@ -29,5 +38,6 @@ function getSupabaseConfig() {
 module.exports = {
   getSupabaseConfig,
   FALLBACK_SUPABASE_URL,
+  FALLBACK_SUPABASE_ANON_KEY,
 };
 

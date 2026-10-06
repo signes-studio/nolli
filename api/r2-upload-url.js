@@ -176,7 +176,7 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const { supabaseUrl, serviceRoleKey } = getSupabaseConfig();
+    const { supabaseUrl, serviceRoleKey, apiKey } = getSupabaseConfig();
 
     // 1. Autenticación de usuario
     const authHeader = req.headers.authorization || '';
@@ -188,7 +188,7 @@ module.exports = async function handler(req, res) {
 
     const authRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
       headers: {
-        apikey: serviceRoleKey,
+        apikey: apiKey || serviceRoleKey,
         Authorization: `Bearer ${token}`,
       },
     });
