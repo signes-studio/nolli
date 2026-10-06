@@ -450,6 +450,46 @@ export function formatearAño(añoConstruccion: unknown, añoPrecision?: unknown
 
 export const formatearAnio = formatearAño;
 
+export interface OpcionSiglo {
+  siglo: number;
+  romano: string;
+  label: string;
+  anioCentral: number;
+}
+
+export interface OpcionDecada {
+  decada: number;
+  label: string;
+}
+
+export function obtenerOpcionesSiglos(): OpcionSiglo[] {
+  const opciones: OpcionSiglo[] = [];
+  for (let s = 21; s >= 1; s--) {
+    const romano = aRomano(s);
+    const anioCentral = anioCentralDeSiglo(s);
+    const start = (s - 1) * 100 + 1;
+    const end = s * 100;
+    opciones.push({
+      siglo: s,
+      romano,
+      label: `Siglo ${romano} (${start}–${end})`,
+      anioCentral,
+    });
+  }
+  return opciones;
+}
+
+export function obtenerOpcionesDecadas(anioMin = 1000, anioMax = 2020): OpcionDecada[] {
+  const opciones: OpcionDecada[] = [];
+  for (let d = anioMax; d >= anioMin; d -= 10) {
+    opciones.push({
+      decada: d,
+      label: `Años ${d} (${d}s)`,
+    });
+  }
+  return opciones;
+}
+
 export const CATEGORY_COLORS: Record<BuildingCategory, string> = {
   residencial: '#EA560D',
   dotacional_equipamiento: '#F6A600',

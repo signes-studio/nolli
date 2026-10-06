@@ -2,7 +2,7 @@
    MODALSUI.JS — Modal de login de administrador y modal de alta de edificio
    ========================================================================= */
 
-import { state, separarArquitectos, normalizarCategoria, esRolAdmin, esRolEditor } from './state.js';
+import { state, separarArquitectos, normalizarCategoria, esRolAdmin, esRolEditor, escapeHtml, calcularSigloDeAnio, anioCentralDeSiglo, redondearADecada, obtenerOpcionesSiglos, obtenerOpcionesDecadas } from './state.js';
 import { loginAdmin, registerUser, refreshUserSession, requestPasswordReset, updateUserPassword, sendMagicLink, updateUserEmail, verifyOtpToken, fetchUserRole, fetchCurrentUser, fetchCurrentProfile, fetchBuildingStatuses, upsertCurrentProfile, createBuildingReport, createBuilding, createPrivateBuilding, updateBuilding, updateUserPresence, invalidateCatalogCache, signInWithGoogle, uploadGenericPhotoWithR2 } from './api.js';
 import { actualizarFuenteMapa } from './mapData.js';
 import { generarFiltrosUI } from './filtersUI.js';
@@ -538,6 +538,44 @@ async function initLoginModal() {
   });
 }
 
+function populateAddYearPrecisionOptions() {
+  const selSiglo = document.getElementById('add-ano-siglo');
+  const selDecada = document.getElementById('add-ano-decada');
+  if (selSiglo && selSiglo.options.length <= 1) {
+    const siglos = obtenerOpcionesSiglos();
+    selSiglo.innerHTML = '<option value="">-- Seleccionar siglo --</option>' +
+      siglos.map((s) => `<option value="${s.anioCentral}">${escapeHtml(s.label)}</option>`).join('');
+  }
+  if (selDecada && selDecada.options.length <= 1) {
+    const decadas = obtenerOpcionesDecadas();
+    selDecada.innerHTML = '<option value="">-- Seleccionar década --</option>' +
+      decadas.map((d) => `<option value="${d.decada}">${escapeHtml(d.label)}</option>`).join('');
+  }
+}
+
+function actualizarModoAddAno() {
+  const precisionEl = document.getElementById('add-ano-precision');
+  const inAno = document.getElementById('add-ano');
+  const selDecada = document.getElementById('add-ano-decada');
+  const selSiglo = document.getElementById('add-ano-siglo');
+  if (!precisionEl) return;
+  const mode = precisionEl.value;
+
+  if (mode === 'siglo') {
+    inAno?.classList.add('hidden');
+    selDecada?.classList.add('hidden');
+    selSiglo?.classList.remove('hidden');
+  } else if (mode === 'decada') {
+    inAno?.classList.add('hidden');
+    selSiglo?.classList.add('hidden');
+    selDecada?.classList.remove('hidden');
+  } else {
+    selDecada?.classList.add('hidden');
+    selSiglo?.classList.add('hidden');
+    inAno?.classList.remove('hidden');
+  }
+}
+
 /* -------------------------------------------------------------------------
    MÓDULO DE INSERCIÓN EN BD
    ------------------------------------------------------------------------- */
@@ -637,7 +675,39 @@ function initAddBuildingModal() {
     if (inputFotoCredito) inputFotoCredito.value = '';
     updateAddFotoPreview('');
     setUploadStatusFeedback(statusFotoUpload, { state: 'idle' });
+    const precEl = document.getElementById('add-ano-precision');
+    if (precEl) precEl.value = 'exacto';
+    const inAno = document.getElementById('add-ano');
+    if (inAno) inAno.value = '';
+    const selDec = document.getElementById('add-ano-decada');
+    if (selDec) selDec.value = '';
+    const selSig = document.getElementById('add-ano-siglo');
+    if (selSig) selSig.value = '';
+    actualizarModoAddAno();
   };
+
+  populateAddYearPrecisionOptions();
+  const precSelect = document.getElementById('add-ano-precision');
+  precSelect?.addEventListener('change', () => {
+    const mode = precSelect.value;
+    const inAno = document.getElementById('add-ano');
+    const selDecada = document.getElementById('add-ano-decada');
+    const selSiglo = document.getElementById('add-ano-siglo');
+    const currentYear = parseInt(inAno?.value || selDecada?.value || selSiglo?.value, 10);
+    if (Number.isFinite(currentYear)) {
+      if (mode === 'siglo') {
+        const siglo = calcularSigloDeAnio(currentYear);
+        const anioCent = anioCentralDeSiglo(siglo);
+        if (selSiglo) selSiglo.value = String(anioCent);
+      } else if (mode === 'decada') {
+        const dec = redondearADecada(currentYear);
+        if (selDecada) selDecada.value = String(dec);
+      } else {
+        if (inAno) inAno.value = String(currentYear);
+      }
+    }
+    actualizarModoAddAno();
+  });
 
   document.addEventListener('click', (e) => {
     if (e.target.closest('#btn-add-close')) closeAdd();
@@ -718,7 +788,44 @@ function initAddBuildingModal() {
     const placeEl = document.getElementById('add-place');
     if (placeEl) placeEl.value = obra.place || obra.ciudad || '';
     document.getElementById('add-arquitecto').value = obra.arquitecto || '';
-    document.getElementById('add-ano').value = obra.año_construccion || '';
+
+    populateAddYearPrecisionOptions();
+    const precision = obra.año_precision || 'exacto';
+    const precEl = document.getElementById('add-ano-precision');
+    if (precEl) precEl.value = precision;
+
+    const rawYear = obra.año_construccion;
+    const numYear = parseInt(rawYear, 10);
+
+    const inAno = document.getElementById('add-ano');
+    const selDec = document.getElementById('add-ano-decada');
+    const selSig = document.getElementById('add-ano-siglo');
+
+    if (inAno) inAno.value = Number.isFinite(numYear) ? String(numYear) : '';
+
+    if (Number.isFinite(numYear)) {
+      if (selSig) {
+        const siglo = calcularSigloDeAnio(numYear);
+        const anioCent = anioCentralDeSiglo(siglo);
+        selSig.value = String(anioCent);
+      }
+      if (selDec) {
+        const dec = redondearADecada(numYear);
+        if (!Array.from(selDec.options).some((o) => o.value === String(dec))) {
+          const opt = document.createElement('option');
+          opt.value = String(dec);
+          opt.textContent = `Años ${dec}`;
+          selDec.appendChild(opt);
+        }
+        selDec.value = String(dec);
+      }
+    } else {
+      if (selSig) selSig.value = '';
+      if (selDec) selDec.value = '';
+    }
+
+    actualizarModoAddAno();
+
     document.getElementById('add-importancia').value = String(obra.importancia || 1);
     document.getElementById('add-categoria').value = normalizarCategoria(obra.categoria);
     document.getElementById('add-acceso').value = obra.estado_acceso || 'publico';
@@ -738,7 +845,20 @@ function initAddBuildingModal() {
     const enlaceUrl = document.getElementById('add-enlace').value.trim();
     const place = document.getElementById('add-place')?.value.trim() || null;
     const arq = document.getElementById('add-arquitecto').value.trim();
-    const ano = parseInt(document.getElementById('add-ano').value, 10);
+
+    const precisionVal = document.getElementById('add-ano-precision')?.value || 'exacto';
+    let finalAno = null;
+    if (precisionVal === 'siglo') {
+      const v = document.getElementById('add-ano-siglo')?.value;
+      finalAno = v ? parseInt(v, 10) : null;
+    } else if (precisionVal === 'decada') {
+      const v = document.getElementById('add-ano-decada')?.value;
+      finalAno = v ? parseInt(v, 10) : null;
+    } else {
+      const v = document.getElementById('add-ano')?.value.trim();
+      finalAno = v ? parseInt(v, 10) : null;
+    }
+
     const importancia = Number(document.getElementById('add-importancia').value);
     const categoria = document.getElementById('add-categoria').value;
     const estadoAcceso = document.getElementById('add-acceso').value;
@@ -778,7 +898,8 @@ function initAddBuildingModal() {
       place: place,
       ciudad: place,
       arquitecto: finalArq,
-      año_construccion: Number.isNaN(ano) ? null : String(ano),
+      año_construccion: (finalAno !== null && Number.isFinite(finalAno)) ? String(finalAno) : null,
+      año_precision: precisionVal,
       importancia,
       categoria,
       estado_acceso: estadoAcceso,
@@ -914,7 +1035,15 @@ function handleMapLongPress(lngLat) {
   const pEl = document.getElementById('add-place');
   if (pEl) pEl.value = '';
   document.getElementById('add-arquitecto').value = '';
+  populateAddYearPrecisionOptions();
+  const precEl = document.getElementById('add-ano-precision');
+  if (precEl) precEl.value = 'exacto';
   document.getElementById('add-ano').value = '';
+  const selDec = document.getElementById('add-ano-decada');
+  if (selDec) selDec.value = '';
+  const selSig = document.getElementById('add-ano-siglo');
+  if (selSig) selSig.value = '';
+  actualizarModoAddAno();
   document.getElementById('add-importancia').value = '1';
   document.getElementById('add-categoria').value = 'otro';
   document.getElementById('add-acceso').value = 'publico';

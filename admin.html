@@ -655,8 +655,19 @@
           </div>
 
           <div>
-            <label for="edit-ano" class="admin-form-label">Año de Construcción:</label>
-            <input type="number" id="edit-ano" class="admin-input" min="1000" max="2100">
+            <label class="admin-form-label">Año / Época de Construcción:</label>
+            <div style="display: grid; grid-template-columns: 140px 1fr; gap: 8px;">
+              <select id="edit-ano-precision" class="admin-input" title="Precisión del año">
+                <option value="exacto">Exacto</option>
+                <option value="decada">Década</option>
+                <option value="siglo">Siglo</option>
+              </select>
+              <div id="wrap-edit-ano-inputs">
+                <input type="number" id="edit-ano" class="admin-input" min="0" max="2100" placeholder="Ej. 1973">
+                <select id="edit-ano-decada" class="admin-input hidden"></select>
+                <select id="edit-ano-siglo" class="admin-input hidden"></select>
+              </div>
+            </div>
           </div>
 
           <div>

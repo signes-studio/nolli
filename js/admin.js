@@ -29,7 +29,12 @@ import {
   limpiarNombreArquitecto,
   extraerIntervenciones,
   formatearImportancia,
-  formatearAño 
+  formatearAño,
+  calcularSigloDeAnio,
+  anioCentralDeSiglo,
+  redondearADecada,
+  obtenerOpcionesSiglos,
+  obtenerOpcionesDecadas 
 } from './state.js';
 import { 
   STUDIO_RELATIONSHIPS as SEED_RELATIONSHIPS, 
@@ -1258,10 +1263,71 @@ async function handleDeleteReport(id) {
 // =========================================================================
 // 8. MODAL DE EDICIÓN DE OBRAS
 // =========================================================================
+function populateYearPrecisionOptions(prefix = 'edit') {
+  const selSiglo = document.getElementById(`${prefix}-ano-siglo`);
+  const selDecada = document.getElementById(`${prefix}-ano-decada`);
+  if (selSiglo && selSiglo.options.length <= 1) {
+    const siglos = obtenerOpcionesSiglos();
+    selSiglo.innerHTML = '<option value="">-- Seleccionar siglo --</option>' +
+      siglos.map((s) => `<option value="${s.anioCentral}">${escapeHtml(s.label)}</option>`).join('');
+  }
+  if (selDecada && selDecada.options.length <= 1) {
+    const decadas = obtenerOpcionesDecadas();
+    selDecada.innerHTML = '<option value="">-- Seleccionar década --</option>' +
+      decadas.map((d) => `<option value="${d.decada}">${escapeHtml(d.label)}</option>`).join('');
+  }
+}
+
+function actualizarModoAno(prefix = 'edit') {
+  const precisionEl = document.getElementById(`${prefix}-ano-precision`);
+  const inAno = document.getElementById(`${prefix}-ano`);
+  const selDecada = document.getElementById(`${prefix}-ano-decada`);
+  const selSiglo = document.getElementById(`${prefix}-ano-siglo`);
+  if (!precisionEl) return;
+  const mode = precisionEl.value;
+
+  if (mode === 'siglo') {
+    inAno?.classList.add('hidden');
+    selDecada?.classList.add('hidden');
+    selSiglo?.classList.remove('hidden');
+  } else if (mode === 'decada') {
+    inAno?.classList.add('hidden');
+    selSiglo?.classList.add('hidden');
+    selDecada?.classList.remove('hidden');
+  } else {
+    selDecada?.classList.add('hidden');
+    selSiglo?.classList.add('hidden');
+    inAno?.classList.remove('hidden');
+  }
+}
+
 function setupModalEvents() {
   const modal = document.getElementById('modal-edit-work');
   const btnClose = document.getElementById('btn-modal-close');
   const form = document.getElementById('form-edit-work');
+
+  populateYearPrecisionOptions('edit');
+  const precSelect = document.getElementById('edit-ano-precision');
+  precSelect?.addEventListener('change', () => {
+    const mode = precSelect.value;
+    const inAno = document.getElementById('edit-ano');
+    const selDecada = document.getElementById('edit-ano-decada');
+    const selSiglo = document.getElementById('edit-ano-siglo');
+    const currentYear = parseInt(inAno?.value || selDecada?.value || selSiglo?.value, 10);
+    if (Number.isFinite(currentYear)) {
+      if (mode === 'siglo') {
+        const siglo = calcularSigloDeAnio(currentYear);
+        const anioCent = anioCentralDeSiglo(siglo);
+        if (selSiglo) selSiglo.value = String(anioCent);
+      } else if (mode === 'decada') {
+        const dec = redondearADecada(currentYear);
+        if (selDecada) selDecada.value = String(dec);
+      } else {
+        if (inAno) inAno.value = String(currentYear);
+      }
+    }
+    actualizarModoAno('edit');
+  });
 
   if (btnClose && modal) {
     btnClose.addEventListener('click', () => modal.classList.remove('open'));
@@ -1279,11 +1345,22 @@ function setupModalEvents() {
       const id = adminConsoleState.editingWorkId;
       if (!id) return;
 
-      const editAnoVal = document.getElementById('edit-ano').value.trim();
+      const precisionVal = document.getElementById('edit-ano-precision')?.value || 'exacto';
+      let finalAnoVal = null;
+      if (precisionVal === 'siglo') {
+        finalAnoVal = document.getElementById('edit-ano-siglo')?.value || null;
+      } else if (precisionVal === 'decada') {
+        finalAnoVal = document.getElementById('edit-ano-decada')?.value || null;
+      } else {
+        const raw = document.getElementById('edit-ano')?.value.trim();
+        finalAnoVal = raw || null;
+      }
+
       const payload = {
         nombre_obra: document.getElementById('edit-nombre').value.trim(),
         arquitecto: document.getElementById('edit-arquitecto').value.trim(),
-        año_construccion: editAnoVal ? editAnoVal : null,
+        año_construccion: finalAnoVal ? String(finalAnoVal) : null,
+        año_precision: precisionVal,
         categoria: document.getElementById('edit-categoria').value,
         estado_acceso: document.getElementById('edit-acceso').value,
         foto_url: document.getElementById('edit-foto').value.trim() || null,
@@ -1322,7 +1399,44 @@ function openEditModal(id) {
 
   document.getElementById('edit-nombre').value = obra.nombre_obra || '';
   document.getElementById('edit-arquitecto').value = obra.arquitecto || '';
-  document.getElementById('edit-ano').value = obra.año_construccion || '';
+
+  populateYearPrecisionOptions('edit');
+  const precision = obra.año_precision || 'exacto';
+  const precEl = document.getElementById('edit-ano-precision');
+  if (precEl) precEl.value = precision;
+
+  const rawYear = obra.año_construccion;
+  const numYear = parseInt(rawYear, 10);
+
+  const inAno = document.getElementById('edit-ano');
+  const selDec = document.getElementById('edit-ano-decada');
+  const selSig = document.getElementById('edit-ano-siglo');
+
+  if (inAno) inAno.value = Number.isFinite(numYear) ? String(numYear) : '';
+
+  if (Number.isFinite(numYear)) {
+    if (selSig) {
+      const siglo = calcularSigloDeAnio(numYear);
+      const anioCent = anioCentralDeSiglo(siglo);
+      selSig.value = String(anioCent);
+    }
+    if (selDec) {
+      const dec = redondearADecada(numYear);
+      if (!Array.from(selDec.options).some((o) => o.value === String(dec))) {
+        const opt = document.createElement('option');
+        opt.value = String(dec);
+        opt.textContent = `Años ${dec}`;
+        selDec.appendChild(opt);
+      }
+      selDec.value = String(dec);
+    }
+  } else {
+    if (selSig) selSig.value = '';
+    if (selDec) selDec.value = '';
+  }
+
+  actualizarModoAno('edit');
+
   document.getElementById('edit-categoria').value = normalizarCategoria(obra.categoria);
   document.getElementById('edit-acceso').value = obra.estado_acceso || 'publico';
   const impSelect = document.getElementById('edit-importancia');

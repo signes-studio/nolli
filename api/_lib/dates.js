@@ -83,6 +83,34 @@ function formatearAño(añoConstruccion, añoPrecision) {
   return String(num);
 }
 
+function obtenerOpcionesSiglos() {
+  const opciones = [];
+  for (let s = 21; s >= 1; s--) {
+    const romano = aRomano(s);
+    const anioCentral = anioCentralDeSiglo(s);
+    const start = (s - 1) * 100 + 1;
+    const end = s * 100;
+    opciones.push({
+      siglo: s,
+      romano,
+      label: `Siglo ${romano} (${start}–${end})`,
+      anioCentral,
+    });
+  }
+  return opciones;
+}
+
+function obtenerOpcionesDecadas(anioMin = 1000, anioMax = 2020) {
+  const opciones = [];
+  for (let d = anioMax; d >= anioMin; d -= 10) {
+    opciones.push({
+      decada: d,
+      label: `Años ${d} (${d}s)`,
+    });
+  }
+  return opciones;
+}
+
 const formatearAnio = formatearAño;
 
 module.exports = {
@@ -93,4 +121,6 @@ module.exports = {
   redondearADecada,
   formatearAño,
   formatearAnio,
+  obtenerOpcionesSiglos,
+  obtenerOpcionesDecadas,
 };
