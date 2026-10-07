@@ -342,7 +342,7 @@ function renderCityPage(data, page, lang = 'es') {
         '@type': 'ListItem',
         position: 2,
         name: getSSRText('breadcrumb_cities', lang),
-        item: `${SITE_URL}${prefix}/`,
+        item: `${SITE_URL}${prefix}/ciudades`,
       },
       {
         '@type': 'ListItem',
@@ -1224,7 +1224,7 @@ function renderCityPage(data, page, lang = 'es') {
     <ol class="breadcrumb-list">
       <li class="breadcrumb-item"><a href="${SITE_URL}${prefix}/"><span class="brand-nolli">nolli.</span></a></li>
       <li class="breadcrumb-sep" aria-hidden="true">/</li>
-      <li class="breadcrumb-item"><a href="${SITE_URL}${prefix}/">${getSSRText('breadcrumb_cities', lang)}</a></li>
+      <li class="breadcrumb-item"><a href="${SITE_URL}${prefix}/ciudades">${getSSRText('breadcrumb_cities', lang)}</a></li>
       <li class="breadcrumb-sep" aria-hidden="true">/</li>
       <li class="breadcrumb-item active" aria-current="page">${escapeHtml(canonicalCity)}</li>
     </ol>

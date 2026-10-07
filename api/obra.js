@@ -7,7 +7,7 @@ const { getImportanceInfo } = require('./_lib/importance.js');
 const { formatearAño } = require('./_lib/dates.js');
 const { CURATED_ROUTES, buildingMatchesRoute } = require('./_lib/embeddings.js');
 
-const checkRateLimit = createRateLimiter({ windowMs: 60 * 1000, maxRequests: 60 });
+const checkRateLimit = createRateLimiter({ windowMs: 60 * 1000, maxRequests: 240 });
 
 const SITE_URL = 'https://nollimap.app';
 
@@ -99,7 +99,7 @@ async function fetchDiscoverySections(building) {
       if (!res.ok) return { data: [], total: 0 };
       const data = await res.json().catch(() => []);
       let total = data.length;
-      const contentRange = res.headers.get('content-range');
+      const contentRange = (res.headers && typeof res.headers.get === 'function') ? res.headers.get('content-range') : null;
       if (contentRange && contentRange.includes('/')) {
         const totalPart = contentRange.split('/')[1];
         if (totalPart && totalPart !== '*') {
@@ -382,7 +382,7 @@ function renderBuildingPage(building, lang = 'es', discoveryData = {}) {
 
   const displayOriginalArchitects = (Array.isArray(arquitectosOriginales) && arquitectosOriginales.length > 0)
     ? arquitectosOriginales
-    : [];
+    : (Array.isArray(cleanArchitects) && cleanArchitects.length > 0 ? cleanArchitects : []);
 
   if (displayOriginalArchitects.length > 0) {
     const renderedParts = displayOriginalArchitects.map((name) => {
@@ -425,7 +425,18 @@ function renderBuildingPage(building, lang = 'es', discoveryData = {}) {
       value: `<a href="${SITE_URL}${prefix}/categoria/${encodeURIComponent(categoriaSlug)}" class="badge-category category-${categoryClass(building.categoria)}"><span class="dot"></span>${escapeHtml(categoriaText)}</a>`,
       isHtml: true,
     },
-    building.place && { label: getSSRText('label_place', lang), value: escapeHtml(building.place) },
+    building.place && {
+      label: getSSRText('label_place', lang),
+      value: (() => {
+        const city = extractCityName(building.place);
+        if (city) {
+          const citySlug = slugify(city);
+          return `<a href="${SITE_URL}${prefix}/ciudad/${encodeURIComponent(citySlug)}">${escapeHtml(building.place)}</a>`;
+        }
+        return escapeHtml(building.place);
+      })(),
+      isHtml: true,
+    },
     building.enlace_url && {
       label: 'Info',
       value: `<a href="${escapeHtml(building.enlace_url)}" target="_blank" rel="noopener noreferrer">Wikipedia / Web ↗</a>`,
@@ -440,6 +451,17 @@ function renderBuildingPage(building, lang = 'es', discoveryData = {}) {
     </li>
   `).join('');
 
+  const architectSnippet = validArchitects.length > 0
+    ? `proyectada por ${validArchitects.join(', ')}`
+    : (building.arquitecto && !isIgnoredArchitect(building.arquitecto) ? `proyectada por ${building.arquitecto}` : '');
+  const yearSnippet = building.año_construccion ? `en ${formatearAño(building.año_construccion, building.año_precision)}` : '';
+  const placeSnippet = building.place ? `en ${building.place}` : '';
+  const editorialOverviewHtml = [
+    `La obra <strong>${escapeHtml(building.nombre_obra)}</strong> es un proyecto catalogado dentro de la categoría <strong>${escapeHtml(categoriaText.toLowerCase())}</strong>${placeSnippet ? ` ${escapeHtml(placeSnippet)}` : ''}.`,
+    (architectSnippet || yearSnippet) ? `Fue ${[architectSnippet, yearSnippet].filter(Boolean).map(escapeHtml).join(' ')}.` : '',
+    `Esta ficha forma parte del archivo y radar contemporáneo de arquitectura de nolli.`
+  ].filter(Boolean).join(' ');
+
   const placeSchema = {
     '@context': 'https://schema.org',
     '@type': ['Place', 'LandmarksOrHistoricalBuildings'],
@@ -452,6 +474,19 @@ function renderBuildingPage(building, lang = 'es', discoveryData = {}) {
       ...(building.foto_credito ? { creditText: building.foto_credito } : {}),
       ...(building.foto_licencia ? { license: building.foto_licencia } : {}),
     },
+    ...(building.latitud && building.longitud ? {
+      geo: {
+        '@type': 'GeoCoordinates',
+        latitude: Number(building.latitud),
+        longitude: Number(building.longitud),
+      },
+    } : {}),
+    ...(building.place ? {
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: building.place,
+      },
+    } : {}),
     ...(building.arquitecto || building.año_construccion ? {
       subjectOf: {
         '@type': 'CreativeWork',
@@ -913,6 +948,23 @@ function renderBuildingPage(building, lang = 'es', discoveryData = {}) {
     }
     .tech-value a:hover {
       text-decoration: underline;
+    }
+    .work-summary-block {
+      margin-top: 14px;
+      padding: 14px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--ink-dim);
+    }
+    .work-summary-block strong {
+      color: var(--ink);
+      font-weight: 600;
+    }
+    .work-summary-text {
+      margin: 0;
     }
     /* Tarjeta de Obra Unificada (.obra-card) */
     .obra-card {
@@ -1676,11 +1728,16 @@ function renderBuildingPage(building, lang = 'es', discoveryData = {}) {
         </div>
 
         ${detailsRowsHtml ? `
-          <div class="tech-card">
-            <div class="tech-card-header">Ficha Técnica</div>
-            <ul class="tech-list">
-              ${detailsRowsHtml}
-            </ul>
+          <div>
+            <div class="tech-card">
+              <div class="tech-card-header">Ficha Técnica</div>
+              <ul class="tech-list">
+                ${detailsRowsHtml}
+              </ul>
+            </div>
+            <div class="work-summary-block">
+              <p class="work-summary-text">${editorialOverviewHtml}</p>
+            </div>
           </div>
         ` : ''}
       </div>
@@ -1977,6 +2034,7 @@ module.exports = async (request, response) => {
     const id = String(request.query?.id || '').trim();
     if (!id) {
       response.setHeader('Content-Type', 'text/html; charset=utf-8');
+      response.setHeader('X-Robots-Tag', 'noindex, follow');
       response.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=3600');
       response.setHeader('Vercel-Cache-Tag', 'obra-404,catalog');
       response.setHeader('Cache-Tag', 'obra-404,catalog');
@@ -1986,6 +2044,7 @@ module.exports = async (request, response) => {
     const building = await fetchPublicBuilding(id);
     if (!building) {
       response.setHeader('Content-Type', 'text/html; charset=utf-8');
+      response.setHeader('X-Robots-Tag', 'noindex, follow');
       response.setHeader('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=3600');
       response.setHeader('Vercel-Cache-Tag', 'obra-404,catalog');
       response.setHeader('Cache-Tag', 'obra-404,catalog');

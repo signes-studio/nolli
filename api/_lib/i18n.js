@@ -411,9 +411,9 @@ function renderSiteFooter(lang = 'es', siteUrl = 'https://nollimap.app') {
     </div>
     <div class="footer-links">
       <a href="${siteUrl}${prefix}/">${escapeHtml(mapText)}</a>
-      <a href="${siteUrl}/sitemap-categories.xml">Categorías</a>
-      <a href="${siteUrl}/sitemap-architects.xml">Arquitectos</a>
-      <a href="${siteUrl}/sitemap-cities.xml">Ciudades</a>
+      <a href="${siteUrl}${prefix}/ciudades">Ciudades</a>
+      <a href="${siteUrl}${prefix}/arquitectos">Arquitectos</a>
+      <a href="${siteUrl}${prefix}/categorias">Categorías</a>
       <a href="${siteUrl}/sitemap.xml">Sitemap</a>
       <a href="${siteUrl}/legal">Legal</a>
     </div>

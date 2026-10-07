@@ -231,7 +231,7 @@
       </div>
       <div class="topbar-right">
         <button id="btn-login-trigger" type="button" class="topbar-btn topbar-btn-login" aria-label="Iniciar sesión" data-i18n="login_init_btn" data-i18n-aria="login_init_btn_aria">INICIAR SESIÓN</button>
-        <a href="./perfil.html" id="topbar-profile-link" class="topbar-btn topbar-btn-profile profile-page-link" aria-label="Abrir perfil personal" data-i18n="topbar_profile" data-i18n-aria="topbar_profile_aria">PERFIL PERSONAL</a>
+        <a href="/perfil" id="topbar-profile-link" class="topbar-btn topbar-btn-profile profile-page-link" aria-label="Abrir perfil personal" data-i18n="topbar_profile" data-i18n-aria="topbar_profile_aria">PERFIL PERSONAL</a>
         <button id="btn-admin-panel" type="button" class="topbar-btn btn-admin hidden" data-i18n="admin_panel_title">PANEL ADMIN</button>
         <div class="hud-readout" aria-live="polite">
           <label id="admin-mode-control" class="admin-mode-control hidden" for="admin-mode-toggle">
@@ -419,7 +419,7 @@
         <span id="admin-head-title" class="admin-head-title" data-i18n="admin_projects_title">CATÁLOGO DE OBRAS</span>
       </div>
       <div class="admin-head-tools">
-        <a href="./admin.html" class="admin-console-link" title="Abrir consola de administración dedicada" data-i18n="admin_console_btn">CONSOLA ↗</a>
+        <a href="/admin" class="admin-console-link" title="Abrir consola de administración dedicada" data-i18n="admin_console_btn">CONSOLA ↗</a>
         <button type="button" id="btn-admin-close" class="admin-close-btn" aria-label="Cerrar panel admin" data-i18n-aria="admin_close_aria">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"><line x1="5" y1="5" x2="19" y2="19"></line><line x1="19" y1="5" x2="5" y2="19"></line></svg>
         </button>
@@ -813,7 +813,7 @@
       <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="neo-nav-icon"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path></svg>
       <span data-i18n="nav_places">mis lugares</span>
     </button>
-    <a href="./perfil.html" class="mobile-nav-btn" id="mobile-nav-profile" aria-label="Tú y tu archivo personal">
+    <a href="/perfil" class="mobile-nav-btn" id="mobile-nav-profile" aria-label="Tú y tu archivo personal">
       <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="neo-nav-icon"><circle cx="12" cy="8" r="4"></circle><path d="M5 20c0-3.87 3.13-7 7-7s7 3.13 7 7"></path></svg>
       <span data-i18n="nav_you">tú</span>
     </a>
@@ -1033,7 +1033,7 @@
         <div class="register-only-field legal-consent-block hidden">
           <label class="tech-checkbox-label">
             <input type="checkbox" id="register-terms" class="tech-checkbox" required>
-            <span data-i18n-html="auth_terms_html">He leído y acepto los <a href="./legal.html" target="_blank" class="tech-legal-link">términos, condiciones y bases legales</a> del servicio.</span>
+            <span data-i18n-html="auth_terms_html">He leído y acepto los <a href="/legal" target="_blank" class="tech-legal-link">términos, condiciones y bases legales</a> del servicio.</span>
           </label>
           <label class="tech-checkbox-label">
             <input type="checkbox" id="register-newsletter" class="tech-checkbox">
@@ -1062,7 +1062,7 @@
           </button>
           <button id="btn-guest-login" type="button" class="btn btn-auth-guest w-full mt-2" data-i18n="auth_btn_guest">ENTRAR COMO INVITADO →</button>
           <p class="auth-legal-disclaimer text-center mt-3" style="font-size: 10px; line-height: 1.4; color: var(--fg-muted, #767571); margin-top: 12px; font-family: 'Inter', sans-serif;">
-            Al continuar, aceptas el <a href="./legal.html#aviso-legal" target="_blank" class="tech-legal-link" style="text-decoration: underline; color: inherit;">Aviso Legal</a>, las <a href="./legal.html#terminos" target="_blank" class="tech-legal-link" style="text-decoration: underline; color: inherit;">Condiciones de Uso</a> y la <a href="./legal.html#privacidad" target="_blank" class="tech-legal-link" style="text-decoration: underline; color: inherit;">Política de Privacidad</a>.
+            Al continuar, aceptas el <a href="/legal#aviso-legal" target="_blank" class="tech-legal-link" style="text-decoration: underline; color: inherit;">Aviso Legal</a>, las <a href="/legal#terminos" target="_blank" class="tech-legal-link" style="text-decoration: underline; color: inherit;">Condiciones de Uso</a> y la <a href="/legal#privacidad" target="_blank" class="tech-legal-link" style="text-decoration: underline; color: inherit;">Política de Privacidad</a>.
           </p>
         </div>
         <button id="btn-logout" type="button" class="btn hidden mt-1 w-full" data-i18n="auth_btn_logout">CERRAR SESIÓN</button>
@@ -1535,7 +1535,7 @@
             <button type="button" id="btn-info-cookie-settings" class="btn btn-auth-secondary" style="font-size:10px; padding:7px 12px;">
               CONFIGURAR CONSENTIMIENTO
             </button>
-            <a href="./legal.html#cookies" target="_blank" class="info-legal-link" style="font-size:11px; align-self:center;">
+            <a href="/legal#cookies" target="_blank" class="info-legal-link" style="font-size:11px; align-self:center;">
               Ver política de cookies completa &nearr;
             </a>
           </div>
@@ -1583,7 +1583,7 @@
           </div>
 
           <div class="info-legal-actions mt-3">
-            <a href="./legal.html" target="_blank" class="btn btn-auth-primary" style="text-decoration:none; text-align:center; font-size:10.5px; padding:9px 16px;">
+            <a href="/legal" target="_blank" class="btn btn-auth-primary" style="text-decoration:none; text-align:center; font-size:10.5px; padding:9px 16px;">
               CONSULTAR DOCUMENTO LEGAL ÍNTEGRO &nearr;
             </a>
           </div>
@@ -1698,6 +1698,26 @@
     </div>
   </div>
 </div>
+
+<!-- Footer Unificado del Sistema (Accesible y Rastreable para Motores de Búsqueda) -->
+<footer class="nolli-site-footer nolli-map-footer" aria-label="Información y catálogo">
+  <span class="nolli-footer-copyright"><span class="brand-nolli">nolli.</span> &copy; 2026</span>
+  <details class="nolli-footer-details">
+    <summary aria-label="Abrir enlaces y catálogo">EXPLORAR</summary>
+    <nav aria-label="Enlaces del atlas y legales">
+      <a href="/ciudades">CIUDADES</a>
+      <a href="/arquitectos">ARQUITECTOS</a>
+      <a href="/categorias">CATEGORÍAS</a>
+      <a href="/landing">ATLAS</a>
+      <a href="/guia">GUÍA</a>
+      <a href="/legal#aviso-legal">AVISO LEGAL</a>
+      <a href="/legal#privacidad">PRIVACIDAD</a>
+      <a href="/legal#cookies">COOKIES</a>
+      <a href="/legal#terminos">TÉRMINOS</a>
+      <a href="mailto:nolli@signes.studio">CONTACTO</a>
+    </nav>
+  </details>
+</footer>
 
 <!-- Lógica de la aplicación: módulo ES6, se ejecuta en modo defer nativo -->
 <script type="module" src="/js/main.js"></script>

@@ -7,12 +7,16 @@
     footer.innerHTML = `
       <span class="nolli-footer-copyright"><span class="brand-nolli">nolli.</span> &copy; ${new Date().getFullYear()}</span>
       <details class="nolli-footer-details">
-        <summary aria-label="Abrir enlaces legales">LEGAL</summary>
-        <nav aria-label="Enlaces legales">
-        <a href="legal.html#aviso-legal">AVISO LEGAL</a>
-        <a href="legal.html#privacidad">PRIVACIDAD</a>
-        <a href="legal.html#cookies">COOKIES</a>
-        <a href="legal.html#terminos">TÉRMINOS</a>
+        <summary aria-label="Abrir enlaces y catálogo">EXPLORAR</summary>
+        <nav aria-label="Enlaces del atlas y legales">
+        <a href="/ciudades">CIUDADES</a>
+        <a href="/arquitectos">ARQUITECTOS</a>
+        <a href="/categorias">CATEGORÍAS</a>
+        <a href="/landing">ATLAS</a>
+        <a href="/legal#aviso-legal">AVISO LEGAL</a>
+        <a href="/legal#privacidad">PRIVACIDAD</a>
+        <a href="/legal#cookies">COOKIES</a>
+        <a href="/legal#terminos">TÉRMINOS</a>
         <a href="mailto:nolli@signes.studio">CONTACTO</a>
         </nav>
       </details>`;

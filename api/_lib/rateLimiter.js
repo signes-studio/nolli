@@ -15,10 +15,11 @@ function createRateLimiter({
 
   return function checkRateLimit(req, res, customLimit = null) {
     const limit = customLimit || maxRequests;
+    const headers = req?.headers || {};
     const clientIp = (
-      req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
-      req.headers['x-real-ip'] ||
-      req.socket?.remoteAddress ||
+      headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+      headers['x-real-ip'] ||
+      req?.socket?.remoteAddress ||
       'anonymous'
     );
 

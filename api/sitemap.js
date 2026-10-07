@@ -222,7 +222,6 @@ module.exports = async (request, response) => {
         getMultilingualSitemapEntries('/guia', today, 'monthly', '0.8', SITE_URL),
         getMultilingualSitemapEntries('/manifiesto', today, 'monthly', '0.8', SITE_URL),
         getMultilingualSitemapEntries('/colabora', today, 'monthly', '0.8', SITE_URL),
-        getMultilingualSitemapEntries('/perfil', today, 'weekly', '0.8', SITE_URL),
         getMultilingualSitemapEntries('/legal', today, 'monthly', '0.3', SITE_URL),
       ];
 

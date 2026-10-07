@@ -219,6 +219,18 @@
       ]
     }
   ],
+  "redirects": [
+    {
+      "source": "/lugar/:slug",
+      "destination": "/ciudad/:slug",
+      "permanent": true
+    },
+    {
+      "source": "/(en|ca)/lugar/:slug",
+      "destination": "/ciudad/:slug",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/sitemap.xml",
@@ -330,14 +342,6 @@
     },
     {
       "source": "/ca/ciudad/:slug",
-      "destination": "/api/ciudad?slug=:slug&lang=ca"
-    },
-    {
-      "source": "/en/lugar/:slug",
-      "destination": "/api/ciudad?slug=:slug&lang=en"
-    },
-    {
-      "source": "/ca/lugar/:slug",
       "destination": "/api/ciudad?slug=:slug&lang=ca"
     },
     {
@@ -478,10 +482,6 @@
     },
     {
       "source": "/ciudad/:slug",
-      "destination": "/api/ciudad?slug=:slug"
-    },
-    {
-      "source": "/lugar/:slug",
       "destination": "/api/ciudad?slug=:slug"
     }
   ]

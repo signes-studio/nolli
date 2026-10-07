@@ -224,7 +224,7 @@ function parseArchitectsAndInterventions(raw) {
       arquitectos.push(part);
     }
   }
-  return { arquitectos, intervenciones };
+  return { arquitectos, arquitectosOriginales: arquitectos, intervenciones };
 }
 
 module.exports = {

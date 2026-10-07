@@ -294,7 +294,7 @@ function renderCategoryPage(slug, data, page, lang = 'es') {
         '@type': 'ListItem',
         position: 2,
         name: getSSRText('breadcrumb_categories', lang),
-        item: `${SITE_URL}${prefix}/`,
+        item: `${SITE_URL}${prefix}/categorias`,
       },
       {
         '@type': 'ListItem',
@@ -1183,7 +1183,7 @@ function renderCategoryPage(slug, data, page, lang = 'es') {
     <ol class="breadcrumb-list">
       <li class="breadcrumb-item"><a href="${SITE_URL}${prefix}/"><span class="brand-nolli">nolli.</span></a></li>
       <li class="breadcrumb-sep" aria-hidden="true">/</li>
-      <li class="breadcrumb-item"><a href="${SITE_URL}${prefix}/">${getSSRText('breadcrumb_categories', lang)}</a></li>
+      <li class="breadcrumb-item"><a href="${SITE_URL}${prefix}/categorias">${getSSRText('breadcrumb_categories', lang)}</a></li>
       <li class="breadcrumb-sep" aria-hidden="true">/</li>
       <li class="breadcrumb-item active" aria-current="page">${escapeHtml(categoriaText)}</li>
     </ol>

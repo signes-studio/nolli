@@ -6,15 +6,25 @@
 User-agent: *
 Allow: /
 Allow: /landing
-Allow: /perfil
 Allow: /public-profile
 Allow: /legal
+Allow: /ciudades
+Allow: /arquitectos
+Allow: /categorias
+Allow: /guia
+Allow: /manifiesto
+Allow: /colabora
 
-# Bloquear panel de administración y directorios internos
+# Bloquear variantes de idioma no indexadas para preservar crawl budget
+Disallow: /en/
+Disallow: /ca/
+
+# Bloquear panel de administración, perfil privado y directorios internos
 Disallow: /admin
 Disallow: /admin.html
 Disallow: /itinerarios
 Disallow: /itinerarios.html
+Disallow: /perfil
 Disallow: /supabase/
 
 # Archivo de mapa del sitio
