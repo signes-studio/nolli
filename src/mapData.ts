@@ -87,6 +87,7 @@ export function actualizarFuenteMapa(): void {
           return false;
         }
         if ((obra as InternalBuildingFields).private) return true;
+        if (obra.estado_revision === 'pendiente') return true;
         if ((esRolAdmin(state.userRole) || esRolEditor(state.userRole)) && state.adminMode) {
           return obra.estado_revision !== 'rechazada';
         }
@@ -96,7 +97,7 @@ export function actualizarFuenteMapa(): void {
         if (state.userId && ((obra as InternalBuildingFields).user_id === state.userId || (state.userEmail && obra.añadido_por === state.userEmail))) {
           return obra.estado_revision !== 'rechazada';
         }
-        return obra.estado_revision !== 'pendiente' && obra.estado_revision !== 'rechazada';
+        return obra.estado_revision !== 'rechazada';
       });
 
       // Aislamiento de datos en Modo Itinerario

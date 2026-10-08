@@ -416,6 +416,7 @@ async function cargarContenidoPrivado() {
 }
 
 document.addEventListener('radar:user-session-ready', cargarContenidoPrivado);
+document.addEventListener('radar:admin-login', cargarContenidoPrivado);
 document.addEventListener('radar:user-session-ready', () => {
   if (esRolAdmin(state.userRole)) {
     cargarPanelBajoDemanda('adminUI', 'initAdminUI').catch((err) => console.warn('Init AdminUI:', err));

@@ -760,16 +760,8 @@ export function cargarMapaMapbox() {
           'icon-size': [
             'case',
             ['has', 'collection_emoji'], 0.85,
-            ['==', ['get', 'selected'], 1], 1.25,
-            [
-              'interpolate',
-              ['linear'],
-              ['zoom'],
-              2, 0.90,
-              6, 1.00,
-              12, 1.10,
-              16, 1.20
-            ]
+            ['==', ['get', 'selected'], 1], 1.30,
+            1.10
           ],
           'symbol-sort-key': [
             'case',
