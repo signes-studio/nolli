@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nolli-shell-f2317d3e';
+const CACHE_NAME = 'nolli-shell-3e5289d9';
 const CATALOG_FRESHNESS_MINUTES = 60;
 const CATALOG_CACHE_TTL_MS = CATALOG_FRESHNESS_MINUTES * 60 * 1000;
 const APP_SHELL = [

@@ -759,14 +759,22 @@ export function cargarMapaMapbox() {
           ],
           'icon-size': [
             'case',
-            ['has', 'collection_emoji'], 0.75,
-            ['==', ['get', 'selected'], 1], iconSize * 1.3,
-            iconSize
+            ['has', 'collection_emoji'], 0.85,
+            ['==', ['get', 'selected'], 1], 1.25,
+            [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              2, 0.90,
+              6, 1.00,
+              12, 1.10,
+              16, 1.20
+            ]
           ],
           'symbol-sort-key': [
             'case',
-            ['==', ['get', 'selected'], 1], 100,
-            90 - importance
+            ['==', ['get', 'selected'], 1], 2000,
+            1000
           ],
           'icon-allow-overlap': true,
           'icon-ignore-placement': true,
@@ -881,8 +889,10 @@ export function cargarMapaMapbox() {
       'obras-maestras-selected-ring',
       'obras-l3', 'obras-l2', 'obras-l1', 'obras-l0',
       'obras-l3-visited', 'obras-l2-visited', 'obras-l1-visited', 'obras-l0-visited',
-      'obras-l3-pending', 'obras-l2-pending', 'obras-l1-pending', 'obras-l0-pending',
       'obras-l3-private', 'obras-l2-private', 'obras-l1-private', 'obras-l0-private',
+      'obras-l3-explore', 'obras-l2-explore', 'obras-l1-explore', 'obras-l0-explore',
+      'obras-l3-search', 'obras-l2-search', 'obras-l1-search', 'obras-l0-search',
+      'obras-l3-pending', 'obras-l2-pending', 'obras-l1-pending', 'obras-l0-pending',
       'obras-l3-selected', 'obras-l2-selected', 'obras-l1-selected', 'obras-l0-selected',
       'obras-labels-l3', 'obras-labels-l2', 'obras-labels-l1', 'obras-labels-l0',
       'obras-labels-selected', 'obras-maestras-labels-selected',

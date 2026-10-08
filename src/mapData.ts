@@ -14,6 +14,7 @@ interface InternalBuildingFields extends Building {
   _sharedCoords?: [number, number];
   private?: boolean;
   selected?: boolean;
+  user_id?: string;
 }
 
 interface MapSourceWithSetData {
@@ -90,6 +91,9 @@ export function actualizarFuenteMapa(): void {
           return obra.estado_revision !== 'rechazada';
         }
         if (state.selectedFeatureId && (String(obra.id) === String(state.selectedFeatureId) || String((obra as InternalBuildingFields).featureId) === String(state.selectedFeatureId))) {
+          return obra.estado_revision !== 'rechazada';
+        }
+        if (state.userId && ((obra as InternalBuildingFields).user_id === state.userId || (state.userEmail && obra.añadido_por === state.userEmail))) {
           return obra.estado_revision !== 'rechazada';
         }
         return obra.estado_revision !== 'pendiente' && obra.estado_revision !== 'rechazada';
@@ -214,9 +218,11 @@ export function actualizarFuenteMapa(): void {
           },
         };
 
-        if (obra.importancia === 0 || obra.importancia === 1) {
+        const isPending = (obra.estado_revision === 'pendiente');
+        if (isPending || obra.importancia === 0 || obra.importancia === 1) {
           masterFeatures.push(feature);
-        } else {
+        }
+        if (isPending || obra.importancia === 2 || obra.importancia === 3) {
           standardFeatures.push(feature);
         }
       });
